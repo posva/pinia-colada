@@ -10,3 +10,4 @@ yarn.lock
 .DS_Store
 .pnpm-debug.log
 tsconfig.tsbuildinfo
+tsconfig.vitest-temp.json
