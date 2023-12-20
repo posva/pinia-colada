@@ -1,25 +1,37 @@
 labels:
-  - name: bug
+  - name: 🐞 bug
     color: ee0701
-  - name: contribution welcome
-    color: 0e8a16
-  - name: discussion
-    color: 4935ad
-  - name: docs
-    color: 8be281
-  - name: enhancement
+    description: this isn't working as expected
+  - name: ✨ feature request
+    color: fbca04
+    description: a new feature request
+  - name: ⚡️ enhancement
     color: a2eeef
-  - name: good first issue
-    color: 7057ff
-  - name: help wanted
-    color: 008672
-  - name: question
-    color: d876e3
-  - name: wontfix
-    color: ffffff
-  - name: WIP
-    color: ffffff
+    description: improvement over an existing feature
   - name: need repro
     color: c9581c
-  - name: feature request
-    color: fbca04
+    description: the issue needs a reproduction for further investigation
+  - name: has workaround
+    color: 2139c4
+    description: has a temporary fix to get around the problem
+  - name: contribution welcome
+    color: 0e8a16
+    description: others are welcome to implement/fix this
+  - name: typescript
+    color: 3178c6
+    description: issue related to types
+  - name: 💬 discussion
+    color: 4935ad
+    description: topic that requires further discussion
+  - name: 📚 docs
+    color: 8be281
+    description: related to documentation
+  - name: good first issue
+    color: 7057ff
+    description: this should be manageable for new-comers
+  - name: help wanted
+    color: 008672
+    description: help in this issue is welcome
+  - name: wontfix
+    color: ffffff
+    description: this issue won't be fixed
