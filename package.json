@@ -3,7 +3,7 @@
   "packageManager": "pnpm@8.12.0",
   "version": "0.0.0",
   "type": "module",
-  "description": "",
+  "description": "The smart data fetching layer for Pinia",
   "publishConfig": {
     "access": "public"
   },

@@ -1,4 +1,7 @@
 {
+  "include": [
+    "src"
+  ],
   "compilerOptions": {
     "rootDir": ".",
     "baseUrl": ".",
@@ -6,12 +9,10 @@
     "module": "esnext",
     "noEmit": true,
     "strict": true,
-    "composite": true,
+    // TSUP issue https://github.com/egoist/tsup/issues/571
+    // "composite": true,
     "esModuleInterop": true,
     "moduleResolution": "Bundler",
     "skipLibCheck": true,
   },
-  "include": [
-    "src"
-  ]
 }
