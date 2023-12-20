@@ -65,8 +65,11 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.10.4",
+    "@vitejs/plugin-vue": "^4.5.2",
     "@vitest/coverage-v8": "^1.0.4",
     "@vitest/ui": "^1.1.0",
+    "@vue/test-utils": "^2.4.3",
+    "happy-dom": "^12.10.3",
     "lint-staged": "^15.2.0",
     "pinia": "^2.1.7",
     "prettier": "^3.1.1",

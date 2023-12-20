@@ -141,7 +141,7 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
   return {
     dataRegistry,
     errorRegistry,
-    isLoadingRegistry: isFetchingRegistry,
+    isFetchingRegistry,
 
     ensureEntry,
     invalidateEntry,

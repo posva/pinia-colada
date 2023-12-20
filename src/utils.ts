@@ -1,9 +1,5 @@
 import { onScopeDispose } from 'vue'
 
-export interface GeneralEventListener<E = Event> {
-  (evt: E): void
-}
-
 /**
  * Adds an event listener to Window that is automatically removed on scope dispose.
  */
@@ -16,11 +12,6 @@ export function useEventListener<E extends keyof WindowEventMap>(
 
 /**
  * Adds an event listener to Document that is automatically removed on scope dispose.
- *
- * @param target
- * @param event
- * @param listener
- * @param options
  */
 export function useEventListener<E extends keyof DocumentEventMap>(
   target: Document,
@@ -32,7 +23,7 @@ export function useEventListener<E extends keyof DocumentEventMap>(
 export function useEventListener(
   target: Document | Window | EventTarget,
   event: string,
-  listener: GeneralEventListener,
+  listener: (this: EventTarget, ev: Event) => any,
   options?: boolean | AddEventListenerOptions
 ) {
   target.addEventListener(event, listener, options)

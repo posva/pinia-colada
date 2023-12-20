@@ -2,6 +2,7 @@ import { computed, ref, type ComputedRef, shallowRef } from 'vue'
 import { useDataFetchingStore } from './data-fetching-store'
 import { type UseQueryKey } from './use-query'
 
+// TODO: allow just one function that returns an array of keys?
 type _MutatorKeys<TParams extends readonly any[], TResult> = readonly (
   | UseQueryKey
   | ((context: { variables: TParams; result: TResult }) => UseQueryKey)
