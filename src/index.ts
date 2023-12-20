@@ -15,3 +15,5 @@ export {
 } from './use-query'
 
 export { useDataFetchingStore } from './data-fetching-store'
+
+// TODO: idea of plugin that persists the cached values

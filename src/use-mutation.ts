@@ -1,9 +1,10 @@
 import { computed, ref, type ComputedRef, shallowRef } from 'vue'
 import { useDataFetchingStore } from './data-fetching-store'
+import { type UseQueryKey } from './use-query'
 
 type _MutatorKeys<TParams extends readonly any[], TResult> = readonly (
-  | string
-  | ((context: { variables: TParams; result: TResult }) => string)
+  | UseQueryKey
+  | ((context: { variables: TParams; result: TResult }) => UseQueryKey)
 )[]
 
 export interface UseMutationsOptions<
@@ -15,6 +16,8 @@ export interface UseMutationsOptions<
    */
   mutator: (...args: TParams) => Promise<TResult>
   keys?: _MutatorKeys<TParams, TResult>
+
+  // TODO: onMutate for optimistic updates
 }
 // export const USE_MUTATIONS_DEFAULTS = {} satisfies Partial<UseMutationsOptions>
 
@@ -59,9 +62,9 @@ export function useMutation<
           if (options.keys) {
             for (const key of options.keys) {
               store.invalidateEntry(
-                typeof key === 'string'
-                  ? key
-                  : key({ variables: args, result: _data }),
+                typeof key === 'function'
+                  ? key({ variables: args, result: _data })
+                  : key,
                 true
               )
             }

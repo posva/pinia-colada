@@ -25,7 +25,11 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
 
   function ensureEntry<TResult = unknown, TError = Error>(
     key: UseQueryKey,
-    { fetcher, initialValue, cacheTime }: UseQueryOptionsWithDefaults<TResult>
+    {
+      fetcher,
+      initialData: initialValue,
+      staleTime: cacheTime,
+    }: UseQueryOptionsWithDefaults<TResult>
   ): UseDataFetchingQueryEntry<TResult, TError> {
     // ensure the data
     console.log('⚙️ Ensuring entry', key)
@@ -112,10 +116,10 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
    * @param key - the key of the query to invalidate
    * @param refresh - whether to force a refresh of the data
    */
-  function invalidateEntry(key: string, refresh = false) {
+  function invalidateEntry(key: UseQueryKey, refresh = false) {
     if (!queryEntriesRegistry.has(key)) {
       console.warn(
-        `⚠️ trying to invalidate "${key}" but it's not in the registry`
+        `⚠️ trying to invalidate "${String(key)}" but it's not in the registry`
       )
       return
     }

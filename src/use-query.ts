@@ -5,6 +5,7 @@ import {
   onMounted,
   onServerPrefetch,
   toValue,
+  onScopeDispose,
 } from 'vue'
 import { useDataFetchingStore } from './data-fetching-store'
 
@@ -28,6 +29,7 @@ export interface UseDataFetchingQueryEntry<TResult = unknown, TError = any> {
    */
   isFetching: () => boolean
 
+  // TODO: should we just have refresh and allow a parameter to force a refresh? instead of having fetch and refresh
   /**
    * Refreshes the data ignoring any cache but still decouples the refreshes (only one refresh at a time)
    * @returns a promise that resolves when the refresh is done
@@ -59,16 +61,27 @@ export interface UseQueryOptions<TResult = unknown> {
   key: UseQueryKey | (() => UseQueryKey)
   fetcher: () => Promise<TResult>
 
-  cacheTime?: number
-  initialValue?: () => TResult
+  /**
+   * Time in ms after which the data is considered stale and will be refreshed on next read
+   */
+  staleTime?: number
+
+  /**
+   * Time in ms after which, once the data is no longer in used, it will be garbage collected to free resources.
+   */
+  gcTime?: number
+
+  initialData?: () => TResult
   refetchOnWindowFocus?: boolean
   refetchOnReconnect?: boolean
 }
+
 /**
  * Default options for `useQuery()`. Modifying this object will affect all the queries that don't override these
  */
 export const USE_QUERY_DEFAULTS = {
-  cacheTime: 1000 * 5,
+  staleTime: 1000 * 5, // 5 seconds
+  gcTime: 1000 * 60 * 5, // 5 minutes
   refetchOnWindowFocus: true as boolean,
   refetchOnReconnect: true as boolean,
 } satisfies Partial<UseQueryOptions>
@@ -105,10 +118,18 @@ export function useQuery<TResult, TError = Error>(
   onMounted(entry.value.refresh)
   // TODO: optimize so it doesn't refresh if we are hydrating
 
+  // TODO: we could save the time it was fetched to avoid fetching again. This is useful to not refetch during SSR app but do refetch in SSG apps if the data is stale. Careful with timers and timezones
+
+  onScopeDispose(() => {
+    // TODO: add a reference count to the entry and garbage collect it if it's 0 after the given delay
+  })
+
   if (IS_CLIENT) {
     if (options.refetchOnWindowFocus) {
-      useEventListener(window, 'focus', () => {
-        entry.value.refresh()
+      useEventListener(document, 'visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          entry.value.refresh()
+        }
       })
     }
 
@@ -120,6 +141,7 @@ export function useQuery<TResult, TError = Error>(
   }
 
   const queryReturn = {
+    // TODO: optimize so we create only one computed per entry. We could have an application plugin that creates an effectScope and allows us to inject the scope to create entries
     data: computed(() => entry.value.data()),
     error: computed(() => entry.value.error()),
     isFetching: computed(() => entry.value.isFetching()),
