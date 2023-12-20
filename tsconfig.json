@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "rootDir": ".",
+    "baseUrl": ".",
+    "target": "esnext",
+    "module": "esnext",
+    "noEmit": true,
+    "strict": true,
+    "composite": true,
+    "esModuleInterop": true,
+    "moduleResolution": "Bundler",
+    "skipLibCheck": true,
+  },
+  "include": [
+    "src"
+  ]
+}

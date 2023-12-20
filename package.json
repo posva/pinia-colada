@@ -1,0 +1,99 @@
+{
+  "name": "@pinia/colada",
+  "packageManager": "pnpm@8.12.0",
+  "version": "0.0.0",
+  "type": "module",
+  "description": "",
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "unpkg": "dist/index.global.js",
+  "jsdelivr": "dist/index.global.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": {
+        "require": "./dist/index.d.cts",
+        "import": "./dist/index.d.ts"
+      },
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/*",
+        "./*"
+      ]
+    }
+  },
+  "sideEffects": false,
+  "funding": "https://github.com/sponsors/posva",
+  "author": {
+    "name": "Eduardo San Martin Morote",
+    "email": "posva13@gmail.com"
+  },
+  "scripts": {
+    "dev": "vitest",
+    "prepublishOnly": "pnpm run build",
+    "release": "standard-version",
+    "test": "pnpm run test:cov && pnpm run test:types",
+    "lint": "prettier -c --parser typescript \"src/**/*.[jt]s?(x)\"",
+    "lint:fix": "pnpm run lint --write",
+    "test:types": "tsc --build ./tsconfig.json",
+    "test:cov": "vitest run --coverage",
+    "build": "tsup"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "keywords": [
+    "pinia",
+    "plugin",
+    "data",
+    "fetching",
+    "query",
+    "mutation",
+    "cache",
+    "layer"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.10.4",
+    "@vitest/coverage-v8": "^1.0.4",
+    "lint-staged": "^15.2.0",
+    "pinia": "^2.1.7",
+    "prettier": "^3.1.1",
+    "standard-version": "^9.5.0",
+    "tsup": "^8.0.1",
+    "typescript": "~5.3.3",
+    "vitest": "^1.0.4",
+    "vue": "^3.3.11",
+    "yorkie": "^2.0.0"
+  },
+  "gitHooks": {
+    "pre-commit": "lint-staged",
+    "commit-msg": "node scripts/verifyCommit.js"
+  },
+  "lint-staged": {
+    "*.?(m)js": [
+      "prettier --write"
+    ],
+    "*.ts?(x)": [
+      "prettier --parser=typescript --write"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/posva/pinia-colada.git"
+  },
+  "bugs": {
+    "url": "https://github.com/posva/pinia-colada/issues"
+  },
+  "homepage": "https://github.com/posva/pinia-colada#readme"
+}
