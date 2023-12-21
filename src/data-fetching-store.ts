@@ -154,7 +154,6 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
                 nextPrevious.error = error
                 entry.error.value = error
                 entry.status.value = 'error'
-                throw error
               })
               .finally(() => {
                 entry.pending = null
@@ -183,10 +182,6 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
       ...stateEntry,
       ...propertiesEntry,
     }
-
-    // automatically try to refresh the data if it's expired
-    // TODO: move out of ensure entry. This should be called in specific cases
-    entry.fetch()
 
     return entry
   }
