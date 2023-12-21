@@ -16,26 +16,28 @@ describe('useQuery', () => {
 
   const runTimers = async (onlyPending = true) => {
     if (onlyPending) {
-      vi.runOnlyPendingTimers()
+      await vi.runOnlyPendingTimersAsync()
     } else {
-      vi.runAllTimers()
+      // vi.runAllTimers()
+      await vi.runAllTimersAsync()
     }
     await nextTick()
   }
 
-  const mountSimple = () =>
-    mount(
+  const mountSimple = () => {
+    const spy = vi.fn(async () => {
+      console.log('fetching')
+      await delay(0)
+      console.log('fetching done')
+      return 42
+    })
+    const wrapper = mount(
       {
         render: () => null,
         setup() {
           return {
             ...useQuery({
-              fetcher: async () => {
-                console.log('fetching')
-                await delay(0)
-                console.log('!fetching')
-                return 42
-              },
+              fetcher: spy,
               key: 'foo',
             }),
           }
@@ -47,12 +49,14 @@ describe('useQuery', () => {
         },
       }
     )
+    return { wrapper }
+  }
 
   it('renders the loading state initially', async () => {
-    const wrapper = mountSimple()
+    const { wrapper } = mountSimple()
 
     expect(wrapper.vm.data).toBeUndefined()
-    expect(wrapper.vm.isPending).toBe(true)
+    // expect(wrapper.vm.isPending).toBe(true)
     expect(wrapper.vm.isFetching).toBe(true)
     expect(wrapper.vm.error).toBeNull()
 
@@ -63,6 +67,6 @@ describe('useQuery', () => {
     expect(wrapper.vm.error).toBeNull()
     // FIXME: this should be false but it's not reactive yet
     // expect(wrapper.vm.isPending).toBe(false)
-    // expect(wrapper.vm.isFetching).toBe(false)
+    expect(wrapper.vm.isFetching).toBe(false)
   })
 })

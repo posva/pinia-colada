@@ -6,14 +6,16 @@ import {
   onServerPrefetch,
   toValue,
   onScopeDispose,
+  ShallowRef,
+  Ref,
 } from 'vue'
 import { useDataFetchingStore } from './data-fetching-store'
 
 export interface UseQueryReturn<TResult = unknown, TError = Error> {
-  data: ComputedRef<TResult | undefined>
-  error: ComputedRef<TError | null>
-  isFetching: ComputedRef<boolean>
-  isPending: ComputedRef<boolean>
+  data: Ref<TResult | undefined>
+  error: ShallowRef<TError | null>
+  isFetching: Ref<boolean>
+  isPending: Ref<boolean>
   refresh: () => Promise<void>
 }
 
@@ -72,8 +74,8 @@ export interface UseQueryOptions<TResult = unknown> {
   gcTime?: number
 
   initialData?: () => TResult
-  refetchOnWindowFocus?: boolean
-  refetchOnReconnect?: boolean
+  refetchOnWindowFocus?: boolean | 'force'
+  refetchOnReconnect?: boolean | 'force'
 }
 
 /**
@@ -82,8 +84,9 @@ export interface UseQueryOptions<TResult = unknown> {
 export const USE_QUERY_DEFAULTS = {
   staleTime: 1000 * 5, // 5 seconds
   gcTime: 1000 * 60 * 5, // 5 minutes
-  refetchOnWindowFocus: true as boolean,
-  refetchOnReconnect: true as boolean,
+  // avoid type narrowing to `true`
+  refetchOnWindowFocus: true as UseQueryOptions['refetchOnWindowFocus'],
+  refetchOnReconnect: true as UseQueryOptions['refetchOnReconnect'],
 } satisfies Partial<UseQueryOptions>
 export type UseQueryOptionsWithDefaults<TResult> = typeof USE_QUERY_DEFAULTS &
   UseQueryOptions<TResult>
@@ -140,13 +143,15 @@ export function useQuery<TResult, TError = Error>(
     }
   }
 
-  const queryReturn = {
-    // TODO: optimize so we create only one computed per entry. We could have an application plugin that creates an effectScope and allows us to inject the scope to create entries
-    data: computed(() => entry.value.data()),
-    error: computed(() => entry.value.error()),
-    isFetching: computed(() => entry.value.isFetching()),
-    isPending: computed(() => entry.value.isPending()),
+  // TODO: handle if key is reactive
 
+  const queryReturn = {
+    data: entry.value.data,
+    error: entry.value.error,
+    isFetching: entry.value.isFetching,
+    isPending: entry.value.isPending,
+
+    // TODO: do we need to force bound to the entry?
     refresh: () => entry.value.refresh(),
   } satisfies UseQueryReturn<TResult, TError>
 

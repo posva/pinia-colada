@@ -1,27 +1,78 @@
 import { defineStore } from 'pinia'
-import { shallowReactive } from 'vue'
-import type {
-  UseQueryOptionsWithDefaults,
-  UseDataFetchingQueryEntry,
-  UseQueryKey,
-} from './use-query'
+import {
+  type Ref,
+  shallowReactive,
+  getCurrentScope,
+  ShallowRef,
+  ref,
+} from 'vue'
+import type { UseQueryOptionsWithDefaults, UseQueryKey } from './use-query'
+
+export interface UseQueryStateEntry<TResult = unknown, TError = unknown> {
+  // TODO: is it worth to be a shallowRef?
+  data: Ref<TResult | undefined>
+  error: ShallowRef<TError | null>
+
+  /**
+   * Returns whether the request is still pending its first call
+   */
+  isPending: Ref<boolean>
+  /**
+   * Returns whether the request is currently fetching data
+   */
+  isFetching: Ref<boolean>
+}
+
+export interface UseQueryPropertiesEntry<TResult = unknown, TError = unknown> {
+  // TODO: should we just have refresh and allow a parameter to force a refresh? instead of having fetch and refresh
+  /**
+   * Refreshes the data ignoring any cache but still decouples the refreshes (only one refresh at a time)
+   * @returns a promise that resolves when the refresh is done
+   */
+  refresh: () => Promise<void>
+  /**
+   * Fetches the data but only if it's not already fetching
+   * @returns a promise that resolves when the refresh is done
+   */
+  fetch: () => Promise<TResult>
+
+  pending: null | {
+    refreshCall: Promise<void>
+    when: number
+  }
+
+  previous: null | {
+    /**
+     * When was this data fetched the last time in ms
+     */
+    when: number
+    data: TResult | undefined
+    error: TError | null
+  }
+}
+
+export interface UseQueryEntry<TResult = unknown, TError = Error>
+  extends UseQueryStateEntry<TResult, TError>,
+    UseQueryPropertiesEntry<TResult, TError> {}
 
 export const useDataFetchingStore = defineStore('PiniaColada', () => {
-  /**
-   * - These are reactive because they are needed for SSR
-   * - They are split into multiple stores to better handle reactivity
-   * - With `shallowReactive()` we only observe the first level of the object, which is enough here as the user only
-   *   gets read-only access to the data
-   */
-  const dataRegistry = shallowReactive(new Map<UseQueryKey, unknown>())
-  const errorRegistry = shallowReactive(new Map<UseQueryKey, any>())
-  const isFetchingRegistry = shallowReactive(new Map<UseQueryKey, boolean>())
+  const entryStateRegistry = shallowReactive(
+    new Map<UseQueryKey, UseQueryStateEntry>()
+  )
+  // these are not reactive as they are mostly functions
+  const entryPropertiesRegistry = new Map<
+    UseQueryKey,
+    UseQueryPropertiesEntry
+  >()
+
+  // this allows use to attach reactive effects to the scope later on
+  const scope = getCurrentScope()!
 
   // no reactive on this one as it's only used internally and is not needed for hydration
-  const queryEntriesRegistry = new Map<
-    UseQueryKey,
-    UseDataFetchingQueryEntry<unknown, unknown>
-  >()
+  // const queryEntriesRegistry = new Map<
+  //   UseQueryKey,
+  //   UseDataFetchingQueryEntry<unknown, unknown>
+  // >()
 
   function ensureEntry<TResult = unknown, TError = Error>(
     key: UseQueryKey,
@@ -30,23 +81,21 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
       initialData: initialValue,
       staleTime: cacheTime,
     }: UseQueryOptionsWithDefaults<TResult>
-  ): UseDataFetchingQueryEntry<TResult, TError> {
-    // ensure the data
+  ): UseQueryEntry<TResult, TError> {
+    // ensure the state
     console.log('⚙️ Ensuring entry', key)
-    if (!dataRegistry.has(key)) {
-      dataRegistry.set(key, initialValue?.() ?? undefined)
-      errorRegistry.set(key, null)
-      isFetchingRegistry.set(key, false)
-    }
+    if (!entryStateRegistry.has(key)) {
+      entryStateRegistry.set(
+        key,
+        scope.run(() => ({
+          data: ref(initialValue?.()),
+          error: ref(null),
+          isPending: ref(false),
+          isFetching: ref(false),
+        }))!
+      )
 
-    // we need to repopulate the entry registry separately from data and errors
-    if (!queryEntriesRegistry.has(key)) {
-      const entry: UseDataFetchingQueryEntry<TResult, TError> = {
-        data: () => dataRegistry.get(key) as TResult,
-        error: () => errorRegistry.get(key) as TError,
-        // FIXME: not reactive
-        isPending: () => !entry.previous,
-        isFetching: () => isFetchingRegistry.get(key)!,
+      const propertiesEntry: UseQueryPropertiesEntry<TResult, TError> = {
         pending: null,
         previous: null,
         async fetch(): Promise<TResult> {
@@ -60,7 +109,7 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
             await (entry.pending?.refreshCall ?? entry.refresh())
           }
 
-          return entry.data()!
+          return entry.data.value!
         },
         async refresh() {
           console.log('🔄 refreshing', key)
@@ -69,30 +118,31 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
             console.log('  -> skipped!')
             return entry.pending.refreshCall
           }
-          isFetchingRegistry.set(key, true)
-          errorRegistry.set(key, null)
+          entry.isFetching.value = true
+          entry.error.value = null
           const nextPrevious = {
             when: 0,
             data: undefined as TResult | undefined,
             error: null as TError | null,
-          } satisfies UseDataFetchingQueryEntry['previous']
+          } satisfies UseQueryPropertiesEntry<TResult, TError>['previous']
 
           entry.pending = {
             refreshCall: fetcher()
               .then((data) => {
                 nextPrevious.data = data
-                dataRegistry.set(key, data)
+                entry.data.value = data
               })
               .catch((error) => {
                 nextPrevious.error = error
-                errorRegistry.set(key, error)
+                entry.error.value = error
                 throw error
               })
               .finally(() => {
                 entry.pending = null
                 nextPrevious.when = Date.now()
                 entry.previous = nextPrevious
-                isFetchingRegistry.set(key, false)
+                entry.isFetching.value = false
+                entry.isPending.value = false
               }),
             when: Date.now(),
           }
@@ -100,14 +150,27 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
           return entry.pending.refreshCall
         },
       }
-      queryEntriesRegistry.set(key, entry)
+      entryPropertiesRegistry.set(key, propertiesEntry)
     }
 
-    const entry = queryEntriesRegistry.get(key)!
+    const stateEntry = entryStateRegistry.get(key)! as UseQueryStateEntry<
+      TResult,
+      TError
+    >
+    const propertiesEntry = entryPropertiesRegistry.get(
+      key
+    )! as UseQueryPropertiesEntry<TResult, TError>
+
+    const entry = {
+      ...stateEntry,
+      ...propertiesEntry,
+    }
+
     // automatically try to refresh the data if it's expired
+    // TODO: move out of ensure entry. This should be called in specific cases
     entry.fetch()
 
-    return entry as UseDataFetchingQueryEntry<TResult, TError>
+    return entry
   }
 
   /**
@@ -117,13 +180,14 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
    * @param refresh - whether to force a refresh of the data
    */
   function invalidateEntry(key: UseQueryKey, refresh = false) {
-    if (!queryEntriesRegistry.has(key)) {
+    if (!entryPropertiesRegistry.has(key)) {
+      // TODO: dev only
       console.warn(
         `⚠️ trying to invalidate "${String(key)}" but it's not in the registry`
       )
       return
     }
-    const entry = queryEntriesRegistry.get(key)!
+    const entry = entryPropertiesRegistry.get(key)!
 
     if (entry.previous) {
       // will force a fetch next time
@@ -138,10 +202,23 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
     }
   }
 
+  function prefetch(key: UseQueryKey) {
+    const entry = entryPropertiesRegistry.get(key)
+    if (!entry) {
+      console.warn(
+        `⚠️ trying to prefetch "${String(key)}" but it's not in the registry`
+      )
+      return
+    }
+    entry.fetch()
+  }
+
   return {
-    dataRegistry,
-    errorRegistry,
-    isFetchingRegistry,
+    entryStateRegistry,
+
+    // dataRegistry,
+    // errorRegistry,
+    // isFetchingRegistry,
 
     ensureEntry,
     invalidateEntry,
