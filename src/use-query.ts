@@ -1,6 +1,5 @@
-import { useEventListener } from './utils'
+import { IS_CLIENT, useEventListener } from './utils'
 import {
-  type ComputedRef,
   computed,
   onMounted,
   onServerPrefetch,
@@ -9,53 +8,15 @@ import {
   ShallowRef,
   Ref,
 } from 'vue'
-import { useDataFetchingStore } from './data-fetching-store'
+import {
+  UseQueryPropertiesEntry,
+  UseQueryStateEntry,
+  useDataFetchingStore,
+} from './data-fetching-store'
 
-export interface UseQueryReturn<TResult = unknown, TError = Error> {
-  data: Ref<TResult | undefined>
-  error: ShallowRef<TError | null>
-  isFetching: Ref<boolean>
-  isPending: Ref<boolean>
-  refresh: () => Promise<void>
-}
-
-export interface UseDataFetchingQueryEntry<TResult = unknown, TError = any> {
-  data: () => TResult | undefined
-  error: () => TError | null
-  /**
-   * Returns whether the request is still pending its first call
-   */
-  isPending: () => boolean
-  /**
-   * Returns whether the request is currently fetching data
-   */
-  isFetching: () => boolean
-
-  // TODO: should we just have refresh and allow a parameter to force a refresh? instead of having fetch and refresh
-  /**
-   * Refreshes the data ignoring any cache but still decouples the refreshes (only one refresh at a time)
-   * @returns a promise that resolves when the refresh is done
-   */
-  refresh: () => Promise<void>
-  /**
-   * Fetches the data but only if it's not already fetching
-   * @returns a promise that resolves when the refresh is done
-   */
-  fetch: () => Promise<TResult>
-
-  pending: null | {
-    refreshCall: Promise<void>
-    when: number
-  }
-  previous: null | {
-    /**
-     * When was this data fetched the last time in ms
-     */
-    when: number
-    data: TResult | undefined
-    error: TError | null
-  }
-}
+export interface UseQueryReturn<TResult = unknown, TError = Error>
+  extends UseQueryStateEntry<TResult, TError>,
+    Pick<UseQueryPropertiesEntry<TResult, TError>, 'refresh'> {}
 
 export type UseQueryKey = string | symbol
 
@@ -150,6 +111,7 @@ export function useQuery<TResult, TError = Error>(
     error: entry.value.error,
     isFetching: entry.value.isFetching,
     isPending: entry.value.isPending,
+    status: entry.value.status,
 
     // TODO: do we need to force bound to the entry?
     refresh: () => entry.value.refresh(),
@@ -157,11 +119,3 @@ export function useQuery<TResult, TError = Error>(
 
   return queryReturn
 }
-
-/**
- * Notes for exercise:
- * - Start only with the data, error, and isLoading, no cache, no refresh
- * - Start without the options about refreshing, and mutations
- */
-
-const IS_CLIENT = typeof window !== 'undefined'

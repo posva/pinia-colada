@@ -31,3 +31,5 @@ export function useEventListener(
     target.removeEventListener(event, listener)
   })
 }
+
+export const IS_CLIENT = typeof window !== 'undefined'

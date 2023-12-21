@@ -80,12 +80,6 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
   // this allows use to attach reactive effects to the scope later on
   const scope = getCurrentScope()!
 
-  // no reactive on this one as it's only used internally and is not needed for hydration
-  // const queryEntriesRegistry = new Map<
-  //   UseQueryKey,
-  //   UseDataFetchingQueryEntry<unknown, unknown>
-  // >()
-
   function ensureEntry<TResult = unknown, TError = Error>(
     key: UseQueryKey,
     {

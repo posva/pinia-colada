@@ -7,7 +7,6 @@ export {
 export {
   USE_QUERY_DEFAULTS,
   useQuery,
-  type UseDataFetchingQueryEntry,
   type UseQueryKey,
   type UseQueryOptions,
   type UseQueryOptionsWithDefaults,
