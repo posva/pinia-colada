@@ -1,4 +1,4 @@
-import { expectTypeOf, it } from 'vitest'
+import { assertType, expectTypeOf, it } from 'vitest'
 import { useQuery } from './use-query'
 import { type Ref } from 'vue'
 
@@ -33,5 +33,25 @@ it('can specify the error type', () => {
       fetcher: async () => 42,
       key: 'foo',
     }).error
+  )
+})
+
+it('expects an async fetcher', () => {
+  assertType(
+    useQuery({
+      // @ts-expect-error
+      fetcher: () => 42,
+      key: 'foo',
+    }).data
+  )
+
+  // NOTE: apparently, in ts, missing the `async` still makes the function return a Promise
+  assertType(
+    useQuery({
+      fetcher: async () => {
+        throw new Error('nope')
+      },
+      key: 'foo',
+    }).data
   )
 })

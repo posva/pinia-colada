@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { useQuery } from './use-query'
+import { UseQueryOptions, useQuery } from './use-query'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { nextTick } from 'vue'
@@ -24,21 +24,22 @@ describe('useQuery', () => {
     await nextTick()
   }
 
-  const mountSimple = () => {
-    const spy = vi.fn(async () => {
-      console.log('fetching')
-      await delay(0)
-      console.log('fetching done')
-      return 42
-    })
+  const mountSimple = (options: Partial<UseQueryOptions> = {}) => {
+    const fetcher = options.fetcher
+      ? vi.fn(options.fetcher)
+      : vi.fn(async () => {
+          await delay(0)
+          return 42
+        })
     const wrapper = mount(
       {
         render: () => null,
         setup() {
           return {
             ...useQuery({
-              fetcher: spy,
               key: 'foo',
+              ...options,
+              fetcher,
             }),
           }
         },
@@ -49,24 +50,55 @@ describe('useQuery', () => {
         },
       }
     )
-    return { wrapper }
+    return { wrapper, fetcher }
   }
 
-  it('renders the loading state initially', async () => {
+  it('fetches data and updates on mount', async () => {
     const { wrapper } = mountSimple()
 
     expect(wrapper.vm.data).toBeUndefined()
-    // expect(wrapper.vm.isPending).toBe(true)
-    expect(wrapper.vm.isFetching).toBe(true)
-    expect(wrapper.vm.error).toBeNull()
-
     await runTimers()
-    console.log('after timers')
-
     expect(wrapper.vm.data).toBe(42)
-    expect(wrapper.vm.error).toBeNull()
-    // FIXME: this should be false but it's not reactive yet
-    // expect(wrapper.vm.isPending).toBe(false)
+  })
+
+  it('sets the fetching state', async () => {
+    const { wrapper } = mountSimple()
+
+    expect(wrapper.vm.isFetching).toBe(true)
+    await runTimers()
     expect(wrapper.vm.isFetching).toBe(false)
+  })
+
+  it('sets the pending state', async () => {
+    const { wrapper } = mountSimple()
+
+    expect(wrapper.vm.isPending).toBe(true)
+    await runTimers()
+    expect(wrapper.vm.isPending).toBe(false)
+  })
+
+  it('sets the error state', async () => {
+    const { wrapper } = mountSimple({
+      fetcher: async () => {
+        throw new Error('foo')
+      },
+    })
+
+    expect(wrapper.vm.error).toBeNull()
+    await runTimers()
+    expect(wrapper.vm.error).toEqual(new Error('foo'))
+  })
+
+  // NOTE: is this worth adding?
+  it.skip('it works with a synchronously thrown Error', async () => {
+    const { wrapper } = mountSimple({
+      fetcher: () => {
+        throw new Error('foo')
+      },
+    })
+
+    expect(wrapper.vm.error).toBeNull()
+    await runTimers()
+    expect(wrapper.vm.error).toEqual(new Error('foo'))
   })
 })

@@ -5,8 +5,12 @@ import {
   getCurrentScope,
   ShallowRef,
   ref,
+  ComputedRef,
+  computed,
 } from 'vue'
 import type { UseQueryOptionsWithDefaults, UseQueryKey } from './use-query'
+
+export type UseQueryStatus = 'pending' | 'error' | 'success'
 
 export interface UseQueryStateEntry<TResult = unknown, TError = unknown> {
   // TODO: is it worth to be a shallowRef?
@@ -14,13 +18,21 @@ export interface UseQueryStateEntry<TResult = unknown, TError = unknown> {
   error: ShallowRef<TError | null>
 
   /**
-   * Returns whether the request is still pending its first call
+   * Returns whether the request is still pending its first call. Alias for `status.value === 'pending'`
    */
-  isPending: Ref<boolean>
+  isPending: ComputedRef<boolean>
+
   /**
-   * Returns whether the request is currently fetching data
+   * Returns whether the request is currently fetching data.
    */
   isFetching: Ref<boolean>
+
+  /**
+   * The status of the request. `pending` indicates that no request has been made yet and there is no cached data to
+   * display (`data.value = undefined`). `error` indicates that the last request failed. `success` indicates that the
+   * last request succeeded.
+   */
+  status: Ref<UseQueryStatus>
 }
 
 export interface UseQueryPropertiesEntry<TResult = unknown, TError = unknown> {
@@ -87,12 +99,17 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
     if (!entryStateRegistry.has(key)) {
       entryStateRegistry.set(
         key,
-        scope.run(() => ({
-          data: ref(initialValue?.()),
-          error: ref(null),
-          isPending: ref(false),
-          isFetching: ref(false),
-        }))!
+        scope.run(() => {
+          const status = ref<UseQueryStatus>('pending')
+
+          return {
+            data: ref(initialValue?.()),
+            error: ref(null),
+            isPending: computed(() => status.value === 'pending'),
+            isFetching: ref(false),
+            status,
+          }
+        })!
       )
 
       const propertiesEntry: UseQueryPropertiesEntry<TResult, TError> = {
@@ -131,10 +148,12 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
               .then((data) => {
                 nextPrevious.data = data
                 entry.data.value = data
+                entry.status.value = 'success'
               })
               .catch((error) => {
                 nextPrevious.error = error
                 entry.error.value = error
+                entry.status.value = 'error'
                 throw error
               })
               .finally(() => {
@@ -142,7 +161,6 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
                 nextPrevious.when = Date.now()
                 entry.previous = nextPrevious
                 entry.isFetching.value = false
-                entry.isPending.value = false
               }),
             when: Date.now(),
           }
