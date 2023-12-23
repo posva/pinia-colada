@@ -19,6 +19,8 @@ export interface UseQueryReturn<TResult = unknown, TError = Error>
     Pick<UseQueryPropertiesEntry<TResult, TError>, 'refresh' | 'refetch'> {}
 
 export type UseQueryKey = string | symbol
+// TODO:
+// | Array<string | symbol>
 
 export interface UseQueryOptions<TResult = unknown> {
   key: UseQueryKey | (() => UseQueryKey)
@@ -35,8 +37,9 @@ export interface UseQueryOptions<TResult = unknown> {
   gcTime?: number
 
   initialData?: () => TResult
-  refetchOnWindowFocus?: boolean | 'force'
-  refetchOnReconnect?: boolean | 'force'
+  // TODO: rename to refresh and use refresh instead by default?
+  refetchOnWindowFocus?: boolean // TODO: | 'force' or options to adapt this
+  refetchOnReconnect?: boolean
 }
 
 /**
