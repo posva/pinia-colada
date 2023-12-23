@@ -126,9 +126,9 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
         },
         async refetch(): Promise<TResult> {
           console.log('🔄 refetching', key)
+          if (entry.pending) console.log('  -> skipped!')
           // when if there an ongoing request
           if (!entry.pending) {
-            console.log('  -> skipped!')
             entry.isFetching.value = true
             entry.error.value = null
             const nextPrevious = {

@@ -124,7 +124,8 @@ describe('useQuery', () => {
       expect(fetcher).toHaveBeenCalledTimes(1)
 
       // should not trigger a new fetch because staleTime has not passed
-      await wrapper.vm.refresh()
+      vi.advanceTimersByTime(500)
+      wrapper.vm.refresh()
       await runTimers()
 
       expect(fetcher).toHaveBeenCalledTimes(1)
@@ -140,8 +141,8 @@ describe('useQuery', () => {
       expect(wrapper.vm.data).toBe(42)
       expect(fetcher).toHaveBeenCalledTimes(1)
 
-      vi.advanceTimersByTime(1000)
-      await wrapper.vm.refresh()
+      vi.advanceTimersByTime(1001)
+      wrapper.vm.refresh()
       await runTimers()
 
       expect(fetcher).toHaveBeenCalledTimes(2)
