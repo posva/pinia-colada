@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { UseQueryOptions, useQuery } from './use-query'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
-import { nextTick } from 'vue'
+import { defineComponent, nextTick } from 'vue'
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
@@ -24,7 +24,9 @@ describe('useQuery', () => {
     await nextTick()
   }
 
-  const mountSimple = (options: Partial<UseQueryOptions> = {}) => {
+  const mountSimple = <TResult = number>(
+    options: Partial<UseQueryOptions<TResult>> = {}
+  ) => {
     const fetcher = options.fetcher
       ? vi.fn(options.fetcher)
       : vi.fn(async () => {
@@ -32,25 +34,26 @@ describe('useQuery', () => {
           return 42
         })
     const wrapper = mount(
-      {
+      defineComponent({
         render: () => null,
         setup() {
           return {
-            ...useQuery({
+            ...useQuery<TResult>({
               key: 'foo',
               ...options,
+              // @ts-expect-error: generic unmatched but types work
               fetcher,
             }),
           }
         },
-      },
+      }),
       {
         global: {
           plugins: [createPinia()],
         },
       }
     )
-    return { wrapper, fetcher }
+    return Object.assign([wrapper, fetcher] as const, { wrapper, fetcher })
   }
 
   describe('initial fetch', () => {
@@ -113,40 +116,39 @@ describe('useQuery', () => {
   })
 
   describe('staleTime', () => {
-    it('does not fetch again if staleTime has not elapsed', async () => {
+    it('when refreshed, does not fetch again if staleTime has not elapsed', async () => {
       const { wrapper, fetcher } = mountSimple({ staleTime: 1000 })
 
       await runTimers()
       expect(wrapper.vm.data).toBe(42)
       expect(fetcher).toHaveBeenCalledTimes(1)
-      // await wrapper.vm.fetch()
 
       // should not trigger a new fetch because staleTime has not passed
-      mountSimple()
+      await wrapper.vm.refresh()
       await runTimers()
 
       expect(fetcher).toHaveBeenCalledTimes(1)
       expect(wrapper.vm.data).toBe(42)
     })
 
-    it.todo(
-      'refreshes the data after the staleTime if called again',
-      async () => {
-        const { wrapper, fetcher } = mountSimple({ staleTime: 1000 })
+    it.todo('new mount does not fetch if staleTime is not elapsed')
 
-        await runTimers()
-        expect(wrapper.vm.data).toBe(42)
-        expect(fetcher).toHaveBeenCalledTimes(1)
-        // await wrapper.vm.fetch()
-        vi.advanceTimersByTime(1000)
-        await runTimers()
+    it('when refreshed, fetches the data if the staleTime has been elapsed', async () => {
+      const { wrapper, fetcher } = mountSimple({ staleTime: 1000 })
 
-        mountSimple()
+      await runTimers()
+      expect(wrapper.vm.data).toBe(42)
+      expect(fetcher).toHaveBeenCalledTimes(1)
 
-        expect(fetcher).toHaveBeenCalledTimes(2)
-        expect(wrapper.vm.data).toBe(42)
-      }
-    )
+      vi.advanceTimersByTime(1000)
+      await wrapper.vm.refresh()
+      await runTimers()
+
+      expect(fetcher).toHaveBeenCalledTimes(2)
+      expect(wrapper.vm.data).toBe(42)
+    })
+
+    it.todo('reuses a pending request even if the staleTime has been elapsed')
   })
 
   describe.skip('refresh', () => {

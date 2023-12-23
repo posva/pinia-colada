@@ -16,7 +16,7 @@ import {
 
 export interface UseQueryReturn<TResult = unknown, TError = Error>
   extends UseQueryStateEntry<TResult, TError>,
-    Pick<UseQueryPropertiesEntry<TResult, TError>, 'refresh'> {}
+    Pick<UseQueryPropertiesEntry<TResult, TError>, 'refresh' | 'refetch'> {}
 
 export type UseQueryKey = string | symbol
 
@@ -115,6 +115,7 @@ export function useQuery<TResult, TError = Error>(
 
     // TODO: do we need to force bound to the entry?
     refresh: () => entry.value.refresh(),
+    refetch: () => entry.value.refetch(),
   } satisfies UseQueryReturn<TResult, TError>
 
   return queryReturn

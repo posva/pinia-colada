@@ -36,17 +36,17 @@ export interface UseQueryStateEntry<TResult = unknown, TError = unknown> {
 }
 
 export interface UseQueryPropertiesEntry<TResult = unknown, TError = unknown> {
-  // TODO: should we just have refresh and allow a parameter to force a refresh? instead of having fetch and refresh
   /**
-   * Refreshes the data ignoring any cache but still decouples the refreshes (only one refresh at a time)
+   * Ensures the current data is fresh. If the data is stale, refetch, if not return as is.
    * @returns a promise that resolves when the refresh is done
    */
-  refresh: () => Promise<void>
+  refresh: () => Promise<TResult>
+
   /**
-   * Fetches the data but only if it's not already fetching
+   * Ignores fresh data and triggers a new fetch
    * @returns a promise that resolves when the refresh is done
    */
-  fetch: () => Promise<TResult>
+  refetch: () => Promise<TResult>
 
   pending: null | {
     refreshCall: Promise<void>
@@ -77,16 +77,14 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
     UseQueryPropertiesEntry
   >()
 
+  // FIXME: start from here: replace properties entry with a QueryEntry that is created when needed and contains all the needed part, included functions
+
   // this allows use to attach reactive effects to the scope later on
   const scope = getCurrentScope()!
 
   function ensureEntry<TResult = unknown, TError = Error>(
     key: UseQueryKey,
-    {
-      fetcher,
-      initialData: initialValue,
-      staleTime: cacheTime,
-    }: UseQueryOptionsWithDefaults<TResult>
+    { fetcher, initialData, staleTime }: UseQueryOptionsWithDefaults<TResult>
   ): UseQueryEntry<TResult, TError> {
     // ensure the state
     console.log('⚙️ Ensuring entry', key)
@@ -97,7 +95,7 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
           const status = ref<UseQueryStatus>('pending')
 
           return {
-            data: ref(initialValue?.()),
+            data: ref(initialData?.()),
             error: ref(null),
             isPending: computed(() => status.value === 'pending'),
             isFetching: ref(false),
@@ -105,60 +103,65 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
           }
         })!
       )
+    }
 
+    // TODO: these needs to be created client side. Should probably be a class for better memory
+
+    if (!entryPropertiesRegistry.has(key)) {
       const propertiesEntry: UseQueryPropertiesEntry<TResult, TError> = {
         pending: null,
         previous: null,
-        async fetch(): Promise<TResult> {
-          if (!entry.previous || isExpired(entry.previous.when, cacheTime)) {
+        async refresh(): Promise<TResult> {
+          if (!entry.previous || isExpired(entry.previous.when, staleTime)) {
             if (entry.previous) {
               console.log(
-                `⬇️ fetching "${String(key)}". expired ${entry.previous
-                  ?.when} / ${cacheTime}`
+                `⬇️ refresh "${String(key)}". expired ${entry.previous
+                  ?.when} / ${staleTime}`
               )
             }
-            await (entry.pending?.refreshCall ?? entry.refresh())
+            await (entry.pending?.refreshCall ?? entry.refetch())
           }
 
           return entry.data.value!
         },
-        async refresh() {
-          console.log('🔄 refreshing', key)
+        async refetch(): Promise<TResult> {
+          console.log('🔄 refetching', key)
           // when if there an ongoing request
-          if (entry.pending) {
+          if (!entry.pending) {
             console.log('  -> skipped!')
-            return entry.pending.refreshCall
-          }
-          entry.isFetching.value = true
-          entry.error.value = null
-          const nextPrevious = {
-            when: 0,
-            data: undefined as TResult | undefined,
-            error: null as TError | null,
-          } satisfies UseQueryPropertiesEntry<TResult, TError>['previous']
+            entry.isFetching.value = true
+            entry.error.value = null
+            const nextPrevious = {
+              when: 0,
+              data: undefined as TResult | undefined,
+              error: null as TError | null,
+            } satisfies UseQueryPropertiesEntry<TResult, TError>['previous']
 
-          entry.pending = {
-            refreshCall: fetcher()
-              .then((data) => {
-                nextPrevious.data = data
-                entry.data.value = data
-                entry.status.value = 'success'
-              })
-              .catch((error) => {
-                nextPrevious.error = error
-                entry.error.value = error
-                entry.status.value = 'error'
-              })
-              .finally(() => {
-                entry.pending = null
-                nextPrevious.when = Date.now()
-                entry.previous = nextPrevious
-                entry.isFetching.value = false
-              }),
-            when: Date.now(),
+            entry.pending = {
+              refreshCall: fetcher()
+                .then((data) => {
+                  nextPrevious.data = data
+                  entry.data.value = data
+                  entry.status.value = 'success'
+                })
+                .catch((error) => {
+                  nextPrevious.error = error
+                  entry.error.value = error
+                  entry.status.value = 'error'
+                })
+                .finally(() => {
+                  entry.pending = null
+                  nextPrevious.when = Date.now()
+                  entry.previous = nextPrevious
+                  entry.isFetching.value = false
+                }),
+              when: Date.now(),
+            }
           }
 
-          return entry.pending.refreshCall
+          await entry.pending.refreshCall
+
+          return entry.data.value!
         },
       }
       entryPropertiesRegistry.set(key, propertiesEntry)
@@ -181,12 +184,12 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
   }
 
   /**
-   * Invalidates a query entry, forcing a refetch of the data if `refresh` is true
+   * Invalidates a query entry, forcing a refetch of the data if `refetch` is true
    *
    * @param key - the key of the query to invalidate
-   * @param refresh - whether to force a refresh of the data
+   * @param refetch - whether to force a refresh of the data
    */
-  function invalidateEntry(key: UseQueryKey, refresh = false) {
+  function invalidateEntry(key: UseQueryKey, refetch = false) {
     if (!entryPropertiesRegistry.has(key)) {
       // TODO: dev only
       console.warn(
@@ -201,7 +204,7 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
       entry.previous.when = 0
     }
 
-    if (refresh) {
+    if (refetch) {
       // reset any pending request
       entry.pending = null
       // force refresh
@@ -217,15 +220,11 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
       )
       return
     }
-    entry.fetch()
+    entry.refetch()
   }
 
   return {
     entryStateRegistry,
-
-    // dataRegistry,
-    // errorRegistry,
-    // isFetchingRegistry,
 
     ensureEntry,
     invalidateEntry,
