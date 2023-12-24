@@ -3,6 +3,7 @@ import { UseQueryOptions, useQuery } from './use-query'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { defineComponent, nextTick } from 'vue'
+import { GlobalMountOptions } from 'node_modules/@vue/test-utils/dist/types'
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
@@ -25,7 +26,8 @@ describe('useQuery', () => {
   }
 
   const mountSimple = <TResult = number>(
-    options: Partial<UseQueryOptions<TResult>> = {}
+    options: Partial<UseQueryOptions<TResult>> = {},
+    mountOptions?: GlobalMountOptions
   ) => {
     const fetcher = options.fetcher
       ? vi.fn(options.fetcher)
@@ -50,6 +52,7 @@ describe('useQuery', () => {
       {
         global: {
           plugins: [createPinia()],
+          ...mountOptions,
         },
       }
     )
@@ -132,7 +135,24 @@ describe('useQuery', () => {
       expect(wrapper.vm.data).toBe(42)
     })
 
-    it.todo('new mount does not fetch if staleTime is not elapsed')
+    it('new mount does not fetch if staleTime is not elaopsed', async () => {
+      const pinia = createPinia()
+      const [w1, f1] = mountSimple({ staleTime: 1000 }, { plugins: [pinia] })
+
+      await runTimers()
+
+      // should not trigger a new fetch because staleTime has not passed
+      vi.advanceTimersByTime(500)
+
+      const [w2, f2] = mountSimple({ staleTime: 1000 }, { plugins: [pinia] })
+
+      await runTimers()
+
+      expect(f1).toHaveBeenCalledTimes(1)
+      expect(f2).toHaveBeenCalledTimes(0)
+      expect(w1.vm.data).toBe(42)
+      expect(w2.vm.data).toBe(42)
+    })
 
     it('when refreshed, fetches the data if the staleTime has been elapsed', async () => {
       const { wrapper, fetcher } = mountSimple({ staleTime: 1000 })
@@ -147,6 +167,24 @@ describe('useQuery', () => {
 
       expect(fetcher).toHaveBeenCalledTimes(2)
       expect(wrapper.vm.data).toBe(42)
+    })
+
+    it('new mount fetches if staleTime is elapsed', async () => {
+      const [w1, f1] = mountSimple({ staleTime: 1000 })
+
+      await runTimers()
+
+      // should not trigger a new fetch because staleTime has not passed
+      vi.advanceTimersByTime(1001)
+
+      const [w2, f2] = mountSimple({ staleTime: 1000 })
+
+      await runTimers()
+
+      expect(f1).toHaveBeenCalledTimes(1)
+      expect(f2).toHaveBeenCalledTimes(1)
+      expect(w1.vm.data).toBe(42)
+      expect(w2.vm.data).toBe(42)
     })
 
     it.todo('reuses a pending request even if the staleTime has been elapsed')

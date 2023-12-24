@@ -95,14 +95,14 @@ export function useQuery<TResult, TError = Error>(
     if (options.refetchOnWindowFocus) {
       useEventListener(document, 'visibilitychange', () => {
         if (document.visibilityState === 'visible') {
-          entry.value.refresh()
+          entry.value.refetch()
         }
       })
     }
 
     if (options.refetchOnReconnect) {
       useEventListener(window, 'online', () => {
-        entry.value.refresh()
+        entry.value.refetch()
       })
     }
   }
