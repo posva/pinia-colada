@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="180" src="https://github.com/posva/pinia-colada/assets/664177/1eff2f20-641d-4b8f-8d48-7e74b0d87780" alt="Pinia Colada logo">
+  <img width="180" src="https://github.com/posva/pinia-colada/assets/664177/af6ccec3-07c1-442b-9558-d8db336d19c7" alt="Pinia Colada logo">
 </p>
 <br/>
 <p align="center">
