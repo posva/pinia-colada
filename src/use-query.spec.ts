@@ -135,7 +135,7 @@ describe('useQuery', () => {
       expect(wrapper.vm.data).toBe(42)
     })
 
-    it('new mount does not fetch if staleTime is not elaopsed', async () => {
+    it('new mount does not fetch if staleTime is not elapsed', async () => {
       const pinia = createPinia()
       const [w1, f1] = mountSimple({ staleTime: 1000 }, { plugins: [pinia] })
 
@@ -187,7 +187,36 @@ describe('useQuery', () => {
       expect(w2.vm.data).toBe(42)
     })
 
-    it.todo('reuses a pending request even if the staleTime has been elapsed')
+    it('new mount reuses a pending request even if the staleTime has been elapsed', async () => {
+      const pinia = createPinia()
+      const [w1, f1] = mountSimple({ staleTime: 0 }, { plugins: [pinia] })
+      // should not trigger a new fetch because staleTime has not passed
+      vi.advanceTimersByTime(10)
+      const [w2, f2] = mountSimple({ staleTime: 0 }, { plugins: [pinia] })
+
+      await runTimers()
+
+      expect(f1).toHaveBeenCalledTimes(1)
+      expect(f2).toHaveBeenCalledTimes(0)
+      expect(w1.vm.data).toBe(42)
+      expect(w2.vm.data).toBe(42)
+    })
+
+    it('refresh reuses a pending request even if the staleTime has been elapsed', async () => {
+      const pinia = createPinia()
+      const { wrapper, fetcher } = mountSimple(
+        { staleTime: 0 },
+        { plugins: [pinia] }
+      )
+      // should not trigger a new fetch because staleTime has not passed
+      vi.advanceTimersByTime(10)
+      wrapper.vm.refresh()
+
+      await runTimers()
+
+      expect(fetcher).toHaveBeenCalledTimes(1)
+      expect(wrapper.vm.data).toBe(42)
+    })
   })
 
   describe.skip('refresh', () => {
