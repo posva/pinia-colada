@@ -45,7 +45,8 @@
     "lint:fix": "pnpm run lint --write",
     "test:types": "tsc --build ./tsconfig.json",
     "test:cov": "vitest run --coverage",
-    "build": "tsup"
+    "build": "tsup",
+    "size": "size-limit"
   },
   "files": [
     "dist",
@@ -63,7 +64,28 @@
     "layer"
   ],
   "license": "MIT",
+  "size-limit": [
+    {
+      "name": "useQuery only",
+      "path": "dist/index.js",
+      "import": "{ useQuery }",
+      "ignore": [
+        "vue",
+        "pinia"
+      ]
+    },
+    {
+      "name": "useQuery + useMutation",
+      "path": "dist/index.js",
+      "import": "{ useQuery, useMutation }",
+      "ignore": [
+        "vue",
+        "pinia"
+      ]
+    }
+  ],
   "devDependencies": {
+    "@size-limit/preset-small-lib": "^11.0.1",
     "@types/node": "^20.10.4",
     "@vitejs/plugin-vue": "^4.5.2",
     "@vitest/coverage-v8": "^1.0.4",
@@ -73,6 +95,7 @@
     "lint-staged": "^15.2.0",
     "pinia": "^2.1.7",
     "prettier": "^3.1.1",
+    "size-limit": "^11.0.1",
     "standard-version": "^9.5.0",
     "tsup": "^8.0.1",
     "typescript": "~5.3.3",
