@@ -7,6 +7,7 @@ import {
   ref,
   ComputedRef,
   computed,
+  triggerRef,
 } from 'vue'
 import type { UseQueryOptionsWithDefaults, UseQueryKey } from './use-query'
 
@@ -233,6 +234,7 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
     if (typeof data === 'function') {
       // the remaining type is TResult & Fn, so we need a cast
       ;(data as (data: Ref<TResult | undefined>) => void)(entry.data)
+      triggerRef(entry.data)
     } else {
       entry.data.value = data
     }
