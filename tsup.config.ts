@@ -5,7 +5,7 @@ export default defineConfig({
   // splitting: false,
   sourcemap: true,
   clean: true,
-  format: ['cjs', 'esm', 'iife'],
+  format: ['cjs', 'esm'],
   globalName: 'PiniaColada',
   external: ['vue', 'pinia'],
   dts: true,
