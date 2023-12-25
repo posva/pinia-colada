@@ -87,7 +87,7 @@
   "devDependencies": {
     "@size-limit/preset-small-lib": "^11.0.1",
     "@types/node": "^20.10.4",
-    "@vitejs/plugin-vue": "^4.5.2",
+    "@vitejs/plugin-vue": "^5.0.0",
     "@vitest/coverage-v8": "^1.0.4",
     "@vitest/ui": "^1.1.0",
     "@vue/test-utils": "^2.4.3",
