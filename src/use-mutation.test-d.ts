@@ -5,8 +5,8 @@ it('types the parameters for the key', () => {
   useMutation({
     mutator: (one: string, two: number) => Promise.resolve(42),
     keys: [
-      ({ variables, result }) => {
-        expectTypeOf(variables).toEqualTypeOf<[string, number]>()
+      ({ args, result }) => {
+        expectTypeOf(args).toEqualTypeOf<[string, number]>()
         expectTypeOf(result).toBeNumber()
         return 'foo'
       },

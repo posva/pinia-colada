@@ -5,7 +5,7 @@ import { type UseQueryKey } from './use-query'
 // TODO: allow just one function that returns an array of keys?
 type _MutatorKeys<TParams extends readonly any[], TResult> = readonly (
   | UseQueryKey
-  | ((context: { variables: TParams; result: TResult }) => UseQueryKey)
+  | ((context: { args: TParams; result: TResult }) => UseQueryKey)
 )[]
 
 export interface UseMutationsOptions<
@@ -16,9 +16,11 @@ export interface UseMutationsOptions<
    * The key of the mutation. If the mutation is successful, it will invalidate the query with the same key and refetch it
    */
   mutator: (...args: TParams) => Promise<TResult>
-  keys?: _MutatorKeys<TParams, TResult>
 
-  // TODO: onMutate for optimistic updates
+  /**
+   * Keys to invalidate for useQuery to trigger their refetch.
+   */
+  keys?: _MutatorKeys<TParams, TResult>
 }
 // export const USE_MUTATIONS_DEFAULTS = {} satisfies Partial<UseMutationsOptions>
 
@@ -64,7 +66,7 @@ export function useMutation<
             for (const key of options.keys) {
               store.invalidateEntry(
                 typeof key === 'function'
-                  ? key({ variables: args, result: _data })
+                  ? key({ args: args, result: _data })
                   : key,
                 true
               )
@@ -108,5 +110,5 @@ export function useMutation<
 //   async mutator(one: string, other?: number) {
 //     return { one, other: other || 0 }
 //   },
-//   keys: ['register', ({ variables: [one], result }) => `register:${one}` + result.one],
+//   keys: ['register', ({ args: [one], result }) => `register:${one}` + result.one],
 // })
