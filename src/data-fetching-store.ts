@@ -219,7 +219,10 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
     }
   }
 
-  function setEntryData<TResult = unknown>(key: UseQueryKey, data: TResult) {
+  function setEntryData<TResult = unknown>(
+    key: UseQueryKey,
+    data: TResult | ((data: Ref<TResult | undefined>) => void)
+  ) {
     const entry = entryStateRegistry.get(key) as
       | UseQueryStateEntry<TResult>
       | undefined
@@ -227,7 +230,12 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
       return
     }
 
-    entry.data.value = data
+    if (typeof data === 'function') {
+      // the remaining type is TResult & Fn, so we need a cast
+      ;(data as (data: Ref<TResult | undefined>) => void)(entry.data)
+    } else {
+      entry.data.value = data
+    }
     // TODO: complete and test
     entry.error.value = null
   }
