@@ -2,10 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { UseQueryOptions, useQuery } from './use-query'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
-import { defineComponent, nextTick } from 'vue'
+import { defineComponent } from 'vue'
 import { GlobalMountOptions } from 'node_modules/@vue/test-utils/dist/types'
-
-const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))
+import { delay, runTimers } from '../test/utils'
 
 describe('useQuery', () => {
   beforeEach(() => {
@@ -14,16 +13,6 @@ describe('useQuery', () => {
   afterEach(() => {
     vi.restoreAllMocks()
   })
-
-  const runTimers = async (onlyPending = true) => {
-    if (onlyPending) {
-      await vi.runOnlyPendingTimersAsync()
-    } else {
-      // vi.runAllTimers()
-      await vi.runAllTimersAsync()
-    }
-    await nextTick()
-  }
 
   const mountSimple = <TResult = number>(
     options: Partial<UseQueryOptions<TResult>> = {},

@@ -39,12 +39,11 @@ export interface UseMutationReturn<
 
 export function useMutation<
   TResult,
-  TParams extends readonly unknown[],
+  TParams extends readonly unknown[] = readonly [],
   TError = Error,
 >(
   options: UseMutationOptions<TResult, TParams>
 ): UseMutationReturn<TResult, TParams, TError> {
-  console.log(options)
   const store = useDataFetchingStore()
 
   const isPending = ref(false)

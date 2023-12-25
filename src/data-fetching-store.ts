@@ -137,26 +137,35 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
               error: null as TError | null,
             } satisfies UseQueryPropertiesEntry<TResult, TError>['previous']
 
-            entry.pending = {
+            // we create an object and verify we are the most recent pending request
+            // before doing anything
+            const pendingEntry = {
               refreshCall: fetcher()
                 .then((data) => {
-                  nextPrevious.data = data
-                  entry.data.value = data
-                  entry.status.value = 'success'
+                  if (pendingEntry === entry.pending) {
+                    nextPrevious.data = data
+                    entry.data.value = data
+                    entry.status.value = 'success'
+                  }
                 })
                 .catch((error) => {
-                  nextPrevious.error = error
-                  entry.error.value = error
-                  entry.status.value = 'error'
+                  if (pendingEntry === entry.pending) {
+                    nextPrevious.error = error
+                    entry.error.value = error
+                    entry.status.value = 'error'
+                  }
                 })
                 .finally(() => {
-                  entry.pending = null
-                  nextPrevious.when = Date.now()
-                  entry.previous = nextPrevious
-                  entry.isFetching.value = false
+                  if (pendingEntry === entry.pending) {
+                    entry.pending = null
+                    nextPrevious.when = Date.now()
+                    entry.previous = nextPrevious
+                    entry.isFetching.value = false
+                  }
                 }),
               when: Date.now(),
             }
+            entry.pending = pendingEntry
           }
 
           await entry.pending.refreshCall
@@ -190,14 +199,12 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
    * @param refetch - whether to force a refresh of the data
    */
   function invalidateEntry(key: UseQueryKey, refetch = false) {
-    if (!entryPropertiesRegistry.has(key)) {
-      // TODO: dev only
-      console.warn(
-        `⚠️ trying to invalidate "${String(key)}" but it's not in the registry`
-      )
+    const entry = entryPropertiesRegistry.get(key)
+
+    // nothing to invalidate
+    if (!entry) {
       return
     }
-    const entry = entryPropertiesRegistry.get(key)!
 
     if (entry.previous) {
       // will force a fetch next time
@@ -210,6 +217,19 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
       // force refresh
       entry.refresh()
     }
+  }
+
+  function setEntryData<TResult = unknown>(key: UseQueryKey, data: TResult) {
+    const entry = entryStateRegistry.get(key) as
+      | UseQueryStateEntry<TResult>
+      | undefined
+    if (!entry) {
+      return
+    }
+
+    entry.data.value = data
+    // TODO: complete and test
+    entry.error.value = null
   }
 
   function prefetch(key: UseQueryKey) {
@@ -228,6 +248,7 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
 
     ensureEntry,
     invalidateEntry,
+    setEntryData,
   }
 })
 
