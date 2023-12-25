@@ -1,7 +1,7 @@
 export {
   useMutation,
   type UseMutationReturn,
-  type UseMutationsOptions,
+  type UseMutationOptions,
 } from './use-mutation'
 
 export {

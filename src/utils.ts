@@ -33,3 +33,13 @@ export function useEventListener(
 }
 
 export const IS_CLIENT = typeof window !== 'undefined'
+
+export type _MaybeArray<T> = T | T[]
+
+/**
+ * Converts a value to an array if necessary.
+ *
+ * @param value - value to convert
+ */
+export const toArray = <T>(value: _MaybeArray<T>): T[] =>
+  Array.isArray(value) ? value : [value]

@@ -1,14 +1,13 @@
 import { computed, ref, type ComputedRef, shallowRef } from 'vue'
 import { useDataFetchingStore } from './data-fetching-store'
 import { type UseQueryKey } from './use-query'
+import { type _MaybeArray, toArray } from './utils'
 
-// TODO: allow just one function that returns an array of keys?
-type _MutatorKeys<TParams extends readonly any[], TResult> = readonly (
-  | UseQueryKey
-  | ((context: { args: TParams; result: TResult }) => UseQueryKey)
-)[]
+type _MutatorKeys<TParams extends readonly any[], TResult> =
+  | UseQueryKey[]
+  | ((result: TResult, ...args: TParams) => _MaybeArray<UseQueryKey>)
 
-export interface UseMutationsOptions<
+export interface UseMutationOptions<
   TResult = unknown,
   TParams extends readonly unknown[] = readonly [],
 > {
@@ -22,6 +21,7 @@ export interface UseMutationsOptions<
    */
   keys?: _MutatorKeys<TParams, TResult>
 }
+
 // export const USE_MUTATIONS_DEFAULTS = {} satisfies Partial<UseMutationsOptions>
 
 export interface UseMutationReturn<
@@ -42,7 +42,7 @@ export function useMutation<
   TParams extends readonly unknown[],
   TError = Error,
 >(
-  options: UseMutationsOptions<TResult, TParams>
+  options: UseMutationOptions<TResult, TParams>
 ): UseMutationReturn<TResult, TParams, TError> {
   console.log(options)
   const store = useDataFetchingStore()
@@ -63,13 +63,13 @@ export function useMutation<
         if (pendingPromise === promise) {
           data.value = _data
           if (options.keys) {
-            for (const key of options.keys) {
-              store.invalidateEntry(
-                typeof key === 'function'
-                  ? key({ args: args, result: _data })
-                  : key,
-                true
-              )
+            const keys = toArray(
+              typeof options.keys === 'function'
+                ? options.keys(_data, ...args)
+                : options.keys
+            )
+            for (const key of keys) {
+              store.invalidateEntry(key, true)
             }
           }
         }
@@ -105,10 +105,3 @@ export function useMutation<
 
   return mutationReturn
 }
-
-// useMutation({
-//   async mutator(one: string, other?: number) {
-//     return { one, other: other || 0 }
-//   },
-//   keys: ['register', ({ args: [one], result }) => `register:${one}` + result.one],
-// })
