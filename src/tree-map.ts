@@ -34,6 +34,20 @@ export class EntryNode<T> {
   }
 
   /**
+   * Gets the value at the given path of keys.
+   *
+   * @param keys - path of keys
+   */
+  get(keys: EntryNodeKey[]): T | undefined {
+    if (keys.length === 0) {
+      return this.value
+    } else {
+      const [top, ...otherKeys] = keys
+      return this.children.get(top)?.get(otherKeys)
+    }
+  }
+
+  /**
    * Delete the node at the given path of keys and all its children.
    *
    * @param keys - path of keys
@@ -43,10 +57,7 @@ export class EntryNode<T> {
       this.children.delete(keys[0])
     } else {
       const [top, ...otherKeys] = keys
-      const node = this.children.get(top)
-      if (node) {
-        node.delete(otherKeys)
-      }
+      this.children.get(top)?.delete(otherKeys)
     }
   }
 }
