@@ -46,7 +46,8 @@
     "test:types": "tsc --build ./tsconfig.json",
     "test:cov": "vitest run --coverage",
     "build": "tsup",
-    "size": "size-limit"
+    "size": "size-limit",
+    "postinstall": "simple-git-hooks"
   },
   "files": [
     "dist",
@@ -95,20 +96,20 @@
     "lint-staged": "^15.2.0",
     "pinia": "^2.1.7",
     "prettier": "^3.1.1",
+    "simple-git-hooks": "^2.9.0",
     "size-limit": "^11.0.1",
     "standard-version": "^9.5.0",
     "tsup": "^8.0.1",
     "typescript": "~5.3.3",
     "vitest": "^1.0.4",
-    "vue": "^3.3.11",
-    "yorkie": "^2.0.0"
+    "vue": "^3.3.11"
   },
-  "gitHooks": {
-    "pre-commit": "lint-staged",
+  "simple-git-hooks": {
+    "pre-commit": "pnpm lint-staged",
     "commit-msg": "node scripts/verifyCommit.js"
   },
   "lint-staged": {
-    "*.?(m)js": [
+    "*.{js,mjs,json,cjs}": [
       "prettier --write"
     ],
     "*.ts?(x)": [
