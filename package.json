@@ -47,7 +47,7 @@
     "test:cov": "vitest run --coverage",
     "build": "tsup",
     "size": "size-limit",
-    "postinstall": "simple-git-hooks"
+    "prepare": "simple-git-hooks"
   },
   "files": [
     "dist",
