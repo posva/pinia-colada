@@ -79,4 +79,55 @@ describe('tree-map', () => {
     t2.set(['todos', 4], {})
     expect(entryNodeSize(t2)).toBe(3)
   })
+
+  describe('Symbol.iterator', () => {
+    it('works on empty', () => {
+      const tree = new TreeMapNode<string>()
+      expect([...tree]).toEqual([])
+    })
+
+    it('skips empty nodes', () => {
+      const tree = new TreeMapNode<string>()
+      tree.set(['a', 'b', 'c'], 'abc')
+      tree.set(['a'], 'a')
+      expect([...tree]).toEqual(['a', 'abc'])
+      tree.set(['a', 'b'], 'ab')
+      expect([...tree]).toEqual(['a', 'ab', 'abc'])
+    })
+
+    it('can be iterated', () => {
+      const tree = new TreeMapNode<string>()
+      tree.set(['a'], 'a')
+      tree.set(['a', 'b', 'c'], 'abc')
+      tree.set(['a', 'b', 'd'], 'abd')
+      tree.set(['a', 'e'], 'ae')
+      tree.set(['a', 'k'], 'ak')
+      tree.set(['f'], 'f')
+      tree.set(['g', 'h'], 'gh')
+
+      expect([...tree]).toEqual([
+        // the order matches the order of insertion and goes deep first
+        'a',
+        'abc',
+        'abd',
+        'ae',
+        'ak',
+        'f',
+        'gh',
+      ])
+    })
+
+    it('can be iterated on a child', () => {
+      const tree = new TreeMapNode<string>()
+      tree.set(['a', 'b', 'c'], 'abc')
+      tree.set(['a', 'b', 'd'], 'abd')
+      tree.set(['a', 'e'], 'ae')
+      tree.set(['a', 'k'], 'ak')
+      tree.set(['f'], 'f')
+      tree.set(['g', 'h'], 'gh')
+      tree.set(['a'], 'a')
+
+      expect([...tree.find(['a', 'b'])!]).toEqual(['abc', 'abd'])
+    })
+  })
 })

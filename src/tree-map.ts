@@ -40,17 +40,26 @@ export class TreeMapNode<T = unknown> {
   }
 
   /**
+   * Finds the node at the given path of keys.
+   *
+   * @param keys - path of keys
+   */
+  find(keys: EntryNodeKey[]): TreeMapNode<T> | undefined {
+    if (keys.length === 0) {
+      return this
+    } else {
+      const [top, ...otherKeys] = keys
+      return this.children.get(top)?.find(otherKeys)
+    }
+  }
+
+  /**
    * Gets the value at the given path of keys.
    *
    * @param keys - path of keys
    */
   get(keys: EntryNodeKey[]): T | undefined {
-    if (keys.length === 0) {
-      return this.value
-    } else {
-      const [top, ...otherKeys] = keys
-      return this.children.get(top)?.get(otherKeys)
-    }
+    return this.find(keys)?.value
   }
 
   /**
@@ -64,6 +73,18 @@ export class TreeMapNode<T = unknown> {
     } else {
       const [top, ...otherKeys] = keys
       this.children.get(top)?.delete(otherKeys)
+    }
+  }
+
+  /**
+   * Iterates over the node values if not null or undefined and all its children. Goes in depth first order.
+   */
+  *[Symbol.iterator](): IterableIterator<T> {
+    if (this.value != null) {
+      yield this.value
+    }
+    for (const child of this.children.values()) {
+      yield* child
     }
   }
 }
