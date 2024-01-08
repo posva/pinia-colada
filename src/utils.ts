@@ -44,18 +44,22 @@ export type _MaybeArray<T> = T | T[]
 export const toArray = <T>(value: _MaybeArray<T>): T[] =>
   Array.isArray(value) ? value : [value]
 
-type _JSONPrimitive = string | number | boolean | null
+export type _JSONPrimitive = string | number | boolean | null | undefined
 
-export interface _Object {
+export interface _ObjectFlat {
   [key: string]: _JSONPrimitive | Array<_JSONPrimitive>
 }
 
 /**
  * Stringifies an object no matter the order of keys. This is used to create a hash for a given object. It only works
- * with flat objects. It can contain arrays of primitives only.
+ * with flat objects. It can contain arrays of primitives only. `undefined` values are skipped.
  *
  * @param obj - object to stringify
  */
-export function stringifyFlatObject(obj: _Object): string {
-  return JSON.stringify(obj, Object.keys(obj).sort())
+export function stringifyFlatObject(
+  obj: _ObjectFlat | _JSONPrimitive
+): _JSONPrimitive {
+  return obj && typeof obj === 'object'
+    ? JSON.stringify(obj, Object.keys(obj).sort())
+    : obj
 }

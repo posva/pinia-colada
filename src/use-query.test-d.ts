@@ -55,3 +55,27 @@ it('expects an async fetcher', () => {
     }).data
   )
 })
+
+it('can use a function as a key', () => {
+  useQuery({
+    fetcher: async () => 42,
+    key: ['todos'],
+  })
+
+  useQuery({
+    fetcher: async () => 42,
+    key: ['todos', '2', 2],
+  })
+})
+
+it('can use objects in keys', () => {
+  useQuery({
+    fetcher: async () => 42,
+    key: { id: 1 },
+  })
+
+  useQuery({
+    fetcher: async () => 42,
+    key: ['todos', { id: 1, a: true, b: 'hello' }, 5, true],
+  })
+})

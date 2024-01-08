@@ -1,4 +1,11 @@
-import { IS_CLIENT, useEventListener } from './utils'
+import {
+  IS_CLIENT,
+  _JSONPrimitive,
+  _MaybeArray,
+  _ObjectFlat,
+  toArray,
+  useEventListener,
+} from './utils'
 import {
   computed,
   onMounted,
@@ -7,6 +14,7 @@ import {
   onScopeDispose,
   ShallowRef,
   Ref,
+  MaybeRefOrGetter,
 } from 'vue'
 import {
   UseQueryPropertiesEntry,
@@ -14,16 +22,28 @@ import {
   useDataFetchingStore,
 } from './data-fetching-store'
 
+/**
+ * Return type of `useQuery()`.
+ */
 export interface UseQueryReturn<TResult = unknown, TError = Error>
   extends UseQueryStateEntry<TResult, TError>,
     Pick<UseQueryPropertiesEntry<TResult, TError>, 'refresh' | 'refetch'> {}
 
-export type UseQueryKey = string | symbol
-// TODO:
-// | Array<string | symbol>
+/**
+ * Key used to identify a query.
+ */
+export type UseQueryKey = _JSONPrimitive | _ObjectFlat
+// TODO: if it's worth allowing more complex keys, we could expose an extendable interface  TypesConfig where this is set.
 
 export interface UseQueryOptions<TResult = unknown> {
-  key: UseQueryKey | (() => UseQueryKey)
+  /**
+   * The key used to identify the query. It should either be an array of primitives without reactive values or a reactive array.
+   */
+  key: MaybeRefOrGetter<_MaybeArray<UseQueryKey>>
+
+  /**
+   * The function that will be called to fetch the data. It **must** be async.
+   */
   fetcher: () => Promise<TResult>
 
   /**
@@ -52,6 +72,8 @@ export const USE_QUERY_DEFAULTS = {
   refetchOnWindowFocus: true as UseQueryOptions['refetchOnWindowFocus'],
   refetchOnReconnect: true as UseQueryOptions['refetchOnReconnect'],
 } satisfies Partial<UseQueryOptions>
+// TODO: inject for the app rather than a global variable
+
 export type UseQueryOptionsWithDefaults<TResult> = typeof USE_QUERY_DEFAULTS &
   UseQueryOptions<TResult>
 
@@ -66,7 +88,7 @@ export function useQuery<TResult, TError = Error>(
   } satisfies UseQueryOptionsWithDefaults<TResult>
 
   const entry = computed(() =>
-    store.ensureEntry<TResult, TError>(toValue(options.key), options)
+    store.ensureEntry<TResult, TError>(toArray(toValue(options.key)), options)
   )
 
   // only happens on server, app awaits this

@@ -4,8 +4,8 @@ import { type UseQueryKey } from './use-query'
 import { type _MaybeArray, toArray } from './utils'
 
 type _MutatorKeys<TParams extends readonly any[], TResult> =
-  | UseQueryKey[]
-  | ((result: TResult, ...args: TParams) => _MaybeArray<UseQueryKey>)
+  | _MaybeArray<UseQueryKey>[]
+  | ((result: TResult, ...args: TParams) => _MaybeArray<UseQueryKey>[])
 
 export interface UseMutationOptions<
   TResult = unknown,
@@ -16,8 +16,9 @@ export interface UseMutationOptions<
    */
   mutator: (...args: TParams) => Promise<TResult>
 
+  // TODO: move this to a plugin that calls invalidateEntry()
   /**
-   * Keys to invalidate for useQuery to trigger their refetch.
+   * Keys to invalidate if the mutation succeeds so that `useQuery()` refetch if used.
    */
   keys?: _MutatorKeys<TParams, TResult>
 }
@@ -62,11 +63,11 @@ export function useMutation<
         if (pendingPromise === promise) {
           data.value = _data
           if (options.keys) {
-            const keys = toArray(
+            const keys = (
               typeof options.keys === 'function'
                 ? options.keys(_data, ...args)
                 : options.keys
-            )
+            ).map(toArray)
             for (const key of keys) {
               store.invalidateEntry(key, true)
             }

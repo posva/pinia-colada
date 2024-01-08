@@ -5,6 +5,8 @@ import { createPinia } from 'pinia'
 import { defineComponent } from 'vue'
 import { GlobalMountOptions } from 'node_modules/@vue/test-utils/dist/types'
 import { delay, runTimers } from '../test/utils'
+import { useDataFetchingStore } from './data-fetching-store'
+import { entryNodeSize } from './tree-map'
 
 describe('useQuery', () => {
   beforeEach(() => {
@@ -221,6 +223,53 @@ describe('useQuery', () => {
       await runTimers()
       expect(fetcher).toHaveBeenCalledTimes(2)
       expect(wrapper.vm.data).toBe(42)
+    })
+  })
+
+  describe('shared state', () => {
+    it('reuses the same state for the same key', async () => {
+      const pinia = createPinia()
+      mountSimple({ key: 'todos' }, { plugins: [pinia] })
+      mountSimple({ key: ['todos'] }, { plugins: [pinia] })
+      await runTimers()
+
+      const cacheClient = useDataFetchingStore()
+      expect(entryNodeSize(cacheClient.entryStateRegistry)).toBe(1)
+
+      mountSimple({ key: ['todos', 2] }, { plugins: [pinia] })
+      await runTimers()
+
+      expect(entryNodeSize(cacheClient.entryStateRegistry)).toBe(2)
+    })
+
+    it('populates the entry registry', async () => {
+      const pinia = createPinia()
+      mountSimple({ key: ['todos', 5] }, { plugins: [pinia] })
+      mountSimple({ key: ['todos', 2] }, { plugins: [pinia] })
+      await runTimers()
+
+      const cacheClient = useDataFetchingStore()
+      expect(entryNodeSize(cacheClient.entryStateRegistry)).toBe(3)
+    })
+
+    it('order in object keys does not matter', async () => {
+      const pinia = createPinia()
+      mountSimple(
+        { key: ['todos', { id: 5, a: true, b: 'hello' }] },
+        { plugins: [pinia] }
+      )
+      mountSimple(
+        { key: ['todos', { a: true, id: 5, b: 'hello' }] },
+        { plugins: [pinia] }
+      )
+      mountSimple(
+        { key: ['todos', { id: 5, a: true, b: 'hello' }] },
+        { plugins: [pinia] }
+      )
+      await runTimers()
+
+      const cacheClient = useDataFetchingStore()
+      expect(entryNodeSize(cacheClient.entryStateRegistry)).toBe(2)
     })
   })
 })

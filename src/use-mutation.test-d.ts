@@ -8,7 +8,7 @@ it('types the parameters for the key', () => {
       expectTypeOf(one).toBeString()
       expectTypeOf(two).toBeNumber()
       expectTypeOf(result).toEqualTypeOf<{ name: string }>()
-      return 'foo'
+      return ['foo']
     },
   })
 })

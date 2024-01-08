@@ -3,13 +3,15 @@ import {
   type Ref,
   shallowReactive,
   getCurrentScope,
-  ShallowRef,
+  type ShallowRef,
   ref,
-  ComputedRef,
+  type ComputedRef,
   computed,
   triggerRef,
 } from 'vue'
 import type { UseQueryOptionsWithDefaults, UseQueryKey } from './use-query'
+import { type _MaybeArray, stringifyFlatObject } from './utils'
+import { TreeMapNode } from './tree-map'
 
 export type UseQueryStatus = 'pending' | 'error' | 'success'
 
@@ -70,13 +72,10 @@ export interface UseQueryEntry<TResult = unknown, TError = Error>
 
 export const useDataFetchingStore = defineStore('PiniaColada', () => {
   const entryStateRegistry = shallowReactive(
-    new Map<UseQueryKey, UseQueryStateEntry>()
+    new TreeMapNode<UseQueryStateEntry>()
   )
   // these are not reactive as they are mostly functions
-  const entryPropertiesRegistry = new Map<
-    UseQueryKey,
-    UseQueryPropertiesEntry
-  >()
+  const entryPropertiesRegistry = new TreeMapNode<UseQueryPropertiesEntry>()
 
   // FIXME: start from here: replace properties entry with a QueryEntry that is created when needed and contains all the needed part, included functions
 
@@ -84,12 +83,13 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
   const scope = getCurrentScope()!
 
   function ensureEntry<TResult = unknown, TError = Error>(
-    key: UseQueryKey,
+    keyRaw: UseQueryKey[],
     { fetcher, initialData, staleTime }: UseQueryOptionsWithDefaults<TResult>
   ): UseQueryEntry<TResult, TError> {
+    const key = keyRaw.map(stringifyFlatObject)
     // ensure the state
     console.log('⚙️ Ensuring entry', key)
-    if (!entryStateRegistry.has(key)) {
+    if (!entryStateRegistry.get(key)) {
       entryStateRegistry.set(
         key,
         scope.run(() => {
@@ -108,7 +108,7 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
 
     // TODO: these needs to be created client side. Should probably be a class for better memory
 
-    if (!entryPropertiesRegistry.has(key)) {
+    if (!entryPropertiesRegistry.get(key)) {
       const propertiesEntry: UseQueryPropertiesEntry<TResult, TError> = {
         pending: null,
         previous: null,
@@ -199,8 +199,8 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
    * @param key - the key of the query to invalidate
    * @param refetch - whether to force a refresh of the data
    */
-  function invalidateEntry(key: UseQueryKey, refetch = false) {
-    const entry = entryPropertiesRegistry.get(key)
+  function invalidateEntry(key: UseQueryKey[], refetch = false) {
+    const entry = entryPropertiesRegistry.get(key.map(stringifyFlatObject))
 
     // nothing to invalidate
     if (!entry) {
@@ -221,10 +221,10 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
   }
 
   function setEntryData<TResult = unknown>(
-    key: UseQueryKey,
+    key: UseQueryKey[],
     data: TResult | ((data: Ref<TResult | undefined>) => void)
   ) {
-    const entry = entryStateRegistry.get(key) as
+    const entry = entryStateRegistry.get(key.map(stringifyFlatObject)) as
       | UseQueryStateEntry<TResult>
       | undefined
     if (!entry) {
@@ -242,8 +242,8 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
     entry.error.value = null
   }
 
-  function prefetch(key: UseQueryKey) {
-    const entry = entryPropertiesRegistry.get(key)
+  function prefetch(key: UseQueryKey[]) {
+    const entry = entryPropertiesRegistry.get(key.map(stringifyFlatObject))
     if (!entry) {
       console.warn(
         `⚠️ trying to prefetch "${String(key)}" but it's not in the registry`

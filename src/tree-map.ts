@@ -1,8 +1,14 @@
-export type EntryNodeKey = string | number
+import { type _JSONPrimitive } from './utils'
 
-export class EntryNode<T> {
+export type EntryNodeKey = _JSONPrimitive
+
+/**
+ * Internal data structure used to store the data of `useQuery()`.
+ * @internal
+ */
+export class TreeMapNode<T = unknown> {
   value: T | undefined
-  children = new Map<string | number, EntryNode<T>>()
+  children = new Map<EntryNodeKey, TreeMapNode<T>>()
 
   constructor()
   constructor(keys: EntryNodeKey[], value: T)
@@ -24,11 +30,11 @@ export class EntryNode<T> {
     } else {
       // this.children ??= new Map<EntryNodeKey,
       const [top, ...otherKeys] = keys
-      const node: EntryNode<T> | undefined = this.children.get(top)
+      const node: TreeMapNode<T> | undefined = this.children.get(top)
       if (node) {
         node.set(otherKeys, value)
       } else {
-        this.children.set(top, new EntryNode(otherKeys, value))
+        this.children.set(top, new TreeMapNode(otherKeys, value))
       }
     }
   }
@@ -60,4 +66,70 @@ export class EntryNode<T> {
       this.children.get(top)?.delete(otherKeys)
     }
   }
+}
+
+// Below are debugging internals
+
+/**
+ * Calculates the size of the node and all its children. Used in tests.
+ *
+ * @internal
+ * @param node - The node to calculate the size of
+ * @returns The size of the node and all its children
+ */
+export function entryNodeSize(node: TreeMapNode): number {
+  return (
+    node.children.size +
+    [...node.children.values()].reduce(
+      (acc, child) => acc + entryNodeSize(child),
+      0
+    )
+  )
+}
+
+export function logTree(
+  tree: TreeMapNode,
+  log: (str: string) => any = console.log
+) {
+  log(printTreeMap(tree))
+}
+
+const MAX_LEVEL = 1000
+function printTreeMap(
+  tree: TreeMapNode | TreeMapNode['children'],
+  level = 0,
+  parentPre = '',
+  treeStr = ''
+): string {
+  // end of recursion
+  if (typeof tree !== 'object' || level >= MAX_LEVEL) return ''
+
+  if (tree instanceof Map) {
+    const total = tree.size
+    let index = 0
+    for (const [key, child] of tree) {
+      const hasNext = index++ < total - 1
+      const { children } = child
+
+      treeStr += `${`${parentPre}${hasNext ? '├' : '└'}${
+        '─' + (children.size > 0 ? '┬' : '')
+      } `}${key}${child.value != null ? ' · ' + String(child.value) : ''}\n`
+
+      if (children) {
+        treeStr += printTreeMap(
+          children,
+          level + 1,
+          `${parentPre}${hasNext ? '│' : ' '} `
+        )
+      }
+    }
+  } else {
+    const children = tree.children
+    treeStr = `${String(tree.value ?? '<root>')}\n`
+    if (children) {
+      treeStr += printTreeMap(children, level + 1)
+    }
+  }
+
+  return treeStr
 }
