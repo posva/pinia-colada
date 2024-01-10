@@ -279,3 +279,24 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
 function isExpired(lastRefresh: number, staleTime: number): boolean {
   return Date.now() > lastRefresh + staleTime
 }
+
+type UseQueryEntryNodeSerialized = [
+  value: undefined | [data: unknown, error: unknown],
+  children?: Record<string, UseQueryEntryNodeSerialized>,
+]
+
+export function serialize(
+  tree: TreeMapNode<UseQueryEntry>
+): UseQueryEntryNodeSerialized {
+  return [
+    // undefined becomes null within an array when converted to JSON
+    tree.value && [tree.value.data.value, tree.value.error.value],
+    tree.children &&
+      [...tree.children.entries()].reduce<
+        Record<string, UseQueryEntryNodeSerialized>
+      >((acc, [key, child]) => {
+        acc[String(key)] = serialize(child)
+        return acc
+      }, {}),
+  ]
+}
