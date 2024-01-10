@@ -8,6 +8,7 @@ import {
   type ComputedRef,
   computed,
   triggerRef,
+  shallowRef,
 } from 'vue'
 import type { UseQueryOptionsWithDefaults, UseQueryKey } from './use-query'
 import { type _MaybeArray, stringifyFlatObject } from './utils'
@@ -18,6 +19,7 @@ export type UseQueryStatus = 'pending' | 'error' | 'success'
 export interface UseQueryStateEntry<TResult = unknown, TError = unknown> {
   // TODO: is it worth to be a shallowRef?
   data: Ref<TResult | undefined>
+
   error: ShallowRef<TError | null>
 
   /**
@@ -28,14 +30,14 @@ export interface UseQueryStateEntry<TResult = unknown, TError = unknown> {
   /**
    * Returns whether the request is currently fetching data.
    */
-  isFetching: Ref<boolean>
+  isFetching: ShallowRef<boolean>
 
   /**
    * The status of the request. `pending` indicates that no request has been made yet and there is no cached data to
    * display (`data.value = undefined`). `error` indicates that the last request failed. `success` indicates that the
    * last request succeeded.
    */
-  status: Ref<UseQueryStatus>
+  status: ShallowRef<UseQueryStatus>
 }
 
 export interface UseQueryPropertiesEntry<TResult = unknown, TError = unknown> {
@@ -93,13 +95,13 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
       entryStateRegistry.set(
         key,
         scope.run(() => {
-          const status = ref<UseQueryStatus>('pending')
+          const status = shallowRef<UseQueryStatus>('pending')
 
           return {
             data: ref(initialData?.()),
-            error: ref(null),
+            error: shallowRef(null),
             isPending: computed(() => status.value === 'pending'),
-            isFetching: ref(false),
+            isFetching: shallowRef(false),
             status,
           }
         })!
