@@ -1,10 +1,18 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  MockInstance,
+} from 'vitest'
 import { UseQueryOptions, useQuery } from './use-query'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
-import { defineComponent } from 'vue'
+import { defineComponent, nextTick, ref } from 'vue'
 import { GlobalMountOptions } from 'node_modules/@vue/test-utils/dist/types'
-import { delay, runTimers } from '../test/utils'
+import { delay, isSpy, runTimers } from '../test/utils'
 import { useDataFetchingStore } from './data-fetching-store'
 import { entryNodeSize } from './tree-map'
 
@@ -210,19 +218,121 @@ describe('useQuery', () => {
     })
   })
 
-  describe.skip('refresh', () => {
-    it('refreshes the data', async () => {
-      const { wrapper, fetcher } = mountSimple()
+  describe('refresh data', () => {
+    const mountDynamicKey = <TResult = { id: number; when: number }>(
+      options: Partial<UseQueryOptions<TResult>> & { initialId?: number } = {},
+      mountOptions?: GlobalMountOptions
+    ) => {
+      let fetcher!: MockInstance
+
+      const wrapper = mount(
+        defineComponent({
+          render: () => null,
+          setup() {
+            const id = ref(options.initialId ?? 0)
+            fetcher = options.fetcher
+              ? isSpy(options.fetcher)
+                ? options.fetcher
+                : vi.fn(options.fetcher)
+              : vi.fn(async () => {
+                  await delay(0)
+                  return { id: id.value, when: Date.now() }
+                })
+
+            return {
+              id,
+              async setId(newId: number) {
+                id.value = newId
+                // awaits the delay of 0
+                await runTimers()
+                // renders again
+                await nextTick()
+              },
+              ...useQuery<TResult>({
+                key: () => ['data', id.value],
+                ...options,
+                // @ts-expect-error: generic unmatched but types work
+                fetcher,
+              }),
+            }
+          },
+        }),
+        {
+          global: {
+            plugins: [createPinia()],
+            ...mountOptions,
+          },
+        }
+      )
+      return Object.assign([wrapper, fetcher] as const, {
+        wrapper,
+        fetcher,
+      })
+    }
+
+    it('refreshes the data if mounted and the key changes', async () => {
+      const { wrapper, fetcher } = mountDynamicKey({
+        initialId: 0,
+      })
 
       await runTimers()
-      expect(wrapper.vm.data).toBe(42)
+      expect(wrapper.vm.data?.id).toBe(0)
       expect(fetcher).toHaveBeenCalledTimes(1)
 
-      mountSimple()
+      await wrapper.vm.setId(1)
+
+      expect(fetcher).toHaveBeenCalledTimes(2)
+      expect(wrapper.vm.data?.id).toBe(1)
+    })
+
+    it('avoids a new fetch if the key changes but the data is not stale', async () => {
+      const { wrapper, fetcher } = mountDynamicKey({
+        initialId: 0,
+        staleTime: 1000,
+      })
 
       await runTimers()
+      expect(wrapper.vm.data?.id).toBe(0)
+      expect(fetcher).toHaveBeenCalledTimes(1)
+
+      await wrapper.vm.setId(1)
+      await wrapper.vm.setId(0)
+
       expect(fetcher).toHaveBeenCalledTimes(2)
-      expect(wrapper.vm.data).toBe(42)
+    })
+
+    it('does not refresh by default when mounting a new component that uses the same key', async () => {
+      const pinia = createPinia()
+      const fetcher = vi.fn().mockResolvedValue({ id: 0, when: Date.now() })
+      mountDynamicKey({ initialId: 0, fetcher }, { plugins: [pinia] })
+      await runTimers()
+      expect(fetcher).toHaveBeenCalledTimes(1)
+
+      mountDynamicKey({ initialId: 0 }, { plugins: [pinia] })
+      await runTimers()
+      // not called because data is fresh
+      expect(fetcher).toHaveBeenCalledTimes(1)
+    })
+
+    it('refreshes when mounting a new component that uses the same key if data is stale', async () => {
+      const pinia = createPinia()
+      const fetcher = vi.fn().mockResolvedValue({ id: 0, when: Date.now() })
+      mountDynamicKey(
+        // staleTime doesn't matter here
+        { initialId: 0, staleTime: 10, fetcher },
+        { plugins: [pinia] }
+      )
+      await runTimers()
+      expect(fetcher).toHaveBeenCalledTimes(1)
+      await vi.advanceTimersByTime(100)
+
+      mountDynamicKey(
+        { initialId: 0, staleTime: 10, fetcher },
+        { plugins: [pinia] }
+      )
+      await runTimers()
+      // called because data is stale
+      expect(fetcher).toHaveBeenCalledTimes(2)
     })
   })
 

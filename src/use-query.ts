@@ -15,6 +15,8 @@ import {
   ShallowRef,
   Ref,
   MaybeRefOrGetter,
+  watch,
+  getCurrentInstance,
 } from 'vue'
 import {
   UseQueryPropertiesEntry,
@@ -28,6 +30,11 @@ import {
 export interface UseQueryReturn<TResult = unknown, TError = Error>
   extends UseQueryStateEntry<TResult, TError>,
     Pick<UseQueryPropertiesEntry<TResult, TError>, 'refresh' | 'refetch'> {}
+
+/**
+ * `true` refetch if data is stale, false never refetch, 'always' always refetch.
+ */
+export type _RefetchOnControl = boolean | 'always'
 
 /**
  * Key used to identify a query.
@@ -58,8 +65,9 @@ export interface UseQueryOptions<TResult = unknown> {
 
   initialData?: () => TResult
   // TODO: rename to refresh and use refresh instead by default?
-  refetchOnWindowFocus?: boolean // TODO: | 'force' or options to adapt this
-  refetchOnReconnect?: boolean
+  refetchOnMount?: _RefetchOnControl
+  refetchOnWindowFocus?: _RefetchOnControl
+  refetchOnReconnect?: _RefetchOnControl
 }
 
 /**
@@ -69,8 +77,9 @@ export const USE_QUERY_DEFAULTS = {
   staleTime: 1000 * 5, // 5 seconds
   gcTime: 1000 * 60 * 5, // 5 minutes
   // avoid type narrowing to `true`
-  refetchOnWindowFocus: true as UseQueryOptions['refetchOnWindowFocus'],
-  refetchOnReconnect: true as UseQueryOptions['refetchOnReconnect'],
+  refetchOnWindowFocus: true as _RefetchOnControl,
+  refetchOnReconnect: true as _RefetchOnControl,
+  refetchOnMount: true as _RefetchOnControl,
 } satisfies Partial<UseQueryOptions>
 // TODO: inject for the app rather than a global variable
 
@@ -102,11 +111,39 @@ export function useQuery<TResult, TError = Error>(
       queryReturn.isPending.value
   })
 
+  const hasCurrentInstance = getCurrentInstance()
+
+  // should we be watching entry
+  let isActive = false
+  if (hasCurrentInstance) {
+    onMounted(() => {
+      isActive = true
+    })
+  } else {
+    isActive = true
+    entry.value.refresh()
+  }
+
+  watch(entry, (entry, _, onCleanup) => {
+    if (!isActive) return
+    entry.refresh()
+    onCleanup(() => {
+      // TODO: decrement ref count
+    })
+  })
+
   // only happens on client
   // we could also call fetch instead but forcing a refresh is more interesting
-  onMounted(entry.value.refresh)
-  // TODO: optimize so it doesn't refresh if we are hydrating
-
+  if (options.refetchOnMount && hasCurrentInstance) {
+    // TODO: optimize so it doesn't refresh if we are hydrating
+    onMounted(() => {
+      if (options.refetchOnMount === 'always') {
+        entry.value.refetch()
+      } else {
+        entry.value.refresh()
+      }
+    })
+  }
   // TODO: we could save the time it was fetched to avoid fetching again. This is useful to not refetch during SSR app but do refetch in SSG apps if the data is stale. Careful with timers and timezones
 
   onScopeDispose(() => {
@@ -117,14 +154,22 @@ export function useQuery<TResult, TError = Error>(
     if (options.refetchOnWindowFocus) {
       useEventListener(document, 'visibilitychange', () => {
         if (document.visibilityState === 'visible') {
-          entry.value.refetch()
+          if (options.refetchOnWindowFocus === 'always') {
+            entry.value.refetch()
+          } else {
+            entry.value.refresh()
+          }
         }
       })
     }
 
     if (options.refetchOnReconnect) {
       useEventListener(window, 'online', () => {
-        entry.value.refetch()
+        if (options.refetchOnReconnect === 'always') {
+          entry.value.refetch()
+        } else {
+          entry.value.refresh()
+        }
       })
     }
   }
@@ -132,13 +177,12 @@ export function useQuery<TResult, TError = Error>(
   // TODO: handle if key is reactive
 
   const queryReturn = {
-    data: entry.value.data,
-    error: entry.value.error,
-    isFetching: entry.value.isFetching,
-    isPending: entry.value.isPending,
-    status: entry.value.status,
+    data: computed(() => entry.value.data.value),
+    error: computed(() => entry.value.error.value),
+    isFetching: computed(() => entry.value.isFetching.value),
+    isPending: computed(() => entry.value.isPending.value),
+    status: computed(() => entry.value.status.value),
 
-    // TODO: do we need to force bound to the entry?
     refresh: () => entry.value.refresh(),
     refetch: () => entry.value.refetch(),
   } satisfies UseQueryReturn<TResult, TError>
