@@ -56,10 +56,8 @@ export interface _ObjectFlat {
  *
  * @param obj - object to stringify
  */
-export function stringifyFlatObject(
-  obj: _ObjectFlat | _JSONPrimitive
-): _JSONPrimitive {
+export function stringifyFlatObject(obj: _ObjectFlat | _JSONPrimitive): string {
   return obj && typeof obj === 'object'
     ? JSON.stringify(obj, Object.keys(obj).sort())
-    : obj
+    : String(obj)
 }

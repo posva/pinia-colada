@@ -23,6 +23,7 @@ import {
   UseQueryStateEntry,
   useDataFetchingStore,
 } from './data-fetching-store'
+import { EntryNodeKey } from './tree-map'
 
 /**
  * Return type of `useQuery()`.
@@ -39,7 +40,7 @@ export type _RefetchOnControl = boolean | 'always'
 /**
  * Key used to identify a query.
  */
-export type UseQueryKey = _JSONPrimitive | _ObjectFlat
+export type UseQueryKey = EntryNodeKey | _ObjectFlat
 // TODO: if it's worth allowing more complex keys, we could expose an extendable interface  TypesConfig where this is set.
 
 export interface UseQueryOptions<TResult = unknown> {
@@ -173,8 +174,6 @@ export function useQuery<TResult, TError = Error>(
       })
     }
   }
-
-  // TODO: handle if key is reactive
 
   const queryReturn = {
     data: computed(() => entry.value.data.value),
