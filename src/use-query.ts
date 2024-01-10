@@ -94,7 +94,7 @@ export interface UseQueryOptions<TResult = unknown> {
   gcTime?: number
 
   initialData?: () => TResult
-  // TODO: rename to refresh and use refresh instead by default?
+  // TODO: rename to refresh since that's the default? and change 'always' to 'force'?
   refetchOnMount?: _RefetchOnControl
   refetchOnWindowFocus?: _RefetchOnControl
   refetchOnReconnect?: _RefetchOnControl
@@ -166,7 +166,6 @@ export function useQuery<TResult, TError = Error>(
     })
   } else {
     isActive = true
-    refresh()
   }
 
   watch(entry, (entry, _, onCleanup) => {
