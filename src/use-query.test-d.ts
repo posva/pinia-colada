@@ -76,6 +76,6 @@ it('can use objects in keys', () => {
 
   useQuery({
     fetcher: async () => 42,
-    key: ['todos', { id: 1, a: true, b: 'hello' }, 5, true],
+    key: ['todos', { id: 1, a: true, b: 'hello' }, 5],
   })
 })

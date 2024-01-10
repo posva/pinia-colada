@@ -10,11 +10,22 @@ import {
 import { UseQueryOptions, useQuery } from './use-query'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
-import { defineComponent, nextTick, ref } from 'vue'
+import {
+  computed,
+  defineComponent,
+  nextTick,
+  ref,
+  shallowReactive,
+  shallowRef,
+} from 'vue'
 import { GlobalMountOptions } from 'node_modules/@vue/test-utils/dist/types'
 import { delay, isSpy, runTimers } from '../test/utils'
-import { useDataFetchingStore } from './data-fetching-store'
-import { entryNodeSize } from './tree-map'
+import {
+  UseQueryStateEntry,
+  UseQueryStatus,
+  useDataFetchingStore,
+} from './data-fetching-store'
+import { TreeMapNode, entryNodeSize } from './tree-map'
 
 describe('useQuery', () => {
   beforeEach(() => {
@@ -24,10 +35,10 @@ describe('useQuery', () => {
     vi.restoreAllMocks()
   })
 
-  const mountSimple = <TResult = number>(
+  function mountSimple<TResult = number>(
     options: Partial<UseQueryOptions<TResult>> = {},
     mountOptions?: GlobalMountOptions
-  ) => {
+  ) {
     const fetcher = options.fetcher
       ? vi.fn(options.fetcher)
       : vi.fn(async () => {
@@ -40,7 +51,7 @@ describe('useQuery', () => {
         setup() {
           return {
             ...useQuery<TResult>({
-              key: 'foo',
+              key: 'key',
               ...options,
               // @ts-expect-error: generic unmatched but types work
               fetcher,
@@ -114,6 +125,28 @@ describe('useQuery', () => {
       expect(wrapper.vm.error).toBeNull()
       await runTimers()
       expect(wrapper.vm.error).toEqual(new Error('foo'))
+    })
+
+    it('skips fetching if initial data is present in store', async () => {
+      const pinia = createPinia()
+      const status = shallowRef<UseQueryStatus>('pending')
+
+      const stateEntry = {
+        data: ref(2),
+        error: shallowRef(null),
+        isPending: computed(() => status.value === 'pending'),
+        isFetching: shallowRef(false),
+        status,
+      } satisfies UseQueryStateEntry
+      const entryStateRegistry = shallowReactive(
+        new TreeMapNode<UseQueryStateEntry>(['key'], stateEntry)
+      )
+      pinia.state.value.PiniaColada = { entryStateRegistry }
+      const { wrapper, fetcher } = mountSimple({}, { plugins: [pinia] })
+      await runTimers()
+
+      expect(wrapper.vm.data).toBe(2)
+      expect(fetcher).toHaveBeenCalledTimes(0)
     })
   })
 
@@ -219,10 +252,10 @@ describe('useQuery', () => {
   })
 
   describe('refresh data', () => {
-    const mountDynamicKey = <TResult = { id: number; when: number }>(
+    function mountDynamicKey<TResult = { id: number; when: number }>(
       options: Partial<UseQueryOptions<TResult>> & { initialId?: number } = {},
       mountOptions?: GlobalMountOptions
-    ) => {
+    ) {
       let fetcher!: MockInstance
 
       const wrapper = mount(
@@ -269,6 +302,29 @@ describe('useQuery', () => {
         fetcher,
       })
     }
+
+    it('refreshes the data even with initial values after staleTime is elapsed', async () => {
+      const pinia = createPinia()
+      pinia.state.value.PiniaColada = {
+        entryStateRegistry: shallowReactive(new TreeMapNode(['key'], 60)),
+      }
+      const { wrapper, fetcher } = mountSimple(
+        {
+          staleTime: 100,
+        },
+        {}
+      )
+
+      await runTimers()
+      expect(wrapper.vm.data).toBe(60)
+      expect(fetcher).toHaveBeenCalledTimes(0)
+
+      await vi.advanceTimersByTime(101)
+      wrapper.vm.refresh()
+      await runTimers()
+      expect(wrapper.vm.data).toBe(42)
+      expect(fetcher).toHaveBeenCalledTimes(1)
+    })
 
     it('refreshes the data if mounted and the key changes', async () => {
       const { wrapper, fetcher } = mountDynamicKey({

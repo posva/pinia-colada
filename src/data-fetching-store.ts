@@ -11,8 +11,8 @@ import {
   shallowRef,
 } from 'vue'
 import type { UseQueryOptionsWithDefaults, UseQueryKey } from './use-query'
-import { type _MaybeArray, stringifyFlatObject } from './utils'
-import { TreeMapNode } from './tree-map'
+import { type _MaybeArray, stringifyFlatObject, _JSONPrimitive } from './utils'
+import { EntryNodeKey, TreeMapNode } from './tree-map'
 
 export type UseQueryStatus = 'pending' | 'error' | 'success'
 
@@ -40,6 +40,26 @@ export interface UseQueryStateEntry<TResult = unknown, TError = unknown> {
   status: ShallowRef<UseQueryStatus>
 }
 
+/**
+ * Raw data of a query entry. Can be serialized from the server and used to hydrate the store.
+ */
+export interface UseQueryStateEntryRaw<TResult = unknown, TError = unknown> {
+  /**
+   * The data returned by the fetcher.
+   */
+  data: TResult | undefined
+
+  /**
+   * The error thrown by the fetcher.
+   */
+  error: TError | null
+
+  /**
+   * When was this data fetched the last time in ms
+   */
+  when: number
+}
+
 export interface UseQueryPropertiesEntry<TResult = unknown, TError = unknown> {
   /**
    * Ensures the current data is fresh. If the data is stale, refetch, if not return as is.
@@ -58,14 +78,7 @@ export interface UseQueryPropertiesEntry<TResult = unknown, TError = unknown> {
     when: number
   }
 
-  previous: null | {
-    /**
-     * When was this data fetched the last time in ms
-     */
-    when: number
-    data: TResult | undefined
-    error: TError | null
-  }
+  previous: null | UseQueryStateEntryRaw<TResult, TError>
 }
 
 export interface UseQueryEntry<TResult = unknown, TError = Error>
@@ -76,7 +89,7 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
   const entryStateRegistry = shallowReactive(
     new TreeMapNode<UseQueryStateEntry>()
   )
-  // these are not reactive as they are mostly functions
+  // these are not reactive as they are mostly functions and should not be serialized as part of the state
   const entryPropertiesRegistry = new TreeMapNode<UseQueryPropertiesEntry>()
 
   // FIXME: start from here: replace properties entry with a QueryEntry that is created when needed and contains all the needed part, included functions
@@ -122,6 +135,9 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
                   ?.when} / ${staleTime}`
               )
             }
+
+            if (entry.pending?.refreshCall) console.log('  -> skipped!')
+
             await (entry.pending?.refreshCall ?? entry.refetch())
           }
 
@@ -129,47 +145,42 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
         },
         async refetch(): Promise<TResult> {
           console.log('🔄 refetching', key)
-          if (entry.pending) console.log('  -> skipped!')
-          // when if there an ongoing request
-          if (!entry.pending) {
-            entry.isFetching.value = true
-            entry.error.value = null
-            const nextPrevious = {
-              when: 0,
-              data: undefined as TResult | undefined,
-              error: null as TError | null,
-            } satisfies UseQueryPropertiesEntry<TResult, TError>['previous']
+          entry.isFetching.value = true
+          entry.error.value = null
+          const nextPrevious = {
+            when: 0,
+            data: undefined as TResult | undefined,
+            error: null as TError | null,
+          } satisfies UseQueryPropertiesEntry<TResult, TError>['previous']
 
-            // we create an object and verify we are the most recent pending request
-            // before doing anything
-            const pendingEntry = {
-              refreshCall: fetcher()
-                .then((data) => {
-                  if (pendingEntry === entry.pending) {
-                    nextPrevious.data = data
-                    entry.data.value = data
-                    entry.status.value = 'success'
-                  }
-                })
-                .catch((error) => {
-                  if (pendingEntry === entry.pending) {
-                    nextPrevious.error = error
-                    entry.error.value = error
-                    entry.status.value = 'error'
-                  }
-                })
-                .finally(() => {
-                  if (pendingEntry === entry.pending) {
-                    entry.pending = null
-                    nextPrevious.when = Date.now()
-                    entry.previous = nextPrevious
-                    entry.isFetching.value = false
-                  }
-                }),
-              when: Date.now(),
-            }
-            entry.pending = pendingEntry
-          }
+          // we create an object and verify we are the most recent pending request
+          // before doing anything
+          const pendingEntry = (entry.pending = {
+            refreshCall: fetcher()
+              .then((data) => {
+                if (pendingEntry === entry.pending) {
+                  nextPrevious.data = data
+                  entry.data.value = data
+                  entry.status.value = 'success'
+                }
+              })
+              .catch((error) => {
+                if (pendingEntry === entry.pending) {
+                  nextPrevious.error = error
+                  entry.error.value = error
+                  entry.status.value = 'error'
+                }
+              })
+              .finally(() => {
+                if (pendingEntry === entry.pending) {
+                  entry.pending = null
+                  nextPrevious.when = Date.now()
+                  entry.previous = nextPrevious
+                  entry.isFetching.value = false
+                }
+              }),
+            when: Date.now(),
+          })
 
           await entry.pending.refreshCall
 
@@ -189,6 +200,7 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
 
     const entry = {
       ...stateEntry,
+      // FIXME: spread properties that are overridden later on
       ...propertiesEntry,
     }
 
@@ -218,7 +230,7 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
       // reset any pending request
       entry.pending = null
       // force refresh
-      entry.refresh()
+      entry.refetch()
     }
   }
 

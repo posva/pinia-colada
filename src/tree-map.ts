@@ -1,6 +1,6 @@
 import { type _JSONPrimitive } from './utils'
 
-export type EntryNodeKey = _JSONPrimitive
+export type EntryNodeKey = string | number
 
 /**
  * Internal data structure used to store the data of `useQuery()`.
