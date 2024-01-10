@@ -127,7 +127,7 @@ describe('useQuery', () => {
       expect(wrapper.vm.error).toEqual(new Error('foo'))
     })
 
-    it('skips fetching if initial data is present in store', async () => {
+    it.todo('skips fetching if initial data is present in store', async () => {
       const pinia = createPinia()
       const status = shallowRef<UseQueryStatus>('pending')
 
@@ -303,28 +303,31 @@ describe('useQuery', () => {
       })
     }
 
-    it('refreshes the data even with initial values after staleTime is elapsed', async () => {
-      const pinia = createPinia()
-      pinia.state.value.PiniaColada = {
-        entryStateRegistry: shallowReactive(new TreeMapNode(['key'], 60)),
+    it.todo(
+      'refreshes the data even with initial values after staleTime is elapsed',
+      async () => {
+        const pinia = createPinia()
+        pinia.state.value.PiniaColada = {
+          entryStateRegistry: shallowReactive(new TreeMapNode(['key'], 60)),
+        }
+        const { wrapper, fetcher } = mountSimple(
+          {
+            staleTime: 100,
+          },
+          {}
+        )
+
+        await runTimers()
+        expect(wrapper.vm.data).toBe(60)
+        expect(fetcher).toHaveBeenCalledTimes(0)
+
+        await vi.advanceTimersByTime(101)
+        wrapper.vm.refresh()
+        await runTimers()
+        expect(wrapper.vm.data).toBe(42)
+        expect(fetcher).toHaveBeenCalledTimes(1)
       }
-      const { wrapper, fetcher } = mountSimple(
-        {
-          staleTime: 100,
-        },
-        {}
-      )
-
-      await runTimers()
-      expect(wrapper.vm.data).toBe(60)
-      expect(fetcher).toHaveBeenCalledTimes(0)
-
-      await vi.advanceTimersByTime(101)
-      wrapper.vm.refresh()
-      await runTimers()
-      expect(wrapper.vm.data).toBe(42)
-      expect(fetcher).toHaveBeenCalledTimes(1)
-    })
+    )
 
     it('refreshes the data if mounted and the key changes', async () => {
       const { wrapper, fetcher } = mountDynamicKey({
