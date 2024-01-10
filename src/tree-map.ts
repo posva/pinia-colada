@@ -8,7 +8,7 @@ export type EntryNodeKey = string | number
  */
 export class TreeMapNode<T = unknown> {
   value: T | undefined
-  children = new Map<EntryNodeKey, TreeMapNode<T>>()
+  children?: Map<EntryNodeKey, TreeMapNode<T>>
 
   constructor()
   constructor(keys: EntryNodeKey[], value: T)
@@ -30,10 +30,11 @@ export class TreeMapNode<T = unknown> {
     } else {
       // this.children ??= new Map<EntryNodeKey,
       const [top, ...otherKeys] = keys
-      const node: TreeMapNode<T> | undefined = this.children.get(top)
+      const node: TreeMapNode<T> | undefined = this.children?.get(top)
       if (node) {
         node.set(otherKeys, value)
       } else {
+        this.children ??= new Map()
         this.children.set(top, new TreeMapNode(otherKeys, value))
       }
     }
@@ -49,7 +50,7 @@ export class TreeMapNode<T = unknown> {
       return this
     } else {
       const [top, ...otherKeys] = keys
-      return this.children.get(top)?.find(otherKeys)
+      return this.children?.get(top)?.find(otherKeys)
     }
   }
 
@@ -69,10 +70,10 @@ export class TreeMapNode<T = unknown> {
    */
   delete(keys: EntryNodeKey[]) {
     if (keys.length === 1) {
-      this.children.delete(keys[0])
+      this.children?.delete(keys[0])
     } else {
       const [top, ...otherKeys] = keys
-      this.children.get(top)?.delete(otherKeys)
+      this.children?.get(top)?.delete(otherKeys)
     }
   }
 
@@ -83,13 +84,17 @@ export class TreeMapNode<T = unknown> {
     if (this.value != null) {
       yield this.value
     }
-    for (const child of this.children.values()) {
-      yield* child
+    if (this.children) {
+      for (const child of this.children.values()) {
+        yield* child
+      }
     }
   }
 }
 
-// Below are debugging internals
+// -------------------------------------
+// --- Below are debugging internals ---
+// -------------------------------------
 
 /**
  * Calculates the size of the node and all its children. Used in tests.
@@ -100,8 +105,8 @@ export class TreeMapNode<T = unknown> {
  */
 export function entryNodeSize(node: TreeMapNode): number {
   return (
-    node.children.size +
-    [...node.children.values()].reduce(
+    (node.children?.size ?? 0) +
+    [...(node.children?.values() || [])].reduce(
       (acc, child) => acc + entryNodeSize(child),
       0
     )
@@ -133,7 +138,7 @@ function printTreeMap(
       const { children } = child
 
       treeStr += `${`${parentPre}${hasNext ? '├' : '└'}${
-        '─' + (children.size > 0 ? '┬' : '')
+        '─' + (children?.size ?? 0 > 0 ? '┬' : '')
       } `}${key}${child.value != null ? ' · ' + String(child.value) : ''}\n`
 
       if (children) {
