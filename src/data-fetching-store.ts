@@ -20,31 +20,6 @@ import { EntryNodeKey, TreeMapNode } from './tree-map'
 
 export type UseQueryStatus = 'pending' | 'error' | 'success'
 
-export interface UseQueryStateEntry<TResult = unknown, TError = unknown> {
-  // TODO: is it worth to be a shallowRef?
-  data: Ref<TResult | undefined>
-
-  error: ShallowRef<TError | null>
-
-  /**
-   * Returns whether the request is still pending its first call. Alias for `status.value === 'pending'`
-   */
-  isPending: ComputedRef<boolean>
-
-  /**
-   * Returns whether the request is currently fetching data.
-   */
-  isFetching: ShallowRef<boolean>
-
-  /**
-   * The status of the request. `pending` indicates that no request has been made yet and there is no cached data to
-   * display (`data.value = undefined`). `error` indicates that the last request failed. `success` indicates that the
-   * last request succeeded.
-   */
-  status: ShallowRef<UseQueryStatus>
-}
-
-// TODO: rename to avoid conflict
 /**
  * Raw data of a query entry. Can be serialized from the server and used to hydrate the store.
  */
@@ -64,31 +39,6 @@ export interface UseQueryStateEntryRaw<TResult = unknown, TError = unknown> {
    */
   when: number
 }
-
-export interface UseQueryPropertiesEntry<TResult = unknown, TError = unknown> {
-  /**
-   * Ensures the current data is fresh. If the data is stale, refetch, if not return as is.
-   * @returns a promise that resolves when the refresh is done
-   */
-  refresh: () => Promise<TResult>
-
-  /**
-   * Ignores fresh data and triggers a new fetch
-   * @returns a promise that resolves when the refresh is done
-   */
-  refetch: () => Promise<TResult>
-
-  pending: null | {
-    refreshCall: Promise<void>
-    when: number
-  }
-
-  previous: null | UseQueryStateEntryRaw<TResult, TError>
-}
-
-// export interface UseQueryEntry<TResult = unknown, TError = Error>
-//   extends UseQueryStateEntry<TResult, TError>,
-//     UseQueryPropertiesEntry<TResult, TError> {}
 
 export class UseQueryEntry<TResult = unknown, TError = any> {
   data: Ref<TResult | undefined>
@@ -152,7 +102,7 @@ export class UseQueryEntry<TResult = unknown, TError = any> {
       when: 0,
       data: undefined as TResult | undefined,
       error: null as TError | null,
-    } satisfies UseQueryPropertiesEntry<TResult, TError>['previous']
+    } satisfies UseQueryEntry<TResult, TError>['previous']
 
     // we create an object and verify we are the most recent pending request
     // before doing anything
@@ -210,8 +160,6 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
   // free the memory
   delete existingState.entriesRaw
   const entryRegistry = shallowReactive(new TreeMapNode<UseQueryEntry>())
-  // these are not reactive as they are mostly functions and should not be serialized as part of the state
-  const entryPropertiesRegistry = new TreeMapNode<UseQueryPropertiesEntry>()
 
   // FIXME: start from here: replace properties entry with a QueryEntry that is created when needed and contains all the needed part, included functions
 
@@ -245,7 +193,7 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
    * @param refetch - whether to force a refresh of the data
    */
   function invalidateEntry(key: UseQueryKey[], refetch = false) {
-    const entry = entryPropertiesRegistry.get(key.map(stringifyFlatObject))
+    const entry = entryRegistry.get(key.map(stringifyFlatObject))
 
     // nothing to invalidate
     if (!entry) {
@@ -261,6 +209,7 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
       // reset any pending request
       entry.pending = null
       // force refresh
+      // @ts-expect-error: FIXME:
       entry.refetch()
     }
   }
@@ -270,7 +219,7 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
     data: TResult | ((data: Ref<TResult | undefined>) => void)
   ) {
     const entry = entryRegistry.get(key.map(stringifyFlatObject)) as
-      | UseQueryStateEntry<TResult>
+      | UseQueryEntry<TResult>
       | undefined
     if (!entry) {
       return
@@ -288,19 +237,21 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
   }
 
   function prefetch(key: UseQueryKey[]) {
-    const entry = entryPropertiesRegistry.get(key.map(stringifyFlatObject))
+    const entry = entryRegistry.get(key.map(stringifyFlatObject))
     if (!entry) {
       console.warn(
         `⚠️ trying to prefetch "${String(key)}" but it's not in the registry`
       )
       return
     }
-    entry.refetch()
+    // @ts-expect-error: FIXME:
+    entry.refetch(options)
   }
 
   return {
+    // TODO: remove
     entriesRaw,
-    entryStateRegistry: entryRegistry,
+    entryRegistry,
 
     ensureEntry,
     invalidateEntry,

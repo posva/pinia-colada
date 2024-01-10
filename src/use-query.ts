@@ -17,20 +17,49 @@ import {
   MaybeRefOrGetter,
   watch,
   getCurrentInstance,
+  ComputedRef,
 } from 'vue'
-import {
-  UseQueryPropertiesEntry,
-  UseQueryStateEntry,
-  useDataFetchingStore,
-} from './data-fetching-store'
+import { UseQueryStatus, useDataFetchingStore } from './data-fetching-store'
 import { EntryNodeKey } from './tree-map'
 
 /**
  * Return type of `useQuery()`.
  */
-export interface UseQueryReturn<TResult = unknown, TError = Error>
-  extends UseQueryStateEntry<TResult, TError>,
-    Pick<UseQueryPropertiesEntry<TResult, TError>, 'refresh' | 'refetch'> {}
+export interface UseQueryReturn<TResult = unknown, TError = Error> {
+  // TODO: is it worth to be a shallowRef?
+  data: Ref<TResult | undefined>
+
+  error: ShallowRef<TError | null>
+
+  /**
+   * Returns whether the request is still pending its first call. Alias for `status.value === 'pending'`
+   */
+  isPending: ComputedRef<boolean>
+
+  /**
+   * Returns whether the request is currently fetching data.
+   */
+  isFetching: ShallowRef<boolean>
+
+  /**
+   * The status of the request. `pending` indicates that no request has been made yet and there is no cached data to
+   * display (`data.value = undefined`). `error` indicates that the last request failed. `success` indicates that the
+   * last request succeeded.
+   */
+  status: ShallowRef<UseQueryStatus>
+
+  /**
+   * Ensures the current data is fresh. If the data is stale, refetch, if not return as is.
+   * @returns a promise that resolves when the refresh is done
+   */
+  refresh: () => Promise<TResult>
+
+  /**
+   * Ignores fresh data and triggers a new fetch
+   * @returns a promise that resolves when the refresh is done
+   */
+  refetch: () => Promise<TResult>
+}
 
 /**
  * `true` refetch if data is stale, false never refetch, 'always' always refetch.

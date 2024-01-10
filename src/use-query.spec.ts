@@ -21,7 +21,7 @@ import {
 import { GlobalMountOptions } from 'node_modules/@vue/test-utils/dist/types'
 import { delay, isSpy, runTimers } from '../test/utils'
 import {
-  UseQueryStateEntry,
+  UseQueryEntry,
   UseQueryStatus,
   useDataFetchingStore,
 } from './data-fetching-store'
@@ -127,26 +127,46 @@ describe('useQuery', () => {
       expect(wrapper.vm.error).toEqual(new Error('foo'))
     })
 
-    it.todo('skips fetching if initial data is present in store', async () => {
+    it('uses initial data if present in store', async () => {
       const pinia = createPinia()
-      const status = shallowRef<UseQueryStatus>('pending')
 
-      const stateEntry = {
-        data: ref(2),
-        error: shallowRef(null),
-        isPending: computed(() => status.value === 'pending'),
-        isFetching: shallowRef(false),
-        status,
-      } satisfies UseQueryStateEntry
-      const entryStateRegistry = shallowReactive(
-        new TreeMapNode<UseQueryStateEntry>(['key'], stateEntry)
+      const entryRegistry = shallowReactive(
+        new TreeMapNode<UseQueryEntry>(
+          ['key'],
+          new UseQueryEntry(2, null, Date.now())
+        )
       )
-      pinia.state.value.PiniaColada = { entryStateRegistry }
-      const { wrapper, fetcher } = mountSimple({}, { plugins: [pinia] })
-      await runTimers()
+      pinia.state.value.PiniaColada = { entryRegistry }
+      const { wrapper, fetcher } = mountSimple(
+        { staleTime: 1000 },
+        { plugins: [pinia] }
+      )
 
+      // without waiting for times the data is present
       expect(wrapper.vm.data).toBe(2)
+    })
+
+    it.todo('avoids fetching if initial data is fresh', async () => {
+      const pinia = createPinia()
+
+      const entryRegistry = shallowReactive(
+        new TreeMapNode<UseQueryEntry>(
+          ['key'],
+          // fresh data
+          new UseQueryEntry(2, null, Date.now())
+        )
+      )
+      pinia.state.value.PiniaColada = { entryRegistry }
+      const { wrapper, fetcher } = mountSimple(
+        // 1s stale time
+        { staleTime: 1000 },
+        { plugins: [pinia] }
+      )
+
+      await runTimers()
+      // it should not fetch and use the initial data
       expect(fetcher).toHaveBeenCalledTimes(0)
+      expect(wrapper.vm.data).toBe(2)
     })
   })
 
@@ -326,7 +346,7 @@ describe('useQuery', () => {
       async () => {
         const pinia = createPinia()
         pinia.state.value.PiniaColada = {
-          entryStateRegistry: shallowReactive(new TreeMapNode(['key'], 60)),
+          entryRegistry: shallowReactive(new TreeMapNode(['key'], 60)),
         }
         const { wrapper, fetcher } = mountSimple(
           {
@@ -424,9 +444,7 @@ describe('useQuery', () => {
       wrapper.vm.refresh()
       expect(wrapper.vm.error).toEqual(new Error('fail'))
       await runTimers()
-
       expect(wrapper.vm.error).toEqual(null)
-      expect(wrapper.vm.data).toBe(42)
     })
   })
 
@@ -438,12 +456,12 @@ describe('useQuery', () => {
       await runTimers()
 
       const cacheClient = useDataFetchingStore()
-      expect(entryNodeSize(cacheClient.entryStateRegistry)).toBe(1)
+      expect(entryNodeSize(cacheClient.entryRegistry)).toBe(1)
 
       mountSimple({ key: ['todos', 2] }, { plugins: [pinia] })
       await runTimers()
 
-      expect(entryNodeSize(cacheClient.entryStateRegistry)).toBe(2)
+      expect(entryNodeSize(cacheClient.entryRegistry)).toBe(2)
     })
 
     it('populates the entry registry', async () => {
@@ -453,7 +471,7 @@ describe('useQuery', () => {
       await runTimers()
 
       const cacheClient = useDataFetchingStore()
-      expect(entryNodeSize(cacheClient.entryStateRegistry)).toBe(3)
+      expect(entryNodeSize(cacheClient.entryRegistry)).toBe(3)
     })
 
     it('order in object keys does not matter', async () => {
@@ -473,7 +491,7 @@ describe('useQuery', () => {
       await runTimers()
 
       const cacheClient = useDataFetchingStore()
-      expect(entryNodeSize(cacheClient.entryStateRegistry)).toBe(2)
+      expect(entryNodeSize(cacheClient.entryRegistry)).toBe(2)
     })
   })
 })

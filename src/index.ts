@@ -16,6 +16,8 @@ export {
 export {
   useDataFetchingStore,
   type UseQueryStatus,
+  serialize,
+  createTreeMap,
 } from './data-fetching-store'
 
 // TODO: idea of plugin that persists the cached values
