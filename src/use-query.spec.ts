@@ -249,6 +249,24 @@ describe('useQuery', () => {
       expect(fetcher).toHaveBeenCalledTimes(1)
       expect(wrapper.vm.data).toBe(42)
     })
+
+    it('ignores stale time if there is an error', async () => {
+      const fetcher = vi.fn().mockRejectedValueOnce(new Error('fail'))
+      const { wrapper } = mountSimple({ staleTime: 1000, fetcher })
+
+      await runTimers()
+      expect(fetcher).toHaveBeenCalledTimes(1)
+      expect(wrapper.vm.error).toEqual(new Error('fail'))
+      expect(wrapper.vm.data).toBe(undefined)
+      fetcher.mockResolvedValueOnce(42)
+
+      wrapper.vm.refresh()
+      await runTimers()
+
+      expect(fetcher).toHaveBeenCalledTimes(2)
+      expect(wrapper.vm.error).toEqual(null)
+      expect(wrapper.vm.data).toBe(42)
+    })
   })
 
   describe('refresh data', () => {
@@ -392,6 +410,23 @@ describe('useQuery', () => {
       await runTimers()
       // called because data is stale
       expect(fetcher).toHaveBeenCalledTimes(2)
+    })
+
+    it('keeps the error while refreshing a failed query', async () => {
+      const fetcher = vi.fn().mockRejectedValueOnce(new Error('fail'))
+      const { wrapper } = mountDynamicKey({ fetcher })
+
+      await runTimers()
+      expect(wrapper.vm.error).toEqual(new Error('fail'))
+      expect(wrapper.vm.data).toBe(undefined)
+      fetcher.mockResolvedValueOnce(42)
+
+      wrapper.vm.refresh()
+      expect(wrapper.vm.error).toEqual(new Error('fail'))
+      await runTimers()
+
+      expect(wrapper.vm.error).toEqual(null)
+      expect(wrapper.vm.data).toBe(42)
     })
   })
 

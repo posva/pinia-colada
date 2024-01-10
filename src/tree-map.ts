@@ -11,7 +11,7 @@ export class TreeMapNode<T = unknown> {
   children?: Map<EntryNodeKey, TreeMapNode<T>>
 
   constructor()
-  constructor(keys: EntryNodeKey[], value: T)
+  constructor(keys: EntryNodeKey[], value: T | undefined)
   constructor(...args: [] | [EntryNodeKey[], T]) {
     if (args.length) {
       this.set(...args)
@@ -24,7 +24,7 @@ export class TreeMapNode<T = unknown> {
    * @param keys - key as an array
    * @param value - value to set
    */
-  set(keys: EntryNodeKey[], value: T) {
+  set(keys: EntryNodeKey[], value?: T) {
     if (keys.length === 0) {
       this.value = value
     } else {
@@ -151,7 +151,11 @@ function printTreeMap(
     }
   } else {
     const children = tree.children
-    treeStr = `${String(tree.value ?? '<root>')}\n`
+    treeStr = `${String(
+      typeof tree.value === 'object' && tree.value
+        ? JSON.stringify(tree.value)
+        : '<root>'
+    )}\n`
     if (children) {
       treeStr += printTreeMap(children, level + 1)
     }

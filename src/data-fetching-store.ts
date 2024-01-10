@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { defineStore, getActivePinia } from 'pinia'
 import {
   type Ref,
   shallowReactive,
@@ -10,7 +10,11 @@ import {
   triggerRef,
   shallowRef,
 } from 'vue'
-import type { UseQueryOptionsWithDefaults, UseQueryKey } from './use-query'
+import type {
+  UseQueryOptionsWithDefaults,
+  UseQueryKey,
+  UseQueryOptions,
+} from './use-query'
 import { type _MaybeArray, stringifyFlatObject, _JSONPrimitive } from './utils'
 import { EntryNodeKey, TreeMapNode } from './tree-map'
 
@@ -40,6 +44,7 @@ export interface UseQueryStateEntry<TResult = unknown, TError = unknown> {
   status: ShallowRef<UseQueryStatus>
 }
 
+// TODO: rename to avoid conflict
 /**
  * Raw data of a query entry. Can be serialized from the server and used to hydrate the store.
  */
@@ -81,14 +86,130 @@ export interface UseQueryPropertiesEntry<TResult = unknown, TError = unknown> {
   previous: null | UseQueryStateEntryRaw<TResult, TError>
 }
 
-export interface UseQueryEntry<TResult = unknown, TError = Error>
-  extends UseQueryStateEntry<TResult, TError>,
-    UseQueryPropertiesEntry<TResult, TError> {}
+// export interface UseQueryEntry<TResult = unknown, TError = Error>
+//   extends UseQueryStateEntry<TResult, TError>,
+//     UseQueryPropertiesEntry<TResult, TError> {}
+
+export class UseQueryEntry<TResult = unknown, TError = any> {
+  data: Ref<TResult | undefined>
+  error: ShallowRef<TError | null>
+  isPending: ComputedRef<boolean> = computed(
+    () => this.status.value === 'pending'
+  )
+  isFetching: ShallowRef<boolean> = shallowRef(false)
+  status: ShallowRef<UseQueryStatus>
+  when: number
+  pending: null | {
+    refreshCall: Promise<void>
+    when: number
+  } = null
+  previous: null | UseQueryStateEntryRaw<TResult, TError> = null
+
+  constructor(
+    initialData?: TResult,
+    error: TError | null = null,
+    when: number = Date.now()
+  ) {
+    this.data = ref(initialData) as Ref<TResult | undefined>
+    this.error = shallowRef(error)
+    this.when = when
+    this.status = shallowRef(
+      error ? 'error' : initialData !== undefined ? 'success' : 'pending'
+    )
+  }
+
+  async refresh(
+    options: UseQueryOptionsWithDefaults<TResult>
+  ): Promise<TResult> {
+    if (
+      this.error.value ||
+      !this.previous ||
+      isExpired(this.previous.when, options.staleTime)
+    ) {
+      if (this.previous) {
+        const { key, staleTime } = options
+        console.log(
+          `⬇️ refresh "${String(key)}". expired ${this.previous
+            ?.when} / ${staleTime}`
+        )
+      }
+
+      if (this.pending?.refreshCall) console.log('  -> skipped!')
+
+      await (this.pending?.refreshCall ?? this.refetch(options))
+    }
+
+    return this.data.value!
+  }
+
+  async refetch(
+    options: UseQueryOptionsWithDefaults<TResult>
+  ): Promise<TResult> {
+    console.log('🔄 refetching', options.key)
+    this.isFetching.value = true
+    // will become this.previous once fetched
+    const nextPrevious = {
+      when: 0,
+      data: undefined as TResult | undefined,
+      error: null as TError | null,
+    } satisfies UseQueryPropertiesEntry<TResult, TError>['previous']
+
+    // we create an object and verify we are the most recent pending request
+    // before doing anything
+    const pendingEntry = (this.pending = {
+      refreshCall: options
+        .fetcher()
+        .then((data) => {
+          if (pendingEntry === this.pending) {
+            nextPrevious.data = data
+            this.error.value = null
+            this.data.value = data
+            this.status.value = 'success'
+          }
+        })
+        .catch((error) => {
+          if (pendingEntry === this.pending) {
+            nextPrevious.error = error
+            this.error.value = error
+            this.status.value = 'error'
+          }
+        })
+        .finally(() => {
+          if (pendingEntry === this.pending) {
+            this.pending = null
+            nextPrevious.when = Date.now()
+            this.previous = nextPrevious
+            this.isFetching.value = false
+          }
+        }),
+      when: Date.now(),
+    })
+
+    await this.pending.refreshCall
+
+    return this.data.value!
+  }
+
+  // debug only
+  toJSON(): _UseQueryEntryNodeValueSerialized<TResult, TError> {
+    return [this.data.value, this.error.value, this.when]
+  }
+  toString() {
+    return String(this.toJSON())
+  }
+}
 
 export const useDataFetchingStore = defineStore('PiniaColada', () => {
-  const entryStateRegistry = shallowReactive(
-    new TreeMapNode<UseQueryStateEntry>()
-  )
+  /**
+   * Raw data of the entries. Only used to hydrate the store on the server. Not synced with the actual data.
+   */
+  const entriesRaw = shallowReactive(new TreeMapNode<UseQueryStateEntryRaw>())
+  const existingState = getActivePinia()!.state.value.PiniaColada
+  const _entriesRaw: UseQueryStateEntryRaw | undefined =
+    existingState.entriesRaw
+  // free the memory
+  delete existingState.entriesRaw
+  const entryRegistry = shallowReactive(new TreeMapNode<UseQueryEntry>())
   // these are not reactive as they are mostly functions and should not be serialized as part of the state
   const entryPropertiesRegistry = new TreeMapNode<UseQueryPropertiesEntry>()
 
@@ -104,104 +225,14 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
     const key = keyRaw.map(stringifyFlatObject)
     // ensure the state
     console.log('⚙️ Ensuring entry', key)
-    if (!entryStateRegistry.get(key)) {
-      entryStateRegistry.set(
+    let entry = entryRegistry.get(key) as
+      | UseQueryEntry<TResult, TError>
+      | undefined
+    if (!entry) {
+      entryRegistry.set(
         key,
-        scope.run(() => {
-          const status = shallowRef<UseQueryStatus>('pending')
-
-          return {
-            data: ref(initialData?.()),
-            error: shallowRef(null),
-            isPending: computed(() => status.value === 'pending'),
-            isFetching: shallowRef(false),
-            status,
-          }
-        })!
+        (entry = scope.run(() => new UseQueryEntry(initialData?.()))!)
       )
-    }
-
-    // TODO: these needs to be created client side. Should probably be a class for better memory
-
-    if (!entryPropertiesRegistry.get(key)) {
-      const propertiesEntry: UseQueryPropertiesEntry<TResult, TError> = {
-        pending: null,
-        previous: null,
-        async refresh(): Promise<TResult> {
-          if (!entry.previous || isExpired(entry.previous.when, staleTime)) {
-            if (entry.previous) {
-              console.log(
-                `⬇️ refresh "${String(key)}". expired ${entry.previous
-                  ?.when} / ${staleTime}`
-              )
-            }
-
-            if (entry.pending?.refreshCall) console.log('  -> skipped!')
-
-            await (entry.pending?.refreshCall ?? entry.refetch())
-          }
-
-          return entry.data.value!
-        },
-        async refetch(): Promise<TResult> {
-          console.log('🔄 refetching', key)
-          entry.isFetching.value = true
-          entry.error.value = null
-          const nextPrevious = {
-            when: 0,
-            data: undefined as TResult | undefined,
-            error: null as TError | null,
-          } satisfies UseQueryPropertiesEntry<TResult, TError>['previous']
-
-          // we create an object and verify we are the most recent pending request
-          // before doing anything
-          const pendingEntry = (entry.pending = {
-            refreshCall: fetcher()
-              .then((data) => {
-                if (pendingEntry === entry.pending) {
-                  nextPrevious.data = data
-                  entry.data.value = data
-                  entry.status.value = 'success'
-                }
-              })
-              .catch((error) => {
-                if (pendingEntry === entry.pending) {
-                  nextPrevious.error = error
-                  entry.error.value = error
-                  entry.status.value = 'error'
-                }
-              })
-              .finally(() => {
-                if (pendingEntry === entry.pending) {
-                  entry.pending = null
-                  nextPrevious.when = Date.now()
-                  entry.previous = nextPrevious
-                  entry.isFetching.value = false
-                }
-              }),
-            when: Date.now(),
-          })
-
-          await entry.pending.refreshCall
-
-          return entry.data.value!
-        },
-      }
-      entryPropertiesRegistry.set(key, propertiesEntry)
-    }
-
-    const stateEntry = entryStateRegistry.get(key)! as UseQueryStateEntry<
-      TResult,
-      TError
-    >
-    const propertiesEntry = entryPropertiesRegistry.get(
-      key
-    )! as UseQueryPropertiesEntry<TResult, TError>
-
-    const entry = {
-      ...stateEntry,
-      // FIXME: spread properties that are overridden later on
-      ...propertiesEntry,
     }
 
     return entry
@@ -238,7 +269,7 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
     key: UseQueryKey[],
     data: TResult | ((data: Ref<TResult | undefined>) => void)
   ) {
-    const entry = entryStateRegistry.get(key.map(stringifyFlatObject)) as
+    const entry = entryRegistry.get(key.map(stringifyFlatObject)) as
       | UseQueryStateEntry<TResult>
       | undefined
     if (!entry) {
@@ -268,7 +299,8 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
   }
 
   return {
-    entryStateRegistry,
+    entriesRaw,
+    entryStateRegistry: entryRegistry,
 
     ensureEntry,
     invalidateEntry,
@@ -280,23 +312,79 @@ function isExpired(lastRefresh: number, staleTime: number): boolean {
   return Date.now() > lastRefresh + staleTime
 }
 
+/**
+ * Raw data of a query entry. Can be serialized from the server and used to hydrate the store.
+ */
+export type _UseQueryEntryNodeValueSerialized<
+  TResult = unknown,
+  TError = unknown,
+> = [
+  /**
+   * The data returned by the fetcher.
+   */
+  data: TResult | undefined,
+
+  /**
+   * The error thrown by the fetcher.
+   */
+  error: TError | null,
+
+  /**
+   * When was this data fetched the last time in ms
+   */
+  when?: number,
+]
+
 type UseQueryEntryNodeSerialized = [
-  value: undefined | [data: unknown, error: unknown],
-  children?: Record<string, UseQueryEntryNodeSerialized>,
+  key: EntryNodeKey,
+  value: undefined | _UseQueryEntryNodeValueSerialized,
+  children?: UseQueryEntryNodeSerialized[],
 ]
 
 export function serialize(
-  tree: TreeMapNode<UseQueryEntry>
-): UseQueryEntryNodeSerialized {
+  root: TreeMapNode<UseQueryEntry>
+): UseQueryEntryNodeSerialized[] {
+  return root.children ? [...root.children.entries()].map(_serialize) : []
+}
+
+function _serialize([key, tree]: [
+  key: EntryNodeKey,
+  tree: TreeMapNode<UseQueryEntry>,
+]): UseQueryEntryNodeSerialized {
   return [
-    // undefined becomes null within an array when converted to JSON
-    tree.value && [tree.value.data.value, tree.value.error.value],
-    tree.children &&
-      [...tree.children.entries()].reduce<
-        Record<string, UseQueryEntryNodeSerialized>
-      >((acc, [key, child]) => {
-        acc[String(key)] = serialize(child)
-        return acc
-      }, {}),
+    key,
+    tree.value?.toJSON(),
+    tree.children && [...tree.children.entries()].map(_serialize),
   ]
+}
+
+export function createTreeMap(
+  raw?: UseQueryEntryNodeSerialized[]
+): TreeMapNode<UseQueryEntry> {
+  const root = new TreeMapNode<UseQueryEntry>()
+  if (!raw) {
+    return root
+  }
+
+  for (const entry of raw) {
+    appendToTree(root, entry)
+  }
+  return root
+}
+
+function appendToTree(
+  parent: TreeMapNode<UseQueryEntry>,
+  [key, value, children]: UseQueryEntryNodeSerialized
+) {
+  parent.children ??= new Map()
+  const node = new TreeMapNode<UseQueryEntry>(
+    [],
+    value && new UseQueryEntry(...value)
+  )
+  parent.children.set(key, node)
+  if (children) {
+    for (const child of children) {
+      appendToTree(node, child)
+    }
+  }
 }

@@ -84,8 +84,8 @@ export const USE_QUERY_DEFAULTS = {
 } satisfies Partial<UseQueryOptions>
 // TODO: inject for the app rather than a global variable
 
-export type UseQueryOptionsWithDefaults<TResult> = typeof USE_QUERY_DEFAULTS &
-  UseQueryOptions<TResult>
+export type UseQueryOptionsWithDefaults<TResult = unknown> =
+  typeof USE_QUERY_DEFAULTS & UseQueryOptions<TResult>
 
 export function useQuery<TResult, TError = Error>(
   _options: UseQueryOptions<TResult>
@@ -101,9 +101,24 @@ export function useQuery<TResult, TError = Error>(
     store.ensureEntry<TResult, TError>(toArray(toValue(options.key)), options)
   )
 
+  const refresh = () => entry.value.refresh(options)
+  const refetch = () => entry.value.refetch(options)
+
+  const queryReturn = {
+    data: computed(() => entry.value.data.value),
+    error: computed(() => entry.value.error.value),
+    isFetching: computed(() => entry.value.isFetching.value),
+    isPending: computed(() => entry.value.isPending.value),
+    status: computed(() => entry.value.status.value),
+
+    refresh,
+    refetch,
+  } satisfies UseQueryReturn<TResult, TError>
+
   // only happens on server, app awaits this
   onServerPrefetch(async () => {
-    await entry.value.refresh()
+    await refresh()
+    // TODO: after adding a test, remove these lines and refactor the const queryReturn to just a return statement
     // NOTE: workaround to https://github.com/vuejs/core/issues/5300
     // eslint-disable-next-line
     queryReturn.data.value,
@@ -122,12 +137,12 @@ export function useQuery<TResult, TError = Error>(
     })
   } else {
     isActive = true
-    entry.value.refresh()
+    refresh()
   }
 
   watch(entry, (entry, _, onCleanup) => {
     if (!isActive) return
-    entry.refresh()
+    entry.refresh(options)
     onCleanup(() => {
       // TODO: decrement ref count
     })
@@ -139,9 +154,9 @@ export function useQuery<TResult, TError = Error>(
     // TODO: optimize so it doesn't refresh if we are hydrating
     onMounted(() => {
       if (options.refetchOnMount === 'always') {
-        entry.value.refetch()
+        refetch()
       } else {
-        entry.value.refresh()
+        refresh()
       }
     })
   }
@@ -156,9 +171,9 @@ export function useQuery<TResult, TError = Error>(
       useEventListener(document, 'visibilitychange', () => {
         if (document.visibilityState === 'visible') {
           if (options.refetchOnWindowFocus === 'always') {
-            entry.value.refetch()
+            refetch()
           } else {
-            entry.value.refresh()
+            refresh()
           }
         }
       })
@@ -167,24 +182,13 @@ export function useQuery<TResult, TError = Error>(
     if (options.refetchOnReconnect) {
       useEventListener(window, 'online', () => {
         if (options.refetchOnReconnect === 'always') {
-          entry.value.refetch()
+          refetch()
         } else {
-          entry.value.refresh()
+          refresh()
         }
       })
     }
   }
-
-  const queryReturn = {
-    data: computed(() => entry.value.data.value),
-    error: computed(() => entry.value.error.value),
-    isFetching: computed(() => entry.value.isFetching.value),
-    isPending: computed(() => entry.value.isPending.value),
-    status: computed(() => entry.value.status.value),
-
-    refresh: () => entry.value.refresh(),
-    refetch: () => entry.value.refetch(),
-  } satisfies UseQueryReturn<TResult, TError>
 
   return queryReturn
 }
