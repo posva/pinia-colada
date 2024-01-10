@@ -264,6 +264,6 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
   }
 })
 
-function isExpired(lastRefresh: number, cacheTime: number): boolean {
-  return lastRefresh + cacheTime < Date.now()
+function isExpired(lastRefresh: number, staleTime: number): boolean {
+  return Date.now() > lastRefresh + staleTime
 }
