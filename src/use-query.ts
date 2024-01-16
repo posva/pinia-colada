@@ -144,19 +144,21 @@ export function useQuery<TResult, TError = Error>(
     refetch,
   } satisfies UseQueryReturn<TResult, TError>
 
-  // only happens on server, app awaits this
-  onServerPrefetch(async () => {
-    await refresh()
-    // TODO: after adding a test, remove these lines and refactor the const queryReturn to just a return statement
-    // NOTE: workaround to https://github.com/vuejs/core/issues/5300
-    // eslint-disable-next-line
-    queryReturn.data.value,
-      queryReturn.error.value,
-      queryReturn.isFetching.value,
-      queryReturn.isPending.value
-  })
-
   const hasCurrentInstance = getCurrentInstance()
+
+  if (hasCurrentInstance) {
+    // only happens on server, app awaits this
+    onServerPrefetch(async () => {
+      await refresh()
+      // TODO: after adding a test, remove these lines and refactor the const queryReturn to just a return statement
+      // NOTE: workaround to https://github.com/vuejs/core/issues/5300
+      // eslint-disable-next-line
+      queryReturn.data.value,
+        queryReturn.error.value,
+        queryReturn.isFetching.value,
+        queryReturn.isPending.value
+    })
+  }
 
   // should we be watching entry
   let isActive = false
