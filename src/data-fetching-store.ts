@@ -79,8 +79,9 @@ export class UseQueryEntry<TResult = unknown, TError = any> {
       if (this.previous) {
         const { key, staleTime } = options
         console.log(
-          `⬇️ refresh "${String(key)}". expired ${this.previous
-            ?.when} / ${staleTime}`
+          `⬇️ refresh "${String(key)}". expired ${
+            this.previous?.when
+          } / ${staleTime}`
         )
       }
 
