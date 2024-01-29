@@ -1,0 +1,54 @@
+{
+  "contacts": [
+    {
+      "id": "1",
+      "firstName": "Anna",
+      "lastName": "Naas",
+      "bio": "Loves ananás juice",
+      "photoURL": "https://i.pravatar.cc/150?u=anna",
+      "isFavorite": true,
+      "createdAt": "2023-01-15T08:00:00.000Z",
+      "updatedAt": "2023-10-20T14:30:00.000Z"
+    },
+    {
+      "id": "2",
+      "firstName": "Eduardo",
+      "lastName": "Pinia",
+      "bio": "Pineapple pizza lover",
+      "photoURL": "https://i.pravatar.cc/150?u=ananas",
+      "isFavorite": false,
+      "createdAt": "2023-03-05T12:45:00.000Z",
+      "updatedAt": "2023-09-18T09:15:00.000Z"
+    },
+    {
+      "id": "3",
+      "firstName": "Nico",
+      "lastName": "Lada",
+      "bio": "Tropical fruit enthusiast",
+      "photoURL": "https://i.pravatar.cc/150?u=nicoladas",
+      "isFavorite": true,
+      "createdAt": "2023-02-10T17:20:00.000Z",
+      "updatedAt": "2023-11-02T20:10:00.000Z"
+    },
+    {
+      "id": "4",
+      "firstName": "Ava",
+      "lastName": "Caxi",
+      "bio": "I did Rio's Carnaval disguised as a pineapple",
+      "photoURL": "https://i.pravatar.cc/150?u=pinia",
+      "isFavorite": false,
+      "createdAt": "2023-04-25T09:30:00.000Z",
+      "updatedAt": "2023-08-15T11:55:00.000Z"
+    },
+    {
+      "id": "5",
+      "firstName": "Pine",
+      "lastName": "Apples",
+      "bio": "I grow on a plant, not on a tree.",
+      "photoURL": "https://i.pravatar.cc/150?u=multi-flowers",
+      "isFavorite": true,
+      "createdAt": "2023-07-12T15:15:00.000Z",
+      "updatedAt": "2023-11-01T18:40:00.000Z"
+    }
+  ]
+}

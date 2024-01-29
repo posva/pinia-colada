@@ -38,6 +38,7 @@
   },
   "scripts": {
     "dev": "vitest --ui",
+    "play": "pnpm -C playground dev",
     "prepublishOnly": "pnpm run build",
     "release": "standard-version",
     "test": "pnpm run test:cov && pnpm run test:types",
@@ -86,8 +87,8 @@
     }
   ],
   "devDependencies": {
-    "@size-limit/preset-small-lib": "^11.0.1",
-    "@types/node": "^20.11.3",
+    "@size-limit/preset-small-lib": "^11.0.2",
+    "@types/node": "^20.11.5",
     "@vitejs/plugin-vue": "^5.0.3",
     "@vitest/coverage-v8": "^1.2.0",
     "@vitest/ui": "^1.2.0",
@@ -95,9 +96,9 @@
     "happy-dom": "^13.1.4",
     "lint-staged": "^15.2.0",
     "pinia": "^2.1.7",
-    "prettier": "^3.2.2",
+    "prettier": "^3.2.3",
     "simple-git-hooks": "^2.9.0",
-    "size-limit": "^11.0.1",
+    "size-limit": "^11.0.2",
     "standard-version": "^9.5.0",
     "tsup": "^8.0.1",
     "typescript": "~5.3.3",
