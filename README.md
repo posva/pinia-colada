@@ -15,21 +15,70 @@
 </p>
 <br/>
 
-
 # Pinia Colada
 
-WIP
+> The missing data fetching library for [Pinia](https://pinia.vuejs.org)
+
+This is a more complete and production-ready (not yet!) version of the exercises from [Mastering Pinia](https://masteringpinia.com/).
+
+<a href="https://masteringpinia.com/?utm=pinia-colada-readme">
+  <img src="https://github.com/posva/pinia-colada/assets/664177/2f7081a5-90fe-467a-b021-7e709f71603e" width="320" alt="Mastering Pinia banner">
+</a>
+
+> [!WARNING]
+> Pinia Colada is still experimental and not ready for production. New versions might introduce breaking changes.
+> Feedback regarding new and existing options and features is welcome!
+
+Pinia Colada is an opinionated yet flexible data fetching layer on top of Pinia. It features
+
+- ⚡️ **Automatic caching**: Smart client-side caching with request deduplication
+- 🗄️ **Async State**: Handle any async state
+- 📚 **Typescript Support**: Fully typed with Typescript
+  <!-- - 📡 **Network Status**: Handle network status and offline support -->
+  <!-- - 🛠 **Devtools**: Integration with the Vue devtools -->
+- 💨 **Bundle Size**: Small bundle size (<2kb) and fully tree-shakeable
+- 📦 **Zero Dependencies**: No dependencies other than Pinia
+- ⚙️ **SSR**: Server-side rendering support
 
 ## Installation
 
 ```sh
-npm install @pinia/colada
+npm install pinia @pinia/colada
 ```
 
 ## Usage
 
-```js
-// WIP
+```vue
+<script lang="ts" setup>
+import { getContactById, updateContact as _updateContact } from '~/api/contacts'
+import { useRoute } from 'vue-router'
+import { useQuery, useMutation } from '@pinia/colada'
+
+const route = useRoute()
+
+const { data: contact, isFetching } = useQuery({
+  // recognizes this query as ['contacts', id]
+  key: () => ['contacts', route.params.id],
+  query: () => getContactById(route.params.id),
+})
+
+const { mutate: updateContact } = useMutation({
+  // automatically invalidates the cache for ['contacts', id]
+  keys: ({ id }) => ['contacts', id],
+  mutation: _updateContact,
+})
+</script>
+
+<template>
+  <section>
+    <ContactCard
+      :key="contact.id"
+      :contact="contact"
+      :is-updating="isFetching"
+      @update:contact="updateContact"
+    />
+  </section>
+</template>
 ```
 
 ## License
