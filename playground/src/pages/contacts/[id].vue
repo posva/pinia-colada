@@ -18,7 +18,7 @@ const { mutate: updateContact } = useMutation({
 </script>
 
 <template>
-  <section class="pt-6">
+  <section class="pt-6 flex-grow">
     <ContactCard
       v-if="contact"
       :key="contact.id"

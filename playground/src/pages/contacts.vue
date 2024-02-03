@@ -6,7 +6,7 @@ import { useQuery } from '@pinia/colada'
 
 const searchText = useRouteQuery('search', '', { mode: 'push' })
 
-const { data: searchResult } = useQuery({
+const { data: searchResult, isFetching } = useQuery({
   key: () => ['contacts', { searchText: searchText.value }],
   fetcher: () => searchContacts(searchText.value),
 })
@@ -20,48 +20,31 @@ const { data: searchResult } = useQuery({
   <main class="big-layout">
     <h1 class="mb-12">📇 My Contacts</h1>
 
-    <div class="contacts-search">
+    <div class="contacts-search md:flex gap-4">
       <div>
         <form class="space-x-2" @submit.prevent>
-          <input v-model="searchText" type="search" />
+          <input v-model="searchText" autofocus type="search" placeholder="Eduardo" />
+          <!-- NOTE: ensure no fetch is done on client while hydrating or this will cause
+           a Hydration mismatch -->
+          <div v-if="isFetching"><span class="spinner"></span><span> Fetching</span></div>
         </form>
 
-        <ol>
+        <ul>
           <li v-for="contact in searchResult?.results" :key="contact.id">
             <RouterLink
               :to="{
                 name: '/contacts/[id]',
-                params: {
-                  id: contact.id,
-                },
+                params: { id: contact.id },
               }"
             >
-              <img
-                v-if="contact.photoURL"
-                :src="contact.photoURL"
-                class="search-avatar"
-              />
+              <img v-if="contact.photoURL" :src="contact.photoURL" class="rounded-full inline-block w-8" />
               {{ contact.firstName }} {{ contact.lastName }}
             </RouterLink>
           </li>
-        </ol>
+        </ul>
       </div>
 
       <RouterView />
     </div>
   </main>
 </template>
-
-<style scoped>
-.search-avatar {
-  display: inline-block;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 9999px;
-}
-
-.contacts-search {
-  display: flex;
-  gap: 2rem;
-}
-</style>
