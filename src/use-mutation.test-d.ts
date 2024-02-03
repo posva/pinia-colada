@@ -3,7 +3,7 @@ import { useMutation } from './use-mutation'
 
 it('types the parameters for the key', () => {
   useMutation({
-    mutator: (one: string, two: number) => Promise.resolve({ name: 'foo' }),
+    mutation: (one: string, two: number) => Promise.resolve({ name: 'foo' }),
     keys(result, one, two) {
       expectTypeOf(one).toBeString()
       expectTypeOf(two).toBeNumber()
@@ -15,7 +15,7 @@ it('types the parameters for the key', () => {
 
 it('can return an array of keys', () => {
   useMutation({
-    mutator: () => Promise.resolve(42),
+    mutation: () => Promise.resolve(42),
     keys() {
       return ['one']
     },

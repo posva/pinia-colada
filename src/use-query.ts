@@ -81,7 +81,7 @@ export interface UseQueryOptions<TResult = unknown> {
   /**
    * The function that will be called to fetch the data. It **must** be async.
    */
-  fetcher: () => Promise<TResult>
+  query: () => Promise<TResult>
 
   /**
    * Time in ms after which the data is considered stale and will be refreshed on next read

@@ -8,9 +8,8 @@ const searchText = useRouteQuery('search', '', { mode: 'push' })
 
 const { data: searchResult, isFetching } = useQuery({
   key: () => ['contacts', { searchText: searchText.value }],
-  fetcher: () => searchContacts(searchText.value),
+  query: () => searchContacts(searchText.value),
 })
-
 
 // TODO: tip in tests if they are reading data, error or other as they are computed properties, on the server they won't
 // update so they will keep their initial undefined value
@@ -23,10 +22,17 @@ const { data: searchResult, isFetching } = useQuery({
     <div class="contacts-search md:flex gap-4">
       <div>
         <form class="space-x-2" @submit.prevent>
-          <input v-model="searchText" autofocus type="search" placeholder="Eduardo" />
+          <input
+            v-model="searchText"
+            autofocus
+            type="search"
+            placeholder="Eduardo"
+          />
           <!-- NOTE: ensure no fetch is done on client while hydrating or this will cause
            a Hydration mismatch -->
-          <div v-if="isFetching"><span class="spinner"></span><span> Fetching</span></div>
+          <div v-if="isFetching">
+            <span class="spinner"></span><span> Fetching</span>
+          </div>
         </form>
 
         <ul>
@@ -37,7 +43,11 @@ const { data: searchResult, isFetching } = useQuery({
                 params: { id: contact.id },
               }"
             >
-              <img v-if="contact.photoURL" :src="contact.photoURL" class="rounded-full inline-block w-8" />
+              <img
+                v-if="contact.photoURL"
+                :src="contact.photoURL"
+                class="rounded-full inline-block w-8"
+              />
               {{ contact.firstName }} {{ contact.lastName }}
             </RouterLink>
           </li>

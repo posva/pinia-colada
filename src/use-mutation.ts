@@ -3,7 +3,7 @@ import { useDataFetchingStore } from './data-fetching-store'
 import { type UseQueryKey } from './use-query'
 import { type _MaybeArray, toArray } from './utils'
 
-type _MutatorKeys<TParams extends readonly any[], TResult> =
+type _MutationKeys<TParams extends readonly any[], TResult> =
   | _MaybeArray<UseQueryKey>[]
   | ((result: TResult, ...args: TParams) => _MaybeArray<UseQueryKey>[])
 
@@ -14,13 +14,13 @@ export interface UseMutationOptions<
   /**
    * The key of the mutation. If the mutation is successful, it will invalidate the query with the same key and refetch it
    */
-  mutator: (...args: TParams) => Promise<TResult>
+  mutation: (...args: TParams) => Promise<TResult>
 
   // TODO: move this to a plugin that calls invalidateEntry()
   /**
    * Keys to invalidate if the mutation succeeds so that `useQuery()` refetch if used.
    */
-  keys?: _MutatorKeys<TParams, TResult>
+  keys?: _MutationKeys<TParams, TResult>
 }
 
 // export const USE_MUTATIONS_DEFAULTS = {} satisfies Partial<UseMutationsOptions>
@@ -58,7 +58,7 @@ export function useMutation<
     error.value = null
 
     const promise = (pendingPromise = options
-      .mutator(...args)
+      .mutation(...args)
       .then((_data) => {
         if (pendingPromise === promise) {
           data.value = _data

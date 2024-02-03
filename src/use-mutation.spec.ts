@@ -18,8 +18,8 @@ describe('useMutation', () => {
     options: Partial<UseMutationOptions<TResult, TParams>> = {},
     mountOptions?: GlobalMountOptions
   ) {
-    const mutator = options.mutator
-      ? vi.fn(options.mutator)
+    const mutation = options.mutation
+      ? vi.fn(options.mutation)
       : vi.fn(async () => {
           await delay(0)
           return 42
@@ -32,7 +32,7 @@ describe('useMutation', () => {
             ...useMutation<TResult>({
               ...options,
               // @ts-expect-error: generic unmatched but types work
-              mutator,
+              mutation: mutation,
             }),
           }
         },
@@ -44,9 +44,9 @@ describe('useMutation', () => {
         },
       }
     )
-    return Object.assign([wrapper, mutator] as const, { wrapper, mutator })
+    return Object.assign([wrapper, mutation] as const, { wrapper, mutation })
   }
-  it('invokes the mutator', async () => {
+  it('invokes the mutation', async () => {
     const { wrapper } = mountSimple()
 
     wrapper.vm.mutate()

@@ -25,12 +25,12 @@ export type UseQueryStatus = 'pending' | 'error' | 'success'
  */
 export interface UseQueryStateEntryRaw<TResult = unknown, TError = unknown> {
   /**
-   * The data returned by the fetcher.
+   * The data returned by the query.
    */
   data: TResult | undefined
 
   /**
-   * The error thrown by the fetcher.
+   * The error thrown by the query.
    */
   error: TError | null
 
@@ -109,7 +109,7 @@ export class UseQueryEntry<TResult = unknown, TError = any> {
     // before doing anything
     const pendingEntry = (this.pending = {
       refreshCall: options
-        .fetcher()
+        .query()
         .then((data) => {
           if (pendingEntry === this.pending) {
             nextPrevious.data = data
@@ -169,7 +169,11 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
 
   function ensureEntry<TResult = unknown, TError = Error>(
     keyRaw: UseQueryKey[],
-    { fetcher, initialData, staleTime }: UseQueryOptionsWithDefaults<TResult>
+    {
+      query: query,
+      initialData,
+      staleTime,
+    }: UseQueryOptionsWithDefaults<TResult>
   ): UseQueryEntry<TResult, TError> {
     const key = keyRaw.map(stringifyFlatObject)
     // ensure the state
@@ -272,12 +276,12 @@ export type _UseQueryEntryNodeValueSerialized<
   TError = unknown,
 > = [
   /**
-   * The data returned by the fetcher.
+   * The data returned by the query.
    */
   data: TResult | undefined,
 
   /**
-   * The error thrown by the fetcher.
+   * The error thrown by the query.
    */
   error: TError | null,
 

@@ -39,8 +39,8 @@ describe('useQuery', () => {
     options: Partial<UseQueryOptions<TResult>> = {},
     mountOptions?: GlobalMountOptions
   ) {
-    const fetcher = options.fetcher
-      ? vi.fn(options.fetcher)
+    const query = options.query
+      ? vi.fn(options.query)
       : vi.fn(async () => {
           await delay(0)
           return 42
@@ -54,7 +54,7 @@ describe('useQuery', () => {
               key: 'key',
               ...options,
               // @ts-expect-error: generic unmatched but types work
-              fetcher,
+              query: query,
             }),
           }
         },
@@ -66,7 +66,7 @@ describe('useQuery', () => {
         },
       }
     )
-    return Object.assign([wrapper, fetcher] as const, { wrapper, fetcher })
+    return Object.assign([wrapper, query] as const, { wrapper, query })
   }
 
   describe('initial fetch', () => {
@@ -96,7 +96,7 @@ describe('useQuery', () => {
 
     it('sets the error state', async () => {
       const { wrapper } = mountSimple({
-        fetcher: async () => {
+        query: async () => {
           throw new Error('foo')
         },
       })
@@ -117,7 +117,7 @@ describe('useQuery', () => {
     // NOTE: is this worth adding?
     it.skip('it works with a synchronously thrown Error', async () => {
       const { wrapper } = mountSimple({
-        fetcher: () => {
+        query: () => {
           throw new Error('foo')
         },
       })
@@ -137,7 +137,7 @@ describe('useQuery', () => {
         )
       )
       pinia.state.value.PiniaColada = { entryRegistry }
-      const { wrapper, fetcher } = mountSimple(
+      const { wrapper, query } = mountSimple(
         { staleTime: 1000 },
         { plugins: [pinia] }
       )
@@ -157,7 +157,7 @@ describe('useQuery', () => {
         )
       )
       pinia.state.value.PiniaColada = { entryRegistry }
-      const { wrapper, fetcher } = mountSimple(
+      const { wrapper, query } = mountSimple(
         // 1s stale time
         { staleTime: 1000 },
         { plugins: [pinia] }
@@ -165,25 +165,25 @@ describe('useQuery', () => {
 
       await runTimers()
       // it should not fetch and use the initial data
-      expect(fetcher).toHaveBeenCalledTimes(0)
+      expect(query).toHaveBeenCalledTimes(0)
       expect(wrapper.vm.data).toBe(2)
     })
   })
 
   describe('staleTime', () => {
     it('when refreshed, does not fetch again if staleTime has not elapsed', async () => {
-      const { wrapper, fetcher } = mountSimple({ staleTime: 1000 })
+      const { wrapper, query } = mountSimple({ staleTime: 1000 })
 
       await runTimers()
       expect(wrapper.vm.data).toBe(42)
-      expect(fetcher).toHaveBeenCalledTimes(1)
+      expect(query).toHaveBeenCalledTimes(1)
 
       // should not trigger a new fetch because staleTime has not passed
       vi.advanceTimersByTime(500)
       wrapper.vm.refresh()
       await runTimers()
 
-      expect(fetcher).toHaveBeenCalledTimes(1)
+      expect(query).toHaveBeenCalledTimes(1)
       expect(wrapper.vm.data).toBe(42)
     })
 
@@ -207,17 +207,17 @@ describe('useQuery', () => {
     })
 
     it('when refreshed, fetches the data if the staleTime has been elapsed', async () => {
-      const { wrapper, fetcher } = mountSimple({ staleTime: 1000 })
+      const { wrapper, query } = mountSimple({ staleTime: 1000 })
 
       await runTimers()
       expect(wrapper.vm.data).toBe(42)
-      expect(fetcher).toHaveBeenCalledTimes(1)
+      expect(query).toHaveBeenCalledTimes(1)
 
       vi.advanceTimersByTime(1001)
       wrapper.vm.refresh()
       await runTimers()
 
-      expect(fetcher).toHaveBeenCalledTimes(2)
+      expect(query).toHaveBeenCalledTimes(2)
       expect(wrapper.vm.data).toBe(42)
     })
 
@@ -256,7 +256,7 @@ describe('useQuery', () => {
 
     it('refresh reuses a pending request even if the staleTime has been elapsed', async () => {
       const pinia = createPinia()
-      const { wrapper, fetcher } = mountSimple(
+      const { wrapper, query } = mountSimple(
         { staleTime: 0 },
         { plugins: [pinia] }
       )
@@ -266,24 +266,24 @@ describe('useQuery', () => {
 
       await runTimers()
 
-      expect(fetcher).toHaveBeenCalledTimes(1)
+      expect(query).toHaveBeenCalledTimes(1)
       expect(wrapper.vm.data).toBe(42)
     })
 
     it('ignores stale time if there is an error', async () => {
-      const fetcher = vi.fn().mockRejectedValueOnce(new Error('fail'))
-      const { wrapper } = mountSimple({ staleTime: 1000, fetcher })
+      const query = vi.fn().mockRejectedValueOnce(new Error('fail'))
+      const { wrapper } = mountSimple({ staleTime: 1000, query: query })
 
       await runTimers()
-      expect(fetcher).toHaveBeenCalledTimes(1)
+      expect(query).toHaveBeenCalledTimes(1)
       expect(wrapper.vm.error).toEqual(new Error('fail'))
       expect(wrapper.vm.data).toBe(undefined)
-      fetcher.mockResolvedValueOnce(42)
+      query.mockResolvedValueOnce(42)
 
       wrapper.vm.refresh()
       await runTimers()
 
-      expect(fetcher).toHaveBeenCalledTimes(2)
+      expect(query).toHaveBeenCalledTimes(2)
       expect(wrapper.vm.error).toEqual(null)
       expect(wrapper.vm.data).toBe(42)
     })
@@ -294,17 +294,17 @@ describe('useQuery', () => {
       options: Partial<UseQueryOptions<TResult>> & { initialId?: number } = {},
       mountOptions?: GlobalMountOptions
     ) {
-      let fetcher!: MockInstance
+      let query!: MockInstance
 
       const wrapper = mount(
         defineComponent({
           render: () => null,
           setup() {
             const id = ref(options.initialId ?? 0)
-            fetcher = options.fetcher
-              ? isSpy(options.fetcher)
-                ? options.fetcher
-                : vi.fn(options.fetcher)
+            query = options.query
+              ? isSpy(options.query)
+                ? options.query
+                : vi.fn(options.query)
               : vi.fn(async () => {
                   await delay(0)
                   return { id: id.value, when: Date.now() }
@@ -323,7 +323,7 @@ describe('useQuery', () => {
                 key: () => ['data', id.value],
                 ...options,
                 // @ts-expect-error: generic unmatched but types work
-                fetcher,
+                query: query,
               }),
             }
           },
@@ -335,9 +335,9 @@ describe('useQuery', () => {
           },
         }
       )
-      return Object.assign([wrapper, fetcher] as const, {
+      return Object.assign([wrapper, query] as const, {
         wrapper,
-        fetcher,
+        query,
       })
     }
 
@@ -348,7 +348,7 @@ describe('useQuery', () => {
         pinia.state.value.PiniaColada = {
           entryRegistry: shallowReactive(new TreeMapNode(['key'], 60)),
         }
-        const { wrapper, fetcher } = mountSimple(
+        const { wrapper, query } = mountSimple(
           {
             staleTime: 100,
           },
@@ -357,89 +357,89 @@ describe('useQuery', () => {
 
         await runTimers()
         expect(wrapper.vm.data).toBe(60)
-        expect(fetcher).toHaveBeenCalledTimes(0)
+        expect(query).toHaveBeenCalledTimes(0)
 
         await vi.advanceTimersByTime(101)
         wrapper.vm.refresh()
         await runTimers()
         expect(wrapper.vm.data).toBe(42)
-        expect(fetcher).toHaveBeenCalledTimes(1)
+        expect(query).toHaveBeenCalledTimes(1)
       }
     )
 
     it('refreshes the data if mounted and the key changes', async () => {
-      const { wrapper, fetcher } = mountDynamicKey({
+      const { wrapper, query } = mountDynamicKey({
         initialId: 0,
       })
 
       await runTimers()
       expect(wrapper.vm.data?.id).toBe(0)
-      expect(fetcher).toHaveBeenCalledTimes(1)
+      expect(query).toHaveBeenCalledTimes(1)
 
       await wrapper.vm.setId(1)
 
-      expect(fetcher).toHaveBeenCalledTimes(2)
+      expect(query).toHaveBeenCalledTimes(2)
       expect(wrapper.vm.data?.id).toBe(1)
     })
 
     it('avoids a new fetch if the key changes but the data is not stale', async () => {
-      const { wrapper, fetcher } = mountDynamicKey({
+      const { wrapper, query } = mountDynamicKey({
         initialId: 0,
         staleTime: 1000,
       })
 
       await runTimers()
       expect(wrapper.vm.data?.id).toBe(0)
-      expect(fetcher).toHaveBeenCalledTimes(1)
+      expect(query).toHaveBeenCalledTimes(1)
 
       await wrapper.vm.setId(1)
       await wrapper.vm.setId(0)
 
-      expect(fetcher).toHaveBeenCalledTimes(2)
+      expect(query).toHaveBeenCalledTimes(2)
     })
 
     it('does not refresh by default when mounting a new component that uses the same key', async () => {
       const pinia = createPinia()
-      const fetcher = vi.fn().mockResolvedValue({ id: 0, when: Date.now() })
-      mountDynamicKey({ initialId: 0, fetcher }, { plugins: [pinia] })
+      const query = vi.fn().mockResolvedValue({ id: 0, when: Date.now() })
+      mountDynamicKey({ initialId: 0, query: query }, { plugins: [pinia] })
       await runTimers()
-      expect(fetcher).toHaveBeenCalledTimes(1)
+      expect(query).toHaveBeenCalledTimes(1)
 
       mountDynamicKey({ initialId: 0 }, { plugins: [pinia] })
       await runTimers()
       // not called because data is fresh
-      expect(fetcher).toHaveBeenCalledTimes(1)
+      expect(query).toHaveBeenCalledTimes(1)
     })
 
     it('refreshes when mounting a new component that uses the same key if data is stale', async () => {
       const pinia = createPinia()
-      const fetcher = vi.fn().mockResolvedValue({ id: 0, when: Date.now() })
+      const query = vi.fn().mockResolvedValue({ id: 0, when: Date.now() })
       mountDynamicKey(
         // staleTime doesn't matter here
-        { initialId: 0, staleTime: 10, fetcher },
+        { initialId: 0, staleTime: 10, query: query },
         { plugins: [pinia] }
       )
       await runTimers()
-      expect(fetcher).toHaveBeenCalledTimes(1)
+      expect(query).toHaveBeenCalledTimes(1)
       await vi.advanceTimersByTime(100)
 
       mountDynamicKey(
-        { initialId: 0, staleTime: 10, fetcher },
+        { initialId: 0, staleTime: 10, query: query },
         { plugins: [pinia] }
       )
       await runTimers()
       // called because data is stale
-      expect(fetcher).toHaveBeenCalledTimes(2)
+      expect(query).toHaveBeenCalledTimes(2)
     })
 
     it('keeps the error while refreshing a failed query', async () => {
-      const fetcher = vi.fn().mockRejectedValueOnce(new Error('fail'))
-      const { wrapper } = mountDynamicKey({ fetcher })
+      const query = vi.fn().mockRejectedValueOnce(new Error('fail'))
+      const { wrapper } = mountDynamicKey({ query: query })
 
       await runTimers()
       expect(wrapper.vm.error).toEqual(new Error('fail'))
       expect(wrapper.vm.data).toBe(undefined)
-      fetcher.mockResolvedValueOnce(42)
+      query.mockResolvedValueOnce(42)
 
       wrapper.vm.refresh()
       expect(wrapper.vm.error).toEqual(new Error('fail'))
