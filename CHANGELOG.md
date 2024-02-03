@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.3.0](https://github.com/posva/pinia-colada/compare/v0.2.0...v0.3.0) (2024-02-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* The option `fetcher` for `useQuery()` has been renamed
+to `query`. The option `mutator` for `useMutation()` has been renamed
+`mutation`.
+
+* rename options for `useQuery` and `useMutation` ([28ecc75](https://github.com/posva/pinia-colada/commit/28ecc757473b17cf5ae8579250faa197232c0988))
+
 ## [0.2.0](https://github.com/posva/pinia-colada/compare/v0.1.0...v0.2.0) (2024-01-16)
 
 ### ⚠ BREAKING CHANGES
