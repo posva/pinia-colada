@@ -3,7 +3,7 @@ import { type _JSONPrimitive } from './utils'
 export type EntryNodeKey = string | number
 
 /**
- * Internal data structure used to store the data of `useQuery()`.
+ * Internal data structure used to store the data of `useQuery()`. `T` should be serializable to JSON.
  * @internal
  */
 export class TreeMapNode<T = unknown> {
@@ -78,7 +78,7 @@ export class TreeMapNode<T = unknown> {
   }
 
   /**
-   * Iterates over the node values if not null or undefined and all its children. Goes in depth first order.
+   * Iterates over the node values if not null or undefined and all its children. Goes in depth first order. Allows a `for (const of node)` loop.
    */
   *[Symbol.iterator](): IterableIterator<T> {
     if (this.value != null) {

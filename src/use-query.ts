@@ -130,8 +130,8 @@ export function useQuery<TResult, TError = Error>(
     store.ensureEntry<TResult, TError>(toArray(toValue(options.key)), options)
   )
 
-  const refresh = () => entry.value.refresh(options)
-  const refetch = () => entry.value.refetch(options)
+  const refresh = () => entry.value.refresh()
+  const refetch = () => entry.value.refetch()
 
   const queryReturn = {
     data: computed(() => entry.value.data.value),
@@ -172,7 +172,7 @@ export function useQuery<TResult, TError = Error>(
 
   watch(entry, (entry, _, onCleanup) => {
     if (!isActive) return
-    entry.refresh(options)
+    entry.refresh()
     onCleanup(() => {
       // TODO: decrement ref count
     })

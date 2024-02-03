@@ -54,6 +54,10 @@ export class UseQueryEntry<TResult = unknown, TError = any> {
     when: number
   } = null
   previous: null | UseQueryStateEntryRaw<TResult, TError> = null
+  /**
+   * Options used to create the query. They can be undefined during hydration but are needed for fetching. This is why `store.ensureEntry()` sets this property.
+   */
+  options?: UseQueryOptionsWithDefaults<TResult>
 
   constructor(
     initialData?: TResult,
@@ -68,16 +72,24 @@ export class UseQueryEntry<TResult = unknown, TError = any> {
     )
   }
 
-  async refresh(
-    options: UseQueryOptionsWithDefaults<TResult>
-  ): Promise<TResult> {
+  /**
+   * Ensures the current data is fresh. If the data is stale, refetch, if not return as is. Can only be called if the
+   * entry has options.
+   */
+  async refresh(): Promise<TResult> {
+    if (process.env.NODE_ENV !== 'production' && !this.options) {
+      throw new Error(
+        `"entry.refech()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`
+      )
+    }
+    const { key, staleTime } = this.options!
+
     if (
       this.error.value ||
       !this.previous ||
-      isExpired(this.previous.when, options.staleTime)
+      isExpired(this.previous.when, staleTime)
     ) {
       if (this.previous) {
-        const { key, staleTime } = options
         console.log(
           `⬇️ refresh "${String(key)}". expired ${
             this.previous?.when
@@ -87,16 +99,23 @@ export class UseQueryEntry<TResult = unknown, TError = any> {
 
       if (this.pending?.refreshCall) console.log('  -> skipped!')
 
-      await (this.pending?.refreshCall ?? this.refetch(options))
+      await (this.pending?.refreshCall ?? this.refetch())
     }
 
     return this.data.value!
   }
 
-  async refetch(
-    options: UseQueryOptionsWithDefaults<TResult>
-  ): Promise<TResult> {
-    console.log('🔄 refetching', options.key)
+  /**
+   * Ignores fresh data and triggers a new fetch. Can only be called if the entry has options.
+   */
+  async refetch(): Promise<TResult> {
+    if (process.env.NODE_ENV !== 'production' && !this.options) {
+      throw new Error(
+        `"entry.refech()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`
+      )
+    }
+
+    console.log('🔄 refetching', this.options!.key)
     this.isFetching.value = true
     // will become this.previous once fetched
     const nextPrevious = {
@@ -108,8 +127,7 @@ export class UseQueryEntry<TResult = unknown, TError = any> {
     // we create an object and verify we are the most recent pending request
     // before doing anything
     const pendingEntry = (this.pending = {
-      refreshCall: options
-        .query()
+      refreshCall: this.options!.query()
         .then((data) => {
           if (pendingEntry === this.pending) {
             nextPrevious.data = data
@@ -169,11 +187,7 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
 
   function ensureEntry<TResult = unknown, TError = Error>(
     keyRaw: UseQueryKey[],
-    {
-      query: query,
-      initialData,
-      staleTime,
-    }: UseQueryOptionsWithDefaults<TResult>
+    options: UseQueryOptionsWithDefaults<TResult>
   ): UseQueryEntry<TResult, TError> {
     const key = keyRaw.map(stringifyFlatObject)
     // ensure the state
@@ -184,8 +198,12 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
     if (!entry) {
       entryRegistry.set(
         key,
-        (entry = scope.run(() => new UseQueryEntry(initialData?.()))!)
+        (entry = scope.run(() => new UseQueryEntry(options.initialData?.()))!)
       )
+    }
+
+    if (!entry.options) {
+      entry.options = options
     }
 
     return entry
@@ -198,24 +216,26 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
    * @param refetch - whether to force a refresh of the data
    */
   function invalidateEntry(key: UseQueryKey[], refetch = false) {
-    const entry = entryRegistry.get(key.map(stringifyFlatObject))
+    const entryNode = entryRegistry.find(key.map(stringifyFlatObject))
 
     // nothing to invalidate
-    if (!entry) {
+    if (!entryNode) {
       return
     }
 
-    if (entry.previous) {
-      // will force a fetch next time
-      entry.previous.when = 0
-    }
+    for (const entry of entryNode) {
+      if (entry.previous) {
+        // will force a fetch next time
+        entry.previous.when = 0
+      }
 
-    if (refetch) {
-      // reset any pending request
-      entry.pending = null
-      // force refresh
-      // @ts-expect-error: FIXME:
-      entry.refetch()
+      // TODO: if active only
+      if (refetch) {
+        // reset any pending request
+        entry.pending = null
+        // force refresh
+        entry.refetch()
+      }
     }
   }
 
@@ -249,8 +269,7 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
       )
       return
     }
-    // @ts-expect-error: FIXME:
-    entry.refetch(options)
+    entry.refetch()
   }
 
   return {
