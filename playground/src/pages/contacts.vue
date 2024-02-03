@@ -1,22 +1,16 @@
 <script lang="ts" setup>
-import { getAllContacts } from '@/api/contacts'
+import { getAllContacts, searchContacts } from '@/api/contacts'
 import { useFuse } from '@vueuse/integrations/useFuse'
 import { useRouteQuery } from '@vueuse/router'
 import { useQuery } from '@pinia/colada'
 
 const searchText = useRouteQuery('search', '', { mode: 'push' })
 
-const { data: contactList } = useQuery({
+const { data: searchResult } = useQuery({
   key: () => ['contacts', { searchText: searchText.value }],
-  fetcher: () => getAllContacts(),
+  fetcher: () => searchContacts(searchText.value),
 })
 
-const { results } = useFuse(searchText, () => contactList.value || [], {
-  fuseOptions: {
-    keys: ['firstName', 'lastName', 'bio'],
-  },
-  matchAllWhenSearchEmpty: true,
-})
 
 // TODO: tip in tests if they are reading data, error or other as they are computed properties, on the server they won't
 // update so they will keep their initial undefined value
@@ -32,8 +26,8 @@ const { results } = useFuse(searchText, () => contactList.value || [], {
           <input v-model="searchText" type="search" />
         </form>
 
-        <ul>
-          <li v-for="{ item: contact } in results" :key="contact.id">
+        <ol>
+          <li v-for="contact in searchResult?.results" :key="contact.id">
             <RouterLink
               :to="{
                 name: '/contacts/[id]',
@@ -45,15 +39,29 @@ const { results } = useFuse(searchText, () => contactList.value || [], {
               <img
                 v-if="contact.photoURL"
                 :src="contact.photoURL"
-                class="rounded-full inline-block w-8"
+                class="search-avatar"
               />
               {{ contact.firstName }} {{ contact.lastName }}
             </RouterLink>
           </li>
-        </ul>
+        </ol>
       </div>
 
       <RouterView />
     </div>
   </main>
 </template>
+
+<style scoped>
+.search-avatar {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+}
+
+.contacts-search {
+  display: flex;
+  gap: 2rem;
+}
+</style>

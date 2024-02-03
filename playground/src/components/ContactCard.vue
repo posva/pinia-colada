@@ -36,23 +36,23 @@ function randomizeAvatar() {
 
 <template>
   <div class="space-y-6">
-    <div v-if="isEditing && copy" class="mx-auto flex flex-col items-center">
+    <div v-if="isEditing && copy" class="avatar-container mx-auto flex flex-col items-center">
       <img
         :key="copy.photoURL"
-        class="w-40 h-40 mx-auto rounded-full"
+        class="avatar"
         :src="copy.photoURL"
       />
-      <button @click="randomizeAvatar">Randomize photo</button>
+      <button @click="randomizeAvatar" style="margin-top: 1rem;">Randomize photo</button>
     </div>
     <img
       v-else
-      class="w-40 h-40 mx-auto rounded-full"
+      class="avatar"
       :src="contact.photoURL"
     />
 
     <div class="space-y-2">
       <div class="space-y-1 font-medium leading-6 text-center">
-        <div v-if="copy" class="flex flex-col max-w-md mx-auto">
+        <form v-if="copy" class="flex flex-col max-w-md mx-auto" @submit.prevent="saveEdits()">
           <label for="contact-edit-first-name"> First Name </label>
           <input
             id="contact-edit-first-name"
@@ -72,7 +72,12 @@ function randomizeAvatar() {
             cols="30"
             rows="5"
           ></textarea>
-        </div>
+
+          <hr>
+
+          <button>Save</button>
+          <button type="button" @click="cancelEdit()">Cancel</button>
+        </form>
 
         <template v-else>
           <h3 class="leading-snug text-md">{{ fullName }}</h3>
@@ -82,16 +87,27 @@ function randomizeAvatar() {
       </div>
     </div>
 
-    <hr />
+    <template v-if="!isEditing">
+      <hr />
 
-    <div class="mx-auto flex space-x-2 px-6 justify-end">
-      <template v-if="isEditing">
-        <button @click="saveEdits()">Save</button>
-        <button type="button" @click="cancelEdit()">Cancel</button>
-      </template>
-      <template v-else>
+      <div class="mx-auto flex space-x-2 px-6 justify-end">
         <button @click="startEdit()">Edit</button>
-      </template>
-    </div>
+      </div>
+    </template>
   </div>
 </template>
+
+<style scoped>
+.avatar {
+  display: inline-block;
+  width: 200px;
+  height: 200px;
+  border-radius: 9999px;
+}
+
+.avatar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+</style>

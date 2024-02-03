@@ -5,8 +5,9 @@ import { useRoute } from 'vue-router/auto'
 import { useQuery, useMutation } from '@pinia/colada'
 
 const route = useRoute('/contacts/[id]')
+
 const { data: contact } = useQuery({
-  key: () => 'contact/' + route.params.id,
+  key: () => ['contacts', route.params.id],
   fetcher: () => getContactById(route.params.id),
 })
 
