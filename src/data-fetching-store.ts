@@ -18,7 +18,14 @@ import type {
 import { type _MaybeArray, stringifyFlatObject, _JSONPrimitive } from './utils'
 import { EntryNodeKey, TreeMapNode } from './tree-map'
 
-export type UseQueryStatus = 'pending' | 'error' | 'success'
+/**
+ * The status of the request.
+ * - `pending`: initial state
+ * - `loading`: anytime a request is being made
+ * - `error`: when the last request failed
+ * - `success`: when the last request succeeded
+ */
+export type UseQueryStatus = 'pending' | 'loading' | 'error' | 'success'
 
 /**
  * Raw data of a query entry. Can be serialized from the server and used to hydrate the store.
@@ -44,9 +51,9 @@ export class UseQueryEntry<TResult = unknown, TError = any> {
   data: Ref<TResult | undefined>
   error: ShallowRef<TError | null>
   isPending: ComputedRef<boolean> = computed(
-    () => this.status.value === 'pending'
+    () => this.data.value === undefined
   )
-  isFetching: ShallowRef<boolean> = shallowRef(false)
+  isFetching = computed(() => this.status.value === 'loading')
   status: ShallowRef<UseQueryStatus>
   when: number
   pending: null | {
@@ -116,7 +123,7 @@ export class UseQueryEntry<TResult = unknown, TError = any> {
     }
 
     console.log('🔄 refetching', this.options!.key)
-    this.isFetching.value = true
+    this.status.value = 'loading'
     // will become this.previous once fetched
     const nextPrevious = {
       when: 0,
@@ -148,7 +155,6 @@ export class UseQueryEntry<TResult = unknown, TError = any> {
             this.pending = null
             nextPrevious.when = Date.now()
             this.previous = nextPrevious
-            this.isFetching.value = false
           }
         }),
       when: Date.now(),
@@ -261,6 +267,7 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
     entry.error.value = null
   }
 
+  // TODO: find a way to make it possible to prefetch. Right now we need the actual options of the query
   function prefetch(key: UseQueryKey[]) {
     const entry = entryRegistry.get(key.map(stringifyFlatObject))
     if (!entry) {

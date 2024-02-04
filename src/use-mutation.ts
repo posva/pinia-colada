@@ -1,5 +1,5 @@
 import { computed, ref, type ComputedRef, shallowRef } from 'vue'
-import { useDataFetchingStore } from './data-fetching-store'
+import { UseQueryStatus, useDataFetchingStore } from './data-fetching-store'
 import { type UseQueryKey } from './use-query'
 import { type _MaybeArray, toArray } from './utils'
 
@@ -30,11 +30,37 @@ export interface UseMutationReturn<
   TParams extends readonly unknown[] = readonly [],
   TError = Error,
 > {
+  /**
+   * The result of the mutation. `undefined` if the mutation has not been called yet.
+   */
   data: ComputedRef<TResult | undefined>
-  error: ComputedRef<TError | null>
-  isPending: ComputedRef<boolean>
 
+  /**
+   * The error of the mutation. `null` if the mutation has not been called yet or if it was successful.
+   */
+  error: ComputedRef<TError | null>
+
+  /**
+   * Whether the mutation is currently executing.
+   */
+  isLoading: ComputedRef<boolean>
+
+  /**
+   * The status of the mutation.
+   * @see {@link UseQueryStatus}
+   */
+  status: ComputedRef<UseQueryStatus>
+
+  /**
+   * Calls the mutation and returns a promise with the result.
+   *
+   * @param params - parameters to pass to the mutation
+   */
   mutate: (...params: TParams) => Promise<TResult>
+
+  /**
+   * Resets the state of the mutation to its initial state.
+   */
   reset: () => void
 }
 
@@ -47,21 +73,22 @@ export function useMutation<
 ): UseMutationReturn<TResult, TParams, TError> {
   const store = useDataFetchingStore()
 
-  const isPending = ref(false)
+  const status = shallowRef<UseQueryStatus>('pending')
   const data = shallowRef<TResult>()
   const error = shallowRef<TError | null>(null)
 
   // a pending promise allows us to discard previous ongoing requests
   let pendingPromise: Promise<TResult> | null = null
   function mutate(...args: TParams) {
-    isPending.value = true
-    error.value = null
+    status.value = 'loading'
 
     const promise = (pendingPromise = options
       .mutation(...args)
       .then((_data) => {
         if (pendingPromise === promise) {
           data.value = _data
+          error.value = null
+          status.value = 'success'
           if (options.keys) {
             const keys = (
               typeof options.keys === 'function'
@@ -78,13 +105,9 @@ export function useMutation<
       .catch((_error) => {
         if (pendingPromise === promise) {
           error.value = _error
+          status.value = 'error'
         }
         throw _error
-      })
-      .finally(() => {
-        if (pendingPromise === promise) {
-          isPending.value = false
-        }
       }))
 
     return promise
@@ -93,11 +116,13 @@ export function useMutation<
   function reset() {
     data.value = undefined
     error.value = null
+    status.value = 'pending'
   }
 
   const mutationReturn = {
     data: computed(() => data.value),
-    isPending: computed(() => isPending.value),
+    isLoading: computed(() => status.value === 'loading'),
+    status: computed(() => status.value),
     error: computed(() => error.value),
     mutate,
     reset,

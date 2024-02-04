@@ -42,9 +42,8 @@ export interface UseQueryReturn<TResult = unknown, TError = Error> {
   isFetching: ShallowRef<boolean>
 
   /**
-   * The status of the request. `pending` indicates that no request has been made yet and there is no cached data to
-   * display (`data.value = undefined`). `error` indicates that the last request failed. `success` indicates that the
-   * last request succeeded.
+   * The status of the query.
+   * @see {@link UseQueryStatus}
    */
   status: ShallowRef<UseQueryStatus>
 
@@ -89,7 +88,7 @@ export interface UseQueryOptions<TResult = unknown> {
   staleTime?: number
 
   /**
-   * Time in ms after which, once the data is no longer in used, it will be garbage collected to free resources.
+   * Time in ms after which, once the data is no longer being used, it will be garbage collected to free resources.
    */
   gcTime?: number
 

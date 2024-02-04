@@ -109,7 +109,6 @@ describe('useQuery', () => {
     it('exposes a status state', async () => {
       const { wrapper } = mountSimple()
 
-      expect(wrapper.vm.status).toBe('pending')
       await runTimers()
       expect(wrapper.vm.status).toBe('success')
     })
