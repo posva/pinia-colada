@@ -6,7 +6,7 @@ import { useQuery } from '@pinia/colada'
 
 const searchText = useRouteQuery('search', '', { mode: 'push' })
 
-const { data: searchResult, isFetching } = useQuery({
+const { data: searchResult, status } = useQuery({
   key: () => ['contacts', { searchText: searchText.value }],
   query: () => searchContacts(searchText.value),
 })
@@ -19,7 +19,7 @@ const { data: searchResult, isFetching } = useQuery({
   <main class="big-layout">
     <h1 class="mb-12">📇 My Contacts</h1>
 
-    <div class="contacts-search md:flex gap-4">
+    <div class="gap-4 contacts-search md:flex">
       <div>
         <form class="space-x-2" @submit.prevent>
           <input
@@ -30,7 +30,7 @@ const { data: searchResult, isFetching } = useQuery({
           />
           <!-- NOTE: ensure no fetch is done on client while hydrating or this will cause
            a Hydration mismatch -->
-          <div v-if="isFetching">
+          <div v-if="status === 'loading'">
             <span class="spinner"></span><span> Fetching</span>
           </div>
         </form>
@@ -46,7 +46,7 @@ const { data: searchResult, isFetching } = useQuery({
               <img
                 v-if="contact.photoURL"
                 :src="contact.photoURL"
-                class="rounded-full inline-block w-8"
+                class="inline-block w-8 rounded-full"
               />
               {{ contact.firstName }} {{ contact.lastName }}
             </RouterLink>

@@ -180,11 +180,11 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
    */
   const entriesRaw = shallowReactive(new TreeMapNode<UseQueryStateEntryRaw>())
   const existingState = getActivePinia()!.state.value.PiniaColada
-  const _entriesRaw: UseQueryStateEntryRaw | undefined =
+  const _entriesRaw: UseQueryEntryNodeSerialized[] | undefined =
     existingState.entriesRaw
   // free the memory
   delete existingState.entriesRaw
-  const entryRegistry = shallowReactive(new TreeMapNode<UseQueryEntry>())
+  const entryRegistry = shallowReactive(createTreeMap(_entriesRaw))
 
   // FIXME: start from here: replace properties entry with a QueryEntry that is created when needed and contains all the needed part, included functions
 
@@ -341,12 +341,9 @@ function _serialize([key, tree]: [
 }
 
 export function createTreeMap(
-  raw?: UseQueryEntryNodeSerialized[]
+  raw: UseQueryEntryNodeSerialized[] = []
 ): TreeMapNode<UseQueryEntry> {
   const root = new TreeMapNode<UseQueryEntry>()
-  if (!raw) {
-    return root
-  }
 
   for (const entry of raw) {
     appendToTree(root, entry)

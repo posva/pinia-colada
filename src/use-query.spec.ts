@@ -23,6 +23,8 @@ import { delay, isSpy, runTimers } from '../test/utils'
 import {
   UseQueryEntry,
   UseQueryStatus,
+  createTreeMap,
+  serialize,
   useDataFetchingStore,
 } from './data-fetching-store'
 import { TreeMapNode, entryNodeSize } from './tree-map'
@@ -491,6 +493,47 @@ describe('useQuery', () => {
 
       const cacheClient = useDataFetchingStore()
       expect(entryNodeSize(cacheClient.entryRegistry)).toBe(2)
+    })
+  })
+
+  describe('ssr', () => {
+    it('works with no state', async () => {
+      const pinia = createPinia()
+      const { wrapper } = mountSimple({}, { plugins: [pinia] })
+
+      await runTimers()
+      expect(wrapper.vm.data).toBe(42)
+    })
+
+    it('uses the initial data if present in the store', async () => {
+      const pinia = createPinia()
+      const tree = createTreeMap()
+      tree.set(['key'], new UseQueryEntry(2, null, Date.now()))
+      pinia.state.value.PiniaColada = {
+        entriesRaw: serialize(tree),
+      }
+      const { wrapper } = mountSimple({}, { plugins: [pinia] })
+
+      // without waiting for times the data is present
+      expect(wrapper.vm.data).toBe(2)
+    })
+
+    it.todo('avoids fetching if initial data is fresh', async () => {
+      const pinia = createPinia()
+      const tree = createTreeMap()
+      tree.set(['key'], new UseQueryEntry(2, null, Date.now()))
+      pinia.state.value.PiniaColada = {
+        entriesRaw: serialize(tree),
+      }
+      const { wrapper, query } = mountSimple(
+        { staleTime: 1000 },
+        { plugins: [pinia] }
+      )
+
+      await runTimers()
+      // it should not fetch and use the initial data
+      expect(query).toHaveBeenCalledTimes(0)
+      expect(wrapper.vm.data).toBe(2)
     })
   })
 })
