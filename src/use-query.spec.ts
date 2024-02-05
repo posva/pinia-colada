@@ -448,6 +448,18 @@ describe('useQuery', () => {
       await runTimers()
       expect(wrapper.vm.error).toEqual(null)
     })
+
+    it('refreshes if it failed no matter the staleTime', async () => {
+      const query = vi.fn().mockRejectedValue(new Error('fail'))
+      const { wrapper } = mountDynamicKey({ staleTime: 1000, query: query })
+
+      await runTimers()
+      expect(query).toHaveBeenCalledTimes(1)
+
+      wrapper.vm.refresh()
+      await runTimers()
+      expect(query).toHaveBeenCalledTimes(2)
+    })
   })
 
   describe('shared state', () => {
