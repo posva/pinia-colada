@@ -147,7 +147,7 @@ describe('useQuery', () => {
       expect(wrapper.vm.data).toBe(2)
     })
 
-    it.todo('avoids fetching if initial data is fresh', async () => {
+    it('avoids fetching if initial data is fresh', async () => {
       const pinia = createPinia()
 
       const entryRegistry = shallowReactive(
@@ -172,7 +172,7 @@ describe('useQuery', () => {
   })
 
   describe('staleTime', () => {
-    it('when refreshed, does not fetch again if staleTime has not elapsed', async () => {
+    it('when refreshed, does not fetch again if staleTime has not been elapsed', async () => {
       const { wrapper, query } = mountSimple({ staleTime: 1000 })
 
       await runTimers()
@@ -342,31 +342,32 @@ describe('useQuery', () => {
       })
     }
 
-    it.todo(
-      'refreshes the data even with initial values after staleTime is elapsed',
-      async () => {
-        const pinia = createPinia()
-        pinia.state.value.PiniaColada = {
-          entryRegistry: shallowReactive(new TreeMapNode(['key'], 60)),
-        }
-        const { wrapper, query } = mountSimple(
-          {
-            staleTime: 100,
-          },
-          {}
-        )
-
-        await runTimers()
-        expect(wrapper.vm.data).toBe(60)
-        expect(query).toHaveBeenCalledTimes(0)
-
-        await vi.advanceTimersByTime(101)
-        wrapper.vm.refresh()
-        await runTimers()
-        expect(wrapper.vm.data).toBe(42)
-        expect(query).toHaveBeenCalledTimes(1)
+    it('refreshes the data even with initial values after staleTime is elapsed', async () => {
+      const pinia = createPinia()
+      pinia.state.value.PiniaColada = {
+        entryRegistry: shallowReactive(
+          new TreeMapNode(['key'], new UseQueryEntry(60, null, Date.now()))
+        ),
       }
-    )
+      const { wrapper, query } = mountSimple(
+        {
+          staleTime: 100,
+        },
+        {
+          plugins: [pinia],
+        }
+      )
+
+      await runTimers()
+      expect(wrapper.vm.data).toBe(60)
+      expect(query).toHaveBeenCalledTimes(0)
+
+      await vi.advanceTimersByTime(101)
+      wrapper.vm.refresh()
+      await runTimers()
+      expect(wrapper.vm.data).toBe(42)
+      expect(query).toHaveBeenCalledTimes(1)
+    })
 
     it('refreshes the data if mounted and the key changes', async () => {
       const { wrapper, query } = mountDynamicKey({
@@ -505,6 +506,8 @@ describe('useQuery', () => {
       expect(wrapper.vm.data).toBe(42)
     })
 
+    // NOTE: these tests are a bit different from the ones in `initial state`.
+    // They create the serialized state rather than the actual state
     it('uses the initial data if present in the store', async () => {
       const pinia = createPinia()
       const tree = createTreeMap()
@@ -518,7 +521,7 @@ describe('useQuery', () => {
       expect(wrapper.vm.data).toBe(2)
     })
 
-    it.todo('avoids fetching if initial data is fresh', async () => {
+    it('avoids fetching if initial data is fresh', async () => {
       const pinia = createPinia()
       const tree = createTreeMap()
       tree.set(['key'], new UseQueryEntry(2, null, Date.now()))
@@ -531,9 +534,9 @@ describe('useQuery', () => {
       )
 
       await runTimers()
+
       // it should not fetch and use the initial data
       expect(query).toHaveBeenCalledTimes(0)
-      expect(wrapper.vm.data).toBe(2)
     })
   })
 })

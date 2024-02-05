@@ -69,7 +69,7 @@ export class UseQueryEntry<TResult = unknown, TError = any> {
   constructor(
     initialData?: TResult,
     error: TError | null = null,
-    when: number = Date.now()
+    when: number = 0 // stale by default
   ) {
     this.data = ref(initialData) as Ref<TResult | undefined>
     this.error = shallowRef(error)
@@ -91,18 +91,10 @@ export class UseQueryEntry<TResult = unknown, TError = any> {
     }
     const { key, staleTime } = this.options!
 
-    if (
-      this.error.value ||
-      !this.previous ||
-      isExpired(this.previous.when, staleTime)
-    ) {
-      if (this.previous) {
-        console.log(
-          `⬇️ refresh "${String(key)}". expired ${
-            this.previous?.when
-          } / ${staleTime}`
-        )
-      }
+    if (this.error.value || isExpired(this.when, staleTime)) {
+      console.log(
+        `⬇️ refresh "${String(key)}". expired ${this.when} / ${staleTime}`
+      )
 
       if (this.pending?.refreshCall) console.log('  -> skipped!')
 
@@ -124,12 +116,6 @@ export class UseQueryEntry<TResult = unknown, TError = any> {
 
     console.log('🔄 refetching', this.options!.key)
     this.status.value = 'loading'
-    // will become this.previous once fetched
-    const nextPrevious = {
-      when: 0,
-      data: undefined as TResult | undefined,
-      error: null as TError | null,
-    } satisfies UseQueryEntry<TResult, TError>['previous']
 
     // we create an object and verify we are the most recent pending request
     // before doing anything
@@ -137,7 +123,6 @@ export class UseQueryEntry<TResult = unknown, TError = any> {
       refreshCall: this.options!.query()
         .then((data) => {
           if (pendingEntry === this.pending) {
-            nextPrevious.data = data
             this.error.value = null
             this.data.value = data
             this.status.value = 'success'
@@ -145,7 +130,6 @@ export class UseQueryEntry<TResult = unknown, TError = any> {
         })
         .catch((error) => {
           if (pendingEntry === this.pending) {
-            nextPrevious.error = error
             this.error.value = error
             this.status.value = 'error'
           }
@@ -153,8 +137,12 @@ export class UseQueryEntry<TResult = unknown, TError = any> {
         .finally(() => {
           if (pendingEntry === this.pending) {
             this.pending = null
-            nextPrevious.when = Date.now()
-            this.previous = nextPrevious
+            this.when = Date.now()
+            this.previous = {
+              data: this.data.value,
+              error: this.error.value,
+              when: this.when,
+            }
           }
         }),
       when: Date.now(),
@@ -230,10 +218,8 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
     }
 
     for (const entry of entryNode) {
-      if (entry.previous) {
-        // will force a fetch next time
-        entry.previous.when = 0
-      }
+      // will force a fetch next time
+      entry.when = 0
 
       // TODO: if active only
       if (refetch) {

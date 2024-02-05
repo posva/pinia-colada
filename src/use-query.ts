@@ -182,10 +182,12 @@ export function useQuery<TResult, TError = Error>(
   if (options.refetchOnMount && hasCurrentInstance) {
     // TODO: optimize so it doesn't refresh if we are hydrating
     onMounted(() => {
-      if (options.refetchOnMount === 'always') {
-        refetch()
-      } else {
-        refresh()
+      if (options.refetchOnMount) {
+        if (options.refetchOnMount === 'always') {
+          refetch()
+        } else {
+          refresh()
+        }
       }
     })
   }
