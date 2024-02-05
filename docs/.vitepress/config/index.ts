@@ -100,18 +100,17 @@ export default defineConfig({
       provider: 'local',
     },
 
-    carbonAds: {
-      code: 'CEBICK3I',
-      // custom: 'CEBICK3M',
-      placement: 'routervuejsorg',
-    },
+    // carbonAds: {
+    //   code: 'CEBICK3I',
+    //   placement: 'routervuejsorg',
+    // },
 
     nav: [
       {
         text: 'Guide',
         link: '/guide/',
       },
-      { text: 'API', link: '/api/', activeMatch: '^/api/' },
+      // { text: 'API', link: '/api/', activeMatch: '^/api/' },
       // { text: 'Cookbook', link: '/cookbook/', activeMatch: '^/cookbook/' },
       {
         text: 'Links',

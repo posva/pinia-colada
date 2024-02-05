@@ -5,6 +5,7 @@ import AsideSponsors from './components/AsideSponsors.vue'
 import HomeSponsors from './components/HomeSponsors.vue'
 import './styles/vars.css'
 import './styles/playground-links.css'
+import './styles/home-links.css'
 
 const theme: Theme = {
   extends: DefaultTheme,
