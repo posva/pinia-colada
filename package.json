@@ -38,6 +38,7 @@
   },
   "scripts": {
     "dev": "vitest --ui",
+    "docs": "vitepress dev docs",
     "play": "pnpm -C playground dev",
     "prepublishOnly": "pnpm run build",
     "release": "standard-version",
@@ -102,6 +103,7 @@
     "standard-version": "^9.5.0",
     "tsup": "^8.0.1",
     "typescript": "~5.3.3",
+    "vitepress": "1.0.0-rc.41",
     "vitest": "^1.2.2",
     "vue": "^3.4.15"
   },
