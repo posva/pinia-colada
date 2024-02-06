@@ -55,7 +55,7 @@ export function QueryPlugin(
   const store = useDataFetchingStore(pinia)
   store.$onAction(({ name, after, onError: _onError }) => {
     // FIXME: refetch / refresh
-    if (name === 'query') {
+    if (name === 'refetch' || name === 'refresh') {
       after(() => {
         onSuccess()
         onSettled()

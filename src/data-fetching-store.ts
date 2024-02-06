@@ -50,114 +50,55 @@ export interface UseQueryStateEntryRaw<TResult = unknown, TError = unknown> {
   when: number
 }
 
-export class UseQueryEntry<TResult = unknown, TError = any> {
-  data: Ref<TResult | undefined>
+export interface UseQueryEntry<TResult = unknown, TError = any> {
+  data: ShallowRef<TResult | undefined>
   error: ShallowRef<TError | null>
-  isPending: ComputedRef<boolean> = computed(
-    () => this.data.value === undefined
-  )
-  isFetching = computed(() => this.status.value === 'loading')
   status: ShallowRef<UseQueryStatus>
+  isPending: ComputedRef<boolean>
+  isFetching: ComputedRef<boolean>
   when: number
   pending: null | {
     refreshCall: Promise<void>
     when: number
-  } = null
+  }
   /**
    * Options used to create the query. They can be undefined during hydration but are needed for fetching. This is why `store.ensureEntry()` sets this property.
    */
   options?: UseQueryOptionsWithDefaults<TResult>
+}
 
-  constructor(
-    initialData?: TResult,
-    error: TError | null = null,
-    when: number = 0 // stale by default
-  ) {
-    this.data = ref(initialData) as Ref<TResult | undefined>
-    this.error = shallowRef(error)
-    this.when = when
-    this.status = shallowRef(
-      error ? 'error' : initialData !== undefined ? 'success' : 'pending'
-    )
-  }
-
-  /**
-   * Ensures the current data is fresh. If the data is stale, refetch, if not return as is. Can only be called if the
-   * entry has options.
-   */
-  async refresh(): Promise<TResult> {
-    if (process.env.NODE_ENV !== 'production' && !this.options) {
-      throw new Error(
-        `"entry.refech()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`
-      )
-    }
-    const { key, staleTime } = this.options!
-
-    if (this.error.value || isExpired(this.when, staleTime)) {
-      console.log(
-        `⬇️ refresh "${String(key)}". expired ${this.when} / ${staleTime}`
-      )
-
-      if (this.pending?.refreshCall) console.log('  -> skipped!')
-
-      await (this.pending?.refreshCall ?? this.refetch())
-    }
-
-    return this.data.value!
-  }
-
-  /**
-   * Ignores fresh data and triggers a new fetch. Can only be called if the entry has options.
-   */
-  async refetch(): Promise<TResult> {
-    if (process.env.NODE_ENV !== 'production' && !this.options) {
-      throw new Error(
-        `"entry.refech()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`
-      )
-    }
-
-    console.log('🔄 refetching', this.options!.key)
-    this.status.value = 'loading'
-
-    // we create an object and verify we are the most recent pending request
-    // before doing anything
-    const pendingCall = (this.pending = {
-      refreshCall: this.options!.query()
-        .then((data) => {
-          if (pendingCall === this.pending) {
-            this.error.value = null
-            this.data.value = data
-            this.status.value = 'success'
-          }
-        })
-        .catch((error) => {
-          if (pendingCall === this.pending) {
-            this.error.value = error
-            this.status.value = 'error'
-          }
-        })
-        .finally(() => {
-          if (pendingCall === this.pending) {
-            this.pending = null
-            this.when = Date.now()
-          }
-        }),
-      when: Date.now(),
-    })
-
-    await this.pending.refreshCall
-
-    return this.data.value!
-  }
-
-  // debug only
-  toJSON(): _UseQueryEntryNodeValueSerialized<TResult, TError> {
-    return [this.data.value, this.error.value, this.when]
-  }
-  toString() {
-    return String(this.toJSON())
+function createQueryEntry<TResult = unknown, TError = unknown>(
+  initialData?: TResult,
+  error: TError | null = null,
+  when: number = 0 // stale by default
+): UseQueryEntry<TResult, TError> {
+  const data = shallowRef(initialData)
+  const status = shallowRef<UseQueryStatus>(
+    error ? 'error' : initialData !== undefined ? 'success' : 'pending'
+  )
+  return {
+    data,
+    error: shallowRef(error),
+    when,
+    status,
+    isPending: computed(() => initialData === undefined),
+    isFetching: computed(() => status.value === 'loading'),
+    pending: null,
   }
 }
+
+// debug only
+export const queryEntry_toJSON = <TResult, TError>(
+  entry: UseQueryEntry<TResult, TError>
+): _UseQueryEntryNodeValueSerialized<TResult, TError> => [
+  entry.data.value,
+  entry.error.value,
+  entry.when,
+]
+
+export const queryEntry_toString = <TResult, TError>(
+  entry: UseQueryEntry<TResult, TError>
+) => String(queryEntry_toJSON(entry))
 
 /**
  * The id of the store used for queries.
@@ -198,7 +139,7 @@ export const useDataFetchingStore = defineStore(QUERY_STORE_ID, () => {
     if (!entry) {
       entryRegistry.set(
         key,
-        (entry = scope.run(() => new UseQueryEntry(options.initialData?.()))!)
+        (entry = scope.run(() => createQueryEntry(options.initialData?.()))!)
       )
     }
 
@@ -213,9 +154,9 @@ export const useDataFetchingStore = defineStore(QUERY_STORE_ID, () => {
    * Invalidates a query entry, forcing a refetch of the data if `refetch` is true
    *
    * @param key - the key of the query to invalidate
-   * @param refetch - whether to force a refresh of the data
+   * @param shouldRefetch - whether to force a refresh of the data
    */
-  function invalidateEntry(key: UseQueryKey[], refetch = false) {
+  function invalidateEntry(key: UseQueryKey[], shouldRefetch = false) {
     const entryNode = entryRegistry.find(key.map(stringifyFlatObject))
 
     // nothing to invalidate
@@ -228,25 +169,87 @@ export const useDataFetchingStore = defineStore(QUERY_STORE_ID, () => {
       entry.when = 0
 
       // TODO: if active only
-      if (refetch) {
+      if (shouldRefetch) {
         // reset any pending request
         entry.pending = null
         // force refresh
-        entry.refetch()
+        refetch(entry)
       }
     }
   }
 
-  async function query<TResult, TError>(
-    this: StoreGeneric,
-    entry: UseQueryEntry<TResult, TError>,
-    op: 'refresh' | 'refetch'
-  ) {
-    const res = await entry[op]()
-    this.$patch(() => {
-      entry.data.value = res
+  /**
+   * Ensures the current data is fresh. If the data is stale, refetch, if not return as is. Can only be called if the
+   * entry has options.
+   */
+  async function refresh<TResult, TError>(
+    entry: UseQueryEntry<TResult, TError>
+  ): Promise<TResult> {
+    if (process.env.NODE_ENV !== 'production' && !entry.options) {
+      throw new Error(
+        `"entry.refech()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`
+      )
+    }
+    const { key, staleTime } = entry.options!
+
+    if (entry.error.value || isExpired(entry.when, staleTime)) {
+      console.log(
+        `⬇️ refresh "${String(key)}". expired ${entry.when} / ${staleTime}`
+      )
+
+      if (entry.pending?.refreshCall) console.log('  -> skipped!')
+
+      await (entry.pending?.refreshCall ?? refetch(entry))
+    }
+
+    return entry.data.value!
+  }
+
+  /**
+   * Ignores fresh data and triggers a new fetch. Can only be called if the entry has options.
+   */
+  async function refetch<TResult, TError>(
+    entry: UseQueryEntry<TResult, TError>
+  ): Promise<TResult> {
+    if (process.env.NODE_ENV !== 'production' && !entry.options) {
+      throw new Error(
+        `"entry.refech()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`
+      )
+    }
+
+    console.log('🔄 refetching', entry.options!.key)
+    entry.status.value = 'loading'
+
+    // we create an object and verify we are the most recent pending request
+    // before doing anything
+    const pendingCall = (entry.pending = {
+      refreshCall: entry
+        .options!.query()
+        .then((data) => {
+          if (pendingCall === entry.pending) {
+            entry.error.value = null
+            entry.data.value = data
+            entry.status.value = 'success'
+          }
+        })
+        .catch((error) => {
+          if (pendingCall === entry.pending) {
+            entry.error.value = error
+            entry.status.value = 'error'
+          }
+        })
+        .finally(() => {
+          if (pendingCall === entry.pending) {
+            entry.pending = null
+            entry.when = Date.now()
+          }
+        }),
+      when: Date.now(),
     })
-    return res
+
+    await entry.pending.refreshCall
+
+    return entry.data.value!
   }
 
   // TODO: tests
@@ -281,7 +284,7 @@ export const useDataFetchingStore = defineStore(QUERY_STORE_ID, () => {
       )
       return
     }
-    entry.refetch()
+    return refetch(entry)
   }
 
   return {
@@ -290,9 +293,11 @@ export const useDataFetchingStore = defineStore(QUERY_STORE_ID, () => {
     entryRegistry,
 
     ensureEntry,
-    query,
     invalidateEntry,
     setEntryData,
+
+    refetch,
+    refresh,
   }
 })
 
@@ -341,7 +346,7 @@ function _serialize([key, tree]: [
 ]): UseQueryEntryNodeSerialized {
   return [
     key,
-    tree.value?.toJSON(),
+    tree.value && queryEntry_toJSON(tree.value),
     tree.children && [...tree.children.entries()].map(_serialize),
   ]
 }
@@ -364,7 +369,7 @@ function appendToTree(
   parent.children ??= new Map()
   const node = new TreeMapNode<UseQueryEntry>(
     [],
-    value && new UseQueryEntry(...value)
+    value && createQueryEntry(...value)
   )
   parent.children.set(key, node)
   if (children) {

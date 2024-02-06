@@ -12,11 +12,13 @@ export {
   type UseQueryOptionsWithDefaults,
 } from './query-options'
 
+export { QueryPlugin, type QueryPluginOptions } from './query-plugin'
+
 export {
   useDataFetchingStore,
   type UseQueryStatus,
   serialize,
-  UseQueryEntry,
+  type UseQueryEntry,
 } from './data-fetching-store'
 
 export { TreeMapNode, type EntryNodeKey } from './tree-map'

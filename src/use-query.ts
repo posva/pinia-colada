@@ -78,8 +78,8 @@ export function useQuery<TResult, TError = Error>(
     store.ensureEntry<TResult, TError>(toArray(toValue(options.key)), options)
   )
 
-  const refresh = () => store.query(entry.value, 'refresh')
-  const refetch = () => store.query(entry.value, 'refetch')
+  const refresh = () => store.refresh(entry.value)
+  const refetch = () => store.refetch(entry.value)
 
   const queryReturn = {
     data: computed(() => entry.value.data.value),
