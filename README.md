@@ -46,6 +46,19 @@ Pinia Colada is an opinionated yet flexible data fetching layer on top of Pinia.
 npm install pinia @pinia/colada
 ```
 
+Install the plugins for the features you need:
+
+```js
+import { createPinia } from 'pinia'
+import { QueryPlugin } from '@pinia/colada'
+
+app.use(createPinia())
+// install after pinia
+app.use(QueryPlugin, {
+  // optional options
+})
+```
+
 ## Usage
 
 ```vue
@@ -63,8 +76,8 @@ const { data: contact, isFetching } = useQuery({
 })
 
 const { mutate: updateContact } = useMutation({
-  // automatically invalidates the cache for ['contacts', id]
-  keys: ({ id }) => ['contacts', id],
+  // automatically invalidates the cache for ['contacts'] and ['contacts', id]
+  keys: ({ id }) => [['contacts'], ['contacts', id]],
   mutation: _updateContact,
 })
 </script>
