@@ -1,10 +1,9 @@
-import { StateTree, StoreGeneric, defineStore, getActivePinia } from 'pinia'
+import { defineStore } from 'pinia'
 import {
   type Ref,
   shallowReactive,
   getCurrentScope,
   type ShallowRef,
-  ref,
   type ComputedRef,
   computed,
   triggerRef,
@@ -24,39 +23,32 @@ import {
 /**
  * The status of the request.
  * - `pending`: initial state
- * - `loading`: anytime a request is being made
+ * - `loading`: request is being made
  * - `error`: when the last request failed
  * - `success`: when the last request succeeded
  */
 export type UseQueryStatus = 'pending' | 'loading' | 'error' | 'success'
 
-/**
- * Raw data of a query entry. Can be serialized from the server and used to hydrate the store.
- */
-export interface UseQueryStateEntryRaw<TResult = unknown, TError = unknown> {
+export interface UseQueryEntry<TResult = unknown, TError = any> {
   /**
-   * The data returned by the query.
+   * The last successful data resolved by the query.
    */
-  data: TResult | undefined
-
+  data: ShallowRef<TResult | undefined>
   /**
-   * The error thrown by the query.
+   * The error rejected by the query.
    */
-  error: TError | null
-
+  error: ShallowRef<TError | null>
+  /**
+   * The status of the query.
+   */
+  status: ShallowRef<UseQueryStatus>
   /**
    * When was this data fetched the last time in ms
    */
   when: number
-}
 
-export interface UseQueryEntry<TResult = unknown, TError = any> {
-  data: ShallowRef<TResult | undefined>
-  error: ShallowRef<TError | null>
-  status: ShallowRef<UseQueryStatus>
   isPending: ComputedRef<boolean>
   isFetching: ComputedRef<boolean>
-  when: number
   pending: null | {
     refreshCall: Promise<void>
     when: number
@@ -67,7 +59,15 @@ export interface UseQueryEntry<TResult = unknown, TError = any> {
   options?: UseQueryOptionsWithDefaults<TResult>
 }
 
-function createQueryEntry<TResult = unknown, TError = unknown>(
+/**
+ * Creates a new query entry.
+ *
+ * @internal
+ * @param initialData - initial data to set
+ * @param error - initial error to set
+ * @param when - when the data was fetched the last time. defaults to 0, meaning it's stale
+ */
+export function createQueryEntry<TResult = unknown, TError = unknown>(
   initialData?: TResult,
   error: TError | null = null,
   when: number = 0 // stale by default
@@ -81,13 +81,12 @@ function createQueryEntry<TResult = unknown, TError = unknown>(
     error: shallowRef(error),
     when,
     status,
-    isPending: computed(() => initialData === undefined),
+    isPending: computed(() => data.value === undefined),
     isFetching: computed(() => status.value === 'loading'),
     pending: null,
   }
 }
 
-// debug only
 export const queryEntry_toJSON = <TResult, TError>(
   entry: UseQueryEntry<TResult, TError>
 ): _UseQueryEntryNodeValueSerialized<TResult, TError> => [
@@ -107,19 +106,7 @@ export const queryEntry_toString = <TResult, TError>(
 export const QUERY_STORE_ID = '_pc_query'
 
 export const useDataFetchingStore = defineStore(QUERY_STORE_ID, () => {
-  /**
-   * Raw data of the entries. Only used to hydrate the store on the server. Not synced with the actual data.
-   */
-  const entriesRaw = shallowReactive(new TreeMapNode<UseQueryStateEntryRaw>())
-  const existingState: StateTree | undefined =
-    getActivePinia()!.state.value[QUERY_STORE_ID]
-  const _entriesRaw: UseQueryEntryNodeSerialized[] | undefined =
-    existingState?.entriesRaw
-  // free the memory
-  if (existingState) {
-    delete existingState.entriesRaw
-  }
-  const entryRegistry = shallowReactive(createTreeMap(_entriesRaw))
+  const entryRegistry = shallowReactive(new TreeMapNode<UseQueryEntry>())
 
   // FIXME: start from here: replace properties entry with a QueryEntry that is created when needed and contains all the needed part, included functions
 
@@ -187,7 +174,7 @@ export const useDataFetchingStore = defineStore(QUERY_STORE_ID, () => {
   ): Promise<TResult> {
     if (process.env.NODE_ENV !== 'production' && !entry.options) {
       throw new Error(
-        `"entry.refech()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`
+        `"entry.refresh()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`
       )
     }
     const { key, staleTime } = entry.options!
@@ -213,7 +200,7 @@ export const useDataFetchingStore = defineStore(QUERY_STORE_ID, () => {
   ): Promise<TResult> {
     if (process.env.NODE_ENV !== 'production' && !entry.options) {
       throw new Error(
-        `"entry.refech()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`
+        `"entry.refetch()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`
       )
     }
 
@@ -252,7 +239,7 @@ export const useDataFetchingStore = defineStore(QUERY_STORE_ID, () => {
     return entry.data.value!
   }
 
-  // TODO: tests
+  // TODO: tests, remove function version
   function setEntryData<TResult = unknown>(
     key: UseQueryKey[],
     data: TResult | ((data: Ref<TResult | undefined>) => void)
@@ -288,8 +275,6 @@ export const useDataFetchingStore = defineStore(QUERY_STORE_ID, () => {
   }
 
   return {
-    // TODO: remove
-    entriesRaw,
     entryRegistry,
 
     ensureEntry,
@@ -307,6 +292,7 @@ function isExpired(lastRefresh: number, staleTime: number): boolean {
 
 /**
  * Raw data of a query entry. Can be serialized from the server and used to hydrate the store.
+ * @internal
  */
 export type _UseQueryEntryNodeValueSerialized<
   TResult = unknown,
@@ -328,7 +314,11 @@ export type _UseQueryEntryNodeValueSerialized<
   when?: number,
 ]
 
-type UseQueryEntryNodeSerialized = [
+/**
+ * Serialized version of a query entry node.
+ * @internal
+ */
+export type UseQueryEntryNodeSerialized = [
   key: EntryNodeKey,
   value: undefined | _UseQueryEntryNodeValueSerialized,
   children?: UseQueryEntryNodeSerialized[],
@@ -350,6 +340,8 @@ function _serialize([key, tree]: [
     tree.children && [...tree.children.entries()].map(_serialize),
   ]
 }
+
+// TODO: rename to revive or similar to better convey the idea of hydrating
 
 export function createTreeMap(
   raw: UseQueryEntryNodeSerialized[] = []

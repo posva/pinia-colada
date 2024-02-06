@@ -24,6 +24,7 @@ import {
   QUERY_STORE_ID,
   UseQueryEntry,
   UseQueryStatus,
+  createQueryEntry,
   createTreeMap,
   serialize,
   useDataFetchingStore,
@@ -129,48 +130,6 @@ describe('useQuery', () => {
       expect(wrapper.vm.error).toBeNull()
       await runTimers()
       expect(wrapper.vm.error).toEqual(new Error('foo'))
-    })
-
-    it('uses initial data if present in store', async () => {
-      const pinia = createPinia()
-
-      const entryRegistry = shallowReactive(
-        new TreeMapNode<UseQueryEntry>(
-          ['key'],
-          new UseQueryEntry(2, null, Date.now())
-        )
-      )
-      pinia.state.value[QUERY_STORE_ID] = { entryRegistry }
-      const { wrapper, query } = mountSimple(
-        { staleTime: 1000 },
-        { plugins: [pinia] }
-      )
-
-      // without waiting for times the data is present
-      expect(wrapper.vm.data).toBe(2)
-    })
-
-    it('avoids fetching if initial data is fresh', async () => {
-      const pinia = createPinia()
-
-      const entryRegistry = shallowReactive(
-        new TreeMapNode<UseQueryEntry>(
-          ['key'],
-          // fresh data
-          new UseQueryEntry(2, null, Date.now())
-        )
-      )
-      pinia.state.value[QUERY_STORE_ID] = { entryRegistry }
-      const { wrapper, query } = mountSimple(
-        // 1s stale time
-        { staleTime: 1000 },
-        { plugins: [pinia] }
-      )
-
-      await runTimers()
-      // it should not fetch and use the initial data
-      expect(query).toHaveBeenCalledTimes(0)
-      expect(wrapper.vm.data).toBe(2)
     })
   })
 
@@ -352,7 +311,7 @@ describe('useQuery', () => {
       const pinia = createPinia()
       pinia.state.value[QUERY_STORE_ID] = {
         entryRegistry: shallowReactive(
-          new TreeMapNode(['key'], new UseQueryEntry(60, null, Date.now()))
+          new TreeMapNode(['key'], createQueryEntry(60, null, Date.now()))
         ),
       }
       const { wrapper, query } = mountSimple(
@@ -524,16 +483,20 @@ describe('useQuery', () => {
       expect(wrapper.vm.data).toBe(42)
     })
 
-    // NOTE: these tests are a bit different from the ones in `initial state`.
-    // They create the serialized state rather than the actual state
-    it('uses the initial data if present in the store', async () => {
+    it('uses initial data if present in store', async () => {
       const pinia = createPinia()
-      const tree = createTreeMap()
-      tree.set(['key'], new UseQueryEntry(2, null, Date.now()))
-      pinia.state.value[QUERY_STORE_ID] = {
-        entriesRaw: serialize(tree),
-      }
-      const { wrapper } = mountSimple({}, { plugins: [pinia] })
+
+      const entryRegistry = shallowReactive(
+        new TreeMapNode<UseQueryEntry>(
+          ['key'],
+          createQueryEntry(2, null, Date.now())
+        )
+      )
+      pinia.state.value[QUERY_STORE_ID] = { entryRegistry }
+      const { wrapper, query } = mountSimple(
+        { staleTime: 1000 },
+        { plugins: [pinia] }
+      )
 
       // without waiting for times the data is present
       expect(wrapper.vm.data).toBe(2)
@@ -541,20 +504,25 @@ describe('useQuery', () => {
 
     it('avoids fetching if initial data is fresh', async () => {
       const pinia = createPinia()
-      const tree = createTreeMap()
-      tree.set(['key'], new UseQueryEntry(2, null, Date.now()))
-      pinia.state.value[QUERY_STORE_ID] = {
-        entriesRaw: serialize(tree),
-      }
+
+      const entryRegistry = shallowReactive(
+        new TreeMapNode<UseQueryEntry>(
+          ['key'],
+          // fresh data
+          createQueryEntry(2, null, Date.now())
+        )
+      )
+      pinia.state.value[QUERY_STORE_ID] = { entryRegistry }
       const { wrapper, query } = mountSimple(
+        // 1s stale time
         { staleTime: 1000 },
         { plugins: [pinia] }
       )
 
       await runTimers()
-
       // it should not fetch and use the initial data
       expect(query).toHaveBeenCalledTimes(0)
+      expect(wrapper.vm.data).toBe(2)
     })
   })
 })

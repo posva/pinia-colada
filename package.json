@@ -72,7 +72,7 @@
     {
       "name": "useQuery only",
       "path": "dist/index.js",
-      "import": "{ useQuery }",
+      "import": "{ useQuery, QueryPlugin }",
       "ignore": [
         "vue",
         "pinia"
@@ -81,7 +81,7 @@
     {
       "name": "useQuery + useMutation",
       "path": "dist/index.js",
-      "import": "{ useQuery, useMutation }",
+      "import": "{ useQuery, QueryPlugin, useMutation }",
       "ignore": [
         "vue",
         "pinia"

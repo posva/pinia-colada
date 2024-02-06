@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router/auto'
 import { createPinia } from 'pinia'
+import { QueryPlugin } from '@pinia/colada'
 import './style.css'
 import 'water.css'
 
@@ -12,6 +13,7 @@ const router = createRouter({
 })
 
 app.use(createPinia())
+app.use(QueryPlugin, {})
 app.use(router)
 
 app.mount('#app')
