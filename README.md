@@ -10,12 +10,12 @@
     <img src="https://github.com/posva/pinia-colada/workflows/test/badge.svg" alt="build status">
   </a>
   <a href="https://codecov.io/gh/posva/pinia-colada">
-    <img src="https://codecov.io/gh/posva/pinia-colada/branch/main/graph/badge.svg?token=9WqnRrLf1Q"/>
+    <img src="https://codecov.io/gh/posva/pinia-colada/branch/main/graph/badge.svg?token=OZc0DBze2R"/>
   </a>
 </p>
 <br/>
 
-# Pinia Colada
+# Pinia Colada (WIP)
 
 > The missing data fetching library for [Pinia](https://pinia.vuejs.org)
 
