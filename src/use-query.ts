@@ -14,13 +14,16 @@ import {
   onScopeDispose,
   ShallowRef,
   Ref,
-  MaybeRefOrGetter,
   watch,
   getCurrentInstance,
   ComputedRef,
 } from 'vue'
 import { UseQueryStatus, useDataFetchingStore } from './data-fetching-store'
-import { EntryNodeKey } from './tree-map'
+import {
+  UseQueryOptions,
+  UseQueryOptionsWithDefaults,
+  useQueryOptions,
+} from './query-options'
 
 /**
  * Return type of `useQuery()`.
@@ -60,65 +63,11 @@ export interface UseQueryReturn<TResult = unknown, TError = Error> {
   refetch: () => Promise<TResult>
 }
 
-/**
- * `true` refetch if data is stale, false never refetch, 'always' always refetch.
- */
-export type _RefetchOnControl = boolean | 'always'
-
-/**
- * Key used to identify a query.
- */
-export type UseQueryKey = EntryNodeKey | _ObjectFlat
-// TODO: if it's worth allowing more complex keys, we could expose an extendable interface  TypesConfig where this is set.
-
-export interface UseQueryOptions<TResult = unknown> {
-  /**
-   * The key used to identify the query. It should either be an array of primitives without reactive values or a reactive array.
-   */
-  key: MaybeRefOrGetter<_MaybeArray<UseQueryKey>>
-
-  /**
-   * The function that will be called to fetch the data. It **must** be async.
-   */
-  query: () => Promise<TResult>
-
-  /**
-   * Time in ms after which the data is considered stale and will be refreshed on next read
-   */
-  staleTime?: number
-
-  /**
-   * Time in ms after which, once the data is no longer being used, it will be garbage collected to free resources.
-   */
-  gcTime?: number
-
-  initialData?: () => TResult
-  // TODO: rename to refresh since that's the default? and change 'always' to 'force'?
-  refetchOnMount?: _RefetchOnControl
-  refetchOnWindowFocus?: _RefetchOnControl
-  refetchOnReconnect?: _RefetchOnControl
-}
-
-/**
- * Default options for `useQuery()`. Modifying this object will affect all the queries that don't override these
- */
-export const USE_QUERY_DEFAULTS = {
-  staleTime: 1000 * 5, // 5 seconds
-  gcTime: 1000 * 60 * 5, // 5 minutes
-  // avoid type narrowing to `true`
-  refetchOnWindowFocus: true as _RefetchOnControl,
-  refetchOnReconnect: true as _RefetchOnControl,
-  refetchOnMount: true as _RefetchOnControl,
-} satisfies Partial<UseQueryOptions>
-// TODO: inject for the app rather than a global variable
-
-export type UseQueryOptionsWithDefaults<TResult = unknown> =
-  typeof USE_QUERY_DEFAULTS & UseQueryOptions<TResult>
-
 export function useQuery<TResult, TError = Error>(
   _options: UseQueryOptions<TResult>
 ): UseQueryReturn<TResult, TError> {
   const store = useDataFetchingStore()
+  const USE_QUERY_DEFAULTS = useQueryOptions()
 
   const options = {
     ...USE_QUERY_DEFAULTS,
@@ -129,8 +78,8 @@ export function useQuery<TResult, TError = Error>(
     store.ensureEntry<TResult, TError>(toArray(toValue(options.key)), options)
   )
 
-  const refresh = () => entry.value.refresh()
-  const refetch = () => entry.value.refetch()
+  const refresh = () => store.query(entry.value, 'refresh')
+  const refetch = () => store.query(entry.value, 'refetch')
 
   const queryReturn = {
     data: computed(() => entry.value.data.value),
@@ -171,7 +120,7 @@ export function useQuery<TResult, TError = Error>(
 
   watch(entry, (entry, _, onCleanup) => {
     if (!isActive) return
-    entry.refresh()
+    refresh()
     onCleanup(() => {
       // TODO: decrement ref count
     })
@@ -220,6 +169,11 @@ export function useQuery<TResult, TError = Error>(
       })
     }
   }
+
+  options.setup?.({
+    ...queryReturn,
+    options,
+  })
 
   return queryReturn
 }

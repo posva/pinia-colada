@@ -5,6 +5,7 @@ import { defineComponent } from 'vue'
 import { GlobalMountOptions } from 'node_modules/@vue/test-utils/dist/types'
 import { UseMutationOptions, useMutation } from './use-mutation'
 import { delay, runTimers } from '../test/utils'
+import { QueryPlugin } from './query-plugin'
 
 describe('useMutation', () => {
   beforeEach(() => {
@@ -39,7 +40,7 @@ describe('useMutation', () => {
       }),
       {
         global: {
-          plugins: [createPinia()],
+          plugins: [createPinia(), QueryPlugin],
           ...mountOptions,
         },
       }

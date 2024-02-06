@@ -34,7 +34,17 @@ export function useEventListener(
 
 export const IS_CLIENT = typeof window !== 'undefined'
 
+/**
+ * Type that represents a value that can be an array or a single value.
+ * @internal
+ */
 export type _MaybeArray<T> = T | T[]
+
+/**
+ * Flattens an object type for readability.
+ * @internal
+ */
+export type _Simplify<T> = { [K in keyof T]: T[K] }
 
 /**
  * Converts a value to an array if necessary.
@@ -61,3 +71,5 @@ export function stringifyFlatObject(obj: _ObjectFlat | _JSONPrimitive): string {
     ? JSON.stringify(obj, Object.keys(obj).sort())
     : String(obj)
 }
+
+export const noop = () => {}

@@ -7,7 +7,7 @@ import {
   afterEach,
   MockInstance,
 } from 'vitest'
-import { UseQueryOptions, useQuery } from './use-query'
+import { useQuery } from './use-query'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import {
@@ -21,6 +21,7 @@ import {
 import { GlobalMountOptions } from 'node_modules/@vue/test-utils/dist/types'
 import { delay, isSpy, runTimers } from '../test/utils'
 import {
+  QUERY_STORE_ID,
   UseQueryEntry,
   UseQueryStatus,
   createTreeMap,
@@ -28,6 +29,8 @@ import {
   useDataFetchingStore,
 } from './data-fetching-store'
 import { TreeMapNode, entryNodeSize } from './tree-map'
+import { UseQueryOptions } from './query-options'
+import { QueryPlugin } from './query-plugin'
 
 describe('useQuery', () => {
   beforeEach(() => {
@@ -63,8 +66,8 @@ describe('useQuery', () => {
       }),
       {
         global: {
-          plugins: [createPinia()],
           ...mountOptions,
+          plugins: [...(mountOptions?.plugins || [createPinia()]), QueryPlugin],
         },
       }
     )
@@ -137,7 +140,7 @@ describe('useQuery', () => {
           new UseQueryEntry(2, null, Date.now())
         )
       )
-      pinia.state.value.PiniaColada = { entryRegistry }
+      pinia.state.value[QUERY_STORE_ID] = { entryRegistry }
       const { wrapper, query } = mountSimple(
         { staleTime: 1000 },
         { plugins: [pinia] }
@@ -157,7 +160,7 @@ describe('useQuery', () => {
           new UseQueryEntry(2, null, Date.now())
         )
       )
-      pinia.state.value.PiniaColada = { entryRegistry }
+      pinia.state.value[QUERY_STORE_ID] = { entryRegistry }
       const { wrapper, query } = mountSimple(
         // 1s stale time
         { staleTime: 1000 },
@@ -331,8 +334,11 @@ describe('useQuery', () => {
         }),
         {
           global: {
-            plugins: [createPinia()],
             ...mountOptions,
+            plugins: [
+              ...(mountOptions?.plugins || [createPinia()]),
+              QueryPlugin,
+            ],
           },
         }
       )
@@ -344,7 +350,7 @@ describe('useQuery', () => {
 
     it('refreshes the data even with initial values after staleTime is elapsed', async () => {
       const pinia = createPinia()
-      pinia.state.value.PiniaColada = {
+      pinia.state.value[QUERY_STORE_ID] = {
         entryRegistry: shallowReactive(
           new TreeMapNode(['key'], new UseQueryEntry(60, null, Date.now()))
         ),
@@ -524,7 +530,7 @@ describe('useQuery', () => {
       const pinia = createPinia()
       const tree = createTreeMap()
       tree.set(['key'], new UseQueryEntry(2, null, Date.now()))
-      pinia.state.value.PiniaColada = {
+      pinia.state.value[QUERY_STORE_ID] = {
         entriesRaw: serialize(tree),
       }
       const { wrapper } = mountSimple({}, { plugins: [pinia] })
@@ -537,7 +543,7 @@ describe('useQuery', () => {
       const pinia = createPinia()
       const tree = createTreeMap()
       tree.set(['key'], new UseQueryEntry(2, null, Date.now()))
-      pinia.state.value.PiniaColada = {
+      pinia.state.value[QUERY_STORE_ID] = {
         entriesRaw: serialize(tree),
       }
       const { wrapper, query } = mountSimple(

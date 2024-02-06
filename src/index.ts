@@ -3,21 +3,22 @@ export {
   type UseMutationReturn,
   type UseMutationOptions,
 } from './use-mutation'
+export { useQuery, type UseQueryReturn } from './use-query'
 
 export {
   USE_QUERY_DEFAULTS,
-  useQuery,
   type UseQueryKey,
   type UseQueryOptions,
   type UseQueryOptionsWithDefaults,
-  type UseQueryReturn,
-} from './use-query'
+} from './query-options'
 
 export {
   useDataFetchingStore,
   type UseQueryStatus,
   serialize,
-  createTreeMap,
+  UseQueryEntry,
 } from './data-fetching-store'
+
+export { TreeMapNode, type EntryNodeKey } from './tree-map'
 
 // TODO: idea of plugin that persists the cached values

@@ -1,7 +1,7 @@
 import { computed, ref, type ComputedRef, shallowRef } from 'vue'
 import { UseQueryStatus, useDataFetchingStore } from './data-fetching-store'
-import { type UseQueryKey } from './use-query'
 import { type _MaybeArray, toArray } from './utils'
+import { UseQueryKey } from './query-options'
 
 type _MutationKeys<TParams extends readonly any[], TResult> =
   | _MaybeArray<UseQueryKey>[]

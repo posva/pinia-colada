@@ -1,4 +1,4 @@
-import { defineStore, getActivePinia } from 'pinia'
+import { StateTree, StoreGeneric, defineStore, getActivePinia } from 'pinia'
 import {
   type Ref,
   shallowReactive,
@@ -10,13 +10,16 @@ import {
   triggerRef,
   shallowRef,
 } from 'vue'
-import type {
-  UseQueryOptionsWithDefaults,
-  UseQueryKey,
-  UseQueryOptions,
-} from './use-query'
-import { type _MaybeArray, stringifyFlatObject, _JSONPrimitive } from './utils'
-import { EntryNodeKey, TreeMapNode } from './tree-map'
+import {
+  type _MaybeArray,
+  stringifyFlatObject,
+  type _JSONPrimitive,
+} from './utils'
+import { type EntryNodeKey, TreeMapNode } from './tree-map'
+import {
+  type UseQueryOptionsWithDefaults,
+  type UseQueryKey,
+} from './query-options'
 
 /**
  * The status of the request.
@@ -60,7 +63,6 @@ export class UseQueryEntry<TResult = unknown, TError = any> {
     refreshCall: Promise<void>
     when: number
   } = null
-  previous: null | UseQueryStateEntryRaw<TResult, TError> = null
   /**
    * Options used to create the query. They can be undefined during hydration but are needed for fetching. This is why `store.ensureEntry()` sets this property.
    */
@@ -119,30 +121,25 @@ export class UseQueryEntry<TResult = unknown, TError = any> {
 
     // we create an object and verify we are the most recent pending request
     // before doing anything
-    const pendingEntry = (this.pending = {
+    const pendingCall = (this.pending = {
       refreshCall: this.options!.query()
         .then((data) => {
-          if (pendingEntry === this.pending) {
+          if (pendingCall === this.pending) {
             this.error.value = null
             this.data.value = data
             this.status.value = 'success'
           }
         })
         .catch((error) => {
-          if (pendingEntry === this.pending) {
+          if (pendingCall === this.pending) {
             this.error.value = error
             this.status.value = 'error'
           }
         })
         .finally(() => {
-          if (pendingEntry === this.pending) {
+          if (pendingCall === this.pending) {
             this.pending = null
             this.when = Date.now()
-            this.previous = {
-              data: this.data.value,
-              error: this.error.value,
-              when: this.when,
-            }
           }
         }),
       when: Date.now(),
@@ -162,16 +159,25 @@ export class UseQueryEntry<TResult = unknown, TError = any> {
   }
 }
 
-export const useDataFetchingStore = defineStore('PiniaColada', () => {
+/**
+ * The id of the store used for queries.
+ * @internal
+ */
+export const QUERY_STORE_ID = '_pc_query'
+
+export const useDataFetchingStore = defineStore(QUERY_STORE_ID, () => {
   /**
    * Raw data of the entries. Only used to hydrate the store on the server. Not synced with the actual data.
    */
   const entriesRaw = shallowReactive(new TreeMapNode<UseQueryStateEntryRaw>())
-  const existingState = getActivePinia()!.state.value.PiniaColada
+  const existingState: StateTree | undefined =
+    getActivePinia()!.state.value[QUERY_STORE_ID]
   const _entriesRaw: UseQueryEntryNodeSerialized[] | undefined =
-    existingState.entriesRaw
+    existingState?.entriesRaw
   // free the memory
-  delete existingState.entriesRaw
+  if (existingState) {
+    delete existingState.entriesRaw
+  }
   const entryRegistry = shallowReactive(createTreeMap(_entriesRaw))
 
   // FIXME: start from here: replace properties entry with a QueryEntry that is created when needed and contains all the needed part, included functions
@@ -231,6 +237,19 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
     }
   }
 
+  async function query<TResult, TError>(
+    this: StoreGeneric,
+    entry: UseQueryEntry<TResult, TError>,
+    op: 'refresh' | 'refetch'
+  ) {
+    const res = await entry[op]()
+    this.$patch(() => {
+      entry.data.value = res
+    })
+    return res
+  }
+
+  // TODO: tests
   function setEntryData<TResult = unknown>(
     key: UseQueryKey[],
     data: TResult | ((data: Ref<TResult | undefined>) => void)
@@ -271,6 +290,7 @@ export const useDataFetchingStore = defineStore('PiniaColada', () => {
     entryRegistry,
 
     ensureEntry,
+    query,
     invalidateEntry,
     setEntryData,
   }
