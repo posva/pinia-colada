@@ -15,11 +15,11 @@ export {
 export { QueryPlugin, type QueryPluginOptions } from './query-plugin'
 
 export {
-  useDataFetchingStore,
+  useQueryCache,
   type UseQueryStatus,
   serialize,
   type UseQueryEntry,
-} from './data-fetching-store'
+} from './query-store'
 
 export { TreeMapNode, type EntryNodeKey } from './tree-map'
 

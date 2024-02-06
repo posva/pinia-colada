@@ -5,7 +5,7 @@ import {
   createQueryEntry,
   createTreeMap,
   serialize,
-} from './data-fetching-store'
+} from './query-store'
 
 describe('tree-map serialization', () => {
   it('basic serialization', () => {

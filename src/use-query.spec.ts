@@ -27,8 +27,8 @@ import {
   createQueryEntry,
   createTreeMap,
   serialize,
-  useDataFetchingStore,
-} from './data-fetching-store'
+  useQueryCache,
+} from './query-store'
 import { TreeMapNode, entryNodeSize } from './tree-map'
 import { UseQueryOptions } from './query-options'
 import { QueryPlugin } from './query-plugin'
@@ -434,7 +434,7 @@ describe('useQuery', () => {
       mountSimple({ key: ['todos'] }, { plugins: [pinia] })
       await runTimers()
 
-      const cacheClient = useDataFetchingStore()
+      const cacheClient = useQueryCache()
       expect(entryNodeSize(cacheClient.entryRegistry)).toBe(1)
 
       mountSimple({ key: ['todos', 2] }, { plugins: [pinia] })
@@ -449,7 +449,7 @@ describe('useQuery', () => {
       mountSimple({ key: ['todos', 2] }, { plugins: [pinia] })
       await runTimers()
 
-      const cacheClient = useDataFetchingStore()
+      const cacheClient = useQueryCache()
       expect(entryNodeSize(cacheClient.entryRegistry)).toBe(3)
     })
 
@@ -469,7 +469,7 @@ describe('useQuery', () => {
       )
       await runTimers()
 
-      const cacheClient = useDataFetchingStore()
+      const cacheClient = useQueryCache()
       expect(entryNodeSize(cacheClient.entryRegistry)).toBe(2)
     })
   })

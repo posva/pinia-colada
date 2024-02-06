@@ -18,7 +18,7 @@ import {
   getCurrentInstance,
   ComputedRef,
 } from 'vue'
-import { UseQueryStatus, useDataFetchingStore } from './data-fetching-store'
+import { UseQueryStatus, useQueryCache } from './query-store'
 import {
   UseQueryOptions,
   UseQueryOptionsWithDefaults,
@@ -66,7 +66,7 @@ export interface UseQueryReturn<TResult = unknown, TError = Error> {
 export function useQuery<TResult, TError = Error>(
   _options: UseQueryOptions<TResult>
 ): UseQueryReturn<TResult, TError> {
-  const store = useDataFetchingStore()
+  const store = useQueryCache()
   const USE_QUERY_DEFAULTS = useQueryOptions()
 
   const options = {

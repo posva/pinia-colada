@@ -5,7 +5,7 @@ import {
   UseQueryOptions,
   UseQueryOptionsWithDefaults,
 } from './query-options'
-import { UseQueryEntry, useDataFetchingStore } from './data-fetching-store'
+import { UseQueryEntry, useQueryCache } from './query-store'
 import { _Simplify, noop } from './utils'
 import type { UseQueryReturn } from './use-query'
 
@@ -52,7 +52,7 @@ export function QueryPlugin(
     )
   }
 
-  const store = useDataFetchingStore(pinia)
+  const store = useQueryCache(pinia)
   store.$onAction(({ name, after, onError: _onError }) => {
     // FIXME: refetch / refresh
     if (name === 'refetch' || name === 'refresh') {

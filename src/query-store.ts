@@ -105,7 +105,7 @@ export const queryEntry_toString = <TResult, TError>(
  */
 export const QUERY_STORE_ID = '_pc_query'
 
-export const useDataFetchingStore = defineStore(QUERY_STORE_ID, () => {
+export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
   const entryRegistry = shallowReactive(new TreeMapNode<UseQueryEntry>())
 
   // FIXME: start from here: replace properties entry with a QueryEntry that is created when needed and contains all the needed part, included functions

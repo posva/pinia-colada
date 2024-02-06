@@ -1,5 +1,5 @@
 import { computed, ref, type ComputedRef, shallowRef } from 'vue'
-import { UseQueryStatus, useDataFetchingStore } from './data-fetching-store'
+import { UseQueryStatus, useQueryCache } from './query-store'
 import { type _MaybeArray, toArray } from './utils'
 import { UseQueryKey } from './query-options'
 
@@ -71,7 +71,7 @@ export function useMutation<
 >(
   options: UseMutationOptions<TResult, TParams>
 ): UseMutationReturn<TResult, TParams, TError> {
-  const store = useDataFetchingStore()
+  const store = useQueryCache()
 
   const status = shallowRef<UseQueryStatus>('pending')
   const data = shallowRef<TResult>()
