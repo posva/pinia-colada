@@ -8,11 +8,13 @@ import {
   computed,
   triggerRef,
   shallowRef,
+  toValue,
 } from 'vue'
 import {
   type _MaybeArray,
   stringifyFlatObject,
   type _JSONPrimitive,
+  toArray,
 } from './utils'
 import { type EntryNodeKey, TreeMapNode } from './tree-map'
 import {
@@ -177,17 +179,18 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
         `"entry.refresh()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`
       )
     }
-    const { key, staleTime } = entry.options!
+    const { key: _key, staleTime } = entry.options!
+    const key = toArray(toValue(_key)).map(stringifyFlatObject)
 
     if (entry.error.value || isExpired(entry.when, staleTime)) {
-      console.log(
-        `⬇️ refresh "${String(key)}". expired ${entry.when} / ${staleTime}`
-      )
+      console.log(`⬇️ refresh "${key}". expired ${entry.when} / ${staleTime}`)
 
       if (entry.pending?.refreshCall) console.log('  -> skipped!')
 
       await (entry.pending?.refreshCall ?? refetch(entry))
     }
+
+    console.log(`${key}  ->`, entry.data.value, entry.error.value)
 
     return entry.data.value!
   }
@@ -204,7 +207,9 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
       )
     }
 
-    console.log('🔄 refetching', entry.options!.key)
+    const key = toArray(toValue(entry.options!.key)).map(stringifyFlatObject)
+
+    console.log('🔄 refetching', key)
     entry.status.value = 'loading'
 
     // we create an object and verify we are the most recent pending request
@@ -234,7 +239,10 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
       when: Date.now(),
     })
 
-    await entry.pending.refreshCall
+    await pendingCall.refreshCall
+
+    // console.log('🔄 refetched', key)
+    // console.log('  ->', entry.data.value, entry.error.value)
 
     return entry.data.value!
   }
