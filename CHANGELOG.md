@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### [0.4.1](https://github.com/posva/pinia-colada/compare/v0.4.0...v0.4.1) (2024-02-07)
 
+- logs
+
 ## [0.4.0](https://github.com/posva/pinia-colada/compare/v0.3.1...v0.4.0) (2024-02-06)
 
 ### ⚠ BREAKING CHANGES

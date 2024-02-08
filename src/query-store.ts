@@ -119,6 +119,11 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
     keyRaw: UseQueryKey[],
     options: UseQueryOptionsWithDefaults<TResult>
   ): UseQueryEntry<TResult, TError> {
+    if (process.env.NODE_ENV !== 'production' && keyRaw.length === 0) {
+      throw new Error(
+        `useQuery() was called with an empty array as the key. It must have at least one element.`
+      )
+    }
     const key = keyRaw.map(stringifyFlatObject)
     // ensure the state
     console.log('⚙️ Ensuring entry', key)

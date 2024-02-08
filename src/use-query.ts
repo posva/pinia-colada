@@ -12,6 +12,7 @@ import {
   onServerPrefetch,
   toValue,
   onScopeDispose,
+  getCurrentScope,
   ShallowRef,
   Ref,
   watch,
@@ -142,9 +143,11 @@ export function useQuery<TResult, TError = Error>(
   }
   // TODO: we could save the time it was fetched to avoid fetching again. This is useful to not refetch during SSR app but do refetch in SSG apps if the data is stale. Careful with timers and timezones
 
-  onScopeDispose(() => {
-    // TODO: add a reference count to the entry and garbage collect it if it's 0 after the given delay
-  })
+  if (getCurrentScope()) {
+    onScopeDispose(() => {
+      // TODO: add a reference count to the entry and garbage collect it if it's 0 after the given delay
+    })
+  }
 
   if (IS_CLIENT) {
     if (options.refetchOnWindowFocus) {
