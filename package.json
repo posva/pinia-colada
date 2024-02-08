@@ -1,7 +1,7 @@
 {
   "name": "@pinia/colada",
   "packageManager": "pnpm@8.14.1",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "type": "module",
   "description": "The smart data fetching layer for Pinia",
   "publishConfig": {
