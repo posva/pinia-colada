@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "pnpm run --stream '/^dev:/'",
+    "dev:client": "vite",
     "dev:db": "json-server --port 7777 db.json",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
