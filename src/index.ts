@@ -23,4 +23,6 @@ export {
 
 export { TreeMapNode, type EntryNodeKey } from './tree-map'
 
+export { delayLoadingRef } from './utils'
+
 // TODO: idea of plugin that persists the cached values

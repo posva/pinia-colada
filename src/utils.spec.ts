@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest'
-import { stringifyFlatObject } from './utils'
+import { ref } from 'vue'
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
+import { stringifyFlatObject, delayLoadingRef } from './utils'
 
 describe('utils', () => {
   describe('stringifyFlatObject', () => {
@@ -24,6 +25,63 @@ describe('utils', () => {
       expect(stringifyFlatObject({ b: [1, 2], a: [3, 4] })).toBe(
         '{"a":[3,4],"b":[1,2]}'
       )
+    })
+  })
+
+  describe('delayedLoadingRef', () => {
+    beforeEach(() => {
+      vi.useFakeTimers()
+    })
+    afterEach(() => {
+      vi.restoreAllMocks()
+    })
+
+    it('contains an initial value of false', () => {
+      const isLoading = ref(false)
+      const delayedRef = delayLoadingRef(isLoading, 100)
+      expect(delayedRef.value).toBe(false)
+    })
+
+    it('contains an initial value of true', () => {
+      const isLoading = ref(true)
+      const delayedRef = delayLoadingRef(isLoading, 100)
+      expect(delayedRef.value).toBe(true)
+    })
+
+    it('sets the value to true after a delay', async () => {
+      const isLoading = ref(false)
+      const delayedRef = delayLoadingRef(isLoading, 100)
+      expect(delayedRef.value).toBe(false)
+
+      isLoading.value = true
+      expect(delayedRef.value).toBe(false)
+      await vi.advanceTimersByTime(80)
+      expect(delayedRef.value).toBe(false)
+
+      await vi.advanceTimersByTime(101)
+      expect(delayedRef.value).toBe(true)
+    })
+
+    it('sets the value to false immediately', async () => {
+      const isLoading = ref(true)
+      const delayedRef = delayLoadingRef(isLoading, 100)
+
+      isLoading.value = false
+      expect(delayedRef.value).toBe(false)
+      await vi.advanceTimersByTime(101)
+      expect(delayedRef.value).toBe(false)
+    })
+
+    it('stops the timeout when the ref is set to false', async () => {
+      const isLoading = ref(false)
+      const delayedRef = delayLoadingRef(isLoading, 100)
+
+      isLoading.value = true
+      await vi.advanceTimersByTime(80)
+      isLoading.value = false
+      expect(delayedRef.value).toBe(false)
+      await vi.advanceTimersByTime(101)
+      expect(delayedRef.value).toBe(false)
     })
   })
 })
