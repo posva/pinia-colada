@@ -80,6 +80,7 @@ describe('utils', () => {
       await vi.advanceTimersByTime(80)
       isLoading.value = false
       expect(delayedRef.value).toBe(false)
+      // even after waiting the delay
       await vi.advanceTimersByTime(101)
       expect(delayedRef.value).toBe(false)
     })
