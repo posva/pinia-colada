@@ -1,10 +1,9 @@
 import { defineConfig } from 'vitepress'
 
-export const META_IMAGE = 'https://pinia.vuejs.org/social.png'
-export const META_URL = 'https://pinia.vuejs.org'
-export const META_TITLE = 'Pinia 🍍'
-export const META_DESCRIPTION =
-  'Intuitive, type safe, light and flexible Store for Vue'
+export const META_IMAGE = 'https://pinia-colada.esm.dev/social.png'
+export const META_URL = 'https://pinia-colada.esm.dev'
+export const META_TITLE = 'Pinia Colada 🍹'
+export const META_DESCRIPTION = 'The smart Data Fetching layer for Pinia'
 
 const rControl = /[\u0000-\u001f]/g
 const rSpecial = /[\s~`!@#$%^&*()\-_+=[\]{}|\\;:"'“”‘’<>,.?/]+/g
@@ -98,6 +97,9 @@ export default defineConfig({
 
     search: {
       provider: 'local',
+      options: {
+        detailedView: true,
+      },
     },
 
     // carbonAds: {
