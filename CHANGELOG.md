@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.5.0](https://github.com/posva/pinia-colada/compare/v0.4.3...v0.5.0) (2024-02-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* remove internal global defaults
+* force array of keys to avoid easy mistakes
+
+### Features
+
+* pass signal to query ([bf1666c](https://github.com/posva/pinia-colada/commit/bf1666c0d235085db7e10d19b690bfab04af813c))
+
+
+* force array of keys to avoid easy mistakes ([7d95da0](https://github.com/posva/pinia-colada/commit/7d95da0cd925836f830a80d3eaeae5ee11c9f8b7))
+* remove internal global defaults ([53ce0bc](https://github.com/posva/pinia-colada/commit/53ce0bcbfcf465d43b60fe6ca2be3b2b2b2c1ce4))
+
 ### [0.4.3](https://github.com/posva/pinia-colada/compare/v0.4.2...v0.4.3) (2024-02-11)
 
 ### Features
