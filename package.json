@@ -113,7 +113,7 @@
     "commit-msg": "node scripts/verifyCommit.js"
   },
   "lint-staged": {
-    "*.{js,mjs,json,cjs}": [
+    "*.{js,mjs,json,cjs,md}": [
       "prettier --write"
     ],
     "*.ts?(x)": [
