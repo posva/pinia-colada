@@ -435,12 +435,12 @@ describe('useQuery', () => {
       await runTimers()
 
       const cacheClient = useQueryCache()
-      expect(entryNodeSize(cacheClient.entryRegistry)).toBe(1)
+      expect(entryNodeSize(cacheClient.caches)).toBe(1)
 
       mountSimple({ key: ['todos', 2] }, { plugins: [pinia] })
       await runTimers()
 
-      expect(entryNodeSize(cacheClient.entryRegistry)).toBe(2)
+      expect(entryNodeSize(cacheClient.caches)).toBe(2)
     })
 
     it('populates the entry registry', async () => {
@@ -450,7 +450,7 @@ describe('useQuery', () => {
       await runTimers()
 
       const cacheClient = useQueryCache()
-      expect(entryNodeSize(cacheClient.entryRegistry)).toBe(3)
+      expect(entryNodeSize(cacheClient.caches)).toBe(3)
     })
 
     it('order in object keys does not matter', async () => {
@@ -470,7 +470,7 @@ describe('useQuery', () => {
       await runTimers()
 
       const cacheClient = useQueryCache()
-      expect(entryNodeSize(cacheClient.entryRegistry)).toBe(2)
+      expect(entryNodeSize(cacheClient.caches)).toBe(2)
     })
   })
 

@@ -108,9 +108,10 @@ export const queryEntry_toString = <TResult, TError>(
 export const QUERY_STORE_ID = '_pc_query'
 
 export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
-  const entryRegistry = shallowReactive(
-    new TreeMapNode<UseQueryEntry<unknown, unknown>>()
-  )
+  // We have two versions of the cache, one that track changes and another that doesn't so the actions can be used
+  // inside computed properties
+  const cachesRaw = new TreeMapNode<UseQueryEntry<unknown, unknown>>()
+  const caches = shallowReactive(cachesRaw)
 
   // this allows use to attach reactive effects to the scope later on
   const scope = getCurrentScope()!
@@ -127,11 +128,9 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
     const key = keyRaw.map(stringifyFlatObject)
     // ensure the state
     // console.log('⚙️ Ensuring entry', key)
-    let entry = entryRegistry.get(key) as
-      | UseQueryEntry<TResult, TError>
-      | undefined
+    let entry = cachesRaw.get(key) as UseQueryEntry<TResult, TError> | undefined
     if (!entry) {
-      entryRegistry.set(
+      cachesRaw.set(
         key,
         (entry = scope.run(() => createQueryEntry(options.initialData?.()))!)
       )
@@ -160,7 +159,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
       exact?: boolean
     } = {}
   ) {
-    const entryNode = entryRegistry.find(key.map(stringifyFlatObject))
+    const entryNode = cachesRaw.find(key.map(stringifyFlatObject))
 
     // nothing to invalidate
     if (!entryNode) {
@@ -273,7 +272,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
     key: UseQueryKey,
     data: TResult | ((data: Ref<TResult | undefined>) => void)
   ) {
-    const entry = entryRegistry.get(key.map(stringifyFlatObject)) as
+    const entry = cachesRaw.get(key.map(stringifyFlatObject)) as
       | UseQueryEntry<TResult>
       | undefined
     // TODO: Should it create the entry?
@@ -295,7 +294,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
   function getQueryData<TResult = unknown>(
     key: UseQueryKey
   ): TResult | undefined {
-    const entry = entryRegistry.get(key.map(stringifyFlatObject)) as
+    const entry = caches.get(key.map(stringifyFlatObject)) as
       | UseQueryEntry<TResult>
       | undefined
     return entry?.data.value
@@ -303,7 +302,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
 
   // TODO: find a way to make it possible to prefetch. Right now we need the actual options of the query
   function prefetch(key: UseQueryKey) {
-    const entry = entryRegistry.get(key.map(stringifyFlatObject))
+    const entry = cachesRaw.get(key.map(stringifyFlatObject))
     if (!entry) {
       if (process.env.NODE_ENV !== 'production') {
         console.warn(
@@ -316,7 +315,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
   }
 
   return {
-    entryRegistry,
+    caches,
 
     ensureEntry,
     invalidateEntry,
