@@ -8,8 +8,6 @@ export { useQuery, type UseQueryReturn } from './use-query'
 // export { type UseQueryKeyList } from './query-keys'
 
 export {
-  // FIXME: remove
-  USE_QUERY_DEFAULTS,
   // TODO: figure out if worth
   // queryOptions,
   // type InferUseQueryKeyData,
