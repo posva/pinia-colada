@@ -1,0 +1,56 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`tree-map serialization > basic serialization 1`] = `
+[
+  [
+    "a",
+    [
+      "a",
+      null,
+      0,
+    ],
+    [
+      [
+        "b",
+        [
+          "ab",
+          null,
+          0,
+        ],
+        [
+          [
+            "c",
+            [
+              "abc",
+              null,
+              0,
+            ],
+            undefined,
+          ],
+        ],
+      ],
+    ],
+  ],
+  [
+    "d",
+    undefined,
+    [
+      [
+        "e",
+        undefined,
+        [
+          [
+            "f",
+            [
+              "def",
+              null,
+              0,
+            ],
+            undefined,
+          ],
+        ],
+      ],
+    ],
+  ],
+]
+`;

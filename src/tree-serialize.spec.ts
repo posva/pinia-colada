@@ -14,12 +14,13 @@ describe('tree-map serialization', () => {
     tree.set(['a', 'b'], createQueryEntry('ab'))
     tree.set(['a', 'b', 'c'], createQueryEntry('abc'))
     tree.set(['d', 'e', 'f'], createQueryEntry('def'))
-    logTree(tree)
+    expect(serialize(tree)).toMatchSnapshot()
     expect(serialize(tree)).toEqual(serialize(createTreeMap(serialize(tree))))
   })
 
   it('works with empty', () => {
     const tree = new TreeMapNode<UseQueryEntry>()
+    expect(serialize(tree)).toEqual([])
     expect(serialize(tree)).toEqual(serialize(createTreeMap()))
     expect(serialize(tree)).toEqual(serialize(createTreeMap([])))
   })
