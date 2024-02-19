@@ -14,7 +14,6 @@ import {
   type _MaybeArray,
   stringifyFlatObject,
   type _JSONPrimitive,
-  toArray,
 } from './utils'
 import { type EntryNodeKey, TreeMapNode } from './tree-map'
 import {
@@ -200,7 +199,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
       )
     }
     const { key: _key, staleTime } = entry.options!
-    const key = toArray(toValue(_key)).map(stringifyFlatObject)
+    const key = toValue(_key).map(stringifyFlatObject)
 
     if (entry.error.value || isExpired(entry.when, staleTime)) {
       // console.log(`⬇️ refresh "${key}". expired ${entry.when} / ${staleTime}`)
@@ -227,7 +226,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
       )
     }
 
-    const key = toArray(toValue(entry.options!.key)).map(stringifyFlatObject)
+    const key = toValue(entry.options!.key).map(stringifyFlatObject)
 
     // console.log('🔄 refetching', key)
     entry.status.value = 'loading'

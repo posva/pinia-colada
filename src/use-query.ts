@@ -3,7 +3,6 @@ import {
   _JSONPrimitive,
   _MaybeArray,
   _ObjectFlat,
-  toArray,
   useEventListener,
 } from './utils'
 import {
@@ -77,7 +76,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
   } satisfies UseQueryOptionsWithDefaults<TResult>
 
   const entry = computed(() =>
-    store.ensureEntry<TResult, TError>(toArray(toValue(options.key)), options)
+    store.ensureEntry<TResult, TError>(toValue(options.key), options)
   )
 
   const refresh = () => store.refresh(entry.value)

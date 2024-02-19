@@ -1,6 +1,6 @@
 import { computed, ref, type ComputedRef, shallowRef } from 'vue'
 import { UseQueryStatus, useQueryCache } from './query-store'
-import { type _MaybeArray, toArray } from './utils'
+import { type _MaybeArray } from './utils'
 import { UseQueryKey } from './query-options'
 import { ErrorDefault } from './types-extension'
 
