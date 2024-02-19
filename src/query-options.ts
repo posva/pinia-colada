@@ -8,10 +8,54 @@ import type { QueryPluginOptions } from './query-plugin'
  */
 export type _RefetchOnControl = boolean | 'always'
 
+const DATA_TYPE_SYMBOL = Symbol('dataType')
+
 /**
  * Key used to identify a query.
  */
 export type UseQueryKey = Array<EntryNodeKey | _ObjectFlat>
+
+/**
+ * Key used to identify a query with a specific data type.
+ * @internal
+ */
+export type _UseQueryKeyWithDataType<T> = UseQueryKey & {
+  /**
+   * Attach a data type to a key to infer the type of the data solely from the key.
+   * @see {@link InferUseQueryKeyData}
+   *
+   * @internal
+   */
+  [DATA_TYPE_SYMBOL]: T
+}
+
+// export type UseQueryKey<T = unknown> = Array<EntryNodeKey | _ObjectFlat> & {
+//   /**
+//    * Attach a data type to a key to infer the type of the data solely from the key.
+//    * @see {@link InferUseQueryKeyData}
+//    *
+//    * @internal
+//    */
+//   [DATA_TYPE_SYMBOL]?: T
+// }
+
+/**
+ * Infer the data type from a `UseQueryKey` if possible. Falls back to `unknown`.
+ */
+export type InferUseQueryKeyData<Key> =
+  Key extends Record<typeof DATA_TYPE_SYMBOL, infer T> ? T : unknown
+
+/**
+ * Context object passed to the `query` function of `useQuery()`.
+ * @see {@link UseQueryOptions}
+ */
+export interface UseQueryFnContext {
+  /**
+   * `AbortSignal` instance attached to the query call. If the call becomes outdated (e.g. due to a new call with the
+   * same key), the signal will be aborted.
+   */
+  signal: AbortSignal
+}
 
 /**
  * Options for `useQuery()`. Can be extended by plugins.
@@ -30,7 +74,19 @@ export type UseQueryKey = Array<EntryNodeKey | _ObjectFlat>
  */
 export interface UseQueryOptions<TResult = unknown> {
   /**
-   * The key used to identify the query. It should either be an array of primitives without reactive values or a reactive array.
+   * The key used to identify the query. It should either be an array of primitives without reactive values or a reactive array. It should be treaded as an array of dependencies of your queries, e.g. if you use the `route.params.id` property, it should also be part of the key:
+   *
+   * ```ts
+   * import { useRoute } from 'vue-router'
+   * import { useQuery } from '@pinia/colada'
+   *
+   * const route = useRoute()
+   * const { data } = useQuery({
+   *   // pass a getter function (or computed, ref, etc.) to ensure reactivity
+   *   key: () => ['user', route.params.id],
+   *   query: () => fetchUser(route.params.id),
+   * })
+   * ```
    */
   key: MaybeRefOrGetter<UseQueryKey>
 
@@ -58,6 +114,14 @@ export interface UseQueryOptions<TResult = unknown> {
   refetchOnReconnect?: _RefetchOnControl
 }
 
+export const queryOptions = <Options extends UseQueryOptions>(
+  options: Options
+): Options & {
+  key: Options['key'] & {
+    [DATA_TYPE_SYMBOL]: Options extends UseQueryOptions<infer T> ? T : unknown
+  }
+} => options as any
+
 /**
  * Default options for `useQuery()`. Modifying this object will affect all the queries that don't override these
  */
@@ -81,7 +145,7 @@ export const USE_QUERY_OPTIONS_KEY: InjectionKey<
 > = process.env.NODE_ENV !== 'production' ? Symbol('useQueryOptions') : Symbol()
 
 /**
- * Injects the query options.
+ * Injects the global query options.
  * @internal
  */
 export const useQueryOptions = () => inject(USE_QUERY_OPTIONS_KEY)!

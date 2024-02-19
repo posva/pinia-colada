@@ -20,7 +20,6 @@ import { type EntryNodeKey, TreeMapNode } from './tree-map'
 import {
   type UseQueryOptionsWithDefaults,
   type UseQueryKey,
-  _UseQueryKeyWithDataType,
 } from './query-options'
 
 /**
@@ -168,8 +167,12 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
       return
     }
 
-    // TODO: exact
-    for (const entry of entryNode) {
+    const list = exact
+      ? entryNode.value != null
+        ? [entryNode.value]
+        : []
+      : [...entryNode]
+    for (const entry of list) {
       // will force a fetch next time
       entry.when = 0
 
@@ -266,13 +269,14 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
   }
 
   // TODO: tests, remove function version
-  function setEntryData<TResult = unknown>(
+  function setQueryData<TResult = unknown>(
     key: UseQueryKey,
     data: TResult | ((data: Ref<TResult | undefined>) => void)
   ) {
     const entry = entryRegistry.get(key.map(stringifyFlatObject)) as
       | UseQueryEntry<TResult>
       | undefined
+    // TODO: Should it create the entry?
     if (!entry) {
       return
     }
@@ -286,6 +290,15 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
     }
     // TODO: complete and test
     entry.error.value = null
+  }
+
+  function getQueryData<TResult = unknown>(
+    key: UseQueryKey
+  ): TResult | undefined {
+    const entry = entryRegistry.get(key.map(stringifyFlatObject)) as
+      | UseQueryEntry<TResult>
+      | undefined
+    return entry?.data.value
   }
 
   // TODO: find a way to make it possible to prefetch. Right now we need the actual options of the query
@@ -305,7 +318,8 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
 
     ensureEntry,
     invalidateEntry,
-    setEntryData,
+    setQueryData,
+    getQueryData,
 
     refetch,
     refresh,
