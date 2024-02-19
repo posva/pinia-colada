@@ -8,11 +8,11 @@ const route = useRoute('/contacts/[id]')
 
 const { data: contact } = useQuery({
   key: () => ['contacts', route.params.id],
-  query: () => getContactById(route.params.id),
+  query: ({ signal }) => getContactById(route.params.id, { signal }),
 })
 
 const { mutate: updateContact } = useMutation({
-  keys: ({ id }) => [['contacts', id]],
+  keys: ({ id }) => [['contacts-search'], ['contacts', id]],
   mutation: _updateContact,
 })
 </script>

@@ -65,6 +65,9 @@ importers:
 
   playground:
     dependencies:
+      '@pinia/colada':
+        specifier: workspace:*
+        version: link:..
       '@vueuse/core':
         specifier: ^10.7.2
         version: 10.7.2(vue@3.4.15)

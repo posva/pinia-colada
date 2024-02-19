@@ -7,8 +7,8 @@ import { useQuery } from '@pinia/colada'
 const searchText = useRouteQuery('search', '', { mode: 'push' })
 
 const { data: searchResult, status } = useQuery({
-  key: () => ['contacts', { searchText: searchText.value }],
-  query: () => searchContacts(searchText.value),
+  key: () => ['contacts-search', { searchText: searchText.value }],
+  query: ({ signal }) => searchContacts(searchText.value, {}, { signal }),
 })
 
 // TODO: tip in tests if they are reading data, error or other as they are computed properties, on the server they won't

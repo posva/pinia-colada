@@ -16,6 +16,7 @@
     "@vueuse/core": "^10.7.2",
     "@vueuse/integrations": "^10.7.2",
     "@vueuse/router": "^10.7.2",
+    "@pinia/colada": "workspace:*",
     "fuse.js": "^7.0.0",
     "mande": "^2.0.8",
     "pinia": "^2.1.7",

@@ -1,4 +1,4 @@
-import { mande } from 'mande'
+import { mande, type Options } from 'mande'
 
 export const contacts = mande('http://localhost:7777/contacts', {})
 
@@ -21,9 +21,9 @@ export interface Contact extends ContactInfo, _UpdateInfo {}
 /**
  * Retrieve all the contact list.
  */
-export async function getAllContacts() {
+export async function getAllContacts(options?: Options<'json'>) {
   // await new Promise(resolve => setTimeout(resolve, 2000))
-  return contacts.get<Contact[]>('/')
+  return contacts.get<Contact[]>('/', options)
 }
 
 /**
@@ -31,8 +31,8 @@ export async function getAllContacts() {
  *
  * @param id id of the contact
  */
-export function getContactById(id: string | number) {
-  return contacts.get<Contact>(id)
+export function getContactById(id: string | number, options?: Options<'json'>) {
+  return contacts.get<Contact>(id, options)
 }
 
 /**
@@ -41,13 +41,20 @@ export function getContactById(id: string | number) {
  * @param contact - The contact to create
  * @returns the created contact
  */
-export function createContact(contact: Omit<ContactInfo, 'photoURL'>) {
-  return contacts.post<Contact>('/', {
-    photoURL: `https://i.pravatar.cc/150?u=${contact.firstName}${contact.lastName}`,
-    ...contact,
-    registeredAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  })
+export function createContact(
+  contact: Omit<ContactInfo, 'photoURL'>,
+  options?: Options<'json'>
+) {
+  return contacts.post<Contact>(
+    '/',
+    {
+      photoURL: `https://i.pravatar.cc/150?u=${contact.firstName}${contact.lastName}`,
+      ...contact,
+      registeredAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    options
+  )
 }
 
 /**
@@ -56,8 +63,11 @@ export function createContact(contact: Omit<ContactInfo, 'photoURL'>) {
  * @param contact - The contact to update
  * @returns the updated contact
  */
-export function updateContact(contact: Partial<ContactInfo> & { id: number }) {
-  return contacts.patch<Contact>(`/${contact.id}`, contact)
+export function updateContact(
+  contact: Partial<ContactInfo> & { id: number },
+  options?: Options<'json'>
+) {
+  return contacts.patch<Contact>(`/${contact.id}`, contact, options)
 }
 
 /**
@@ -68,13 +78,15 @@ export function updateContact(contact: Partial<ContactInfo> & { id: number }) {
  */
 export function searchContacts(
   searchText: string,
-  page?: number,
   {
+    page,
     perPage,
     ...filterInfo
   }: {
+    page?: number
     perPage?: number | string
-  } & Partial<Contact> = {}
+  } & Partial<Contact> = {},
+  options?: Options<'response'>
 ): Promise<{ total: number; results: Contact[] }> {
   const query: Record<string, string | null | undefined | number | boolean> =
     filterInfo as Record<string, string | boolean | number | null>
@@ -83,7 +95,7 @@ export function searchContacts(
   if (perPage) query._limit = perPage
 
   return contacts
-    .get('/', { query, responseAs: 'response' })
+    .get('/', { query, responseAs: 'response', ...options })
     .then(async (res) => ({
       total: Number(res.headers.get('x-total-count')) || 0,
       results: (await res.json()) as Contact[],
