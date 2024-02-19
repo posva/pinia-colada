@@ -18,12 +18,12 @@ it('infers the data type', () => {
   )
 })
 
-it('uses Error by default for the error type', () => {
-  expectTypeOf<Ref<Error | null>>(
-    useQuery({
+it('can customize the error type with a type param', () => {
+  expectTypeOf<TypeError | null>(
+    useQuery<number, TypeError>({
       query: async () => 42,
       key: ['foo'],
-    }).error
+    }).error.value
   )
 })
 
@@ -79,3 +79,18 @@ it('can use objects in keys', () => {
     key: ['todos', { id: 1, a: true, b: 'hello' }, 5],
   })
 })
+
+it('can uses the global error type', () => {
+  expectTypeOf<{ custom: Error } | null>(
+    useQuery({
+      query: async () => 42,
+      key: ['foo'],
+    }).error.value
+  )
+})
+
+declare module './types-extension' {
+  interface TypesConfig {
+    Error: { custom: Error }
+  }
+}

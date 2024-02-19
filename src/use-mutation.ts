@@ -2,6 +2,7 @@ import { computed, ref, type ComputedRef, shallowRef } from 'vue'
 import { UseQueryStatus, useQueryCache } from './query-store'
 import { type _MaybeArray, toArray } from './utils'
 import { UseQueryKey } from './query-options'
+import { ErrorDefault } from './types-extension'
 
 type _MutationKeys<TParams extends readonly any[], TResult> =
   | UseQueryKey[]
@@ -30,7 +31,7 @@ export interface UseMutationOptions<
 export interface UseMutationReturn<
   TResult = unknown,
   TParams extends readonly unknown[] = readonly [],
-  TError = Error,
+  TError = ErrorDefault,
 > {
   /**
    * The result of the mutation. `undefined` if the mutation has not been called yet.
@@ -69,7 +70,7 @@ export interface UseMutationReturn<
 export function useMutation<
   TResult,
   TParams extends readonly unknown[] = readonly [],
-  TError = Error,
+  TError = ErrorDefault,
 >(
   options: UseMutationOptions<TResult, TParams>
 ): UseMutationReturn<TResult, TParams, TError> {

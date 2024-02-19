@@ -8,6 +8,7 @@ import {
 import { UseQueryEntry, useQueryCache } from './query-store'
 import { _Simplify, noop } from './utils'
 import type { UseQueryReturn } from './use-query'
+import { type ErrorDefault } from './types-extension'
 
 export interface QueryPluginOptions
   extends Omit<UseQueryOptions, 'key' | 'query' | 'initialData'> {
@@ -16,7 +17,7 @@ export interface QueryPluginOptions
    *
    * @param context - properties of the `useQuery` return value and the options
    */
-  setup?: <TResult = unknown, TError = unknown>(
+  setup?: <TResult = unknown, TError = ErrorDefault>(
     context: _Simplify<
       UseQueryReturn<TResult, TError> & {
         options: UseQueryOptionsWithDefaults<TResult>

@@ -25,11 +25,12 @@ import {
   UseQueryOptionsWithDefaults,
   useQueryOptions,
 } from './query-options'
+import { ErrorDefault } from './types-extension'
 
 /**
  * Return type of `useQuery()`.
  */
-export interface UseQueryReturn<TResult = unknown, TError = Error> {
+export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault> {
   // TODO: is it worth to be a shallowRef?
   data: Ref<TResult | undefined>
 
@@ -64,7 +65,7 @@ export interface UseQueryReturn<TResult = unknown, TError = Error> {
   refetch: () => Promise<TResult>
 }
 
-export function useQuery<TResult, TError = Error>(
+export function useQuery<TResult, TError = ErrorDefault>(
   _options: UseQueryOptions<TResult>
 ): UseQueryReturn<TResult, TError> {
   const store = useQueryCache()

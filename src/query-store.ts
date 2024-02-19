@@ -21,6 +21,7 @@ import {
   type UseQueryOptionsWithDefaults,
   type UseQueryKey,
 } from './query-options'
+import { ErrorDefault } from './types-extension'
 
 /**
  * The status of the request.
@@ -31,7 +32,7 @@ import {
  */
 export type UseQueryStatus = 'pending' | 'loading' | 'error' | 'success'
 
-export interface UseQueryEntry<TResult = unknown, TError = any> {
+export interface UseQueryEntry<TResult = unknown, TError = unknown> {
   /**
    * The last successful data resolved by the query.
    */
@@ -69,7 +70,7 @@ export interface UseQueryEntry<TResult = unknown, TError = any> {
  * @param error - initial error to set
  * @param when - when the data was fetched the last time. defaults to 0, meaning it's stale
  */
-export function createQueryEntry<TResult = unknown, TError = unknown>(
+export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
   initialData?: TResult,
   error: TError | null = null,
   when: number = 0 // stale by default
@@ -108,14 +109,14 @@ export const queryEntry_toString = <TResult, TError>(
 export const QUERY_STORE_ID = '_pc_query'
 
 export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
-  const entryRegistry = shallowReactive(new TreeMapNode<UseQueryEntry>())
-
-  // FIXME: start from here: replace properties entry with a QueryEntry that is created when needed and contains all the needed part, included functions
+  const entryRegistry = shallowReactive(
+    new TreeMapNode<UseQueryEntry<unknown, unknown>>()
+  )
 
   // this allows use to attach reactive effects to the scope later on
   const scope = getCurrentScope()!
 
-  function ensureEntry<TResult = unknown, TError = Error>(
+  function ensureEntry<TResult = unknown, TError = ErrorDefault>(
     keyRaw: UseQueryKey,
     options: UseQueryOptionsWithDefaults<TResult>
   ): UseQueryEntry<TResult, TError> {
