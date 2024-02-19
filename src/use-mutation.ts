@@ -99,11 +99,7 @@ export function useMutation<
                 : options.keys
             for (const key of keys) {
               // TODO: find a way to pass a source of the invalidation, could be a symbol associated with the mutation, the parameters
-              store.invalidateEntry(key, {
-                // default
-                // refetch: true,
-                exact: true,
-              })
+              store.invalidateEntry(key)
             }
           }
         }

@@ -20,6 +20,7 @@ import { type EntryNodeKey, TreeMapNode } from './tree-map'
 import {
   type UseQueryOptionsWithDefaults,
   type UseQueryKey,
+  _UseQueryKeyWithDataType,
 } from './query-options'
 
 /**
@@ -229,11 +230,13 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
 
     // we create an object and verify we are the most recent pending request
     // before doing anything
+    const signalController = new AbortController()
+    const { signal } = signalController
     const pendingCall = (entry.pending = {
       refreshCall: entry
-        .options!.query()
+        .options!.query({ signal })
         .then((data) => {
-          if (pendingCall === entry.pending) {
+          if (pendingCall === entry.pending && !signal.aborted) {
             entry.error.value = null
             entry.data.value = data
             entry.status.value = 'success'
