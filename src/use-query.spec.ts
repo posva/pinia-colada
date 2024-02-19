@@ -310,7 +310,7 @@ describe('useQuery', () => {
     it('refreshes the data even with initial values after staleTime is elapsed', async () => {
       const pinia = createPinia()
       pinia.state.value[QUERY_STORE_ID] = {
-        entryRegistry: shallowReactive(
+        caches: shallowReactive(
           new TreeMapNode(['key'], createQueryEntry(60, null, Date.now()))
         ),
       }
@@ -486,13 +486,13 @@ describe('useQuery', () => {
     it('uses initial data if present in store', async () => {
       const pinia = createPinia()
 
-      const entryRegistry = shallowReactive(
+      const caches = shallowReactive(
         new TreeMapNode<UseQueryEntry>(
           ['key'],
           createQueryEntry(2, null, Date.now())
         )
       )
-      pinia.state.value[QUERY_STORE_ID] = { entryRegistry }
+      pinia.state.value[QUERY_STORE_ID] = { caches }
       const { wrapper, query } = mountSimple(
         { staleTime: 1000 },
         { plugins: [pinia] }
@@ -505,14 +505,14 @@ describe('useQuery', () => {
     it('avoids fetching if initial data is fresh', async () => {
       const pinia = createPinia()
 
-      const entryRegistry = shallowReactive(
+      const caches = shallowReactive(
         new TreeMapNode<UseQueryEntry>(
           ['key'],
           // fresh data
           createQueryEntry(2, null, Date.now())
         )
       )
-      pinia.state.value[QUERY_STORE_ID] = { entryRegistry }
+      pinia.state.value[QUERY_STORE_ID] = { caches }
       const { wrapper, query } = mountSimple(
         // 1s stale time
         { staleTime: 1000 },
