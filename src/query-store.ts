@@ -126,7 +126,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
     }
     const key = keyRaw.map(stringifyFlatObject)
     // ensure the state
-    console.log('⚙️ Ensuring entry', key)
+    // console.log('⚙️ Ensuring entry', key)
     let entry = entryRegistry.get(key) as
       | UseQueryEntry<TResult, TError>
       | undefined
@@ -202,14 +202,14 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
     const key = toArray(toValue(_key)).map(stringifyFlatObject)
 
     if (entry.error.value || isExpired(entry.when, staleTime)) {
-      console.log(`⬇️ refresh "${key}". expired ${entry.when} / ${staleTime}`)
+      // console.log(`⬇️ refresh "${key}". expired ${entry.when} / ${staleTime}`)
 
-      if (entry.pending?.refreshCall) console.log('  -> skipped!')
+      // if (entry.pending?.refreshCall) console.log('  -> skipped!')
 
       await (entry.pending?.refreshCall ?? refetch(entry))
     }
 
-    console.log(`${key}  ->`, entry.data.value, entry.error.value)
+    // console.log(`${key}  ->`, entry.data.value, entry.error.value)
 
     return entry.data.value!
   }
@@ -228,7 +228,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
 
     const key = toArray(toValue(entry.options!.key)).map(stringifyFlatObject)
 
-    console.log('🔄 refetching', key)
+    // console.log('🔄 refetching', key)
     entry.status.value = 'loading'
 
     // we create an object and verify we are the most recent pending request
@@ -305,9 +305,11 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
   function prefetch(key: UseQueryKey) {
     const entry = entryRegistry.get(key.map(stringifyFlatObject))
     if (!entry) {
-      console.warn(
-        `⚠️ trying to prefetch "${String(key)}" but it's not in the registry`
-      )
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn(
+          `⚠️ trying to prefetch "${String(key)}" but it's not in the registry`
+        )
+      }
       return
     }
     return refetch(entry)
