@@ -116,7 +116,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
   const scope = getCurrentScope()!
 
   function ensureEntry<TResult = unknown, TError = Error>(
-    keyRaw: UseQueryKey[],
+    keyRaw: UseQueryKey,
     options: UseQueryOptionsWithDefaults<TResult>
   ): UseQueryEntry<TResult, TError> {
     if (process.env.NODE_ENV !== 'production' && keyRaw.length === 0) {
@@ -150,7 +150,16 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
    * @param key - the key of the query to invalidate
    * @param shouldRefetch - whether to force a refresh of the data
    */
-  function invalidateEntry(key: UseQueryKey[], shouldRefetch = false) {
+  function invalidateEntry(
+    key: UseQueryKey,
+    {
+      refetch: shouldRefetch = true,
+      exact = false,
+    }: {
+      refetch?: boolean
+      exact?: boolean
+    } = {}
+  ) {
     const entryNode = entryRegistry.find(key.map(stringifyFlatObject))
 
     // nothing to invalidate
@@ -158,6 +167,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
       return
     }
 
+    // TODO: exact
     for (const entry of entryNode) {
       // will force a fetch next time
       entry.when = 0
@@ -254,7 +264,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
 
   // TODO: tests, remove function version
   function setEntryData<TResult = unknown>(
-    key: UseQueryKey[],
+    key: UseQueryKey,
     data: TResult | ((data: Ref<TResult | undefined>) => void)
   ) {
     const entry = entryRegistry.get(key.map(stringifyFlatObject)) as
@@ -276,7 +286,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
   }
 
   // TODO: find a way to make it possible to prefetch. Right now we need the actual options of the query
-  function prefetch(key: UseQueryKey[]) {
+  function prefetch(key: UseQueryKey) {
     const entry = entryRegistry.get(key.map(stringifyFlatObject))
     if (!entry) {
       console.warn(

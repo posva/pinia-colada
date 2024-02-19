@@ -12,7 +12,7 @@ const { data: contact } = useQuery({
 })
 
 const { mutate: updateContact } = useMutation({
-  keys: ({ id }) => ['contacts', id],
+  keys: ({ id }) => [['contacts', id]],
   mutation: _updateContact,
 })
 </script>

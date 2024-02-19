@@ -1,6 +1,6 @@
 import { type InjectionKey, type MaybeRefOrGetter, inject } from 'vue'
 import type { EntryNodeKey } from './tree-map'
-import type { _MaybeArray, _ObjectFlat } from './utils'
+import type { _ObjectFlat } from './utils'
 import type { QueryPluginOptions } from './query-plugin'
 
 /**
@@ -11,8 +11,7 @@ export type _RefetchOnControl = boolean | 'always'
 /**
  * Key used to identify a query.
  */
-export type UseQueryKey = EntryNodeKey | _ObjectFlat
-// TODO: if it's worth allowing more complex keys, we could expose an extendable interface  TypesConfig where this is set.
+export type UseQueryKey = Array<EntryNodeKey | _ObjectFlat>
 
 /**
  * Options for `useQuery()`. Can be extended by plugins.
@@ -33,7 +32,7 @@ export interface UseQueryOptions<TResult = unknown> {
   /**
    * The key used to identify the query. It should either be an array of primitives without reactive values or a reactive array.
    */
-  key: MaybeRefOrGetter<_MaybeArray<UseQueryKey>>
+  key: MaybeRefOrGetter<UseQueryKey>
 
   /**
    * The function that will be called to fetch the data. It **must** be async.

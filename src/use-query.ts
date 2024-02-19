@@ -114,6 +114,7 @@ export function useQuery<TResult, TError = Error>(
   if (hasCurrentInstance) {
     onMounted(() => {
       isActive = true
+      // add instance to Set of refs
     })
   } else {
     isActive = true

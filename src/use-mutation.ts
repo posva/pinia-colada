@@ -4,8 +4,8 @@ import { type _MaybeArray, toArray } from './utils'
 import { UseQueryKey } from './query-options'
 
 type _MutationKeys<TParams extends readonly any[], TResult> =
-  | _MaybeArray<UseQueryKey>[]
-  | ((result: TResult, ...args: TParams) => _MaybeArray<UseQueryKey>[])
+  | UseQueryKey[]
+  | ((result: TResult, ...args: TParams) => UseQueryKey[])
 
 export interface UseMutationOptions<
   TResult = unknown,
@@ -21,6 +21,8 @@ export interface UseMutationOptions<
    * Keys to invalidate if the mutation succeeds so that `useQuery()` refetch if used.
    */
   keys?: _MutationKeys<TParams, TResult>
+
+  // TODO: invalidate options exact, refetch, etc
 }
 
 // export const USE_MUTATIONS_DEFAULTS = {} satisfies Partial<UseMutationsOptions>
@@ -82,6 +84,7 @@ export function useMutation<
   function mutate(...args: TParams) {
     status.value = 'loading'
 
+    // TODO: AbortSignal that is aborted when the mutation is called again so we can throw in pending
     const promise = (pendingPromise = options
       .mutation(...args)
       .then((_data) => {
@@ -90,13 +93,17 @@ export function useMutation<
           error.value = null
           status.value = 'success'
           if (options.keys) {
-            const keys = (
+            const keys =
               typeof options.keys === 'function'
                 ? options.keys(_data, ...args)
                 : options.keys
-            ).map(toArray)
             for (const key of keys) {
-              store.invalidateEntry(key, true)
+              // TODO: find a way to pass a source of the invalidation, could be a symbol associated with the mutation, the parameters
+              store.invalidateEntry(key, {
+                // default
+                // refetch: true,
+                exact: true,
+              })
             }
           }
         }
