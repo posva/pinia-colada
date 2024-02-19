@@ -6,14 +6,14 @@ it('infers the data type', () => {
   expectTypeOf<Ref<number | undefined>>(
     useQuery({
       query: () => Promise.resolve(42),
-      key: 'foo',
+      key: ['foo'],
     }).data
   )
 
   expectTypeOf<Ref<{ name: string } | undefined>>(
     useQuery({
       query: async () => ({ name: 'Edu' }),
-      key: 'foo',
+      key: ['foo'],
     }).data
   )
 })
@@ -22,7 +22,7 @@ it('uses Error by default for the error type', () => {
   expectTypeOf<Ref<Error | null>>(
     useQuery({
       query: async () => 42,
-      key: 'foo',
+      key: ['foo'],
     }).error
   )
 })
@@ -31,7 +31,7 @@ it('can specify the error type', () => {
   expectTypeOf<Ref<TypeError | null>>(
     useQuery<number, TypeError>({
       query: async () => 42,
-      key: 'foo',
+      key: ['foo'],
     }).error
   )
 })
@@ -41,7 +41,7 @@ it('expects an async query', () => {
     useQuery({
       // @ts-expect-error
       query: () => 42,
-      key: 'foo',
+      key: ['foo'],
     }).data
   )
 
@@ -51,7 +51,7 @@ it('expects an async query', () => {
       query: async () => {
         throw new Error('nope')
       },
-      key: 'foo',
+      key: ['foo'],
     }).data
   )
 })
@@ -71,7 +71,7 @@ it('can use a function as a key', () => {
 it('can use objects in keys', () => {
   useQuery({
     query: async () => 42,
-    key: { id: 1 },
+    key: [{ id: 1 }],
   })
 
   useQuery({

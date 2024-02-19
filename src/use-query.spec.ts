@@ -57,7 +57,7 @@ describe('useQuery', () => {
         setup() {
           return {
             ...useQuery<TResult>({
-              key: 'key',
+              key: ['key'],
               ...options,
               // @ts-expect-error: generic unmatched but types work
               query: query,
@@ -430,7 +430,7 @@ describe('useQuery', () => {
   describe('shared state', () => {
     it('reuses the same state for the same key', async () => {
       const pinia = createPinia()
-      mountSimple({ key: 'todos' }, { plugins: [pinia] })
+      mountSimple({ key: ['todos'] }, { plugins: [pinia] })
       mountSimple({ key: ['todos'] }, { plugins: [pinia] })
       await runTimers()
 
