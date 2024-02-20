@@ -37,7 +37,7 @@
     "email": "posva13@gmail.com"
   },
   "scripts": {
-    "dev": "vitest --ui",
+    "dev": "vitest --ui --typecheck",
     "docs": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "play": "pnpm -C playground dev",
@@ -47,7 +47,7 @@
     "lint": "prettier -c --parser typescript \"src/**/*.[jt]s?(x)\"",
     "lint:fix": "pnpm run lint --write",
     "test:types": "tsc --build ./tsconfig.json",
-    "test:cov": "vitest run --coverage",
+    "test:cov": "vitest run --typecheck --coverage",
     "build": "tsup",
     "size": "size-limit",
     "prepare": "simple-git-hooks"
