@@ -31,30 +31,49 @@ import { ErrorDefault } from './types-extension'
  */
 export type UseQueryStatus = 'pending' | 'loading' | 'error' | 'success'
 
-export interface UseQueryEntry<TResult = unknown, TError = unknown> {
+/**
+ * Properties of a query entry that will be exposed to the user. Split to keep the documented properties in one place.
+ * @internal
+ */
+export interface _UseQueryEntry_State<TResult, TError> {
   /**
    * The last successful data resolved by the query.
    */
   data: ShallowRef<TResult | undefined>
+
   /**
    * The error rejected by the query.
    */
   error: ShallowRef<TError | null>
+
   /**
    * The status of the query.
+   * @see {@link UseQueryStatus}
    */
   status: ShallowRef<UseQueryStatus>
+  /**
+   * Returns whether the request is still pending its first call. Alias for `status.value === 'pending'`
+   */
+  isPending: ComputedRef<boolean>
+
+  /**
+   * Returns whether the request is currently fetching data.
+   */
+  isFetching: ShallowRef<boolean>
+}
+
+export interface UseQueryEntry<TResult = unknown, TError = unknown>
+  extends _UseQueryEntry_State<TResult, TError> {
   /**
    * When was this data fetched the last time in ms
    */
   when: number
 
-  isPending: ComputedRef<boolean>
-  isFetching: ComputedRef<boolean>
   pending: null | {
     refreshCall: Promise<void>
     when: number
   }
+
   /**
    * Options used to create the query. They can be undefined during hydration but are needed for fetching. This is why `store.ensureEntry()` sets this property.
    */
@@ -272,7 +291,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
     key: UseQueryKey,
     data: TResult | ((data: Ref<TResult | undefined>) => void)
   ) {
-    const entry = cachesRaw.get(key.map(stringifyFlatObject)) as
+    const entry = caches.get(key.map(stringifyFlatObject)) as
       | UseQueryEntry<TResult>
       | undefined
     // TODO: Should it create the entry?

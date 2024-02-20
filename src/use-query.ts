@@ -3,6 +3,7 @@ import {
   _JSONPrimitive,
   _MaybeArray,
   _ObjectFlat,
+  computedRef,
   useEventListener,
 } from './utils'
 import {
@@ -12,13 +13,10 @@ import {
   toValue,
   onScopeDispose,
   getCurrentScope,
-  ShallowRef,
-  Ref,
   watch,
   getCurrentInstance,
-  ComputedRef,
 } from 'vue'
-import { UseQueryStatus, useQueryCache } from './query-store'
+import { _UseQueryEntry_State, useQueryCache } from './query-store'
 import {
   UseQueryOptions,
   UseQueryOptionsWithDefaults,
@@ -29,28 +27,8 @@ import { ErrorDefault } from './types-extension'
 /**
  * Return type of `useQuery()`.
  */
-export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault> {
-  // TODO: is it worth to be a shallowRef?
-  data: Ref<TResult | undefined>
-
-  error: ShallowRef<TError | null>
-
-  /**
-   * Returns whether the request is still pending its first call. Alias for `status.value === 'pending'`
-   */
-  isPending: ComputedRef<boolean>
-
-  /**
-   * Returns whether the request is currently fetching data.
-   */
-  isFetching: ShallowRef<boolean>
-
-  /**
-   * The status of the query.
-   * @see {@link UseQueryStatus}
-   */
-  status: ShallowRef<UseQueryStatus>
-
+export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault>
+  extends _UseQueryEntry_State<TResult, TError> {
   /**
    * Ensures the current data is fresh. If the data is stale, refetch, if not return as is.
    * @returns a promise that resolves when the refresh is done
@@ -64,6 +42,11 @@ export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault> {
   refetch: () => Promise<TResult>
 }
 
+/**
+ * Ensures and return a shared query state based on the `key` option.
+ *
+ * @param _options - The options of the query
+ */
 export function useQuery<TResult, TError = ErrorDefault>(
   _options: UseQueryOptions<TResult>
 ): UseQueryReturn<TResult, TError> {
@@ -83,11 +66,11 @@ export function useQuery<TResult, TError = ErrorDefault>(
   const refetch = () => store.refetch(entry.value)
 
   const queryReturn = {
-    data: computed(() => entry.value.data.value),
-    error: computed(() => entry.value.error.value),
+    data: computedRef(() => entry.value.data),
+    error: computedRef(() => entry.value.error),
     isFetching: computed(() => entry.value.isFetching.value),
     isPending: computed(() => entry.value.isPending.value),
-    status: computed(() => entry.value.status.value),
+    status: computedRef(() => entry.value.status),
 
     refresh,
     refetch,

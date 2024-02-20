@@ -1,6 +1,7 @@
 import {
   ComputedRef,
   Ref,
+  ShallowRef,
   computed,
   onScopeDispose,
   ref,
@@ -118,3 +119,17 @@ export function delayLoadingRef(
 
   return newRef
 }
+
+/**
+ * Wraps a getter to be used as a ref. This is useful when you want to use a getter as a ref but you need to modify the
+ * value.
+ *
+ * @internal
+ * @param other - getter of the ref to compute
+ * @returns a wrapper around a writable getter that can be used as a ref
+ */
+export const computedRef = <T>(other: () => Ref<T>): ShallowRef<T> =>
+  computed({
+    get: () => other().value,
+    set: (value) => (other().value = value),
+  })

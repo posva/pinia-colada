@@ -1,4 +1,4 @@
-import { computed, ref, type ComputedRef, shallowRef } from 'vue'
+import { computed, ref, type ComputedRef, shallowRef, ShallowRef } from 'vue'
 import { UseQueryStatus, useQueryCache } from './query-store'
 import { type _MaybeArray } from './utils'
 import { UseQueryKey } from './query-options'
@@ -36,12 +36,12 @@ export interface UseMutationReturn<
   /**
    * The result of the mutation. `undefined` if the mutation has not been called yet.
    */
-  data: ComputedRef<TResult | undefined>
+  data: ShallowRef<TResult | undefined>
 
   /**
    * The error of the mutation. `null` if the mutation has not been called yet or if it was successful.
    */
-  error: ComputedRef<TError | null>
+  error: ShallowRef<TError | null>
 
   /**
    * Whether the mutation is currently executing.
@@ -52,7 +52,7 @@ export interface UseMutationReturn<
    * The status of the mutation.
    * @see {@link UseQueryStatus}
    */
-  status: ComputedRef<UseQueryStatus>
+  status: ShallowRef<UseQueryStatus>
 
   /**
    * Calls the mutation and returns a promise with the result.
@@ -124,10 +124,10 @@ export function useMutation<
   }
 
   const mutationReturn = {
-    data: computed(() => data.value),
+    data,
     isLoading: computed(() => status.value === 'loading'),
-    status: computed(() => status.value),
-    error: computed(() => error.value),
+    status,
+    error,
     mutate,
     reset,
   } satisfies UseMutationReturn<TResult, TParams, TError>
