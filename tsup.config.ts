@@ -1,12 +1,24 @@
-import { defineConfig } from 'tsup'
+import { defineConfig, type Options } from 'tsup'
 
-export default defineConfig({
-  entry: ['src/index.ts'],
+const commonOptions = {
   // splitting: false,
   sourcemap: true,
-  clean: true,
   format: ['cjs', 'esm'],
-  globalName: 'PiniaColada',
   external: ['vue', 'pinia'],
   dts: true,
-})
+  target: 'esnext',
+} satisfies Options
+
+export default defineConfig([
+  {
+    ...commonOptions,
+    clean: true,
+    entry: ['src/index.ts'],
+    globalName: 'PiniaColada',
+  },
+  // {
+  //   ...commonOptions,
+  //   entry: ['src/plugins/persist-pending-queries.ts'],
+  //   outDir: 'dist/plugins',
+  // },
+])
