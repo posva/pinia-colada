@@ -8,10 +8,13 @@ import type { QueryPluginOptions } from './query-plugin'
  */
 export type _RefetchOnControl = boolean | 'always'
 
-const DATA_TYPE_SYMBOL = Symbol('dataType')
+/**
+ * Symbol used to attach a data type to a `UseQueryKey`. It's never actually used, it's just for types.
+ */
+const DATA_TYPE_SYMBOL = Symbol()
 
 /**
- * Key used to identify a query.
+ * Key used to identify a query. Always an array.
  */
 export type UseQueryKey = Array<EntryNodeKey | _ObjectFlat>
 
@@ -74,7 +77,9 @@ export interface UseQueryFnContext {
  */
 export interface UseQueryOptions<TResult = unknown> {
   /**
-   * The key used to identify the query. It should either be an array of primitives without reactive values or a reactive array. It should be treaded as an array of dependencies of your queries, e.g. if you use the `route.params.id` property, it should also be part of the key:
+   * The key used to identify the query. Array of primitives **without** reactive values or a reactive array or getter.
+   * It should be treaded as an array of dependencies of your queries, e.g. if you use the `route.params.id` property,
+   * it should also be part of the key:
    *
    * ```ts
    * import { useRoute } from 'vue-router'

@@ -1,7 +1,7 @@
-import { createApp, type MaybeRefOrGetter } from 'vue'
+import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router/auto'
 import { createPinia } from 'pinia'
-import { QueryPlugin, type UseQueryKeyList } from '@pinia/colada'
+import { QueryPlugin } from '@pinia/colada'
 import './style.css'
 import 'water.css'
 

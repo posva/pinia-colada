@@ -108,6 +108,12 @@ export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
   }
 }
 
+/**
+ * UseQueryEntry method to serialize the entry to JSON.
+ *
+ * @param entry - entry to serialize
+ * @returns Serialized version of the entry
+ */
 export const queryEntry_toJSON = <TResult, TError>(
   entry: UseQueryEntry<TResult, TError>
 ): _UseQueryEntryNodeValueSerialized<TResult, TError> => [
@@ -116,6 +122,13 @@ export const queryEntry_toJSON = <TResult, TError>(
   entry.when,
 ]
 
+/**
+ * UseQueryEntry method to serialize the entry to a string.
+ *
+ * @internal
+ * @param entry - entry to serialize
+ * @returns Stringified version of the entry
+ */
 export const queryEntry_toString = <TResult, TError>(
   entry: UseQueryEntry<TResult, TError>
 ) => String(queryEntry_toJSON(entry))
@@ -384,12 +397,21 @@ export type UseQueryEntryNodeSerialized = [
   children?: UseQueryEntryNodeSerialized[],
 ]
 
+/**
+ * Transform a tree into a compressed array.
+ * @param root - root node of the tree
+ * @returns Array representation of the tree
+ */
 export function serialize(
   root: TreeMapNode<UseQueryEntry>
 ): UseQueryEntryNodeSerialized[] {
   return root.children ? [...root.children.entries()].map(_serialize) : []
 }
 
+/**
+ * Internal function to recursively transform the tree into a compressed array.
+ * @internal
+ */
 function _serialize([key, tree]: [
   key: EntryNodeKey,
   tree: TreeMapNode<UseQueryEntry>,
