@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.3](https://github.com/posva/pinia-colada/compare/v0.5.2...v0.5.3) (2024-02-21)
+
+### Bug Fixes
+
+- onScopeDispose guard ([0ed15fe](https://github.com/posva/pinia-colada/commit/0ed15fe45e3d381bde73ef0557ab98ad8871e3ea))
+
 ### [0.5.2](https://github.com/posva/pinia-colada/compare/v0.5.1...v0.5.2) (2024-02-20)
 
 ### Bug Fixes
