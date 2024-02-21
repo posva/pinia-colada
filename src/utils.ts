@@ -3,6 +3,7 @@ import {
   Ref,
   ShallowRef,
   computed,
+  getCurrentScope,
   onScopeDispose,
   ref,
   toValue,
@@ -36,9 +37,11 @@ export function useEventListener(
   options?: boolean | AddEventListenerOptions
 ) {
   target.addEventListener(event, listener, options)
-  onScopeDispose(() => {
-    target.removeEventListener(event, listener)
-  })
+  if (getCurrentScope()) {
+    onScopeDispose(() => {
+      target.removeEventListener(event, listener)
+    })
+  }
 }
 
 export const IS_CLIENT = typeof window !== 'undefined'
