@@ -16,6 +16,7 @@
     "paths": {
       "@/*": ["./src/*"],
       "@pinia/colada": ["../src/index.ts"]
-    }
+    },
+    "types": ["unplugin-vue-router/client"]
   }
 }
