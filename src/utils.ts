@@ -1,7 +1,7 @@
 import {
-  ComputedRef,
-  Ref,
-  ShallowRef,
+  type ComputedRef,
+  type Ref,
+  type ShallowRef,
   computed,
   getCurrentScope,
   onScopeDispose,

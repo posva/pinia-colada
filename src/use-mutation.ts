@@ -1,8 +1,8 @@
-import { computed, ref, type ComputedRef, shallowRef, ShallowRef } from 'vue'
-import { UseQueryStatus, useQueryCache } from './query-store'
+import { computed, type ComputedRef, shallowRef, ShallowRef } from 'vue'
+import { type UseQueryStatus, useQueryCache } from './query-store'
 import { type _MaybeArray } from './utils'
-import { UseQueryKey } from './query-options'
-import { ErrorDefault } from './types-extension'
+import { type UseQueryKey } from './query-options'
+import type { ErrorDefault } from './types-extension'
 
 type _MutationKeys<TParams extends readonly any[], TResult> =
   | UseQueryKey[]

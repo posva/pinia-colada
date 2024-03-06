@@ -2,13 +2,13 @@ import { type App } from 'vue'
 import {
   USE_QUERY_DEFAULTS,
   USE_QUERY_OPTIONS_KEY,
-  UseQueryOptions,
-  UseQueryOptionsWithDefaults,
+  type UseQueryOptions,
+  type UseQueryOptionsWithDefaults,
 } from './query-options'
-import { UseQueryEntry, useQueryCache } from './query-store'
-import { _Simplify, noop } from './utils'
-import type { UseQueryReturn } from './use-query'
-import { type ErrorDefault } from './types-extension'
+import { useQueryCache } from './query-store'
+import { type _Simplify, noop } from './utils'
+import { type UseQueryReturn } from './use-query'
+import type { ErrorDefault } from './types-extension'
 
 export interface QueryPluginOptions
   extends Omit<UseQueryOptions, 'key' | 'query' | 'initialData'> {

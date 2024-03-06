@@ -1,8 +1,8 @@
 import {
   IS_CLIENT,
-  _JSONPrimitive,
-  _MaybeArray,
-  _ObjectFlat,
+  type _JSONPrimitive,
+  type _MaybeArray,
+  type _ObjectFlat,
   computedRef,
   useEventListener,
 } from './utils'
@@ -16,13 +16,13 @@ import {
   watch,
   getCurrentInstance,
 } from 'vue'
-import { _UseQueryEntry_State, useQueryCache } from './query-store'
+import { type _UseQueryEntry_State, useQueryCache } from './query-store'
 import {
-  UseQueryOptions,
-  UseQueryOptionsWithDefaults,
+  type UseQueryOptions,
+  type UseQueryOptionsWithDefaults,
   useQueryOptions,
 } from './query-options'
-import { ErrorDefault } from './types-extension'
+import type { ErrorDefault } from './types-extension'
 
 /**
  * Return type of `useQuery()`.
