@@ -111,10 +111,10 @@ export default defineConfig({
     nav: [
       {
         text: 'Guide',
-        link: '/guide/',
+        link: '/guide/installation.html',
       },
-      // { text: 'API', link: '/api/', activeMatch: '^/api/' },
-      // { text: 'Cookbook', link: '/cookbook/', activeMatch: '^/cookbook/' },
+      { text: 'API', link: '/api/', activeMatch: '^/api/' },
+      { text: 'Cookbook', link: '/cookbook/', activeMatch: '^/cookbook/' },
       {
         text: 'Links',
         items: [
@@ -131,27 +131,28 @@ export default defineConfig({
     ],
 
     sidebar: {
-      // catch-all fallback
-      '/': [
-        {
-          text: 'Introduction',
-          items: [
-            {
-              text: 'What is Pinia?',
-              link: '/introduction.html',
-            },
-            {
-              text: 'Getting Started',
-              link: '/getting-started.html',
-            },
-          ],
-        },
-        {
-          text: 'Guide',
-
-          items: [],
-        },
-      ],
+      '/': [{
+        text: 'Introduction',
+        items: [
+          { text: 'Quick Start', link: '/quick-start.html' },
+          { text: 'Why', link: '/why.html' },
+        ],
+      }, {
+        text: 'Guide',
+        items: [
+          { text: 'Installation', link: '/guide/installation.html' },
+          { text: 'Queries', link: '/guide/queries.html' },
+          { text: 'Query Keys', link: '/guide/query-keys.html' },
+          { text: 'Query Cache', link: '/guide/query-cache.html' },
+          { text: 'Mutations', link: '/guide/mutations.html' },
+          { text: 'Query Invalidation', link: '/guide/query-invalidation.html' },
+          { text: 'Optimistic Updates', link: '/guide/optimistic-updates.html' },
+        ],
+      }, {
+        text: 'Cookbook',
+        link: '/cookbook/',
+        items: [],
+      }],
     },
   },
 })
