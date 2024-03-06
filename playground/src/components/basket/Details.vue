@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useBasket } from '@/composables/basket'
-import type { ProductT } from '@/api/products'
+import type { ProductListItem } from '@/api/products'
 
-defineProps<{ product: ProductT }>()
+defineProps<{ product: ProductListItem }>()
 
 const cart = useBasket()
 </script>

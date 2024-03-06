@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { ProductT } from '@/api/products'
+import type { ProductListItem } from '@/api/products'
 import { useBasket } from '@/composables/basket'
 
-defineProps<{ product: ProductT }>()
+defineProps<{ product: ProductListItem }>()
 defineEmits<{
   (event: 'updateQuantity', quantity: number): void
 }>()

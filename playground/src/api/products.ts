@@ -7,7 +7,14 @@ export const products = mande('http://localhost:7777/products', {})
  */
 export async function getAllProducts(options?: Options<'json'>) {
   // await new Promise(resolve => setTimeout(resolve, 2000))
-  return products.get<ProductT[]>('/', options)
+  return (await products.get<ProductListItem[]>('/', options)).map(product => ({
+    id: product.id,
+    name: product.name,
+    color: product.color,
+    imagesrc: product.imageSrc,
+    price: product.price,
+    availability: product.availability,
+  }))
 }
 
 /**
@@ -19,7 +26,7 @@ export function getProductById(id: string | number, options?: Options<'json'>) {
   return products.get<ProductT>(id, options)
 }
 
-export async function changeProductAvailability(product: ProductT, options?: Options<'json'>) {
+export async function changeProductAvailability(product: ProductListItem, options?: Options<'json'>) {
   if (product.availability < 1) {
     throw new Error('Product not available')
   }
@@ -28,7 +35,7 @@ export async function changeProductAvailability(product: ProductT, options?: Opt
   }, options)
 }
 
-export interface ProductT {
+export interface ProductListItem {
   id: string
   name: string
   price: number
@@ -37,4 +44,9 @@ export interface ProductT {
   size: string
   imageSrc: string
   imageAlt: string
+}
+
+export interface ProductT extends ProductListItem {
+  rating: number
+  description: string
 }

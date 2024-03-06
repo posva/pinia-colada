@@ -53,74 +53,84 @@
   ],
   "products": [
     {
-      "id": "1",
+      "id": 1,
       "name": "Basic Tee",
-      "price": 32,
       "color": "Sienna",
-      "availability": 3,
-      "size": "Large",
-      "imageSrc": "https://tailwindui.com/img/ecommerce-images/shopping-cart-page-01-product-01.jpg",
-      "imageAlt": "Front of men's Basic Tee in sienna."
+      "imagesrc": "https://tailwindui.com/img/ecommerce-images/shopping-cart-page-01-product-01.jpg",
+      "price": 24,
+      "availability": -2
     },
     {
-      "id": "2",
-      "name": "Basic Tee",
-      "price": 32,
-      "color": "Black",
-      "availability": 8,
-      "size": "Large",
-      "imageSrc": "https://tailwindui.com/img/ecommerce-images/shopping-cart-page-01-product-02.jpg",
-      "imageAlt": "Front of men's Basic Tee in sienna."
-    },
-    {
-      "id": "3",
-      "name": "Basic Tee",
-      "price": 32,
-      "color": "White",
-      "availability": 0,
-      "size": "Large",
-      "imageSrc": "https://tailwindui.com/img/ecommerce-images/product-page-01-related-product-02.jpg",
-      "imageAlt": "Front of men's Basic Tee in sienna."
-    },
-    {
-      "id": "4",
-      "name": "Basic Tee",
-      "price": 32,
+      "id": 4,
+      "name": "Basic G",
       "color": "Grey",
-      "availability": 3,
-      "size": "Large",
-      "imageSrc": "https://tailwindui.com/img/ecommerce-images/product-page-01-related-product-03.jpg",
-      "imageAlt": "Front of men's Basic Tee in shttps://tailwindui.com/img/ecommerce-images/product-page-01-related-product-03.jpgienna."
+      "imagesrc": "https://tailwindui.com/img/ecommerce-images/product-page-01-related-product-03.jpg",
+      "price": 24,
+      "availability": 11
     },
     {
-      "id": "5",
-      "name": "Basic Tee",
-      "price": 32,
+      "id": 5,
+      "name": "Basic Pink",
       "color": "Pink",
-      "availability": 3,
-      "size": "Large",
-      "imageSrc": "https://tailwindui.com/img/ecommerce-images/product-page-01-related-product-04.jpg",
-      "imageAlt": "Front of men's Basic Tee in sienna."
+      "imagesrc": "https://tailwindui.com/img/ecommerce-images/product-page-01-related-product-04.jpg",
+      "price": 30,
+      "availability": 3
     },
     {
-      "id": "6",
-      "name": "Basic Tee",
-      "price": 32,
-      "color": "Multi",
-      "availability": 9,
-      "size": "Large",
-      "imageSrc": "https://tailwindui.com/img/ecommerce-images/category-page-02-image-card-05.jpg",
-      "imageAlt": "Front of men's Basic Tee in sienna."
+      "id": 6,
+      "name": "Classic",
+      "color": "White",
+      "imagesrc": "https://tailwindui.com/img/ecommerce-images/product-page-03-related-product-01.jpg",
+      "price": 150,
+      "availability": 5
     },
     {
-      "id": "7",
-      "name": "Basic Tee",
-      "price": 32,
-      "color": "Drawn multi",
-      "availability": 8,
-      "size": "Large",
-      "imageSrc": "https://tailwindui.com/img/ecommerce-images/category-page-02-image-card-06.jpg",
-      "imageAlt": "Front of men's Basic Tee in sienna."
+      "id": 7,
+      "name": "Sea",
+      "color": "White",
+      "imagesrc": "https://tailwindui.com/img/ecommerce-images/product-page-03-related-product-02.jpg",
+      "price": 150,
+      "availability": 6
+    },
+    {
+      "id": 8,
+      "name": "Outside",
+      "color": "Black",
+      "imagesrc": "https://tailwindui.com/img/ecommerce-images/product-page-03-related-product-04.jpg",
+      "price": 210,
+      "availability": 8
+    },
+    {
+      "id": 9,
+      "name": "Promenade",
+      "color": "Beige",
+      "imagesrc": "https://tailwindui.com/img/ecommerce-images/product-page-03-related-product-03.jpg",
+      "price": 200,
+      "availability": 9
+    },
+    {
+      "id": 10,
+      "name": "Satchel",
+      "color": "Blue",
+      "imagesrc": "https://tailwindui.com/img/ecommerce-images/category-page-07-product-03.jpg",
+      "price": 220,
+      "availability": 4
+    },
+    {
+      "id": 3,
+      "name": "Basic",
+      "color": "White",
+      "imagesrc": "https://tailwindui.com/img/ecommerce-images/product-page-01-related-product-02.jpg",
+      "price": 24,
+      "availability": 9
+    },
+    {
+      "id": 2,
+      "name": "Basic X",
+      "color": "Black",
+      "imagesrc": "https://tailwindui.com/img/ecommerce-images/shopping-cart-page-01-product-02.jpg",
+      "price": 24,
+      "availability": 4
     }
   ]
 }

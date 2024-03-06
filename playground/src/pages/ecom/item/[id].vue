@@ -3,7 +3,7 @@ import { StarIcon } from '@heroicons/vue/20/solid'
 import { HeartIcon } from '@heroicons/vue/24/outline'
 import { useMutation, useQuery } from '@pinia/colada'
 import { useRoute } from 'vue-router/auto'
-import { type ProductT, changeProductAvailability, getProductById } from '@/api/products'
+import { type ProductListItem, changeProductAvailability, getProductById } from '@/api/products'
 
 const route = useRoute('/ecom/item/[id]')
 
@@ -21,7 +21,7 @@ const { data: item, isPending } = useQuery({
 
 const { mutate: bookProduct } = useMutation({
   keys: product => [['items', product.id]],
-  mutation: (product: ProductT) => changeProductAvailability(product),
+  mutation: (product: ProductListItem) => changeProductAvailability(product),
   // onMutate: async () => {
   //   // Cancel any outgoing refetches
   //   // (so they don't overwrite our optimistic update)
