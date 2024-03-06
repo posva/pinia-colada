@@ -13,6 +13,8 @@
     "type-check": "vue-tsc --build --force"
   },
   "dependencies": {
+    "@headlessui/vue": "^1.7.19",
+    "@heroicons/vue": "^2.1.1",
     "@pinia/colada": "workspace:*",
     "@vueuse/core": "^10.9.0",
     "@vueuse/integrations": "^10.9.0",
