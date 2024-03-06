@@ -1,26 +1,19 @@
 import { defineStore } from 'pinia'
 import {
-  type Ref,
-  shallowReactive,
-  getCurrentScope,
-  type ShallowRef,
   type ComputedRef,
+  type Ref,
+  type ShallowRef,
   computed,
-  triggerRef,
+  getCurrentScope,
+  shallowReactive,
   shallowRef,
   toValue,
+  triggerRef,
 } from 'vue'
-import {
-  type _MaybeArray,
-  stringifyFlatObject,
-  type _JSONPrimitive,
-} from './utils'
+import { stringifyFlatObject } from './utils'
 import { type EntryNodeKey, TreeMapNode } from './tree-map'
-import {
-  type UseQueryOptionsWithDefaults,
-  type UseQueryKey,
-} from './query-options'
-import { ErrorDefault } from './types-extension'
+import type { UseQueryKey, UseQueryOptionsWithDefaults } from './query-options'
+import type { ErrorDefault } from './types-extension'
 
 /**
  * The status of the request.
@@ -91,11 +84,11 @@ export interface UseQueryEntry<TResult = unknown, TError = unknown>
 export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
   initialData?: TResult,
   error: TError | null = null,
-  when: number = 0 // stale by default
+  when: number = 0, // stale by default
 ): UseQueryEntry<TResult, TError> {
   const data = shallowRef(initialData)
   const status = shallowRef<UseQueryStatus>(
-    error ? 'error' : initialData !== undefined ? 'success' : 'pending'
+    error ? 'error' : initialData !== undefined ? 'success' : 'pending',
   )
   return {
     data,
@@ -114,13 +107,9 @@ export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
  * @param entry - entry to serialize
  * @returns Serialized version of the entry
  */
-export const queryEntry_toJSON = <TResult, TError>(
-  entry: UseQueryEntry<TResult, TError>
-): _UseQueryEntryNodeValueSerialized<TResult, TError> => [
-  entry.data.value,
-  entry.error.value,
-  entry.when,
-]
+export const queryEntry_toJSON: <TResult, TError>(
+  entry: UseQueryEntry<TResult, TError>,
+) => _UseQueryEntryNodeValueSerialized<TResult, TError> = entry => [entry.data.value, entry.error.value, entry.when]
 
 /**
  * UseQueryEntry method to serialize the entry to a string.
@@ -129,9 +118,9 @@ export const queryEntry_toJSON = <TResult, TError>(
  * @param entry - entry to serialize
  * @returns Stringified version of the entry
  */
-export const queryEntry_toString = <TResult, TError>(
-  entry: UseQueryEntry<TResult, TError>
-) => String(queryEntry_toJSON(entry))
+export const queryEntry_toString: <TResult, TError>(
+  entry: UseQueryEntry<TResult, TError>,
+) => string = entry => String(queryEntry_toJSON(entry))
 
 /**
  * The id of the store used for queries.
@@ -150,11 +139,11 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
 
   function ensureEntry<TResult = unknown, TError = ErrorDefault>(
     keyRaw: UseQueryKey,
-    options: UseQueryOptionsWithDefaults<TResult>
+    options: UseQueryOptionsWithDefaults<TResult>,
   ): UseQueryEntry<TResult, TError> {
     if (process.env.NODE_ENV !== 'production' && keyRaw.length === 0) {
       throw new Error(
-        `useQuery() was called with an empty array as the key. It must have at least one element.`
+        `useQuery() was called with an empty array as the key. It must have at least one element.`,
       )
     }
     const key = keyRaw.map(stringifyFlatObject)
@@ -164,7 +153,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
     if (!entry) {
       cachesRaw.set(
         key,
-        (entry = scope.run(() => createQueryEntry(options.initialData?.()))!)
+        (entry = scope.run(() => createQueryEntry(options.initialData?.()))!),
       )
     }
 
@@ -179,7 +168,9 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
    * Invalidates a query entry, forcing a refetch of the data if `refetch` is true
    *
    * @param key - the key of the query to invalidate
-   * @param shouldRefetch - whether to force a refresh of the data
+   * @param options - options to invalidate the query
+   * @param options.exact - if true, it will only invalidate the exact query, not the children
+   * @param options.refetch - if true, it will refetch the data
    */
   function invalidateEntry(
     key: UseQueryKey,
@@ -189,14 +180,12 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
     }: {
       refetch?: boolean
       exact?: boolean
-    } = {}
+    } = {},
   ) {
     const entryNode = cachesRaw.find(key.map(stringifyFlatObject))
 
     // nothing to invalidate
-    if (!entryNode) {
-      return
-    }
+    if (!entryNode) return
 
     const list = exact
       ? entryNode.value != null
@@ -222,15 +211,15 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
    * entry has options.
    */
   async function refresh<TResult, TError>(
-    entry: UseQueryEntry<TResult, TError>
+    entry: UseQueryEntry<TResult, TError>,
   ): Promise<TResult> {
     if (process.env.NODE_ENV !== 'production' && !entry.options) {
       throw new Error(
-        `"entry.refresh()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`
+        `"entry.refresh()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`,
       )
     }
-    const { key: _key, staleTime } = entry.options!
-    const key = toValue(_key).map(stringifyFlatObject)
+    const { staleTime } = entry.options!
+    const _key = toValue(entry.options!.key).map(stringifyFlatObject)
 
     if (entry.error.value || isExpired(entry.when, staleTime)) {
       // console.log(`⬇️ refresh "${key}". expired ${entry.when} / ${staleTime}`)
@@ -249,15 +238,15 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
    * Ignores fresh data and triggers a new fetch. Can only be called if the entry has options.
    */
   async function refetch<TResult, TError>(
-    entry: UseQueryEntry<TResult, TError>
+    entry: UseQueryEntry<TResult, TError>,
   ): Promise<TResult> {
     if (process.env.NODE_ENV !== 'production' && !entry.options) {
       throw new Error(
-        `"entry.refetch()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`
+        `"entry.refetch()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`,
       )
     }
 
-    const key = toValue(entry.options!.key).map(stringifyFlatObject)
+    const _key = toValue(entry.options!.key).map(stringifyFlatObject)
 
     // console.log('🔄 refetching', key)
     entry.status.value = 'loading'
@@ -302,15 +291,13 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
   // TODO: tests, remove function version
   function setQueryData<TResult = unknown>(
     key: UseQueryKey,
-    data: TResult | ((data: Ref<TResult | undefined>) => void)
+    data: TResult | ((data: Ref<TResult | undefined>) => void),
   ) {
     const entry = caches.get(key.map(stringifyFlatObject)) as
       | UseQueryEntry<TResult>
       | undefined
     // TODO: Should it create the entry?
-    if (!entry) {
-      return
-    }
+    if (!entry) return
 
     if (typeof data === 'function') {
       // the remaining type is TResult & Fn, so we need a cast
@@ -324,7 +311,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
   }
 
   function getQueryData<TResult = unknown>(
-    key: UseQueryKey
+    key: UseQueryKey,
   ): TResult | undefined {
     const entry = caches.get(key.map(stringifyFlatObject)) as
       | UseQueryEntry<TResult>
@@ -333,12 +320,12 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
   }
 
   // TODO: find a way to make it possible to prefetch. Right now we need the actual options of the query
-  function prefetch(key: UseQueryKey) {
+  function _prefetch(key: UseQueryKey) {
     const entry = cachesRaw.get(key.map(stringifyFlatObject))
     if (!entry) {
       if (process.env.NODE_ENV !== 'production') {
         console.warn(
-          `⚠️ trying to prefetch "${String(key)}" but it's not in the registry`
+          `⚠️ trying to prefetch "${String(key)}" but it's not in the registry`,
         )
       }
       return
@@ -403,7 +390,7 @@ export type UseQueryEntryNodeSerialized = [
  * @returns Array representation of the tree
  */
 export function serialize(
-  root: TreeMapNode<UseQueryEntry>
+  root: TreeMapNode<UseQueryEntry>,
 ): UseQueryEntryNodeSerialized[] {
   return root.children ? [...root.children.entries()].map(_serialize) : []
 }
@@ -426,7 +413,7 @@ function _serialize([key, tree]: [
 // TODO: rename to revive or similar to better convey the idea of hydrating
 
 export function createTreeMap(
-  raw: UseQueryEntryNodeSerialized[] = []
+  raw: UseQueryEntryNodeSerialized[] = [],
 ): TreeMapNode<UseQueryEntry> {
   const root = new TreeMapNode<UseQueryEntry>()
 
@@ -438,12 +425,12 @@ export function createTreeMap(
 
 function appendToTree(
   parent: TreeMapNode<UseQueryEntry>,
-  [key, value, children]: UseQueryEntryNodeSerialized
+  [key, value, children]: UseQueryEntryNodeSerialized,
 ) {
   parent.children ??= new Map()
   const node = new TreeMapNode<UseQueryEntry>(
     [],
-    value && createQueryEntry(...value)
+    value && createQueryEntry(...value),
   )
   parent.children.set(key, node)
   if (children) {

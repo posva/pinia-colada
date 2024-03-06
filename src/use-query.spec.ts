@@ -1,36 +1,35 @@
-import {
-  describe,
-  it,
-  expect,
-  vi,
-  beforeEach,
-  afterEach,
+import type {
   MockInstance,
 } from 'vitest'
-import { useQuery } from './use-query'
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import {
-  computed,
   defineComponent,
   nextTick,
   ref,
   shallowReactive,
-  shallowRef,
 } from 'vue'
-import { GlobalMountOptions } from 'node_modules/@vue/test-utils/dist/types'
+import type { GlobalMountOptions } from 'node_modules/@vue/test-utils/dist/types'
 import { delay, isSpy, runTimers } from '../test/utils'
+import { useQuery } from './use-query'
+import type {
+  UseQueryEntry,
+} from './query-store'
 import {
   QUERY_STORE_ID,
-  UseQueryEntry,
-  UseQueryStatus,
   createQueryEntry,
-  createTreeMap,
-  serialize,
   useQueryCache,
 } from './query-store'
 import { TreeMapNode, entryNodeSize } from './tree-map'
-import { UseQueryOptions } from './query-options'
+import type { UseQueryOptions } from './query-options'
 import { QueryPlugin } from './query-plugin'
 
 describe('useQuery', () => {
@@ -43,14 +42,14 @@ describe('useQuery', () => {
 
   function mountSimple<TResult = number>(
     options: Partial<UseQueryOptions<TResult>> = {},
-    mountOptions?: GlobalMountOptions
+    mountOptions?: GlobalMountOptions,
   ) {
     const query = options.query
       ? vi.fn(options.query)
       : vi.fn(async () => {
-          await delay(0)
-          return 42
-        })
+        await delay(0)
+        return 42
+      })
     const wrapper = mount(
       defineComponent({
         render: () => null,
@@ -60,7 +59,7 @@ describe('useQuery', () => {
               key: ['key'],
               ...options,
               // @ts-expect-error: generic unmatched but types work
-              query: query,
+              query,
             }),
           }
         },
@@ -70,7 +69,7 @@ describe('useQuery', () => {
           ...mountOptions,
           plugins: [...(mountOptions?.plugins || [createPinia()]), QueryPlugin],
         },
-      }
+      },
     )
     return Object.assign([wrapper, query] as const, { wrapper, query })
   }
@@ -221,7 +220,7 @@ describe('useQuery', () => {
       const pinia = createPinia()
       const { wrapper, query } = mountSimple(
         { staleTime: 0 },
-        { plugins: [pinia] }
+        { plugins: [pinia] },
       )
       // should not trigger a new fetch because staleTime has not passed
       vi.advanceTimersByTime(10)
@@ -235,7 +234,7 @@ describe('useQuery', () => {
 
     it('ignores stale time if there is an error', async () => {
       const query = vi.fn().mockRejectedValueOnce(new Error('fail'))
-      const { wrapper } = mountSimple({ staleTime: 1000, query: query })
+      const { wrapper } = mountSimple({ staleTime: 1000, query })
 
       await runTimers()
       expect(query).toHaveBeenCalledTimes(1)
@@ -253,9 +252,9 @@ describe('useQuery', () => {
   })
 
   describe('refresh data', () => {
-    function mountDynamicKey<TResult = { id: number; when: number }>(
+    function mountDynamicKey<TResult = { id: number, when: number }>(
       options: Partial<UseQueryOptions<TResult>> & { initialId?: number } = {},
-      mountOptions?: GlobalMountOptions
+      mountOptions?: GlobalMountOptions,
     ) {
       let query!: MockInstance
 
@@ -269,9 +268,9 @@ describe('useQuery', () => {
                 ? options.query
                 : vi.fn(options.query)
               : vi.fn(async () => {
-                  await delay(0)
-                  return { id: id.value, when: Date.now() }
-                })
+                await delay(0)
+                return { id: id.value, when: Date.now() }
+              })
 
             return {
               id,
@@ -286,7 +285,7 @@ describe('useQuery', () => {
                 key: () => ['data', id.value],
                 ...options,
                 // @ts-expect-error: generic unmatched but types work
-                query: query,
+                query,
               }),
             }
           },
@@ -299,7 +298,7 @@ describe('useQuery', () => {
               QueryPlugin,
             ],
           },
-        }
+        },
       )
       return Object.assign([wrapper, query] as const, {
         wrapper,
@@ -311,7 +310,7 @@ describe('useQuery', () => {
       const pinia = createPinia()
       pinia.state.value[QUERY_STORE_ID] = {
         caches: shallowReactive(
-          new TreeMapNode(['key'], createQueryEntry(60, null, Date.now()))
+          new TreeMapNode(['key'], createQueryEntry(60, null, Date.now())),
         ),
       }
       const { wrapper, query } = mountSimple(
@@ -320,7 +319,7 @@ describe('useQuery', () => {
         },
         {
           plugins: [pinia],
-        }
+        },
       )
 
       await runTimers()
@@ -368,7 +367,7 @@ describe('useQuery', () => {
     it('does not refresh by default when mounting a new component that uses the same key', async () => {
       const pinia = createPinia()
       const query = vi.fn().mockResolvedValue({ id: 0, when: Date.now() })
-      mountDynamicKey({ initialId: 0, query: query }, { plugins: [pinia] })
+      mountDynamicKey({ initialId: 0, query }, { plugins: [pinia] })
       await runTimers()
       expect(query).toHaveBeenCalledTimes(1)
 
@@ -383,16 +382,16 @@ describe('useQuery', () => {
       const query = vi.fn().mockResolvedValue({ id: 0, when: Date.now() })
       mountDynamicKey(
         // staleTime doesn't matter here
-        { initialId: 0, staleTime: 10, query: query },
-        { plugins: [pinia] }
+        { initialId: 0, staleTime: 10, query },
+        { plugins: [pinia] },
       )
       await runTimers()
       expect(query).toHaveBeenCalledTimes(1)
       await vi.advanceTimersByTime(100)
 
       mountDynamicKey(
-        { initialId: 0, staleTime: 10, query: query },
-        { plugins: [pinia] }
+        { initialId: 0, staleTime: 10, query },
+        { plugins: [pinia] },
       )
       await runTimers()
       // called because data is stale
@@ -401,7 +400,7 @@ describe('useQuery', () => {
 
     it('keeps the error while refreshing a failed query', async () => {
       const query = vi.fn().mockRejectedValueOnce(new Error('fail'))
-      const { wrapper } = mountDynamicKey({ query: query })
+      const { wrapper } = mountDynamicKey({ query })
 
       await runTimers()
       expect(wrapper.vm.error).toEqual(new Error('fail'))
@@ -416,7 +415,7 @@ describe('useQuery', () => {
 
     it('refreshes if it failed no matter the staleTime', async () => {
       const query = vi.fn().mockRejectedValue(new Error('fail'))
-      const { wrapper } = mountDynamicKey({ staleTime: 1000, query: query })
+      const { wrapper } = mountDynamicKey({ staleTime: 1000, query })
 
       await runTimers()
       expect(query).toHaveBeenCalledTimes(1)
@@ -457,15 +456,15 @@ describe('useQuery', () => {
       const pinia = createPinia()
       mountSimple(
         { key: ['todos', { id: 5, a: true, b: 'hello' }] },
-        { plugins: [pinia] }
+        { plugins: [pinia] },
       )
       mountSimple(
         { key: ['todos', { a: true, id: 5, b: 'hello' }] },
-        { plugins: [pinia] }
+        { plugins: [pinia] },
       )
       mountSimple(
         { key: ['todos', { id: 5, a: true, b: 'hello' }] },
-        { plugins: [pinia] }
+        { plugins: [pinia] },
       )
       await runTimers()
 
@@ -489,13 +488,13 @@ describe('useQuery', () => {
       const caches = shallowReactive(
         new TreeMapNode<UseQueryEntry>(
           ['key'],
-          createQueryEntry(2, null, Date.now())
-        )
+          createQueryEntry(2, null, Date.now()),
+        ),
       )
       pinia.state.value[QUERY_STORE_ID] = { caches }
-      const { wrapper, query } = mountSimple(
+      const { wrapper } = mountSimple(
         { staleTime: 1000 },
-        { plugins: [pinia] }
+        { plugins: [pinia] },
       )
 
       // without waiting for times the data is present
@@ -509,14 +508,14 @@ describe('useQuery', () => {
         new TreeMapNode<UseQueryEntry>(
           ['key'],
           // fresh data
-          createQueryEntry(2, null, Date.now())
-        )
+          createQueryEntry(2, null, Date.now()),
+        ),
       )
       pinia.state.value[QUERY_STORE_ID] = { caches }
       const { wrapper, query } = mountSimple(
         // 1s stale time
         { staleTime: 1000 },
-        { plugins: [pinia] }
+        { plugins: [pinia] },
       )
 
       await runTimers()

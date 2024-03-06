@@ -1,7 +1,7 @@
-import { computed, type ComputedRef, shallowRef, ShallowRef } from 'vue'
+import { computed, shallowRef } from 'vue'
+import type { ComputedRef, ShallowRef } from 'vue'
 import { type UseQueryStatus, useQueryCache } from './query-store'
-import { type _MaybeArray } from './utils'
-import { type UseQueryKey } from './query-options'
+import type { UseQueryKey } from './query-options'
 import type { ErrorDefault } from './types-extension'
 
 type _MutationKeys<TParams extends readonly any[], TResult> =
@@ -72,7 +72,7 @@ export function useMutation<
   TParams extends readonly unknown[] = readonly [],
   TError = ErrorDefault,
 >(
-  options: UseMutationOptions<TResult, TParams>
+  options: UseMutationOptions<TResult, TParams>,
 ): UseMutationReturn<TResult, TParams, TError> {
   const store = useQueryCache()
 
@@ -94,8 +94,8 @@ export function useMutation<
           error.value = null
           status.value = 'success'
           if (options.keys) {
-            const keys =
-              typeof options.keys === 'function'
+            const keys
+              = typeof options.keys === 'function'
                 ? options.keys(_data, ...args)
                 : options.keys
             for (const key of keys) {

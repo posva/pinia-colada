@@ -1,5 +1,3 @@
-import { type _JSONPrimitive } from './utils'
-
 export type EntryNodeKey = string | number
 
 /**
@@ -86,7 +84,7 @@ export class TreeMapNode<T = unknown> {
     }
     if (this.children) {
       for (const child of this.children.values()) {
-        yield* child
+        yield *child
       }
     }
   }
@@ -105,17 +103,18 @@ export class TreeMapNode<T = unknown> {
  */
 export function entryNodeSize(node: TreeMapNode): number {
   return (
-    (node.children?.size ?? 0) +
-    [...(node.children?.values() || [])].reduce(
+    (node.children?.size ?? 0)
+    + [...(node.children?.values() || [])].reduce(
       (acc, child) => acc + entryNodeSize(child),
-      0
+      0,
     )
   )
 }
 
 export function logTree(
   tree: TreeMapNode,
-  log: (str: string) => any = console.log
+  // eslint-disable-next-line no-console
+  log: (str: string) => any = console.log,
 ) {
   log(printTreeMap(tree))
 }
@@ -125,7 +124,7 @@ function printTreeMap(
   tree: TreeMapNode | TreeMapNode['children'],
   level = 0,
   parentPre = '',
-  treeStr = ''
+  treeStr = '',
 ): string {
   // end of recursion
   if (typeof tree !== 'object' || level >= MAX_LEVEL) return ''
@@ -137,15 +136,13 @@ function printTreeMap(
       const hasNext = index++ < total - 1
       const { children } = child
 
-      treeStr += `${`${parentPre}${hasNext ? '├' : '└'}${
-        '─' + (children?.size ?? 0 > 0 ? '┬' : '')
-      } `}${key}${child.value != null ? ' · ' + String(child.value) : ''}\n`
+      treeStr += `${`${parentPre}${hasNext ? '├' : '└'}${`─${(children?.size ?? 0) > 0 ? '┬' : ''}`} `}${key}${child.value != null ? ` · ${String(child.value)}` : ''}\n`
 
       if (children) {
         treeStr += printTreeMap(
           children,
           level + 1,
-          `${parentPre}${hasNext ? '│' : ' '} `
+          `${parentPre}${hasNext ? '│' : ' '} `,
         )
       }
     }
@@ -154,7 +151,7 @@ function printTreeMap(
     treeStr = `${String(
       typeof tree.value === 'object' && tree.value
         ? JSON.stringify(tree.value)
-        : '<root>'
+        : '<root>',
     )}\n`
     if (children) {
       treeStr += printTreeMap(children, level + 1)

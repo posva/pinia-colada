@@ -63,9 +63,9 @@ app.use(QueryPlugin, {
 
 ```vue
 <script lang="ts" setup>
-import { getContactById, updateContact as _updateContact } from '~/api/contacts'
 import { useRoute } from 'vue-router'
-import { useQuery, useMutation } from '@pinia/colada'
+import { useMutation, useQuery } from '@pinia/colada'
+import { updateContact as _updateContact, getContactById } from '~/api/contacts'
 
 const route = useRoute()
 

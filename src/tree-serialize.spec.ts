@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { TreeMapNode, logTree } from './tree-map'
-import {
+import { TreeMapNode } from './tree-map'
+import type {
   UseQueryEntry,
+} from './query-store'
+import {
   createQueryEntry,
   createTreeMap,
   serialize,

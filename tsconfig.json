@@ -1,19 +1,19 @@
 {
-  "include": [
-    "src",
-    "test"
-  ],
   "compilerOptions": {
-    "rootDir": ".",
-    "baseUrl": ".",
     "target": "esnext",
+    "baseUrl": ".",
+    "rootDir": ".",
     "module": "esnext",
-    "noEmit": true,
+    "moduleResolution": "Bundler",
     "strict": true,
+    "noEmit": true,
     // TSUP issue https://github.com/egoist/tsup/issues/571
     // "composite": true,
     "esModuleInterop": true,
-    "moduleResolution": "Bundler",
-    "skipLibCheck": true,
+    "skipLibCheck": true
   },
+  "include": [
+    "src",
+    "test"
+  ]
 }

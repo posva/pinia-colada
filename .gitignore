@@ -12,4 +12,4 @@ yarn.lock
 tsconfig.tsbuildinfo
 tsconfig.vitest-temp.json
 docs/.vitepress/cache
-vite.config.ts.timestamp-1707297118358-49b1d9666d20a.mjs
+vite.config.ts.timestamp-*.mjs

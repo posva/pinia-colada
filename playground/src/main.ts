@@ -6,7 +6,6 @@ import './style.css'
 import 'water.css'
 
 import App from './App.vue'
-import { getAllContacts, searchContacts } from './api/contacts'
 
 const app = createApp(App)
 const router = createRouter({

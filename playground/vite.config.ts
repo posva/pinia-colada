@@ -1,4 +1,4 @@
-import { fileURLToPath, URL } from 'node:url'
+import { URL, fileURLToPath } from 'node:url'
 
 import { defineConfig } from 'vite'
 import Vue from '@vitejs/plugin-vue'
@@ -11,7 +11,7 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       '@pinia/colada': fileURLToPath(
-        new URL('../src/index.ts', import.meta.url)
+        new URL('../src/index.ts', import.meta.url),
       ),
     },
   },

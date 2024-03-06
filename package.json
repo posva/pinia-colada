@@ -1,62 +1,26 @@
 {
   "name": "@pinia/colada",
-  "packageManager": "pnpm@8.14.1",
-  "version": "0.5.3",
   "type": "module",
+  "version": "0.5.3",
+  "packageManager": "pnpm@8.14.1",
   "description": "The smart data fetching layer for Pinia",
   "publishConfig": {
     "access": "public"
   },
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
-  "unpkg": "dist/index.global.js",
-  "jsdelivr": "dist/index.global.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": {
-        "require": "./dist/index.d.cts",
-        "import": "./dist/index.d.ts"
-      },
-      "require": "./dist/index.cjs",
-      "import": "./dist/index.js"
-    }
-  },
-  "typesVersions": {
-    "*": {
-      "*": [
-        "./dist/*",
-        "./*"
-      ]
-    }
-  },
-  "sideEffects": false,
-  "funding": "https://github.com/sponsors/posva",
   "author": {
     "name": "Eduardo San Martin Morote",
     "email": "posva13@gmail.com"
   },
-  "scripts": {
-    "dev": "vitest --ui --typecheck",
-    "docs": "vitepress dev docs",
-    "docs:build": "vitepress build docs",
-    "play": "pnpm -C playground dev",
-    "prepublishOnly": "pnpm run build",
-    "release": "standard-version",
-    "test": "pnpm run test:cov && pnpm run test:types",
-    "lint": "prettier -c --parser typescript \"src/**/*.[jt]s?(x)\"",
-    "lint:fix": "pnpm run lint --write",
-    "test:types": "tsc --build ./tsconfig.json",
-    "test:cov": "vitest run --typecheck --coverage",
-    "build": "tsup",
-    "size": "size-limit",
-    "prepare": "simple-git-hooks"
+  "license": "MIT",
+  "funding": "https://github.com/sponsors/posva",
+  "homepage": "https://github.com/posva/pinia-colada#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/posva/pinia-colada.git"
   },
-  "files": [
-    "dist",
-    "LICENSE",
-    "README.md"
-  ],
+  "bugs": {
+    "url": "https://github.com/posva/pinia-colada/issues"
+  },
   "keywords": [
     "pinia",
     "plugin",
@@ -67,7 +31,51 @@
     "cache",
     "layer"
   ],
-  "license": "MIT",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": {
+        "import": "./dist/index.d.ts",
+        "require": "./dist/index.d.cts"
+      },
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "unpkg": "dist/index.global.js",
+  "jsdelivr": "dist/index.global.js",
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/*",
+        "./*"
+      ]
+    }
+  },
+  "files": [
+    "LICENSE",
+    "README.md",
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vitest --ui --typecheck",
+    "docs": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "play": "pnpm -C playground dev",
+    "prepublishOnly": "pnpm run build",
+    "release": "standard-version",
+    "test": "pnpm run test:cov && pnpm run test:types",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
+    "test:types": "tsc --build ./tsconfig.json",
+    "test:cov": "vitest run --typecheck --coverage",
+    "build": "tsup",
+    "size": "size-limit",
+    "prepare": "simple-git-hooks"
+  },
   "size-limit": [
     {
       "name": "useQuery only",
@@ -89,12 +97,14 @@
     }
   ],
   "devDependencies": {
+    "@antfu/eslint-config": "^2.8.0",
     "@size-limit/preset-small-lib": "^11.0.2",
     "@types/node": "^20.11.24",
     "@vitejs/plugin-vue": "^5.0.4",
     "@vitest/coverage-v8": "^1.3.1",
     "@vitest/ui": "^1.3.1",
     "@vue/test-utils": "^2.4.4",
+    "eslint": "^8.57.0",
     "happy-dom": "^13.6.2",
     "lint-staged": "^15.2.2",
     "pinia": "^2.1.7",
@@ -113,19 +123,8 @@
     "commit-msg": "node scripts/verifyCommit.js"
   },
   "lint-staged": {
-    "*.{js,mjs,json,cjs,md}": [
-      "prettier --write"
-    ],
-    "*.ts?(x)": [
-      "prettier --parser=typescript --write"
+    "*.{js,mjs,json,cjs,md,ts}": [
+      "eslint --fix"
     ]
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/posva/pinia-colada.git"
-  },
-  "bugs": {
-    "url": "https://github.com/posva/pinia-colada/issues"
-  },
-  "homepage": "https://github.com/posva/pinia-colada#readme"
+  }
 }

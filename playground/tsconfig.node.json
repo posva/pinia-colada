@@ -1,17 +1,17 @@
 {
   "extends": "@tsconfig/node18/tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["node"],
+    "noEmit": true
+  },
   "include": [
     "vite.config.*",
     "vitest.config.*",
     "cypress.config.*",
     "nightwatch.conf.*",
     "playwright.config.*"
-  ],
-  "compilerOptions": {
-    "composite": true,
-    "noEmit": true,
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "types": ["node"]
-  }
+  ]
 }

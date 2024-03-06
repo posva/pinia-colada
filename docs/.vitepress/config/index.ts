@@ -5,15 +5,15 @@ export const META_URL = 'https://pinia-colada.esm.dev'
 export const META_TITLE = 'Pinia Colada 🍹'
 export const META_DESCRIPTION = 'The smart Data Fetching layer for Pinia'
 
-const rControl = /[\u0000-\u001f]/g
+const rControl = /[\u0000-\u001F]/g
 const rSpecial = /[\s~`!@#$%^&*()\-_+=[\]{}|\\;:"'“”‘’<>,.?/]+/g
 const rCombining = /[\u0300-\u036F]/g
 
 /**
  * Default slugification function
  */
-export const slugify = (str: string): string =>
-  str
+export function slugify(str: string): string {
+  return str
     .normalize('NFKD')
     // Remove accents
     .replace(rCombining, '')
@@ -23,6 +23,7 @@ export const slugify = (str: string): string =>
     .replace(rSpecial, '-')
     // ensure it doesn't start with a number
     .replace(/^(\d)/, '_$1')
+}
 
 export default defineConfig({
   title: 'Pinia Colada',
@@ -61,10 +62,10 @@ export default defineConfig({
     [
       'script',
       {
-        src: 'https://cdn.usefathom.com/script.js',
+        'src': 'https://cdn.usefathom.com/script.js',
         'data-site': 'WUXSABAN',
         'data-spa': 'auto',
-        defer: '',
+        'defer': '',
       },
     ],
   ],

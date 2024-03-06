@@ -1,21 +1,18 @@
 import {
+  computed,
+  getCurrentInstance,
+  getCurrentScope,
+  onMounted,
+  onScopeDispose,
+  onServerPrefetch,
+  toValue,
+  watch,
+} from 'vue'
+import {
   IS_CLIENT,
-  type _JSONPrimitive,
-  type _MaybeArray,
-  type _ObjectFlat,
   computedRef,
   useEventListener,
 } from './utils'
-import {
-  computed,
-  onMounted,
-  onServerPrefetch,
-  toValue,
-  onScopeDispose,
-  getCurrentScope,
-  watch,
-  getCurrentInstance,
-} from 'vue'
 import { type _UseQueryEntry_State, useQueryCache } from './query-store'
 import {
   type UseQueryOptions,
@@ -48,7 +45,7 @@ export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault>
  * @param _options - The options of the query
  */
 export function useQuery<TResult, TError = ErrorDefault>(
-  _options: UseQueryOptions<TResult>
+  _options: UseQueryOptions<TResult>,
 ): UseQueryReturn<TResult, TError> {
   const store = useQueryCache()
   const USE_QUERY_DEFAULTS = useQueryOptions()
@@ -59,7 +56,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
   } satisfies UseQueryOptionsWithDefaults<TResult>
 
   const entry = computed(() =>
-    store.ensureEntry<TResult, TError>(toValue(options.key), options)
+    store.ensureEntry<TResult, TError>(toValue(options.key), options),
   )
 
   const refresh = () => store.refresh(entry.value)
@@ -84,11 +81,11 @@ export function useQuery<TResult, TError = ErrorDefault>(
       await refresh()
       // TODO: after adding a test, remove these lines and refactor the const queryReturn to just a return statement
       // NOTE: workaround to https://github.com/vuejs/core/issues/5300
-      // eslint-disable-next-line
+      // eslint-disable-next-line no-unused-expressions, no-sequences
       queryReturn.data.value,
-        queryReturn.error.value,
-        queryReturn.isFetching.value,
-        queryReturn.isPending.value
+      queryReturn.error.value,
+      queryReturn.isFetching.value,
+      queryReturn.isPending.value
     })
   }
 
@@ -166,8 +163,8 @@ export function useQuery<TResult, TError = ErrorDefault>(
 }
 
 // TODO: createQuery with access to other properties as arguments for advanced (maybe even recommended) usage
-function createQuery<TResult, TError = ErrorDefault>(
-  setup: () => UseQueryOptions<TResult>
+function _createQuery<TResult, TError = ErrorDefault>(
+  setup: () => UseQueryOptions<TResult>,
 ) {
-  return () => useQuery(setup())
+  return () => useQuery<TResult, TError>(setup())
 }

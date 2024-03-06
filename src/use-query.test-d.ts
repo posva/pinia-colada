@@ -1,20 +1,20 @@
 import { assertType, expectTypeOf, it } from 'vitest'
+import type { Ref } from 'vue'
 import { useQuery } from './use-query'
-import { type Ref } from 'vue'
 
 it('infers the data type', () => {
   expectTypeOf<Ref<number | undefined>>(
     useQuery({
       query: () => Promise.resolve(42),
       key: ['foo'],
-    }).data
+    }).data,
   )
 
   expectTypeOf<Ref<{ name: string } | undefined>>(
     useQuery({
       query: async () => ({ name: 'Edu' }),
       key: ['foo'],
-    }).data
+    }).data,
   )
 })
 
@@ -23,7 +23,7 @@ it('can customize the error type with a type param', () => {
     useQuery<number, TypeError>({
       query: async () => 42,
       key: ['foo'],
-    }).error.value
+    }).error.value,
   )
 })
 
@@ -32,17 +32,17 @@ it('can specify the error type', () => {
     useQuery<number, TypeError>({
       query: async () => 42,
       key: ['foo'],
-    }).error
+    }).error,
   )
 })
 
 it('expects an async query', () => {
   assertType(
     useQuery({
-      // @ts-expect-error
+      // @ts-expect-error: should fail
       query: () => 42,
       key: ['foo'],
-    }).data
+    }).data,
   )
 
   // NOTE: apparently, in ts, missing the `async` still makes the function return a Promise
@@ -52,7 +52,7 @@ it('expects an async query', () => {
         throw new Error('nope')
       },
       key: ['foo'],
-    }).data
+    }).data,
   )
 })
 
@@ -85,7 +85,7 @@ it('can uses the global error type', () => {
     useQuery({
       query: async () => 42,
       key: ['foo'],
-    }).error.value
+    }).error.value,
   )
 })
 

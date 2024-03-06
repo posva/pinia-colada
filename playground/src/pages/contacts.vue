@@ -1,8 +1,7 @@
 <script lang="ts" setup>
-import { getAllContacts, searchContacts } from '@/api/contacts'
-import { useFuse } from '@vueuse/integrations/useFuse'
 import { useRouteQuery } from '@vueuse/router'
 import { useQuery } from '@pinia/colada'
+import { searchContacts } from '@/api/contacts'
 
 const searchText = useRouteQuery('search', '', { mode: 'push' })
 
@@ -17,7 +16,9 @@ const { data: searchResult, status } = useQuery({
 
 <template>
   <main class="big-layout">
-    <h1 class="mb-12">📇 My Contacts</h1>
+    <h1 class="mb-12">
+      📇 My Contacts
+    </h1>
 
     <div class="gap-4 contacts-search md:flex">
       <div>
@@ -27,11 +28,11 @@ const { data: searchResult, status } = useQuery({
             autofocus
             type="search"
             placeholder="Eduardo"
-          />
+          >
           <!-- NOTE: ensure no fetch is done on client while hydrating or this will cause
            a Hydration mismatch -->
           <div v-if="status === 'loading'">
-            <span class="spinner"></span><span> Fetching</span>
+            <span class="spinner" /><span> Fetching</span>
           </div>
         </form>
 
@@ -47,7 +48,7 @@ const { data: searchResult, status } = useQuery({
                 v-if="contact.photoURL"
                 :src="contact.photoURL"
                 class="inline-block w-8 rounded-full"
-              />
+              >
               {{ contact.firstName }} {{ contact.lastName }}
             </RouterLink>
           </li>

@@ -1,4 +1,4 @@
-import { expectTypeOf, it } from 'vitest'
+import { it } from 'vitest'
 import type { App } from 'vue'
 import { QueryPlugin } from './query-plugin'
 

@@ -1,4 +1,4 @@
-import { type App } from 'vue'
+import type { App } from 'vue'
 import {
   USE_QUERY_DEFAULTS,
   USE_QUERY_OPTIONS_KEY,
@@ -7,7 +7,7 @@ import {
 } from './query-options'
 import { useQueryCache } from './query-store'
 import { type _Simplify, noop } from './utils'
-import { type UseQueryReturn } from './use-query'
+import type { UseQueryReturn } from './use-query'
 import type { ErrorDefault } from './types-extension'
 
 export interface QueryPluginOptions
@@ -38,7 +38,7 @@ export function QueryPlugin(
     onSettled = noop,
     onError = noop,
     ...useQueryOptions
-  }: QueryPluginOptions = {}
+  }: QueryPluginOptions = {},
 ) {
   app.provide(USE_QUERY_OPTIONS_KEY, {
     ...USE_QUERY_DEFAULTS,
@@ -49,7 +49,7 @@ export function QueryPlugin(
 
   if (process.env.NODE_ENV !== 'production' && !pinia) {
     throw new Error(
-      '[@pinia/colada] root pinia plugin not detected. Make sure you install pinia before installing the "QueryPlugin" plugin.'
+      '[@pinia/colada] root pinia plugin not detected. Make sure you install pinia before installing the "QueryPlugin" plugin.',
     )
   }
 

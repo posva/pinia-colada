@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import ContactCard from '@/components/ContactCard.vue'
-import { getContactById, updateContact as _updateContact } from '@/api/contacts'
 import { useRoute } from 'vue-router/auto'
-import { useQuery, useMutation } from '@pinia/colada'
+import { useMutation, useQuery } from '@pinia/colada'
+import ContactCard from '@/components/ContactCard.vue'
+import { updateContact as _updateContact, getContactById } from '@/api/contacts'
 
 const route = useRoute('/contacts/[id]')
 

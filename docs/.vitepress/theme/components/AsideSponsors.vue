@@ -4,7 +4,7 @@
     href="https://masteringpinia.com?utm=pinia-sidebar"
     target="_blank"
   >
-    <img width="22" height="22" src="/mp-pinia-logo.svg" />
+    <img width="22" height="22" src="/mp-pinia-logo.svg">
     <span>
       <p class="extra-info">Complete guide to</p>
       <p class="heading">Mastering Pinia</p>

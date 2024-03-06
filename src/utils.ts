@@ -34,7 +34,7 @@ export function useEventListener(
   target: Document | Window | EventTarget,
   event: string,
   listener: (this: EventTarget, ev: Event) => any,
-  options?: boolean | AddEventListenerOptions
+  options?: boolean | AddEventListenerOptions,
 ) {
   target.addEventListener(event, listener, options)
   if (getCurrentScope()) {
@@ -100,7 +100,7 @@ export const noop = () => {}
  */
 export function delayLoadingRef(
   refOrGetter: Ref<boolean> | ComputedRef<boolean> | (() => boolean),
-  delay = 300
+  delay = 300,
 ) {
   const isDelayElapsed = ref(toValue(refOrGetter))
   const newRef = computed(() => toValue(refOrGetter) && isDelayElapsed.value)
@@ -134,5 +134,5 @@ export function delayLoadingRef(
 export const computedRef = <T>(other: () => Ref<T>): ShallowRef<T> =>
   computed({
     get: () => other().value,
-    set: (value) => (other().value = value),
+    set: value => (other().value = value),
   })
