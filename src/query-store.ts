@@ -63,6 +63,7 @@ export interface UseQueryEntry<TResult = unknown, TError = unknown>
   when: number
 
   pending: null | {
+    abortController: AbortController
     refreshCall: Promise<void>
     when: number
   }
@@ -253,9 +254,14 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
 
     // we create an object and verify we are the most recent pending request
     // before doing anything
-    const signalController = new AbortController()
-    const { signal } = signalController
+    const abortController = new AbortController()
+    const { signal } = abortController
+    // abort any ongoing request
+    // TODO: test
+    entry.pending?.abortController.abort()
+
     const pendingCall = (entry.pending = {
+      abortController,
       refreshCall: entry
         .options!.query({ signal })
         .then((data) => {

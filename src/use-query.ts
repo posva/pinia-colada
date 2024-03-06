@@ -163,7 +163,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
 }
 
 // TODO: createQuery with access to other properties as arguments for advanced (maybe even recommended) usage
-function _createQuery<TResult, TError = ErrorDefault>(
+function _defineQuery<TResult, TError = ErrorDefault>(
   setup: () => UseQueryOptions<TResult>,
 ) {
   return () => useQuery<TResult, TError>(setup())
