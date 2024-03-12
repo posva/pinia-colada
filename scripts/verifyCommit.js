@@ -15,13 +15,12 @@ const commitRE
   = /^(revert: )?(feat|fix|docs|dx|style|refactor|perf|test|workflow|build|ci|chore|types|wip|release)(\(.+\))?!?: .{1,50}/
 
 if (!commitRE.test(msg)) {
-  console.log()
-  console.error(
-    `  ${bgRedWhite} ERROR ${reset} ${red}invalid commit message format.${reset}\n\n`
-    + `${red}  Proper commit message format is required for automated changelog generation. Examples:\n\n`
-    + `    ${green}feat: add disableRoot option${reset}\n`
-    + `    ${green}fix(view): handle keep-alive with aborted navigations (close #28)${reset}\n\n`
-    + `${red}  See .github/commit-convention.md for more details.${reset}\n`,
+  console.error(`\n`
+  + `  ${bgRedWhite} ERROR ${reset} ${red}invalid commit message format.${reset}\n\n`
+  + `${red}  Proper commit message format is required for automated changelog generation. Examples:\n\n`
+  + `    ${green}feat: add disableRoot option${reset}\n`
+  + `    ${green}fix(view): handle keep-alive with aborted navigations (close #28)${reset}\n\n`
+  + `${red}  See .github/commit-convention.md for more details.${reset}\n`,
   )
   process.exit(1)
 }

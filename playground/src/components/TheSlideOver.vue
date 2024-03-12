@@ -8,8 +8,8 @@ import {
 } from '@headlessui/vue'
 import { XMarkIcon } from '@heroicons/vue/24/outline'
 
-defineProps<{ open: boolean }>()
 const emit = defineEmits(['close'])
+const open = defineModel<boolean>('open', { default: false })
 </script>
 
 <template>
