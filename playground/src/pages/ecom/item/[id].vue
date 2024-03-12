@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, watch } from 'vue'
 import { StarIcon } from '@heroicons/vue/20/solid'
 import { HeartIcon } from '@heroicons/vue/24/outline'
 import { useMutation, useQuery } from '@pinia/colada'
@@ -19,9 +20,27 @@ const { data: item, isPending } = useQuery({
   staleTime: 15000,
 })
 
+const itemAvailability = ref()
+watch(() => item.value?.availability, value => itemAvailability.value = value)
+
 const { mutate: bookProduct } = useMutation({
-  keys: product => [['items', product.id]],
-  mutation: (product: ProductListItem) => changeProductAvailability(product),
+  keys: product => [['items'], ['items', product.id]],
+  mutation: (product: ProductListItem) => changeProductAvailability(product, undefined, 1500),
+  // NOTE: the optimistic update only works if there are no parallele updates
+  onMutate: (product) => {
+    itemAvailability.value = product.availability - 1
+  },
+  onError() {
+    itemAvailability.value = item.value?.availability
+  },
+  onSuccess(data) {
+    // TODO: find a better usecase
+    console.log('Success hook called', data)
+  },
+  onSettled() {
+    // TODO: find a better usecase
+    console.log('Settled hook called')
+  },
   // onMutate: async () => {
   //   // Cancel any outgoing refetches
   //   // (so they don't overwrite our optimistic update)
@@ -107,7 +126,7 @@ const { mutate: bookProduct } = useMutation({
             />
           </div>
 
-          <div>Availability: {{ item?.availability }}</div>
+          <div>Availability: {{ itemAvailability }}</div>
 
           <div class="flex mt-10">
             <button

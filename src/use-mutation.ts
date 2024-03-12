@@ -23,6 +23,26 @@ export interface UseMutationOptions<
    */
   keys?: _MutationKeys<TParams, TResult>
 
+  /**
+   * Hook to execute a callback when the mutation is triggered
+   */
+  onMutate?: (...args: TParams) => void
+
+  /**
+   * Hook to execute a callback in case of error
+   */
+  onError?: (error: any) => void
+
+  /**
+   * Hook to execute a callback in case of error
+   */
+  onSuccess?: (result: TResult) => void
+
+  /**
+   * Hook to execute a callback in case of error
+   */
+  onSettled?: () => void
+
   // TODO: invalidate options exact, refetch, etc
 }
 
@@ -85,10 +105,17 @@ export function useMutation<
   function mutate(...args: TParams) {
     status.value = 'loading'
 
+    if (options.onMutate) {
+      options.onMutate(...args)
+    }
+
     // TODO: AbortSignal that is aborted when the mutation is called again so we can throw in pending
     const promise = (pendingPromise = options
       .mutation(...args)
       .then((_data) => {
+        if (options.onSuccess) {
+          options.onSuccess(_data)
+        }
         if (pendingPromise === promise) {
           data.value = _data
           error.value = null
@@ -111,7 +138,15 @@ export function useMutation<
           error.value = _error
           status.value = 'error'
         }
+        if (options.onError) {
+          options.onError(_error)
+        }
         throw _error
+      })
+      .finally(async () => {
+        if (options.onSettled) {
+          options.onSettled()
+        }
       }))
 
     return promise

@@ -58,7 +58,7 @@
       "color": "Sienna",
       "imagesrc": "https://tailwindui.com/img/ecommerce-images/shopping-cart-page-01-product-01.jpg",
       "price": 24,
-      "availability": -2
+      "availability": 1
     },
     {
       "id": 4,
@@ -66,7 +66,7 @@
       "color": "Grey",
       "imagesrc": "https://tailwindui.com/img/ecommerce-images/product-page-01-related-product-03.jpg",
       "price": 24,
-      "availability": 11
+      "availability": 0
     },
     {
       "id": 5,

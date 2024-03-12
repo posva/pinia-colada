@@ -31,7 +31,7 @@ describe('useMutation', () => {
         render: () => null,
         setup() {
           return {
-            ...useMutation<TResult>({
+            ...useMutation<TResult, TParams>({
               ...options,
               // @ts-expect-error: generic unmatched but types work
               mutation,
@@ -55,5 +55,86 @@ describe('useMutation', () => {
     await runTimers()
 
     expect(wrapper.vm.data).toBe(42)
+  })
+
+  it('invokes the `onMutate` hook', async () => {
+    let foo
+    const { wrapper } = mountSimple({
+      mutation: async (arg: number) => {
+        await delay(0)
+        return arg + 42
+      },
+      onMutate: arg => foo = arg,
+    })
+
+    expect(foo).toBeUndefined()
+    wrapper.vm.mutate(24)
+    expect(foo).toBe(24)
+  })
+
+  it('invokes the `onError` hook', async () => {
+    let foo
+    const { wrapper } = mountSimple({
+      mutation: async () => {
+        await delay(0)
+        throw new Error('bar')
+      },
+      onError(err) {
+        foo = err.message
+      },
+    })
+
+    expect(wrapper.vm.mutate()).rejects.toThrow()
+    expect(foo).toBeUndefined()
+    await runTimers()
+    expect(foo).toBe('bar')
+  })
+
+  it('invokes the `onSuccess` hook', async () => {
+    let foo
+    const { wrapper } = mountSimple({
+      onSuccess(val) {
+        foo = val
+      },
+    })
+
+    wrapper.vm.mutate()
+    expect(foo).toBeUndefined()
+    await runTimers()
+    expect(foo).toBe(42)
+  })
+
+  describe('invokes the `onSettled` hook', () => {
+    it('on success', async () => {
+      let foo
+      const { wrapper } = mountSimple({
+        onSettled() {
+          foo = 24
+        },
+      })
+
+      wrapper.vm.mutate()
+      expect(foo).toBeUndefined()
+      await runTimers()
+      expect(foo).toBe(24)
+    })
+
+    it('on error', async () => {
+      let foo
+      const { wrapper } = mountSimple({
+        mutation: async () => {
+          await delay(0)
+          throw new Error('bar')
+        },
+        onSettled() {
+          foo = 24
+        },
+      })
+
+      expect(wrapper.vm.mutate()).rejects.toThrow()
+      expect(foo).toBeUndefined()
+      await runTimers()
+      expect(foo).toBe(24)
+    })
   })
 })
