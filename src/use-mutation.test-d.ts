@@ -21,3 +21,85 @@ it('can return an array of keys', () => {
     },
   })
 })
+
+it('can infer the arguments from the mutation', () => {
+  useMutation({
+    mutation: (_one: string, _two: number) => Promise.resolve({ name: 'foo' }),
+    onSuccess({ args }) {
+      expectTypeOf(args).toEqualTypeOf<[string, number]>()
+    },
+    onError({ args }) {
+      expectTypeOf(args).toEqualTypeOf<[string, number]>()
+    },
+    onSettled({ args }) {
+      expectTypeOf(args).toEqualTypeOf<[string, number]>()
+    },
+  })
+})
+
+it('can infer the data from the mutation', () => {
+  useMutation({
+    mutation: () => Promise.resolve(42),
+    onSuccess({ data }) {
+      expectTypeOf(data).toEqualTypeOf<number>()
+    },
+    onSettled({ data }) {
+      expectTypeOf(data).toEqualTypeOf<number | undefined>()
+    },
+  })
+})
+
+it('can infer the context from sync onMutate', () => {
+  useMutation({
+    mutation: () => Promise.resolve(42),
+    onMutate() {
+      return { foo: 'bar' }
+    },
+    onSuccess({ context }) {
+      expectTypeOf(context).toEqualTypeOf<{ foo: string }>()
+    },
+    onError({ context }) {
+      expectTypeOf(context).toEqualTypeOf<{ foo: string }>()
+    },
+    onSettled({ context }) {
+      expectTypeOf(context).toEqualTypeOf<{ foo: string }>()
+    },
+  })
+})
+
+it('can infer the context from async onMutate', () => {
+  useMutation({
+    mutation: () => Promise.resolve(42),
+    async onMutate() {
+      return { foo: 'bar' }
+    },
+    onSuccess({ context }) {
+      expectTypeOf(context).toEqualTypeOf<{ foo: string }>()
+    },
+    onError({ context }) {
+      expectTypeOf(context).toEqualTypeOf<{ foo: string }>()
+    },
+    onSettled({ context }) {
+      expectTypeOf(context).toEqualTypeOf<{ foo: string }>()
+    },
+  })
+})
+
+it('can infer a context of void', () => {
+  useMutation({
+    mutation: () => Promise.resolve(42),
+    onMutate() {
+      // no return
+    },
+
+    onSuccess({ context }) {
+      expectTypeOf(context).toEqualTypeOf<void>()
+    },
+    onError({ context }) {
+      expectTypeOf(context).toEqualTypeOf<void>()
+    },
+    onSettled({ context }) {
+      expectTypeOf(context).toEqualTypeOf<void>()
+    },
+  })
+})

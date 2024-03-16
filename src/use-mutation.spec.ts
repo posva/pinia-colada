@@ -48,6 +48,7 @@ describe('useMutation', () => {
     )
     return Object.assign([wrapper, mutation] as const, { wrapper, mutation })
   }
+
   it('invokes the mutation', async () => {
     const { wrapper } = mountSimple()
 
@@ -58,10 +59,9 @@ describe('useMutation', () => {
   })
 
   it('invokes the `onMutate` hook', async () => {
-    const onMutate = vi.fn(() => 0)
+    const onMutate = vi.fn()
     const { wrapper } = mountSimple({
       mutation: async (arg1: number, arg2: number) => {
-        await delay(0)
         return arg1 + arg2
       },
       onMutate,
@@ -72,66 +72,69 @@ describe('useMutation', () => {
   })
 
   it('invokes the `onError` hook', async () => {
-    const onError = vi.fn(() => 0)
+    const onError = vi.fn()
     const { wrapper } = mountSimple({
-      mutation: async (arg1: number, arg2: number) => {
-        await delay(0)
-        throw new Error(String(arg1 + arg2))
+      mutation: async (n: number) => {
+        throw new Error(String(n))
       },
       onError,
     })
 
-    expect(wrapper.vm.mutate(24, 42)).rejects.toThrow()
+    expect(wrapper.vm.mutate(24)).rejects.toThrow()
     expect(onError).not.toHaveBeenCalled()
     await runTimers()
-    expect(onError).toHaveBeenCalledWith(24, 42)
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({
+      error: new Error('24'),
+      args: [24],
+    }))
   })
 
   it('invokes the `onSuccess` hook', async () => {
-    let foo
+    const onSuccess = vi.fn()
     const { wrapper } = mountSimple({
-      onSuccess(val) {
-        foo = val
-      },
+      onSuccess,
     })
 
     wrapper.vm.mutate()
-    expect(foo).toBeUndefined()
     await runTimers()
-    expect(foo).toBe(42)
+    expect(onSuccess).toHaveBeenCalledWith(expect.objectContaining({
+      data: 42,
+      args: [],
+    }))
   })
 
   describe('invokes the `onSettled` hook', () => {
     it('on success', async () => {
-      let foo
+      const onSettled = vi.fn()
       const { wrapper } = mountSimple({
-        onSettled() {
-          foo = 24
-        },
+        onSettled,
       })
 
       wrapper.vm.mutate()
-      expect(foo).toBeUndefined()
       await runTimers()
-      expect(foo).toBe(24)
+      expect(onSettled).toHaveBeenCalledWith(expect.objectContaining({
+        error: null,
+        data: 42,
+        args: [],
+      }))
     })
 
     it('on error', async () => {
-      let foo
+      const onSettled = vi.fn()
       const { wrapper } = mountSimple({
         mutation: async () => {
-          await delay(0)
           throw new Error('foobar')
         },
-        onSettled() {
-          foo = 24
-        },
+        onSettled,
       })
 
       expect(wrapper.vm.mutate()).rejects.toThrow()
-      expect(foo).toBeUndefined()
       await runTimers()
-      expect(foo).toBe(24)
+      expect(onSettled).toHaveBeenCalledWith(expect.objectContaining({
+        error: new Error('foobar'),
+        data: undefined,
+        args: [],
+      }))
     })
   })
 })
