@@ -45,7 +45,7 @@ export interface UseMutationOptions<
   /**
    * Hook to execute a callback in case of error
    */
-  onSettled?: (context: { data: TResult | undefined, error: TError | null, args: TParams, context: TContext }) => void
+  onSettled?: (context: { data: TResult | undefined, error: TError | null, args: TParams, context: TContext }) => unknown
 
   // TODO: invalidate options exact, refetch, etc
 }
@@ -158,14 +158,12 @@ export function useMutation<
     status.value = 'pending'
   }
 
-  const mutationReturn = {
+  return {
     data,
     isLoading: computed(() => status.value === 'loading'),
     status,
     error,
     mutate,
     reset,
-  } satisfies UseMutationReturn<TResult, TParams, TError>
-
-  return mutationReturn
+  }
 }
