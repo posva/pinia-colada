@@ -28,9 +28,11 @@ const { mutate: bookProduct } = useMutation({
   mutation: (product: ProductListItem) => changeProductAvailability(product, undefined, 1500),
   // NOTE: the optimistic update only works if there are no parallele updates
   onMutate: (product) => {
+    const context = { previousAvailability: product.availability }
     itemAvailability.value = product.availability - 1
+    return context
   },
-  onError() {
+  onError({ context }) {
     itemAvailability.value = item.value?.availability
   },
   onSuccess(data) {

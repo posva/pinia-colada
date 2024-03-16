@@ -58,36 +58,33 @@ describe('useMutation', () => {
   })
 
   it('invokes the `onMutate` hook', async () => {
-    let foo
+    const onMutate = vi.fn(() => 0)
     const { wrapper } = mountSimple({
-      mutation: async (arg: number) => {
+      mutation: async (arg1: number, arg2: number) => {
         await delay(0)
-        return arg + 42
+        return arg1 + arg2
       },
-      onMutate: arg => foo = arg,
+      onMutate,
     })
-
-    expect(foo).toBeUndefined()
-    wrapper.vm.mutate(24)
-    expect(foo).toBe(24)
+    expect(onMutate).not.toHaveBeenCalled()
+    wrapper.vm.mutate(24, 42)
+    expect(onMutate).toHaveBeenCalledWith(24, 42)
   })
 
   it('invokes the `onError` hook', async () => {
-    let foo
+    const onError = vi.fn(() => 0)
     const { wrapper } = mountSimple({
-      mutation: async () => {
+      mutation: async (arg1: number, arg2: number) => {
         await delay(0)
-        throw new Error('bar')
+        throw new Error(String(arg1 + arg2))
       },
-      onError(err) {
-        foo = err.message
-      },
+      onError,
     })
 
-    expect(wrapper.vm.mutate()).rejects.toThrow()
-    expect(foo).toBeUndefined()
+    expect(wrapper.vm.mutate(24, 42)).rejects.toThrow()
+    expect(onError).not.toHaveBeenCalled()
     await runTimers()
-    expect(foo).toBe('bar')
+    expect(onError).toHaveBeenCalledWith(24, 42)
   })
 
   it('invokes the `onSuccess` hook', async () => {
@@ -124,7 +121,7 @@ describe('useMutation', () => {
       const { wrapper } = mountSimple({
         mutation: async () => {
           await delay(0)
-          throw new Error('bar')
+          throw new Error('foobar')
         },
         onSettled() {
           foo = 24

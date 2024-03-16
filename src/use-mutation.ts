@@ -11,6 +11,8 @@ type _MutationKeys<TParams extends readonly any[], TResult> =
 export interface UseMutationOptions<
   TResult = unknown,
   TParams extends readonly unknown[] = readonly [],
+  TError = ErrorDefault,
+  TContext = any, // TODO: type as `unknown`
 > {
   /**
    * The key of the mutation. If the mutation is successful, it will invalidate the query with the same key and refetch it
@@ -26,22 +28,25 @@ export interface UseMutationOptions<
   /**
    * Hook to execute a callback when the mutation is triggered
    */
-  onMutate?: (...args: TParams) => void
+  onMutate?: (...args: TParams) => Promise<TContext | void> | TContext | void
+  // onMutate?: (...args: TParams) => TContext
 
   /**
    * Hook to execute a callback in case of error
    */
-  onError?: (error: any) => void
+  onError?: (context: { error: TError, args: TParams, context: TContext }) => Promise<TContext | void> | TContext | void
+  // TODO: check that eh contact is well not obligatoire
+  // onError?: (context: { error: TError, args: TParams } & TContext) => Promise<TContext | void> | TContext | void
 
   /**
    * Hook to execute a callback in case of error
    */
-  onSuccess?: (result: TResult) => void
+  onSuccess?: (context: { result: TResult, args: TParams, context: TContext }) => Promise<TContext | void> | TContext | void
 
   /**
    * Hook to execute a callback in case of error
    */
-  onSettled?: () => void
+  onSettled?: (context: { result: TResult, error: TError, args: TParams, context: TContext }) => void
 
   // TODO: invalidate options exact, refetch, etc
 }
@@ -91,6 +96,7 @@ export function useMutation<
   TResult,
   TParams extends readonly unknown[] = readonly [],
   TError = ErrorDefault,
+  TContext = unknown,
 >(
   options: UseMutationOptions<TResult, TParams>,
 ): UseMutationReturn<TResult, TParams, TError> {
@@ -99,14 +105,16 @@ export function useMutation<
   const status = shallowRef<UseQueryStatus>('pending')
   const data = shallowRef<TResult>()
   const error = shallowRef<TError | null>(null)
+  let hookContext: TContext
 
   // a pending promise allows us to discard previous ongoing requests
   let pendingPromise: Promise<TResult> | null = null
-  function mutate(...args: TParams) {
+  // NOTE: do a mutation context?
+  async function mutate(...args: TParams) {
     status.value = 'loading'
 
     if (options.onMutate) {
-      options.onMutate(...args)
+      hookContext = options.onMutate(...args)
     }
 
     // TODO: AbortSignal that is aborted when the mutation is called again so we can throw in pending
@@ -114,7 +122,7 @@ export function useMutation<
       .mutation(...args)
       .then((_data) => {
         if (options.onSuccess) {
-          options.onSuccess(_data)
+          options.onSuccess({ result: _data, args, context: hookContext })
         }
         if (pendingPromise === promise) {
           data.value = _data
@@ -139,13 +147,14 @@ export function useMutation<
           status.value = 'error'
         }
         if (options.onError) {
-          options.onError(_error)
+          options.onError({ error: error.value, args, context: hookContext })
         }
         throw _error
       })
       .finally(async () => {
         if (options.onSettled) {
-          options.onSettled()
+          // TODO: TS
+          options.onSettled({ result: data.value, error: error.value, args, context: hookContext })
         }
       }))
 
