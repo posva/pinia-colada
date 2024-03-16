@@ -53,6 +53,12 @@ export const IS_CLIENT = typeof window !== 'undefined'
 export type _MaybeArray<T> = T | T[]
 
 /**
+ * Type that represents a value that can be a promise or a single value.
+ * @internal
+ */
+export type _Awaitable<T> = T | Promise<T>
+
+/**
  * Flattens an object type for readability.
  * @internal
  */

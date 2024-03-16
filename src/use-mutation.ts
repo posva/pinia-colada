@@ -3,6 +3,7 @@ import type { ComputedRef, ShallowRef } from 'vue'
 import { type UseQueryStatus, useQueryCache } from './query-store'
 import type { UseQueryKey } from './query-options'
 import type { ErrorDefault } from './types-extension'
+import type { _Awaitable } from './utils'
 
 type _MutationKeys<TParams extends readonly any[], TResult> =
   | UseQueryKey[]
@@ -11,6 +12,8 @@ type _MutationKeys<TParams extends readonly any[], TResult> =
 export interface UseMutationOptions<
   TResult = unknown,
   TParams extends readonly unknown[] = readonly [],
+  TError = ErrorDefault,
+  TContext = unknown,
 > {
   /**
    * The key of the mutation. If the mutation is successful, it will invalidate the query with the same key and refetch it
@@ -22,6 +25,27 @@ export interface UseMutationOptions<
    * Keys to invalidate if the mutation succeeds so that `useQuery()` refetch if used.
    */
   keys?: _MutationKeys<TParams, TResult>
+
+  /**
+   * Hook to execute a callback when the mutation is triggered
+   */
+  onMutate?: (...args: TParams) => _Awaitable<TContext>
+
+  /**
+   * Hook to execute a callback in case of error
+   */
+  onError?: (context: { error: TError, args: TParams, context: TContext }) => unknown
+  // onError?: (context: { error: TError, args: TParams } & TContext) => Promise<TContext | void> | TContext | void
+
+  /**
+   * Hook to execute a callback in case of error
+   */
+  onSuccess?: (context: { data: TResult, args: TParams, context: TContext }) => unknown
+
+  /**
+   * Hook to execute a callback in case of error
+   */
+  onSettled?: (context: { data: TResult | undefined, error: TError | null, args: TParams, context: TContext }) => unknown
 
   // TODO: invalidate options exact, refetch, etc
 }
@@ -71,8 +95,9 @@ export function useMutation<
   TResult,
   TParams extends readonly unknown[] = readonly [],
   TError = ErrorDefault,
+  TContext = void,
 >(
-  options: UseMutationOptions<TResult, TParams>,
+  options: UseMutationOptions<TResult, TParams, TError, TContext>,
 ): UseMutationReturn<TResult, TParams, TError> {
   const store = useQueryCache()
 
@@ -82,21 +107,27 @@ export function useMutation<
 
   // a pending promise allows us to discard previous ongoing requests
   let pendingPromise: Promise<TResult> | null = null
-  function mutate(...args: TParams) {
+
+  async function mutate(...args: TParams) {
     status.value = 'loading'
+
+    // TODO: should this context be passed to mutation() and ...args transformed into one object?
+    const context = (await options.onMutate?.(...args)) as TContext
 
     // TODO: AbortSignal that is aborted when the mutation is called again so we can throw in pending
     const promise = (pendingPromise = options
       .mutation(...args)
-      .then((_data) => {
+      .then(async (newData) => {
+        await options.onSuccess?.({ data: newData, args, context })
+
         if (pendingPromise === promise) {
-          data.value = _data
+          data.value = newData
           error.value = null
           status.value = 'success'
           if (options.keys) {
             const keys
               = typeof options.keys === 'function'
-                ? options.keys(_data, ...args)
+                ? options.keys(newData, ...args)
                 : options.keys
             for (const key of keys) {
               // TODO: find a way to pass a source of the invalidation, could be a symbol associated with the mutation, the parameters
@@ -104,14 +135,18 @@ export function useMutation<
             }
           }
         }
-        return _data
+        return newData
       })
-      .catch((_error) => {
+      .catch(async (newError) => {
         if (pendingPromise === promise) {
-          error.value = _error
+          error.value = newError
           status.value = 'error'
         }
-        throw _error
+        await options.onError?.({ error: newError, args, context })
+        throw newError
+      })
+      .finally(async () => {
+        await options.onSettled?.({ data: data.value, error: error.value, args, context })
       }))
 
     return promise
@@ -123,14 +158,12 @@ export function useMutation<
     status.value = 'pending'
   }
 
-  const mutationReturn = {
+  return {
     data,
     isLoading: computed(() => status.value === 'loading'),
     status,
     error,
     mutate,
     reset,
-  } satisfies UseMutationReturn<TResult, TParams, TError>
-
-  return mutationReturn
+  }
 }
