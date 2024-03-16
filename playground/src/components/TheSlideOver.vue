@@ -46,6 +46,7 @@ const open = defineModel<boolean>('open', { default: false })
                         <button
                           type="button"
                           class="relative text-gray-400 bg-white rounded-md hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                          @click="open = false"
                         >
                           <span class="absolute -inset-2.5" />
                           <span class="sr-only">Close panel</span>

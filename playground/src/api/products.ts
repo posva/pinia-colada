@@ -1,5 +1,4 @@
 import { type Options, mande } from 'mande'
-import { delay } from './utils'
 
 export const products = mande('http://localhost:7777/products', {})
 
@@ -27,8 +26,7 @@ export function getProductById(id: string | number, options?: Options<'json'>) {
   return products.get<ProductT>(id, options)
 }
 
-export async function changeProductAvailability(product: ProductListItem, options?: Options<'json'>, _delay?: number) {
-  await delay(_delay ?? 0)
+export async function changeProductAvailability(product: ProductListItem, options?: Options<'json'>) {
   if (product.availability < 1) {
     throw new Error('Product not available')
   }

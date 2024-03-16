@@ -5,6 +5,7 @@ import { HeartIcon } from '@heroicons/vue/24/outline'
 import { useMutation, useQuery } from '@pinia/colada'
 import { useRoute } from 'vue-router/auto'
 import { type ProductListItem, changeProductAvailability, getProductById } from '@/api/products'
+import { delay } from '@/api/utils'
 
 const route = useRoute('/ecom/item/[id]')
 
@@ -25,7 +26,10 @@ watch(() => item.value?.availability, value => itemAvailability.value = value)
 
 const { mutate: bookProduct } = useMutation({
   keys: product => [['items'], ['items', product.id]],
-  mutation: (product: ProductListItem) => changeProductAvailability(product, undefined, 1500),
+  mutation: async (product: ProductListItem) => {
+    await delay(Math.random() * 1000 + 200)
+    return changeProductAvailability(product, undefined)
+  },
   // NOTE: the optimistic update only works if there are no parallele updates
   onMutate: (product) => {
     const context = { previousAvailability: product.availability }
