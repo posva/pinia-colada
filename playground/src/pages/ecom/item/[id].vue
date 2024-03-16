@@ -36,7 +36,7 @@ const { mutate: bookProduct } = useMutation({
     itemAvailability.value = product.availability - 1
     return context
   },
-  onError({ context }) {
+  onError() {
     itemAvailability.value = item.value?.availability
   },
   onSuccess(data) {
