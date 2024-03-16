@@ -202,7 +202,8 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
         // reset any pending request
         entry.pending = null
         // force refresh
-        refetch(entry)
+        // TODO: test that it returns a promise that resolves when the refresh is done
+        return refetch(entry)
       }
     }
   }
