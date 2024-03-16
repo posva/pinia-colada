@@ -13,7 +13,7 @@ export interface UseMutationOptions<
   TResult = unknown,
   TParams extends readonly unknown[] = readonly [],
   TError = ErrorDefault,
-  TContext = unknown,
+  TContext extends Record<any, any> | void | null = void,
 > {
   /**
    * The key of the mutation. If the mutation is successful, it will invalidate the query with the same key and refetch it
@@ -95,7 +95,7 @@ export function useMutation<
   TResult,
   TParams extends readonly unknown[] = readonly [],
   TError = ErrorDefault,
-  TContext = void,
+  TContext extends Record<any, any> | void | null = void,
 >(
   options: UseMutationOptions<TResult, TParams, TError, TContext>,
 ): UseMutationReturn<TResult, TParams, TError> {

@@ -67,6 +67,34 @@ it('can infer the context from sync onMutate', () => {
   })
 })
 
+it('must return an object in onMutate', () => {
+  useMutation({
+    mutation: () => Promise.resolve(42),
+    // @ts-expect-error: must return an object
+    onMutate() {
+      return 42
+    },
+  })
+})
+
+it('can return undefined in onMutate', () => {
+  useMutation({
+    mutation: () => Promise.resolve(42),
+    onMutate() {
+      return undefined
+    },
+  })
+})
+
+it('can return null in onMutate', () => {
+  useMutation({
+    mutation: () => Promise.resolve(42),
+    onMutate() {
+      return null
+    },
+  })
+})
+
 it('can infer the context from async onMutate', () => {
   useMutation({
     mutation: () => Promise.resolve(42),
