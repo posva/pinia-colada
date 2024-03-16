@@ -3,6 +3,7 @@ import type { ComputedRef, ShallowRef } from 'vue'
 import { type UseQueryStatus, useQueryCache } from './query-store'
 import type { UseQueryKey } from './query-options'
 import type { ErrorDefault } from './types-extension'
+import type { _Awaitable } from './utils'
 
 type _MutationKeys<TParams extends readonly any[], TResult> =
   | UseQueryKey[]
@@ -12,7 +13,7 @@ export interface UseMutationOptions<
   TResult = unknown,
   TParams extends readonly unknown[] = readonly [],
   TError = ErrorDefault,
-  TContext = any, // TODO: type as `unknown`
+  TContext = unknown,
 > {
   /**
    * The key of the mutation. If the mutation is successful, it will invalidate the query with the same key and refetch it
@@ -28,25 +29,23 @@ export interface UseMutationOptions<
   /**
    * Hook to execute a callback when the mutation is triggered
    */
-  onMutate?: (...args: TParams) => Promise<TContext | void> | TContext | void
-  // onMutate?: (...args: TParams) => TContext
+  onMutate?: (...args: TParams) => _Awaitable<TContext>
 
   /**
    * Hook to execute a callback in case of error
    */
-  onError?: (context: { error: TError, args: TParams, context: TContext }) => Promise<TContext | void> | TContext | void
-  // TODO: check that eh contact is well not obligatoire
+  onError?: (context: { error: TError, args: TParams, context: TContext }) => unknown
   // onError?: (context: { error: TError, args: TParams } & TContext) => Promise<TContext | void> | TContext | void
 
   /**
    * Hook to execute a callback in case of error
    */
-  onSuccess?: (context: { result: TResult, args: TParams, context: TContext }) => Promise<TContext | void> | TContext | void
+  onSuccess?: (context: { data: TResult, args: TParams, context: TContext }) => unknown
 
   /**
    * Hook to execute a callback in case of error
    */
-  onSettled?: (context: { result: TResult, error: TError, args: TParams, context: TContext }) => void
+  onSettled?: (context: { data: TResult | undefined, error: TError | null, args: TParams, context: TContext }) => void
 
   // TODO: invalidate options exact, refetch, etc
 }
@@ -96,42 +95,39 @@ export function useMutation<
   TResult,
   TParams extends readonly unknown[] = readonly [],
   TError = ErrorDefault,
-  TContext = unknown,
+  TContext = void,
 >(
-  options: UseMutationOptions<TResult, TParams>,
+  options: UseMutationOptions<TResult, TParams, TError, TContext>,
 ): UseMutationReturn<TResult, TParams, TError> {
   const store = useQueryCache()
 
   const status = shallowRef<UseQueryStatus>('pending')
   const data = shallowRef<TResult>()
   const error = shallowRef<TError | null>(null)
-  let hookContext: TContext
 
   // a pending promise allows us to discard previous ongoing requests
   let pendingPromise: Promise<TResult> | null = null
-  // NOTE: do a mutation context?
+
   async function mutate(...args: TParams) {
     status.value = 'loading'
 
-    if (options.onMutate) {
-      hookContext = options.onMutate(...args)
-    }
+    // TODO: should this context be passed to mutation() and ...args transformed into one object?
+    const context = (await options.onMutate?.(...args)) as TContext
 
     // TODO: AbortSignal that is aborted when the mutation is called again so we can throw in pending
     const promise = (pendingPromise = options
       .mutation(...args)
-      .then((_data) => {
-        if (options.onSuccess) {
-          options.onSuccess({ result: _data, args, context: hookContext })
-        }
+      .then(async (newData) => {
+        await options.onSuccess?.({ data: newData, args, context })
+
         if (pendingPromise === promise) {
-          data.value = _data
+          data.value = newData
           error.value = null
           status.value = 'success'
           if (options.keys) {
             const keys
               = typeof options.keys === 'function'
-                ? options.keys(_data, ...args)
+                ? options.keys(newData, ...args)
                 : options.keys
             for (const key of keys) {
               // TODO: find a way to pass a source of the invalidation, could be a symbol associated with the mutation, the parameters
@@ -139,23 +135,18 @@ export function useMutation<
             }
           }
         }
-        return _data
+        return newData
       })
-      .catch((_error) => {
+      .catch(async (newError) => {
         if (pendingPromise === promise) {
-          error.value = _error
+          error.value = newError
           status.value = 'error'
         }
-        if (options.onError) {
-          options.onError({ error: error.value, args, context: hookContext })
-        }
-        throw _error
+        await options.onError?.({ error: newError, args, context })
+        throw newError
       })
       .finally(async () => {
-        if (options.onSettled) {
-          // TODO: TS
-          options.onSettled({ result: data.value, error: error.value, args, context: hookContext })
-        }
+        await options.onSettled?.({ data: data.value, error: error.value, args, context })
       }))
 
     return promise
