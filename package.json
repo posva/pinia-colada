@@ -97,9 +97,9 @@
     }
   ],
   "devDependencies": {
-    "@antfu/eslint-config": "^2.8.0",
+    "@antfu/eslint-config": "^2.8.3",
     "@size-limit/preset-small-lib": "^11.0.2",
-    "@types/node": "^20.11.24",
+    "@types/node": "^20.11.28",
     "@vitejs/plugin-vue": "^5.0.4",
     "@vitest/coverage-v8": "^1.4.0",
     "@vitest/ui": "^1.4.0",
@@ -113,7 +113,7 @@
     "size-limit": "^11.0.2",
     "standard-version": "^9.5.0",
     "tsup": "^8.0.2",
-    "typescript": "~5.3.3",
+    "typescript": "~5.4.2",
     "vitepress": "1.0.0-rc.44",
     "vitest": "^1.4.0",
     "vue": "^3.4.21"
