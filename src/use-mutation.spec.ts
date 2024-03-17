@@ -16,7 +16,7 @@ describe('useMutation', () => {
     vi.restoreAllMocks()
   })
 
-  function mountSimple<TResult = number, TParams extends any[] = []>(
+  function mountSimple<TResult = number, TParams = void>(
     options: Partial<UseMutationOptions<TResult, TParams>> = {},
     mountOptions?: GlobalMountOptions,
   ) {
@@ -61,14 +61,14 @@ describe('useMutation', () => {
   it('invokes the `onMutate` hook', async () => {
     const onMutate = vi.fn()
     const { wrapper } = mountSimple({
-      mutation: async (arg1: number, arg2: number) => {
-        return arg1 + arg2
+      mutation: async ({ a, b }: { a: number, b: number }) => {
+        return a + b
       },
       onMutate,
     })
     expect(onMutate).not.toHaveBeenCalled()
-    wrapper.vm.mutate(24, 42)
-    expect(onMutate).toHaveBeenCalledWith(24, 42)
+    wrapper.vm.mutate({ a: 24, b: 42 })
+    expect(onMutate).toHaveBeenCalledWith({ a: 24, b: 42 })
   })
 
   it('invokes the `onError` hook', async () => {
@@ -85,7 +85,7 @@ describe('useMutation', () => {
     await runTimers()
     expect(onError).toHaveBeenCalledWith(expect.objectContaining({
       error: new Error('24'),
-      args: [24],
+      vars: 24,
     }))
   })
 
@@ -99,7 +99,7 @@ describe('useMutation', () => {
     await runTimers()
     expect(onSuccess).toHaveBeenCalledWith(expect.objectContaining({
       data: 42,
-      args: [],
+      vars: undefined,
     }))
   })
 
@@ -115,7 +115,7 @@ describe('useMutation', () => {
       expect(onSettled).toHaveBeenCalledWith(expect.objectContaining({
         error: null,
         data: 42,
-        args: [],
+        vars: undefined,
       }))
     })
 
@@ -133,7 +133,7 @@ describe('useMutation', () => {
       expect(onSettled).toHaveBeenCalledWith(expect.objectContaining({
         error: new Error('foobar'),
         data: undefined,
-        args: [],
+        vars: undefined,
       }))
     })
   })

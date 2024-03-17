@@ -2,15 +2,32 @@ import { expectTypeOf, it } from 'vitest'
 import { useMutation } from './use-mutation'
 
 it('types the parameters for the key', () => {
-  useMutation({
-    mutation: (_one: string, _two: number) => Promise.resolve({ name: 'foo' }),
-    keys(result, one, two) {
+  const { mutate } = useMutation({
+    mutation: (_one: string) => Promise.resolve({ name: 'foo' }),
+    keys(result, one) {
       expectTypeOf(one).toBeString()
-      expectTypeOf(two).toBeNumber()
       expectTypeOf(result).toEqualTypeOf<{ name: string }>()
       return [['foo']]
     },
   })
+
+  mutate('one')
+  // @ts-expect-error: missing arg
+  mutate()
+})
+
+it('allows no arguments to mutation', () => {
+  const { mutate } = useMutation({
+    mutation: () => Promise.resolve({ name: 'foo' }),
+    keys(result) {
+      expectTypeOf(result).toEqualTypeOf<{ name: string }>()
+      return [['foo']]
+    },
+  })
+
+  mutate()
+  // @ts-expect-error: no extra arg
+  mutate(25)
 })
 
 it('can return an array of keys', () => {
@@ -24,15 +41,15 @@ it('can return an array of keys', () => {
 
 it('can infer the arguments from the mutation', () => {
   useMutation({
-    mutation: (_one: string, _two: number) => Promise.resolve({ name: 'foo' }),
-    onSuccess({ args }) {
-      expectTypeOf(args).toEqualTypeOf<[string, number]>()
+    mutation: (_one: string) => Promise.resolve({ name: 'foo' }),
+    onSuccess({ vars }) {
+      expectTypeOf(vars).toEqualTypeOf<string>()
     },
-    onError({ args }) {
-      expectTypeOf(args).toEqualTypeOf<[string, number]>()
+    onError({ vars }) {
+      expectTypeOf(vars).toEqualTypeOf<string>()
     },
-    onSettled({ args }) {
-      expectTypeOf(args).toEqualTypeOf<[string, number]>()
+    onSettled({ vars }) {
+      expectTypeOf(vars).toEqualTypeOf<string>()
     },
   })
 })
@@ -55,14 +72,14 @@ it('can infer the context from sync onMutate', () => {
     onMutate() {
       return { foo: 'bar' }
     },
-    onSuccess({ context }) {
-      expectTypeOf(context).toEqualTypeOf<{ foo: string }>()
+    onSuccess(context) {
+      expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
     },
-    onError({ context }) {
-      expectTypeOf(context).toEqualTypeOf<{ foo: string }>()
+    onError(context) {
+      expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
     },
-    onSettled({ context }) {
-      expectTypeOf(context).toEqualTypeOf<{ foo: string }>()
+    onSettled(context) {
+      expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
     },
   })
 })
@@ -83,6 +100,11 @@ it('can return undefined in onMutate', () => {
     onMutate() {
       return undefined
     },
+    onSuccess(context) {
+      expectTypeOf(context).toMatchTypeOf<{
+        data: number
+      }>()
+    },
   })
 })
 
@@ -101,14 +123,14 @@ it('can infer the context from async onMutate', () => {
     async onMutate() {
       return { foo: 'bar' }
     },
-    onSuccess({ context }) {
-      expectTypeOf(context).toEqualTypeOf<{ foo: string }>()
+    onSuccess(context) {
+      expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
     },
-    onError({ context }) {
-      expectTypeOf(context).toEqualTypeOf<{ foo: string }>()
+    onError(context) {
+      expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
     },
-    onSettled({ context }) {
-      expectTypeOf(context).toEqualTypeOf<{ foo: string }>()
+    onSettled(context) {
+      expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
     },
   })
 })
@@ -120,14 +142,24 @@ it('can infer a context of void', () => {
       // no return
     },
 
-    onSuccess({ context }) {
-      expectTypeOf(context).toEqualTypeOf<void>()
+    onSuccess(context) {
+      expectTypeOf(context).toMatchTypeOf<{
+        data: number
+        vars: undefined | void
+      }>()
     },
-    onError({ context }) {
-      expectTypeOf(context).toEqualTypeOf<void>()
+    onError(context) {
+      expectTypeOf(context).toMatchTypeOf<{
+        error: unknown
+        vars: undefined | void
+      }>()
     },
-    onSettled({ context }) {
-      expectTypeOf(context).toEqualTypeOf<void>()
+    onSettled(context) {
+      expectTypeOf(context).toMatchTypeOf<{
+        data: number | undefined
+        error: unknown | null
+        vars: undefined | void
+      }>()
     },
   })
 })
