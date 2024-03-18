@@ -12,7 +12,7 @@ export interface UseMutationOptionsInvalidateQueries<TResult, TVars> {
 declare module '@pinia/colada' {
   // eslint-disable-next-line unused-imports/no-unused-vars
   export interface UseMutationOptions<TResult, TVars, TError, TContext>
-    extends UseMutationOptionsInvalidateQueries<TResult, TVars> { }
+    extends UseMutationOptionsInvalidateQueries<TResult, TVars> {}
 }
 
 // TODO: find a way to export a plugin that checks for invalidateKeys and calls invalidateEntry()

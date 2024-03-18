@@ -8,11 +8,7 @@ import {
   toValue,
   watch,
 } from 'vue'
-import {
-  IS_CLIENT,
-  computedRef,
-  useEventListener,
-} from './utils'
+import { IS_CLIENT, computedRef, useEventListener } from './utils'
 import { type _UseQueryEntry_State, useQueryCache } from './query-store'
 import {
   type UseQueryOptions,
@@ -83,9 +79,9 @@ export function useQuery<TResult, TError = ErrorDefault>(
       // NOTE: workaround to https://github.com/vuejs/core/issues/5300
       // eslint-disable-next-line no-unused-expressions, no-sequences
       queryReturn.data.value,
-      queryReturn.error.value,
-      queryReturn.isFetching.value,
-      queryReturn.isPending.value
+        queryReturn.error.value,
+        queryReturn.isFetching.value,
+        queryReturn.isPending.value
     })
   }
 

@@ -13,7 +13,7 @@ type _MutationKeys<TVars, TResult> =
  * To avoid using `{}`
  * @internal
  */
-export interface _EmptyObject { }
+export interface _EmptyObject {}
 
 /**
  * Removes the nullish types from the context type to make `A & TContext` work instead of yield `never`.
@@ -42,7 +42,7 @@ export type _ReduceContext<TContext> = TContext extends void | null | undefined
  * })
  * ```
  */
-export interface UseMutationGlobalContext { }
+export interface UseMutationGlobalContext {}
 
 export interface UseMutationOptions<
   TResult = unknown,
@@ -90,14 +90,16 @@ export interface UseMutationOptions<
    * Runs if the mutation encounters an error.
    */
   onError?: (
-    context: { error: TError, vars: TVars } & UseMutationGlobalContext & _ReduceContext<TContext>,
+    context: { error: TError, vars: TVars } & UseMutationGlobalContext &
+      _ReduceContext<TContext>,
   ) => unknown
 
   /**
    * Runs if the mutation is successful.
    */
   onSuccess?: (
-    context: { data: TResult, vars: TVars } & UseMutationGlobalContext & _ReduceContext<TContext>,
+    context: { data: TResult, vars: TVars } & UseMutationGlobalContext &
+      _ReduceContext<TContext>,
   ) => unknown
 
   /**
@@ -108,7 +110,8 @@ export interface UseMutationOptions<
       data: TResult | undefined
       error: TError | undefined
       vars: TVars
-    } & UseMutationGlobalContext & _ReduceContext<TContext>,
+    } & UseMutationGlobalContext &
+      _ReduceContext<TContext>,
   ) => unknown
 
   // TODO: invalidate options exact, refetch, etc
@@ -195,7 +198,10 @@ export function useMutation<
       // NOTE: the cast makes it easier to write without extra code. It's safe because { ...null, ...undefined } works and TContext must be a Record<any, any>
       context = (await options.onMutate?.(vars)) as _ReduceContext<TContext>
 
-      const newData = (currentData = await options.mutation(vars, context as TContext))
+      const newData = (currentData = await options.mutation(
+        vars,
+        context as TContext,
+      ))
 
       await options.onSuccess?.({ data: newData, vars, ...context })
 

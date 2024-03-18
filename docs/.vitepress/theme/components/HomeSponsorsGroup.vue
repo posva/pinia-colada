@@ -16,7 +16,7 @@ const props = withDefaults(
 const { isDark } = useData()
 
 const list = computed(() =>
-  sponsors[props.name.toLowerCase()].map(sponsor => ({
+  sponsors[props.name.toLowerCase()].map((sponsor) => ({
     ...sponsor,
     imgSrc: isDark.value ? sponsor.imgSrcDark : sponsor.imgSrcLight,
   })),

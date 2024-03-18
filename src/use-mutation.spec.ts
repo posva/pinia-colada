@@ -23,9 +23,9 @@ describe('useMutation', () => {
     const mutation = options.mutation
       ? vi.fn(options.mutation)
       : vi.fn(async () => {
-        await delay(0)
-        return 42
-      })
+          await delay(0)
+          return 42
+        })
     const wrapper = mount(
       defineComponent({
         render: () => null,
@@ -61,7 +61,7 @@ describe('useMutation', () => {
   it('can be awaited with mutateAsync', async () => {
     const { wrapper } = mountSimple()
 
-    const p = (wrapper.vm.mutateAsync())
+    const p = wrapper.vm.mutateAsync()
     await runTimers()
     await expect(p).resolves.toBe(42)
   })
@@ -117,10 +117,12 @@ describe('useMutation', () => {
     expect(onError).not.toHaveBeenCalled()
     wrapper.vm.mutate(24)
     await runTimers()
-    expect(onError).toHaveBeenCalledWith(expect.objectContaining({
-      error: new Error('24'),
-      vars: 24,
-    }))
+    expect(onError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: new Error('24'),
+        vars: 24,
+      }),
+    )
   })
 
   it('invokes the "onError" hook if onMutate throws', async () => {
@@ -134,10 +136,12 @@ describe('useMutation', () => {
 
     wrapper.vm.mutate()
     await runTimers(false)
-    expect(onError).toHaveBeenCalledWith(expect.objectContaining({
-      error: new Error('onMutate'),
-      vars: undefined,
-    }))
+    expect(onError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: new Error('onMutate'),
+        vars: undefined,
+      }),
+    )
   })
 
   it('invokes the "onSuccess" hook', async () => {
@@ -148,10 +152,12 @@ describe('useMutation', () => {
 
     wrapper.vm.mutate()
     await runTimers()
-    expect(onSuccess).toHaveBeenCalledWith(expect.objectContaining({
-      data: 42,
-      vars: undefined,
-    }))
+    expect(onSuccess).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: 42,
+        vars: undefined,
+      }),
+    )
   })
 
   describe('invokes the "onSettled" hook', () => {
@@ -163,11 +169,13 @@ describe('useMutation', () => {
 
       wrapper.vm.mutate()
       await runTimers()
-      expect(onSettled).toHaveBeenCalledWith(expect.objectContaining({
-        error: undefined,
-        data: 42,
-        vars: undefined,
-      }))
+      expect(onSettled).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error: undefined,
+          data: 42,
+          vars: undefined,
+        }),
+      )
     })
 
     it('on error', async () => {
@@ -181,11 +189,13 @@ describe('useMutation', () => {
 
       expect(wrapper.vm.mutateAsync()).rejects.toThrow()
       await runTimers()
-      expect(onSettled).toHaveBeenCalledWith(expect.objectContaining({
-        error: new Error('foobar'),
-        data: undefined,
-        vars: undefined,
-      }))
+      expect(onSettled).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error: new Error('foobar'),
+          data: undefined,
+          vars: undefined,
+        }),
+      )
     })
   })
 })

@@ -1,13 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { TreeMapNode } from './tree-map'
-import type {
-  UseQueryEntry,
-} from './query-store'
-import {
-  createQueryEntry,
-  createTreeMap,
-  serialize,
-} from './query-store'
+import type { UseQueryEntry } from './query-store'
+import { createQueryEntry, createTreeMap, serialize } from './query-store'
 
 describe('tree-map serialization', () => {
   it('basic serialization', () => {

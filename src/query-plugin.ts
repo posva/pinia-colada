@@ -22,7 +22,7 @@ export interface QueryPluginOptions
       UseQueryReturn<TResult, TError> & {
         options: UseQueryOptionsWithDefaults<TResult>
       }
-    >
+    >,
   ) => void | Promise<never>
 
   // TODO: and others

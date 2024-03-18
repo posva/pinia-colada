@@ -7,7 +7,7 @@ export const products = mande('http://localhost:7777/products', {})
  */
 export async function getAllProducts(options?: Options<'json'>) {
   // await new Promise(resolve => setTimeout(resolve, 2000))
-  return (await products.get<ProductListItem[]>('/', options)).map(product => ({
+  return (await products.get<ProductListItem[]>('/', options)).map((product) => ({
     id: product.id,
     name: product.name,
     color: product.color,

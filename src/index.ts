@@ -29,11 +29,7 @@ export {
 
 export { TreeMapNode, type EntryNodeKey } from './tree-map'
 
-export {
-  delayLoadingRef,
-  type _MaybeArray,
-  type _Awaitable,
-} from './utils'
+export { delayLoadingRef, type _MaybeArray, type _Awaitable } from './utils'
 
 export type { TypesConfig } from './types-extension'
 

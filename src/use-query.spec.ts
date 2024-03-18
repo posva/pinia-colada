@@ -1,33 +1,13 @@
-import type {
-  MockInstance,
-} from 'vitest'
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest'
+import type { MockInstance } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
-import {
-  defineComponent,
-  nextTick,
-  ref,
-  shallowReactive,
-} from 'vue'
+import { defineComponent, nextTick, ref, shallowReactive } from 'vue'
 import type { GlobalMountOptions } from 'node_modules/@vue/test-utils/dist/types'
 import { delay, isSpy, runTimers } from '../test/utils'
 import { useQuery } from './use-query'
-import type {
-  UseQueryEntry,
-} from './query-store'
-import {
-  QUERY_STORE_ID,
-  createQueryEntry,
-  useQueryCache,
-} from './query-store'
+import type { UseQueryEntry } from './query-store'
+import { QUERY_STORE_ID, createQueryEntry, useQueryCache } from './query-store'
 import { TreeMapNode, entryNodeSize } from './tree-map'
 import type { UseQueryOptions } from './query-options'
 import { QueryPlugin } from './query-plugin'
@@ -47,9 +27,9 @@ describe('useQuery', () => {
     const query = options.query
       ? vi.fn(options.query)
       : vi.fn(async () => {
-        await delay(0)
-        return 42
-      })
+          await delay(0)
+          return 42
+        })
     const wrapper = mount(
       defineComponent({
         render: () => null,
@@ -268,9 +248,9 @@ describe('useQuery', () => {
                 ? options.query
                 : vi.fn(options.query)
               : vi.fn(async () => {
-                await delay(0)
-                return { id: id.value, when: Date.now() }
-              })
+                  await delay(0)
+                  return { id: id.value, when: Date.now() }
+                })
 
             return {
               id,
@@ -492,10 +472,7 @@ describe('useQuery', () => {
         ),
       )
       pinia.state.value[QUERY_STORE_ID] = { caches }
-      const { wrapper } = mountSimple(
-        { staleTime: 1000 },
-        { plugins: [pinia] },
-      )
+      const { wrapper } = mountSimple({ staleTime: 1000 }, { plugins: [pinia] })
 
       // without waiting for times the data is present
       expect(wrapper.vm.data).toBe(2)

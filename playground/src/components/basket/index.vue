@@ -15,7 +15,7 @@ const { data: items } = useQuery({
 const products = ref([])
 
 const itemsList = computed(() =>
-  items.value?.filter(item => cart.itemCount[item.id] > 0),
+  items.value?.filter((item) => cart.itemCount[item.id] > 0),
 )
 const totalPrice = computed(() =>
   itemsList.value?.reduce(

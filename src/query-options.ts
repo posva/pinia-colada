@@ -120,11 +120,13 @@ export interface UseQueryOptions<TResult = unknown> {
 }
 
 // NOTE: helper to type the options. Still not used
-export const queryOptions: <Options extends UseQueryOptions>(options: Options) => (Options & {
+export const queryOptions: <Options extends UseQueryOptions>(
+  options: Options,
+) => Options & {
   key: Options['key'] & {
     [DATA_TYPE_SYMBOL]: Options extends UseQueryOptions<infer T> ? T : unknown
   }
-}) = options => options as any
+} = (options) => options as any
 
 /**
  * Default options for `useQuery()`. Modifying this object will affect all the queries that don't override these
@@ -143,9 +145,9 @@ export type UseQueryOptionsWithDefaults<TResult = unknown> =
 
 export const USE_QUERY_OPTIONS_KEY: InjectionKey<
   typeof USE_QUERY_DEFAULTS &
-  Omit<UseQueryOptions, 'key' | 'query' | 'initialData'> &
-  // TODO: refactor types
-  Pick<QueryPluginOptions, 'setup'>
+    Omit<UseQueryOptions, 'key' | 'query' | 'initialData'> &
+    // TODO: refactor types
+    Pick<QueryPluginOptions, 'setup'>
 > = process.env.NODE_ENV !== 'production' ? Symbol('useQueryOptions') : Symbol()
 
 /**

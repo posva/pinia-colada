@@ -16,6 +16,9 @@ export default antfu({
     'antfu/top-level-function': 'off',
     'test/prefer-lowercase-title': 'off',
     'style/yield-star-spacing': ['error', 'before'],
+    'style/arrow-parens': ['error', 'always'],
     'no-console': 'warn',
+    'style/indent': 'off',
+    'style/indent-binary-ops': 'off',
   },
 })

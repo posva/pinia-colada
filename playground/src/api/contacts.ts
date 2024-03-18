@@ -100,7 +100,7 @@ export function searchContacts(
 
   return contacts
     .get('/', { query, responseAs: 'response', ...options })
-    .then(async res => ({
+    .then(async (res) => ({
       total: Number(res.headers.get('x-total-count')) || 0,
       results: (await res.json()) as Contact[],
     }))

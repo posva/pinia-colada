@@ -110,7 +110,11 @@ export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
  */
 export const queryEntry_toJSON: <TResult, TError>(
   entry: UseQueryEntry<TResult, TError>,
-) => _UseQueryEntryNodeValueSerialized<TResult, TError> = entry => [entry.data.value, entry.error.value, entry.when]
+) => _UseQueryEntryNodeValueSerialized<TResult, TError> = (entry) => [
+  entry.data.value,
+  entry.error.value,
+  entry.when,
+]
 
 /**
  * UseQueryEntry method to serialize the entry to a string.
@@ -121,7 +125,7 @@ export const queryEntry_toJSON: <TResult, TError>(
  */
 export const queryEntry_toString: <TResult, TError>(
   entry: UseQueryEntry<TResult, TError>,
-) => string = entry => String(queryEntry_toJSON(entry))
+) => string = (entry) => String(queryEntry_toJSON(entry))
 
 /**
  * The id of the store used for queries.
