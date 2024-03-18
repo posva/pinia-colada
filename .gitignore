@@ -13,3 +13,4 @@ tsconfig.tsbuildinfo
 tsconfig.vitest-temp.json
 docs/.vitepress/cache
 vite.config.ts.timestamp-*.mjs
+docs/api

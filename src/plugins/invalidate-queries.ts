@@ -1,8 +1,12 @@
+/**
+ * @module @pinia/colada/plugins/invalidate-queries
+ */
 import type { UseQueryKey } from '@pinia/colada'
 
 export interface UseMutationOptionsInvalidateQueries<TResult, TVars> {
   /**
-   * Keys to invalidate if the mutation succeeds so that `useQuery()` refetch if used.
+   * Keys to invalidate if the mutation succeeds so that `useQuery()` refetch if used. Only available if
+   * `@pinia/colada/plugins/invalidate-queries` is installed.
    */
   invalidateKeys?:
     | UseQueryKey[]

@@ -1,3 +1,6 @@
+/**
+ * @module @pinia/colada
+ */
 export {
   useMutation,
   type UseMutationReturn,
