@@ -90,6 +90,9 @@ export function stringifyFlatObject(obj: _ObjectFlat | _JSONPrimitive): string {
     : String(obj)
 }
 
+/**
+ * @internal
+ */
 export const noop = () => {}
 
 /**

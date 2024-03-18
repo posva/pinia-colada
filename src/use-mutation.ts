@@ -3,14 +3,17 @@ import type { ComputedRef, ShallowRef } from 'vue'
 import { type UseQueryStatus, useQueryCache } from './query-store'
 import type { UseQueryKey } from './query-options'
 import type { ErrorDefault } from './types-extension'
-import type { _Awaitable } from './utils'
+import { type _Awaitable, noop } from './utils'
 
 type _MutationKeys<TVars, TResult> =
   | UseQueryKey[]
   | ((data: TResult, vars: TVars) => UseQueryKey[])
 
-// eslint-disable-next-line ts/ban-types
-export type _ReduceContext<TContext> = TContext extends void | null | undefined ? {} : TContext
+export interface _EmptyObject {}
+
+export type _ReduceContext<TContext> = TContext extends void | null | undefined
+  ? _EmptyObject
+  : TContext
 
 export interface UseMutationOptions<
   TResult = unknown,
@@ -37,18 +40,28 @@ export interface UseMutationOptions<
   /**
    * Hook to execute a callback in case of error
    */
-  onError?: (context: { error: TError, vars: TVars } & _ReduceContext<TContext>) => unknown
+  onError?: (
+    context: { error: TError, vars: TVars } & _ReduceContext<TContext>,
+  ) => unknown
   // onError?: (context: { error: TError, vars: TParams } & TContext) => Promise<TContext | void> | TContext | void
 
   /**
    * Hook to execute a callback in case of error
    */
-  onSuccess?: (context: { data: TResult, vars: TVars } & _ReduceContext<TContext>) => unknown
+  onSuccess?: (
+    context: { data: TResult, vars: TVars } & _ReduceContext<TContext>,
+  ) => unknown
 
   /**
    * Hook to execute a callback in case of error
    */
-  onSettled?: (context: { data: TResult | undefined, error: TError | null, vars: TVars } & _ReduceContext<TContext>) => unknown
+  onSettled?: (
+    context: {
+      data: TResult | undefined
+      error: TError | undefined
+      vars: TVars
+    } & _ReduceContext<TContext>,
+  ) => unknown
 
   // TODO: invalidate options exact, refetch, etc
 }
@@ -80,9 +93,18 @@ export interface UseMutationReturn<TResult, TVars, TError> {
   /**
    * Calls the mutation and returns a promise with the result.
    *
-   * @param params - parameters to pass to the mutation
+   * @param args - parameters to pass to the mutation
    */
-  mutate: (...args: unknown | void extends TVars ? [] : [TVars]) => Promise<TResult>
+  mutateAsync: unknown | void extends TVars
+    ? () => Promise<TResult>
+    : (vars: TVars) => Promise<TResult>
+
+  /**
+   * Calls the mutation without returning a promise to avoid unhandled promise rejections.
+   *
+   * @param args - parameters to pass to the mutation
+   */
+  mutate: (...args: unknown | void extends TVars ? [] : [vars: TVars]) => void
 
   /**
    * Resets the state of the mutation to its initial state.
@@ -103,56 +125,71 @@ export function useMutation<
 ): UseMutationReturn<TResult, TVars, TError> {
   const store = useQueryCache()
 
+  // TODO: there could be a mutation store that stores the state based on an optional key (if passed). This would allow to retrieve the state of a mutation with useMutationState(key)
   const status = shallowRef<UseQueryStatus>('pending')
   const data = shallowRef<TResult>()
   const error = shallowRef<TError | null>(null)
 
   // a pending promise allows us to discard previous ongoing requests
-  let pendingPromise: Promise<TResult> | null = null
+  // let pendingPromise: Promise<TResult> | null = null
 
-  async function mutate(vars: TVars) {
+  let pendingCall: symbol | undefined
+  async function mutateAsync(vars: TVars): Promise<TResult> {
     status.value = 'loading'
 
-    // TODO: should this context be passed to mutation() and vars transformed into one object?
-    // NOTE: the cast makes it easier to write without extra code. It's safe because { ...null, ...undefined } works and TContext must be a Record<any, any>
-    const context = (await options.onMutate?.(vars)) as _ReduceContext<TContext>
-
     // TODO: AbortSignal that is aborted when the mutation is called again so we can throw in pending
-    const promise = (pendingPromise = options
-      .mutation(vars)
-      .then(async (newData) => {
-        await options.onSuccess?.({ data: newData, vars, ...context })
+    let currentData: TResult | undefined
+    let currentError: TError | undefined
+    let context!: _ReduceContext<TContext>
 
-        if (pendingPromise === promise) {
-          data.value = newData
-          error.value = null
-          status.value = 'success'
-          if (options.keys) {
-            const keys
-              = typeof options.keys === 'function'
-                ? options.keys(newData, vars)
-                : options.keys
-            for (const key of keys) {
-              // TODO: find a way to pass a source of the invalidation, could be a symbol associated with the mutation, the parameters
-              store.invalidateEntry(key)
-            }
+    const currentCall = (pendingCall = Symbol())
+    try {
+      // NOTE: the cast makes it easier to write without extra code. It's safe because { ...null, ...undefined } works and TContext must be a Record<any, any>
+      context = (await options.onMutate?.(vars)) as _ReduceContext<TContext>
+
+      const newData = (currentData = await options.mutation(vars))
+
+      await options.onSuccess?.({ data: newData, vars, ...context })
+
+      if (pendingCall === currentCall) {
+        data.value = newData
+        error.value = null
+        status.value = 'success'
+
+        // TODO: move to plugin
+        if (options.keys) {
+          const keys
+            = typeof options.keys === 'function'
+              ? options.keys(newData, vars)
+              : options.keys
+          for (const key of keys) {
+            // TODO: find a way to pass a source of the invalidation, could be a symbol associated with the mutation, the parameters
+            store.invalidateEntry(key)
           }
         }
-        return newData
+      }
+    } catch (newError: any) {
+      currentError = newError
+      await options.onError?.({ error: newError, vars, ...context })
+      if (pendingCall === currentCall) {
+        error.value = newError
+        status.value = 'error'
+      }
+      throw newError
+    } finally {
+      await options.onSettled?.({
+        data: currentData,
+        error: currentError,
+        vars,
+        ...context,
       })
-      .catch(async (newError) => {
-        if (pendingPromise === promise) {
-          error.value = newError
-          status.value = 'error'
-        }
-        await options.onError?.({ error: newError, vars, ...context })
-        throw newError
-      })
-      .finally(async () => {
-        await options.onSettled?.({ data: data.value, error: error.value, vars, ...context })
-      }))
+    }
 
-    return promise
+    return currentData
+  }
+
+  function mutate(vars: TVars) {
+    mutateAsync(vars).catch(noop)
   }
 
   function reset() {
@@ -166,9 +203,10 @@ export function useMutation<
     isLoading: computed(() => status.value === 'loading'),
     status,
     error,
-    // @ts-expect-error: the actual type has a ternary that makes this difficult to type
-    // without writing extra code
+    // @ts-expect-error: it would be nice to find a type-only refactor that works
     mutate,
+    // @ts-expect-error: it would be nice to find a type-only refactor that works
+    mutateAsync,
     reset,
   }
 }
