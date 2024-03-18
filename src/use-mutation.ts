@@ -23,6 +23,27 @@ export type _ReduceContext<TContext> = TContext extends void | null | undefined
   ? _EmptyObject
   : TContext
 
+/**
+ * Context object returned by a global `onMutate` function that is merged with the context returned by a local
+ * `onMutate`.
+ * @example
+ * ```ts
+ * declare module '@pinia/colada' {
+ *   export interface UseMutationGlobalContext {
+ *     router: Router // from vue-router
+ *   }
+ * }
+ *
+ * // add the `router` to the context
+ * app.use(MutationPlugin, {
+ *   onMutate() {
+ *     return { router }
+ *   },
+ * })
+ * ```
+ */
+export interface UseMutationGlobalContext { }
+
 export interface UseMutationOptions<
   TResult = unknown,
   TVars = void,
@@ -42,11 +63,14 @@ export interface UseMutationOptions<
 
   /**
    * Runs before the mutation is executed. **It should be placed before `mutation()` for `context` to be inferred**. It
-   * can return a value that will be passed to `mutation`, `onSuccess`, `onError` and `onSettled`.
+   * can return a value that will be passed to `mutation`, `onSuccess`, `onError` and `onSettled`. If it returns a
+   * promise, it will be awaited before running `mutation`.
    *
    * @example
    * ```ts
    * useMutation({
+   * // must appear before `mutation` for `{ foo: string }` to be inferred
+   * // within `mutation`
    *   onMutate() {
    *     return { foo: 'bar' }
    *   },
@@ -66,14 +90,14 @@ export interface UseMutationOptions<
    * Runs if the mutation encounters an error.
    */
   onError?: (
-    context: { error: TError, vars: TVars } & _ReduceContext<TContext>,
+    context: { error: TError, vars: TVars } & UseMutationGlobalContext & _ReduceContext<TContext>,
   ) => unknown
 
   /**
    * Runs if the mutation is successful.
    */
   onSuccess?: (
-    context: { data: TResult, vars: TVars } & _ReduceContext<TContext>,
+    context: { data: TResult, vars: TVars } & UseMutationGlobalContext & _ReduceContext<TContext>,
   ) => unknown
 
   /**
@@ -84,7 +108,7 @@ export interface UseMutationOptions<
       data: TResult | undefined
       error: TError | undefined
       vars: TVars
-    } & _ReduceContext<TContext>,
+    } & UseMutationGlobalContext & _ReduceContext<TContext>,
   ) => unknown
 
   // TODO: invalidate options exact, refetch, etc
