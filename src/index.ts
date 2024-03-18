@@ -2,13 +2,15 @@ export {
   useMutation,
   type UseMutationReturn,
   type UseMutationOptions,
+  type _ReduceContext,
+  type _EmptyObject,
 } from './use-mutation'
 export { useQuery, type UseQueryReturn } from './use-query'
 
 // export { type UseQueryKeyList } from './query-keys'
 
 export {
-  // TODO: figure out if worth
+  // TODO: figure out if worth compared to `defineQuery()`
   // queryOptions,
   // type InferUseQueryKeyData,
   type UseQueryKey,
@@ -27,7 +29,11 @@ export {
 
 export { TreeMapNode, type EntryNodeKey } from './tree-map'
 
-export { delayLoadingRef } from './utils'
+export {
+  delayLoadingRef,
+  type _MaybeArray,
+  type _Awaitable,
+} from './utils'
 
 export type { TypesConfig } from './types-extension'
 

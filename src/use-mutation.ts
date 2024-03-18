@@ -9,8 +9,16 @@ type _MutationKeys<TVars, TResult> =
   | UseQueryKey[]
   | ((data: TResult, vars: TVars) => UseQueryKey[])
 
+/**
+ * To avoid using `{}`
+ * @internal
+ */
 export interface _EmptyObject {}
 
+/**
+ * Removes the nullish types from the context type to make `A & TContext` work instead of yield `never`.
+ * @internal
+ */
 export type _ReduceContext<TContext> = TContext extends void | null | undefined
   ? _EmptyObject
   : TContext
