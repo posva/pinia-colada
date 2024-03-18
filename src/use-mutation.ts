@@ -24,7 +24,7 @@ export interface UseMutationOptions<
   /**
    * The key of the mutation. If the mutation is successful, it will invalidate the query with the same key and refetch it
    */
-  mutation: (vars: TVars) => Promise<TResult>
+  mutation: (vars: TVars, context: NoInfer<TContext>) => Promise<TResult>
 
   // TODO: move this to a plugin that calls invalidateEntry()
   /**
@@ -33,27 +33,43 @@ export interface UseMutationOptions<
   keys?: _MutationKeys<TVars, TResult>
 
   /**
-   * Hook to execute a callback when the mutation is triggered
+   * Runs before the mutation is executed. **It should be placed before `mutation()` for `context` to be inferred**. It
+   * can return a value that will be passed to `mutation`, `onSuccess`, `onError` and `onSettled`.
+   *
+   * @example
+   * ```ts
+   * useMutation({
+   *   onMutate() {
+   *     return { foo: 'bar' }
+   *   },
+   *   mutation: (id: number, { foo }) => {
+   *     console.log(foo) // bar
+   *     return fetch(`/api/todos/${id}`)
+   *   },
+   *   onSuccess(context) {
+   *     console.log(context.foo) // bar
+   *   },
+   * })
+   * ```
    */
   onMutate?: (vars: TVars) => _Awaitable<TContext>
 
   /**
-   * Hook to execute a callback in case of error
+   * Runs if the mutation encounters an error.
    */
   onError?: (
     context: { error: TError, vars: TVars } & _ReduceContext<TContext>,
   ) => unknown
-  // onError?: (context: { error: TError, vars: TParams } & TContext) => Promise<TContext | void> | TContext | void
 
   /**
-   * Hook to execute a callback in case of error
+   * Runs if the mutation is successful.
    */
   onSuccess?: (
     context: { data: TResult, vars: TVars } & _ReduceContext<TContext>,
   ) => unknown
 
   /**
-   * Hook to execute a callback in case of error
+   * Runs after the mutation is settled, regardless of the result.
    */
   onSettled?: (
     context: {
@@ -147,7 +163,7 @@ export function useMutation<
       // NOTE: the cast makes it easier to write without extra code. It's safe because { ...null, ...undefined } works and TContext must be a Record<any, any>
       context = (await options.onMutate?.(vars)) as _ReduceContext<TContext>
 
-      const newData = (currentData = await options.mutation(vars))
+      const newData = (currentData = await options.mutation(vars, context as TContext))
 
       await options.onSuccess?.({ data: newData, vars, ...context })
 

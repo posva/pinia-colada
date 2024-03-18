@@ -68,17 +68,25 @@ it('can infer the data from the mutation', () => {
 
 it('can infer the context from sync onMutate', () => {
   useMutation({
-    mutation: () => Promise.resolve(42),
     onMutate() {
       return { foo: 'bar' }
     },
+    mutation: async (vars: number, context) => {
+      expectTypeOf(vars).toBeNumber()
+      expectTypeOf(context).not.toBeAny()
+      expectTypeOf(context).toEqualTypeOf<{ foo: string }>()
+      return 42
+    },
     onSuccess(context) {
+      expectTypeOf(context).not.toBeAny()
       expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
     },
     onError(context) {
+      expectTypeOf(context).not.toBeAny()
       expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
     },
     onSettled(context) {
+      expectTypeOf(context).not.toBeAny()
       expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
     },
   })
@@ -101,6 +109,7 @@ it('can return undefined in onMutate', () => {
       return undefined
     },
     onSuccess(context) {
+      expectTypeOf(context).not.toBeAny()
       expectTypeOf(context).toMatchTypeOf<{
         data: number
       }>()
@@ -124,12 +133,15 @@ it('can infer the context from async onMutate', () => {
       return { foo: 'bar' }
     },
     onSuccess(context) {
+      expectTypeOf(context).not.toBeAny()
       expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
     },
     onError(context) {
+      expectTypeOf(context).not.toBeAny()
       expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
     },
     onSettled(context) {
+      expectTypeOf(context).not.toBeAny()
       expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
     },
   })
@@ -143,18 +155,21 @@ it('can infer a context of void', () => {
     },
 
     onSuccess(context) {
+      expectTypeOf(context).not.toBeAny()
       expectTypeOf(context).toMatchTypeOf<{
         data: number
         vars: undefined | void
       }>()
     },
     onError(context) {
+      expectTypeOf(context).not.toBeAny()
       expectTypeOf(context).toMatchTypeOf<{
         error: unknown
         vars: undefined | void
       }>()
     },
     onSettled(context) {
+      expectTypeOf(context).not.toBeAny()
       expectTypeOf(context).toMatchTypeOf<{
         data: number | undefined
         error: unknown | null

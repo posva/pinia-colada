@@ -17,7 +17,7 @@ export function useEventListener<E extends keyof WindowEventMap>(
   target: Window,
   event: E,
   listener: (this: Window, ev: WindowEventMap[E]) => any,
-  options?: boolean | AddEventListenerOptions
+  options?: boolean | AddEventListenerOptions,
 ): void
 
 /**
@@ -27,7 +27,7 @@ export function useEventListener<E extends keyof DocumentEventMap>(
   target: Document,
   event: E,
   listener: (this: Document, ev: DocumentEventMap[E]) => any,
-  options?: boolean | AddEventListenerOptions
+  options?: boolean | AddEventListenerOptions,
 ): void
 
 export function useEventListener(
@@ -91,9 +91,18 @@ export function stringifyFlatObject(obj: _ObjectFlat | _JSONPrimitive): string {
 }
 
 /**
+ * Merges two types when the second one can be null | undefined. Allows to safely use the returned type for { ...a,
+ * ...undefined, ...null }
  * @internal
  */
-export const noop = () => {}
+export type _MergeObjects<Obj, MaybeNull> = MaybeNull extends undefined | null
+  ? Obj
+  : _Simplify<Obj & MaybeNull>
+
+/**
+ * @internal
+ */
+export const noop = () => { }
 
 /**
  * Creates a delayed computed ref from an existing ref, computed, or getter. Use this to delay a loading state (`isFetching`, `isLoading`) to avoid flickering.
