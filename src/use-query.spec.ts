@@ -500,5 +500,40 @@ describe('useQuery', () => {
       expect(query).toHaveBeenCalledTimes(0)
       expect(wrapper.vm.data).toBe(2)
     })
+
+    it('sets the error if the initial data is an error', async () => {
+      const pinia = createPinia()
+
+      const caches = shallowReactive(
+        new TreeMapNode<UseQueryEntry>(
+          ['key'],
+          // fresh data
+          createQueryEntry(undefined, new Error('fail'), Date.now()),
+        ),
+      )
+      pinia.state.value[QUERY_STORE_ID] = { caches }
+      const { wrapper } = mountSimple({ refetchOnMount: false }, { plugins: [pinia] })
+
+      expect(wrapper.vm.status).toBe('error')
+      expect(wrapper.vm.error).toEqual(new Error('fail'))
+      expect(wrapper.vm.data).toBe(undefined)
+    })
+
+    it('sets the initial error even with initialData', async () => {
+      const pinia = createPinia()
+
+      const caches = shallowReactive(
+        new TreeMapNode<UseQueryEntry>(
+          ['key'],
+          // fresh data
+          createQueryEntry(undefined, new Error('fail'), Date.now()),
+        ),
+      )
+      pinia.state.value[QUERY_STORE_ID] = { caches }
+      const { wrapper } = mountSimple({ refetchOnMount: false, initialData: () => 42 }, { plugins: [pinia] })
+
+      expect(wrapper.vm.status).toBe('error')
+      expect(wrapper.vm.error).toEqual(new Error('fail'))
+    })
   })
 })

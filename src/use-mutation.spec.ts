@@ -144,11 +144,36 @@ describe('useMutation', () => {
     )
   })
 
+  it('skips setting the error if "onError" throws', async () => {
+    const onError = vi.fn().mockRejectedValueOnce(new Error('onError'))
+    const { wrapper } = mountSimple({
+      mutation: async () => {
+        throw new Error('mutation')
+      },
+      onError,
+    })
+
+    wrapper.vm.mutate()
+    await runTimers()
+    expect(onError).toHaveBeenCalled()
+    // couldn't be set
+    expect(wrapper.vm.error).toEqual(null)
+  })
+
+  it('awaits the "onMutate" hook before mutation', async () => {
+    const onMutate = vi.fn(() => delay(10))
+    const { wrapper, mutation } = mountSimple({ onMutate })
+
+    wrapper.vm.mutate()
+    expect(onMutate).toHaveBeenCalled()
+    expect(mutation).not.toHaveBeenCalled()
+    await runTimers()
+    expect(mutation).toHaveBeenCalled()
+  })
+
   it('invokes the "onSuccess" hook', async () => {
     const onSuccess = vi.fn()
-    const { wrapper } = mountSimple({
-      onSuccess,
-    })
+    const { wrapper } = mountSimple({ onSuccess })
 
     wrapper.vm.mutate()
     await runTimers()
@@ -159,6 +184,38 @@ describe('useMutation', () => {
       }),
     )
   })
+
+  it('skips setting the data if "onSuccess" throws', async () => {
+    const onSuccess = vi.fn().mockRejectedValueOnce(new Error('onSuccess'))
+    const { wrapper, mutation } = mountSimple({ onSuccess })
+
+    wrapper.vm.mutate()
+    await runTimers()
+    expect(onSuccess).toHaveBeenCalled()
+    expect(mutation).toHaveBeenCalled()
+    // since it threw
+    expect(wrapper.vm.data).toBeUndefined()
+  })
+
+  it('sets the error if "onSuccess" throws', async () => {
+    const onSuccess = vi.fn().mockRejectedValueOnce(new Error('onSuccess'))
+    const { wrapper } = mountSimple({ onSuccess })
+
+    wrapper.vm.mutate()
+    await runTimers()
+    expect(onSuccess).toHaveBeenCalled()
+    expect(wrapper.vm.error).toEqual(new Error('onSuccess'))
+  })
+
+  it('sets the error if "onMutate" throws', async () => {
+    const onMutate = vi.fn().mockRejectedValueOnce(new Error('onMutate'))
+    const { wrapper } = mountSimple({ onMutate })
+
+    wrapper.vm.mutate()
+    await runTimers()
+    expect(onMutate).toHaveBeenCalled()
+    expect(wrapper.vm.error).toEqual(new Error('onMutate'))
+ })
 
   describe('invokes the "onSettled" hook', () => {
     it('on success', async () => {
@@ -197,5 +254,17 @@ describe('useMutation', () => {
         }),
       )
     })
+  })
+
+  it('can reset the mutation', async () => {
+    const { wrapper } = mountSimple()
+
+    wrapper.vm.mutate()
+    await runTimers()
+    expect(wrapper.vm.data).toBe(42)
+    wrapper.vm.reset()
+    expect(wrapper.vm.data).toBeUndefined()
+    expect(wrapper.vm.error).toBeNull()
+    expect(wrapper.vm.status).toBe('pending')
   })
 })

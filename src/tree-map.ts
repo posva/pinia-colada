@@ -93,6 +93,7 @@ export class TreeMapNode<T = unknown> {
 // -------------------------------------
 // --- Below are debugging internals ---
 // -------------------------------------
+/* v8 ignore start */
 
 /**
  * Calculates the size of the node and all its children. Used in tests.
@@ -111,6 +112,13 @@ export function entryNodeSize(node: TreeMapNode): number {
   )
 }
 
+/**
+ * Logs the tree to the console. Used in tests.
+ * @internal
+ *
+ * @param tree - tree to log
+ * @param log - function to log the tree
+ */
 export function logTree(
   tree: TreeMapNode,
   // eslint-disable-next-line no-console
@@ -160,3 +168,4 @@ function printTreeMap(
 
   return treeStr
 }
+/* v8 ignore stop */

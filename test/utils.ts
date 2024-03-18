@@ -3,7 +3,7 @@ import type { Mock } from 'vitest'
 import { vi } from 'vitest'
 import { nextTick } from 'vue'
 
-export const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))
+export const delay = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 
 export type GlobalMountOptions = NonNullable<(Parameters<typeof mount>)[1]>['global']
 
