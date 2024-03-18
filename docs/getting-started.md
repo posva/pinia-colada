@@ -5,5 +5,5 @@
 Install Pinia Colada using your favorite package manager:
 
 ```bash
-npm i -D pinia-colada
+npm i @pinia/colada
 ```
