@@ -144,7 +144,7 @@ export type UseQueryOptionsWithDefaults<TResult = unknown> =
 export const USE_QUERY_OPTIONS_KEY: InjectionKey<
   typeof USE_QUERY_DEFAULTS &
   Omit<UseQueryOptions, 'key' | 'query' | 'initialData'> &
-    // TODO: refactor types
+  // TODO: refactor types
   Pick<QueryPluginOptions, 'setup'>
 > = process.env.NODE_ENV !== 'production' ? Symbol('useQueryOptions') : Symbol()
 

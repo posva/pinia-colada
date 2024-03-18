@@ -13,7 +13,7 @@ type _MutationKeys<TVars, TResult> =
  * To avoid using `{}`
  * @internal
  */
-export interface _EmptyObject {}
+export interface _EmptyObject { }
 
 /**
  * Removes the nullish types from the context type to make `A & TContext` work instead of yield `never`.
