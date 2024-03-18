@@ -5,6 +5,9 @@
     "rootDir": ".",
     "module": "esnext",
     "moduleResolution": "Bundler",
+    "paths": {
+      "@pinia/colada": ["./src/index.ts"]
+    },
     "strict": true,
     "noEmit": true,
     // TSUP issue https://github.com/egoist/tsup/issues/571
