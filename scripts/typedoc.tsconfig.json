@@ -1,0 +1,40 @@
+{
+  "include": ["../src/**/*.ts"],
+  "exclude": [
+    "**/*.spec.ts",
+    "../playground"
+  ],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "rootDir": "..",
+    "outDir": "dist",
+    "sourceMap": false,
+    "noEmit": true,
+    "paths": {
+      "@pinia/colada": ["../src"],
+      "@pinia/colada/plugins/invalidate-queries": ["../src/plugins/invalidate-queries.ts"]
+    },
+
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "Bundler",
+    "allowJs": false,
+    "skipLibCheck": true,
+
+    "noUnusedLocals": false,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "noImplicitReturns": false,
+    "strict": true,
+    "isolatedModules": true,
+
+    "experimentalDecorators": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "removeComments": false,
+    "jsx": "preserve",
+    "lib": ["esnext", "dom"],
+    "types": ["node"]
+  }
+}
