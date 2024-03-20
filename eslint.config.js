@@ -21,4 +21,11 @@ export default antfu({
     'style/indent': 'off',
     'style/indent-binary-ops': 'off',
   },
+}, {
+  files: [
+    'playground/**/*',
+  ],
+  rules: {
+    'no-console': 'off',
+  },
 })

@@ -102,8 +102,7 @@ export default defineConfig({
         detailedView: true,
         miniSearch: {
           searchOptions: {
-            boostDocument(docId: string, _term, storeFields) {
-              console.log({ docId, _term, storeFields })
+            boostDocument(docId: string) {
               if (docId.startsWith('/api/')) return 0.1
               if (docId.startsWith('/guide/')) return 1.5
               return 1
