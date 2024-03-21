@@ -1,6 +1,5 @@
 import { type InjectionKey, type MaybeRefOrGetter, inject } from 'vue'
-import type { EntryNodeKey } from './tree-map'
-import type { _ObjectFlat } from './utils'
+import type { UseEntryKey } from './entry-options'
 import type { QueryPluginOptions } from './query-plugin'
 import type { ErrorDefault } from './types-extension'
 
@@ -8,11 +7,6 @@ import type { ErrorDefault } from './types-extension'
  * `true` refetch if data is stale (refresh()), `false` never refetch, 'always' always refetch.
  */
 export type _RefetchOnControl = boolean | 'always'
-
-/**
- * Key used to identify a query. Always an array.
- */
-export type UseQueryKey = Array<EntryNodeKey | _ObjectFlat>
 
 /**
  * Context object passed to the `query` function of `useQuery()`.
@@ -59,7 +53,7 @@ export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
    * })
    * ```
    */
-  key: MaybeRefOrGetter<UseQueryKey>
+  key: MaybeRefOrGetter<UseEntryKey>
 
   /**
    * The function that will be called to fetch the data. It **must** be async.
