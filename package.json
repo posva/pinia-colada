@@ -99,6 +99,8 @@
   ],
   "devDependencies": {
     "@antfu/eslint-config": "^2.8.3",
+    "@pinia/colada": "workspace:*",
+    "@shikijs/vitepress-twoslash": "^1.2.0",
     "@size-limit/preset-small-lib": "^11.1.1",
     "@types/node": "^20.11.30",
     "@vitejs/plugin-vue": "^5.0.4",

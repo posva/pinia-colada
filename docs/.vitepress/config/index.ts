@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitepress'
+import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
 
 export const META_IMAGE = 'https://pinia-colada.esm.dev/social.png'
 export const META_URL = 'https://pinia-colada.esm.dev'
@@ -43,6 +44,7 @@ export default defineConfig({
     anchor: {
       slugify,
     },
+    codeTransformers: [transformerTwoslash()],
   },
 
   head: [
