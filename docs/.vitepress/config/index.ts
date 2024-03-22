@@ -14,16 +14,18 @@ const rCombining = /[\u0300-\u036F]/g
  * Default slugification function
  */
 export function slugify(str: string): string {
-  return str
-    .normalize('NFKD')
-    // Remove accents
-    .replace(rCombining, '')
-    // Remove control characters
-    .replace(rControl, '')
-    // Replace special characters
-    .replace(rSpecial, '-')
-    // ensure it doesn't start with a number
-    .replace(/^(\d)/, '_$1')
+  return (
+    str
+      .normalize('NFKD')
+      // Remove accents
+      .replace(rCombining, '')
+      // Remove control characters
+      .replace(rControl, '')
+      // Replace special characters
+      .replace(rSpecial, '-')
+      // ensure it doesn't start with a number
+      .replace(/^(\d)/, '_$1')
+  )
 }
 
 export default defineConfig({
@@ -142,28 +144,38 @@ export default defineConfig({
     ],
 
     sidebar: {
-      '/': [{
-        text: 'Introduction',
-        items: [
-          { text: 'Quick Start', link: '/quick-start.html' },
-          { text: 'Why', link: '/why.html' },
-        ],
-      }, {
-        text: 'Guide',
-        items: [
-          { text: 'Installation', link: '/guide/installation.html' },
-          { text: 'Queries', link: '/guide/queries.html' },
-          { text: 'Query Keys', link: '/guide/query-keys.html' },
-          { text: 'Query Cache', link: '/guide/query-cache.html' },
-          { text: 'Mutations', link: '/guide/mutations.html' },
-          { text: 'Query Invalidation', link: '/guide/query-invalidation.html' },
-          { text: 'Optimistic Updates', link: '/guide/optimistic-updates.html' },
-        ],
-      }, {
-        text: 'Cookbook',
-        link: '/cookbook/',
-        items: [],
-      }],
+      '/': [
+        {
+          text: 'Introduction',
+          items: [
+            { text: 'Quick Start', link: '/quick-start.html' },
+            { text: 'Why', link: '/why.html' },
+          ],
+        },
+        {
+          text: 'Guide',
+          items: [
+            { text: 'Installation', link: '/guide/installation.html' },
+            { text: 'Queries', link: '/guide/queries.html' },
+            { text: 'Query Keys', link: '/guide/query-keys.html' },
+            { text: 'Query Cache', link: '/guide/query-cache.html' },
+            { text: 'Mutations', link: '/guide/mutations.html' },
+            {
+              text: 'Query Invalidation',
+              link: '/guide/query-invalidation.html',
+            },
+            {
+              text: 'Optimistic Updates',
+              link: '/guide/optimistic-updates.html',
+            },
+          ],
+        },
+        {
+          text: 'Cookbook',
+          link: '/cookbook/',
+          items: [],
+        },
+      ],
     },
   },
 })
