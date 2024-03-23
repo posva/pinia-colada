@@ -2,6 +2,17 @@ import { expectTypeOf, it } from 'vitest'
 import { useMutation } from './use-mutation'
 
 it('types the parameters for the key', () => {
+  useMutation({
+    mutation: (_one: string) => Promise.resolve({ name: 'foo' }),
+    key(result, one) {
+      expectTypeOf(one).toBeString()
+      expectTypeOf(result).toEqualTypeOf<{ name: string }>()
+      return ['foo']
+    },
+  })
+})
+
+it('types the parameters for the keys', () => {
   const { mutate, mutateAsync } = useMutation({
     mutation: (_one: string) => Promise.resolve({ name: 'foo' }),
     keys(result, one) {
