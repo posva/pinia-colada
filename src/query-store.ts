@@ -22,7 +22,7 @@ import type { ErrorDefault } from './types-extension'
  * - `error`: when the last request failed
  * - `success`: when the last request succeeded
  */
-export type UseQueryStatus = 'pending' | 'loading' | 'error' | 'success'
+export type QueryStatus = 'pending' | 'loading' | 'error' | 'success'
 
 /**
  * Properties of a query entry that will be exposed to the user. Split to keep the documented properties in one place.
@@ -41,9 +41,9 @@ export interface _UseQueryEntry_State<TResult, TError> {
 
   /**
    * The status of the query.
-   * @see {@link UseQueryStatus}
+   * @see {@link QueryStatus}
    */
-  status: ShallowRef<UseQueryStatus>
+  status: ShallowRef<QueryStatus>
   /**
    * Returns whether the request is still pending its first call. Alias for `status.value === 'pending'`
    */
@@ -88,7 +88,7 @@ export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
   when: number = 0, // stale by default
 ): UseQueryEntry<TResult, TError> {
   const data = shallowRef(initialData)
-  const status = shallowRef<UseQueryStatus>(
+  const status = shallowRef<QueryStatus>(
     error ? 'error' : initialData !== undefined ? 'success' : 'pending',
   )
   return {

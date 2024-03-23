@@ -7,6 +7,7 @@ export {
   type UseMutationOptions,
   type _ReduceContext,
   type _EmptyObject,
+  type MutationStatus,
 } from './use-mutation'
 export { useQuery, type UseQueryReturn } from './use-query'
 
@@ -25,7 +26,7 @@ export { QueryPlugin, type QueryPluginOptions } from './query-plugin'
 
 export {
   useQueryCache,
-  type UseQueryStatus,
+  type QueryStatus,
   serialize,
   type UseQueryEntry,
 } from './query-store'

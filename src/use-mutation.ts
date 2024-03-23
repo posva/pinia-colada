@@ -1,13 +1,27 @@
 import { computed, shallowRef } from 'vue'
 import type { ComputedRef, ShallowRef } from 'vue'
-import { type UseQueryStatus, useQueryCache } from './query-store'
+import { useQueryCache } from './query-store'
 import type { UseQueryKey } from './query-options'
 import type { ErrorDefault } from './types-extension'
 import { type _Awaitable, noop } from './utils'
 
+// TODO: move to a plugin
+/**
+ * The keys to invalidate when a mutation succeeds.
+ * @internal
+ */
 type _MutationKeys<TVars, TResult> =
   | UseQueryKey[]
   | ((data: TResult, vars: TVars) => UseQueryKey[])
+
+/**
+ * The status of the mutation.
+ * - `pending`: initial state
+ * - `loading`: mutation is being made
+ * - `error`: when the last mutation failed
+ * - `success`: when the last mutation succeeded
+ */
+export type MutationStatus = 'pending' | 'loading' | 'error' | 'success'
 
 /**
  * To avoid using `{}`
@@ -137,9 +151,9 @@ export interface UseMutationReturn<TResult, TVars, TError> {
 
   /**
    * The status of the mutation.
-   * @see {@link UseQueryStatus}
+   * @see {@link MutationStatus}
    */
-  status: ShallowRef<UseQueryStatus>
+  status: ShallowRef<MutationStatus>
 
   /**
    * Calls the mutation and returns a promise with the result.
@@ -166,6 +180,20 @@ export interface UseMutationReturn<TResult, TVars, TError> {
 // TODO: it might be worth having multiple UseMutationReturnState:
 // type UseMutationReturn<TResult, TVars, TError> = UseMutationReturnSuccess | UseMutationReturnError | UseMutationReturnLoading
 
+/**
+ * Setups a mutation.
+ *
+ * @param options - Options to create the mutation
+ * @example
+ * ```ts
+ * const { mutate, status, error } = useMutation({
+ *   mutation: (id: number) => fetch(`/api/todos/${id}`),
+ *   onSuccess({ queryClient }) {
+ *     queryClient.invalidateQueries('todos')
+ *   },
+ * })
+ * ```
+ */
 export function useMutation<
   TResult,
   TVars = void,
@@ -177,7 +205,7 @@ export function useMutation<
   const store = useQueryCache()
 
   // TODO: there could be a mutation store that stores the state based on an optional key (if passed). This would allow to retrieve the state of a mutation with useMutationState(key)
-  const status = shallowRef<UseQueryStatus>('pending')
+  const status = shallowRef<MutationStatus>('pending')
   const data = shallowRef<TResult>()
   const error = shallowRef<TError | null>(null)
 
