@@ -1,3 +1,6 @@
+import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitepress'
 import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
 
@@ -9,6 +12,10 @@ export const META_DESCRIPTION = 'The smart Data Fetching layer for Pinia'
 const rControl = /[\u0000-\u001F]/g
 const rSpecial = /[\s~`!@#$%^&*()\-_+=[\]{}|\\;:"'“”‘’<>,.?/]+/g
 const rCombining = /[\u0300-\u036F]/g
+
+// get all code snippets
+const __dirname = fileURLToPath(new URL('.', import.meta.url))
+const mutations_todos = fs.readFileSync(path.join(__dirname, '../code-snippets/mutations/todos.ts'), 'utf-8')
 
 /**
  * Default slugification function
@@ -46,7 +53,15 @@ export default defineConfig({
     anchor: {
       slugify,
     },
-    codeTransformers: [transformerTwoslash()],
+    codeTransformers: [
+      transformerTwoslash({
+        twoslashOptions: {
+          extraFiles: {
+            'mutations/todos.ts': mutations_todos,
+          },
+        },
+      }),
+    ],
   },
 
   head: [

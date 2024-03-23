@@ -13,3 +13,10 @@ export function defineMutation<
   // TODO: implement
   return {} as any
 }
+
+/**
+ * Ideas
+ * - Maybe allow returning arbitrary values from the mutation function to be exposed
+ * - Allow returning them in an expose object to avoid conflicts with option names
+ * - Allow renaming `data`, `error`, and `mutate`
+ */

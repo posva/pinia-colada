@@ -1,0 +1,92 @@
+# Mutations
+
+Mutations alllow us to trigger and track the status of an async operation meant to have side effects. While [queries](./queries.md) are meant to **read** data, mutations are meant to **write** data. In terms of REST, queries handle `GET` requests and mutations handle `POST`, `PUT`, `PATCH`, and `DELETE` requests (without limiting you to do so).
+
+Similarly to queries, mutations are defined with the `useMutation()` composable:
+
+```vue twoslash
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useMutation } from '@pinia/colada'
+
+const { mutate, status } = useMutation({
+  mutation: (todoText: string) =>
+    fetch('/api/todos', {
+      method: 'POST',
+      body: JSON.stringify({ text: todoText }),
+    }),
+})
+
+const todoText = ref('')
+function createTodo() {
+  mutate(todoText.value)
+}
+</script>
+
+<template>
+  <form @submit.prevent="createTodo()">
+    <input v-model="todoText">
+    <button :disabled="status === 'loading'">
+      Add todo
+    </button>
+  </form>
+</template>
+```
+
+Alternatively, they can be defined with the `defineMutation()` function, which allows you to create related properties (like the `todoText` above) associated with the mutation:
+
+::: code-group
+
+```ts [mutations/todos.ts] twoslash
+// @filename: mutations/todos.ts
+// ---cut-before---
+import { ref } from 'vue'
+import { defineMutation } from '@pinia/colada'
+
+export const useCreateTodo = defineMutation(() => {
+  const todoText = ref('')
+  return {
+    mutation: () =>
+      fetch('/api/todos', {
+        method: 'POST',
+        body: JSON.stringify({ text: todoText.value }),
+      }),
+
+    // expose the todoText ref
+    todoText,
+  }
+})
+```
+
+```vue [components/CreateTodo.vue] twoslash
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useCreateTodo } from './mutations/todos'
+
+const { mutate: createTodo, status } = useCreateTodo()
+// FIXME: should be part of useCreateTodo
+const todoText = ref('')
+</script>
+
+<template>
+  <form @submit.prevent="() => {}">
+    <input v-model="todoText">
+    <button :disabled="status === 'loading'">
+      Add todo
+    </button>
+  </form>
+</template>
+```
+
+:::
+
+TODO:
+
+- Executing mutations
+- Status of mutations
+- Side effects
+  - note about invalidating queries
+  - Optimistic updates
+- Global options
+
+## Best Practices

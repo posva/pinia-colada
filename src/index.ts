@@ -9,6 +9,8 @@ export {
   type _EmptyObject,
   type MutationStatus,
 } from './use-mutation'
+export { defineMutation } from './define-mutation'
+
 export { useQuery, type UseQueryReturn } from './use-query'
 
 // export { type UseQueryKeyList } from './query-keys'
