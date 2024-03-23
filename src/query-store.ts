@@ -12,7 +12,7 @@ import {
 } from 'vue'
 import { stringifyFlatObject } from './utils'
 import { type EntryNodeKey, TreeMapNode } from './tree-map'
-import type { UseEntryKey } from './entry-options'
+import type { EntryKey } from './entry-options'
 import type { UseQueryOptionsWithDefaults } from './query-options'
 import type { ErrorDefault } from './types-extension'
 
@@ -144,7 +144,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
   const scope = getCurrentScope()!
 
   function ensureEntry<TResult = unknown, TError = ErrorDefault>(
-    keyRaw: UseEntryKey,
+    keyRaw: EntryKey,
     options: UseQueryOptionsWithDefaults<TResult>,
   ): UseQueryEntry<TResult, TError> {
     if (process.env.NODE_ENV !== 'production' && keyRaw.length === 0) {
@@ -179,7 +179,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
    * @param options.refetch - if true, it will refetch the data
    */
   function invalidateEntry(
-    key: UseEntryKey,
+    key: EntryKey,
     {
       refetch: shouldRefetch = true,
       exact = false,
@@ -302,7 +302,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
 
   // TODO: tests, remove function version
   function setQueryData<TResult = unknown>(
-    key: UseEntryKey,
+    key: EntryKey,
     data: TResult | ((data: Ref<TResult | undefined>) => void),
   ) {
     const entry = caches.get(key.map(stringifyFlatObject)) as
@@ -323,7 +323,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
   }
 
   function getQueryData<TResult = unknown>(
-    key: UseEntryKey,
+    key: EntryKey,
   ): TResult | undefined {
     const entry = caches.get(key.map(stringifyFlatObject)) as
       | UseQueryEntry<TResult>
@@ -332,7 +332,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
   }
 
   // TODO: find a way to make it possible to prefetch. Right now we need the actual options of the query
-  function _prefetch(key: UseEntryKey) {
+  function _prefetch(key: EntryKey) {
     const entry = cachesRaw.get(key.map(stringifyFlatObject))
     if (!entry) {
       if (process.env.NODE_ENV !== 'production') {

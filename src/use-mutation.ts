@@ -1,7 +1,7 @@
 import { computed, shallowRef } from 'vue'
 import type { ComputedRef, MaybeRefOrGetter, ShallowRef } from 'vue'
 import { useQueryCache } from './query-store'
-import type { UseEntryKey } from './entry-options'
+import type { EntryKey } from './entry-options'
 import type { ErrorDefault } from './types-extension'
 import { type _Awaitable, noop } from './utils'
 
@@ -11,8 +11,8 @@ import { type _Awaitable, noop } from './utils'
  * @internal
  */
 type _MutationKeys<TVars, TResult> =
-  | UseEntryKey[]
-  | ((data: TResult, vars: TVars) => UseEntryKey[])
+  | EntryKey[]
+  | ((data: TResult, vars: TVars) => EntryKey[])
 
 /**
  * The status of the mutation.
@@ -69,7 +69,7 @@ export interface UseMutationOptions<
    */
   mutation: (vars: TVars, context: NoInfer<TContext>) => Promise<TResult>
 
-  key?: MaybeRefOrGetter<UseEntryKey>
+  key?: MaybeRefOrGetter<EntryKey>
 
   // TODO: move this to a plugin that calls invalidateEntry()
   /**

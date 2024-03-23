@@ -16,7 +16,7 @@ export { useQuery, type UseQueryReturn } from './use-query'
 // export { type UseQueryKeyList } from './query-keys'
 
 export {
-  type UseEntryKey,
+  type EntryKey,
 } from './entry-options'
 
 export {
