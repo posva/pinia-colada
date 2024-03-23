@@ -1,5 +1,5 @@
 import { type InjectionKey, type MaybeRefOrGetter, inject } from 'vue'
-import type { UseEntryKey } from './entry-options'
+import type { EntryKey } from './entry-options'
 import type { QueryPluginOptions } from './query-plugin'
 import type { ErrorDefault } from './types-extension'
 
@@ -53,7 +53,7 @@ export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
    * })
    * ```
    */
-  key: MaybeRefOrGetter<UseEntryKey>
+  key: MaybeRefOrGetter<EntryKey>
 
   /**
    * The function that will be called to fetch the data. It **must** be async.

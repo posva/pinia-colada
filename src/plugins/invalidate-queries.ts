@@ -1,7 +1,7 @@
 /**
  * @module @pinia/colada/plugins/invalidate-queries
  */
-import type { UseEntryKey } from '@pinia/colada'
+import type { EntryKey } from '@pinia/colada'
 
 export interface UseMutationOptionsInvalidateQueries<TResult, TVars> {
   /**
@@ -9,8 +9,8 @@ export interface UseMutationOptionsInvalidateQueries<TResult, TVars> {
    * `@pinia/colada/plugins/invalidate-queries` is installed.
    */
   invalidateKeys?:
-    | UseEntryKey[]
-    | ((data: TResult, vars: TVars) => UseEntryKey[])
+    | EntryKey[]
+    | ((data: TResult, vars: TVars) => EntryKey[])
 }
 
 declare module '@pinia/colada' {

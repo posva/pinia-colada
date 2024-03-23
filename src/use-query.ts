@@ -13,7 +13,7 @@ import {
 import { IS_CLIENT, computedRef, useEventListener } from './utils'
 import { type _UseQueryEntry_State, useQueryCache } from './query-store'
 import { useQueryOptions } from './query-options'
-import type { UseEntryKey } from './entry-options'
+import type { EntryKey } from './entry-options'
 import type {
   UseQueryOptions,
   UseQueryOptionsWithDefaults,
@@ -176,9 +176,9 @@ export function useQuery<TResult, TError = ErrorDefault>(
  * @returns - the computed key
  */
 function _computedKeyWithWarnings(
-  key: MaybeRefOrGetter<UseEntryKey>,
+  key: MaybeRefOrGetter<EntryKey>,
   warnChecksMap: WeakMap<object, boolean>,
-): () => UseEntryKey {
+): () => EntryKey {
   const componentInstance = getCurrentInstance()
   // probably correct scope, no need to warn
   if (!componentInstance) return () => toValue(key)
