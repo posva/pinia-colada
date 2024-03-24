@@ -2,57 +2,70 @@
 
 ## Definition:
 
-Queries are dependencies to an async source of data which declaratively fetch, cache and refresh the data. The API to declare and run a query is the composable `useQuery`:
+Queries are dependencies to an async source of data. They allow us to declaratively fetch, cache and refresh the data.
 
-```ts
-const { data, isFetching, error, refresh } = useQuery({
-  key: ['items'],
-  query: () => getItems,
-  staleTime: 60000,
+::: info
+Queries are meant to **read** data. In terms of REST, for example, queries would handle `GET` requests. If you need to **write** (or mutate) data, you can use [mutations](./mutations.md).
+:::
+
+## Defining a query:
+
+The API to define a query is the `useQuery` composable:
+
+```vue twoslash
+<script setup lang="ts">
+import { useQuery } from '@pinia/colada'
+
+const { data, error, isFetching } = useQuery({
+  key: ['todos'],
+  query: () => fetch('/api/todos').then((res) => res.json())
 })
+</script>
+
+<template>
+  <main>
+    <div v-if="isFetching">
+      Loading
+    </div>
+    <div v-else-if="error">
+      Oups, an error happened...
+    </div>
+    <div v-else>
+      <Todo v-for="todo in data" :key="todo.id" :todo />
+    </div>
+  </main>
+</template>
 ```
+
 This composable:
 - accepts an option object, which configures the key of the query, how to fetch de data, and options related to the cache and its revalidation
 - returns the state of the query, which can be used in the UI, and some methods to declaratively revalidate the cache if needed
 
-## Query options:
+## The `defineQuery()` API:
 
-### Required options:
-- `key`: the key used to identify the query. It **must** be unique per query. // TODO: add precisions on the key array.
-- `query`: the function called to fetch the data. It **must** be async.
+Alternatively, a query can be defined with the `defineQuery()` function, which allows you to create related properties associated with the queries.
 
-### Cache:
-- `staleTime`: the time in ms after which the data is considered stale and will be refreshed on next read (TODO: examples of read). The default time is set to 5 seconds.
-- `gcTime`: the time in ms after which the cache of an inactive query will be garbage collected to free resources. The default time is 5 minutes.
+// TODO
 
-### Revalidation events:
-The query cache can be revalidated on specific events: on component mount, on window focus or on reconnection (TODO: mention that there is no polling of the data? Explain better that revalidation rely on these events, and that if needed we can declaratively use `useQuey`'s methods to trigger it?). The related options are:
-- `refetchOnMount`
-- `refetchOnWindowFocus`
-- `refetchOnReconnect`
+## Query options and return:
 
-Each option accept three values:
-- `true`: refetch if data is stale (triggers under the hoods the `refresh` method, cf "Query returns" below). This is the default value.
-- `false`: never refetch
-- `always`: always refetch
+// TODO: link mentioned options to the API doc
 
-## Query returns :
+### Options:
+Queries have two mandatory options:
+- [`key`](./query-keys.md): the key used internally to identify the query. It can also be used to [invalidate a query](./query-invalidation.md).
+- `query`: the function called to fetch the data, which **must** be async.
 
-### State of the query:
+The other options are not required. They are related to:
+- the cache: for example, the `staleTime` option, which defines the time after which the data is considered stale, or the `gcTime`, which defines the time after which an inactive query should be garbage collected.
+- revalidation events: the query cache can be revalidated on specific events (component mount, window focus or reconnection). We can then, for each of these events, define whether the data should be revalidated or not, and how (refreshed or refetch, cf the 'returns' section for more details // TODO: add link).
 
-- `data`: the last successful data resolved by the query (the query cache)
-- `error`: the error rejected by the query (if any)
-- `isFetching`: whether the request is currently fetching data
-- `isPending`: alias for `status.value === 'pending'`
-- `status`: the status of the query. Possible values:
-    - `pending`: initial state (the first call is still pending)
-    - `loading`: the request is being made
-    - `error`: the last request failed
-    - `success`: the last request succeeded
+// TODO: how to define options defaults,
 
-### Query methods:
-`useQuery` exposes two methods to imperatively trigger data revalidation:
-- `refresh`: ensures the current data is fresh. If the data is stale, refetch, if not return as is. In any case, returns a promise (immediately resolved, or that resolves when the refresh is done).
-- `refetch`: ignores fresh data and triggers a new fetch. Returns a promise (that resolves when the refresh is done).
+### Returns:
 
-*Nb: since `useQuery` already takes care of revalidating the data on specific events, make sure to check them before manually using the following methods.*
+`useQuery` returns:
+- the state of the query: for example `data` (the last successful data resolved by the query) or `status` (the current state of the query)
+- methods (to imperatively trigger data revalidation): `refresh` which check if the data is stale, and refetch it in that case, and `refetch`, which refetch the data regardless of the stale time.
+
+*Nb: about revalidation methods, since `useQuery` already takes care of revalidating the data on specific events (cf the options section // TODO: add link), make sure to check them before manually using the following methods.*
