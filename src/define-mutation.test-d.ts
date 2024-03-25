@@ -1,5 +1,6 @@
 import { expectTypeOf, it } from 'vitest'
 import { defineMutation } from './define-mutation'
+import { useMutation } from './use-mutation'
 
 it('can define a mutation with an options object', () => {
   const useMutation = defineMutation({
@@ -18,13 +19,15 @@ it('can define a mutation with an options object', () => {
 })
 
 it('can define a mutation with a function', () => {
-  const useMutation = defineMutation(() => {
+  const useMyMutation = defineMutation(() => {
     return {
-      mutation: async (id: number) => ({ id }),
+      ...useMutation({
+        mutation: async (id: number) => ({ id }),
+      }),
     }
   })
 
-  const { data, mutate } = useMutation()
+  const { data, mutate } = useMyMutation()
 
   expectTypeOf(mutate(32)).toEqualTypeOf<void>()
   // @ts-expect-error: need args
