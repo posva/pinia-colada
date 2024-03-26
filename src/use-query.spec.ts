@@ -1,8 +1,9 @@
 import type { MockInstance } from 'vitest'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { enableAutoUnmount, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { defineComponent, nextTick, ref, shallowReactive } from 'vue'
+import { mockWarn } from '../test/mock-warn'
 import type { GlobalMountOptions } from '../test/utils'
 import { delay, isSpy, runTimers } from '../test/utils'
 import { useQuery } from './use-query'
@@ -19,6 +20,8 @@ describe('useQuery', () => {
   afterEach(() => {
     vi.restoreAllMocks()
   })
+
+  enableAutoUnmount(afterEach)
 
   function mountSimple<TResult = number>(
     options: Partial<UseQueryOptions<TResult>> = {},
@@ -512,7 +515,10 @@ describe('useQuery', () => {
         ),
       )
       pinia.state.value[QUERY_STORE_ID] = { caches }
-      const { wrapper } = mountSimple({ refetchOnMount: false }, { plugins: [pinia] })
+      const { wrapper } = mountSimple(
+        { refetchOnMount: false },
+        { plugins: [pinia] },
+      )
 
       expect(wrapper.vm.status).toBe('error')
       expect(wrapper.vm.error).toEqual(new Error('fail'))
@@ -530,10 +536,51 @@ describe('useQuery', () => {
         ),
       )
       pinia.state.value[QUERY_STORE_ID] = { caches }
-      const { wrapper } = mountSimple({ refetchOnMount: false, initialData: () => 42 }, { plugins: [pinia] })
+      const { wrapper } = mountSimple(
+        { refetchOnMount: false, initialData: () => 42 },
+        { plugins: [pinia] },
+      )
 
       expect(wrapper.vm.status).toBe('error')
       expect(wrapper.vm.error).toEqual(new Error('fail'))
     })
+  })
+
+  describe('warns', () => {
+    mockWarn()
+
+    it.todo(
+      'warns if the key uses a reactive property that does not belong to the query',
+      async () => {
+        const querySpy = vi.fn().mockResolvedValue(42)
+        mount({
+          setup() {
+            const id = ref(0)
+            return {
+              ...useQuery({
+                key: () => ['key', id.value],
+                query: querySpy,
+              }),
+            }
+          },
+          template: `<div></div>`,
+        }, {
+          global: {
+            plugins: [createPinia(), QueryPlugin],
+          },
+        })
+
+        await runTimers()
+        // first time, it saves the component instance
+        expect(`computed a key of "key,0"`).not.toHaveBeenWarned()
+        // if a new component instance is mounted while the previous one is still active, we warn
+      },
+    )
+
+    it.todo('does not warn if the route is used in the key')
+
+    it.todo('does not warn if the query data belongs to a defineQuery', async () => {})
+
+    it.todo('can safelist other global properties not to warn')
   })
 })

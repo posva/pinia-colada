@@ -346,6 +346,12 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
 
   return {
     caches,
+    // used to warn the user against wrong usage and redirect them to the docs
+    // to use `defineQuery()` instead
+    warnChecksMap:
+      process.env.NODE_ENV !== 'production'
+        ? new WeakMap<object, boolean>()
+        : undefined,
 
     ensureEntry,
     invalidateEntry,

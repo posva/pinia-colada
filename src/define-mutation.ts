@@ -55,6 +55,7 @@ export function defineMutation<T>(setup: () => T): () => T
 export function defineMutation(
   optionsOrSetup: UseMutationOptions | (() => unknown),
 ): () => unknown {
+  // TODO: actual implementation
   return typeof optionsOrSetup === 'function'
     ? optionsOrSetup
     : () => useMutation(optionsOrSetup)

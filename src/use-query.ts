@@ -1,3 +1,4 @@
+import type { MaybeRefOrGetter } from 'vue'
 import {
   computed,
   getCurrentInstance,
@@ -5,15 +6,17 @@ import {
   onMounted,
   onScopeDispose,
   onServerPrefetch,
+  onUnmounted,
   toValue,
   watch,
 } from 'vue'
 import { IS_CLIENT, computedRef, useEventListener } from './utils'
 import { type _UseQueryEntry_State, useQueryCache } from './query-store'
-import {
-  type UseQueryOptions,
-  type UseQueryOptionsWithDefaults,
-  useQueryOptions,
+import { useQueryOptions } from './query-options'
+import type {
+  UseQueryKey,
+  UseQueryOptions,
+  UseQueryOptionsWithDefaults,
 } from './query-options'
 import type { ErrorDefault } from './types-extension'
 
@@ -45,11 +48,19 @@ export function useQuery<TResult, TError = ErrorDefault>(
 ): UseQueryReturn<TResult, TError> {
   const store = useQueryCache()
   const USE_QUERY_DEFAULTS = useQueryOptions()
+  // const effect = (getActivePinia() as any)._e as EffectScope
 
   const options = {
     ...USE_QUERY_DEFAULTS,
     ..._options,
   } satisfies UseQueryOptionsWithDefaults<TResult>
+
+  // TODO:
+  // allows warning against potentially wrong usage
+  // const keyGetter
+  //   = process.env.NODE_DEV !== 'production'
+  //     ? computedKeyWithWarnings(options.key, store.warnChecksMap!)
+  //     : options.key
 
   const entry = computed(() =>
     store.ensureEntry<TResult, TError>(toValue(options.key), options),
@@ -163,4 +174,42 @@ function _defineQuery<TResult, TError = ErrorDefault>(
   setup: () => UseQueryOptions<TResult>,
 ) {
   return () => useQuery<TResult, TError>(setup())
+}
+
+/**
+ * Unwraps a key from `options.key` while checking for properties any problematic dependencies. Should be used in DEV
+ * only.
+ * @param key - key to compute
+ * @returns - the computed key
+ */
+function _computedKeyWithWarnings(
+  key: MaybeRefOrGetter<UseQueryKey>,
+  warnChecksMap: WeakMap<object, boolean>,
+): () => UseQueryKey {
+  const componentInstance = getCurrentInstance()
+  // probably correct scope, no need to warn
+  if (!componentInstance) return () => toValue(key)
+
+  const comp = computed(() => toValue(key))
+
+  // remove the component from the map
+  onUnmounted(() => {
+    warnChecksMap.delete(comp)
+  })
+
+  return () => {
+    const val = comp.value
+
+    const invalidDeps = comp.effect.deps.filter((dep) => {
+      return !!dep
+    })
+    if (invalidDeps.length > 0) {
+      console.warn(
+        `"useQuery()" with a key "${val}" depends on a local reactive property. This might lead to unexpected behavior. See https://pinia-colada.esm.dev/cookbook/unscoped-reactivity.html.\nFound these reactive effects:`,
+        ...invalidDeps.map((dep) => dep.keys()),
+      )
+    }
+
+    return val
+  }
 }
