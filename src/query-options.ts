@@ -10,44 +10,9 @@ import type { ErrorDefault } from './types-extension'
 export type _RefetchOnControl = boolean | 'always'
 
 /**
- * Symbol used to attach a data type to a `UseQueryKey`. It's never actually used, it's just for types.
- */
-const DATA_TYPE_SYMBOL = Symbol()
-
-/**
  * Key used to identify a query. Always an array.
  */
 export type UseQueryKey = Array<EntryNodeKey | _ObjectFlat>
-
-/**
- * Key used to identify a query with a specific data type.
- * @internal
- */
-export type _UseQueryKeyWithDataType<T> = UseQueryKey & {
-  /**
-   * Attach a data type to a key to infer the type of the data solely from the key.
-   * @see {@link InferUseQueryKeyData}
-   *
-   * @internal
-   */
-  [DATA_TYPE_SYMBOL]: T
-}
-
-// export type UseQueryKey<T = unknown> = Array<EntryNodeKey | _ObjectFlat> & {
-//   /**
-//    * Attach a data type to a key to infer the type of the data solely from the key.
-//    * @see {@link InferUseQueryKeyData}
-//    *
-//    * @internal
-//    */
-//   [DATA_TYPE_SYMBOL]?: T
-// }
-
-/**
- * Infer the data type from a `UseQueryKey` if possible. Falls back to `unknown`.
- */
-export type InferUseQueryKeyData<Key> =
-  Key extends Record<typeof DATA_TYPE_SYMBOL, infer T> ? T : unknown
 
 /**
  * Context object passed to the `query` function of `useQuery()`.
@@ -136,15 +101,6 @@ export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
   refetchOnWindowFocus?: _RefetchOnControl
   refetchOnReconnect?: _RefetchOnControl
 }
-
-// NOTE: helper to type the options. Still not used
-export const queryOptions: <Options extends UseQueryOptions>(
-  options: Options,
-) => Options & {
-  key: Options['key'] & {
-    [DATA_TYPE_SYMBOL]: Options extends UseQueryOptions<infer T> ? T : unknown
-  }
-} = (options) => options as any
 
 /**
  * Default options for `useQuery()`. Modifying this object will affect all the queries that don't override these

@@ -407,6 +407,19 @@ describe('useQuery', () => {
       await runTimers()
       expect(query).toHaveBeenCalledTimes(2)
     })
+
+    it.todo('can avoid throwing', async () => {
+      const { wrapper, query } = mountSimple({
+        staleTime: 0,
+      })
+
+      await runTimers()
+      expect(wrapper.vm.error).toBeNull()
+
+      query.mockRejectedValueOnce(new Error('ko'))
+
+      await expect(wrapper.vm.refetch()).resolves.toBeUndefined()
+    })
   })
 
   describe('shared state', () => {

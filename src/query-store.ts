@@ -142,6 +142,14 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
   // this allows use to attach reactive effects to the scope later on
   const scope = getCurrentScope()!
 
+  const defineQueryMap = new WeakMap<() => unknown, any>()
+  function ensureDefinedQuery<T>(fn: () => T): T {
+    if (!defineQueryMap.has(fn)) {
+      defineQueryMap.set(fn, scope.run(fn)!)
+    }
+    return defineQueryMap.get(fn)!
+  }
+
   function ensureEntry<TResult = unknown, TError = ErrorDefault>(
     keyRaw: UseQueryKey,
     options: UseQueryOptionsWithDefaults<TResult, TError>,
@@ -354,6 +362,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
         : undefined,
 
     ensureEntry,
+    ensureDefinedQuery,
     invalidateEntry,
     setQueryData,
     getQueryData,

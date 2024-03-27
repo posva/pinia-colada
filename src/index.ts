@@ -12,13 +12,11 @@ export {
 export { defineMutation } from './define-mutation'
 
 export { useQuery, type UseQueryReturn } from './use-query'
+export { defineQuery } from './define-query'
 
 // export { type UseQueryKeyList } from './query-keys'
 
 export {
-  // TODO: figure out if worth compared to `defineQuery()`
-  // queryOptions,
-  // type InferUseQueryKeyData,
   type UseQueryKey,
   type UseQueryOptions,
   type UseQueryOptionsWithDefaults,
