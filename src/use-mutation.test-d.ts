@@ -2,7 +2,7 @@ import { expectTypeOf, it } from 'vitest'
 import { useMutation } from './use-mutation'
 
 it('types the parameters for the key', () => {
-  const { mutate } = useMutation({
+  const { mutate, mutateAsync } = useMutation({
     mutation: (_one: string) => Promise.resolve({ name: 'foo' }),
     keys(result, one) {
       expectTypeOf(one).toBeString()
@@ -12,12 +12,15 @@ it('types the parameters for the key', () => {
   })
 
   mutate('one')
+  mutateAsync('one')
   // @ts-expect-error: missing arg
   mutate()
+  // @ts-expect-error: missing arg
+  mutateAsync()
 })
 
 it('allows no arguments to mutation', () => {
-  const { mutate } = useMutation({
+  const { mutate, mutateAsync } = useMutation({
     mutation: () => Promise.resolve({ name: 'foo' }),
     keys(result) {
       expectTypeOf(result).toEqualTypeOf<{ name: string }>()
@@ -26,8 +29,11 @@ it('allows no arguments to mutation', () => {
   })
 
   mutate()
+  mutateAsync()
   // @ts-expect-error: no extra arg
   mutate(25)
+  // @ts-expect-error: no extra arg
+  mutateAsync(25)
 })
 
 it('can return an array of keys', () => {
