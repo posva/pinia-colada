@@ -44,7 +44,7 @@ export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault>
  * @param _options - The options of the query
  */
 export function useQuery<TResult, TError = ErrorDefault>(
-  _options: UseQueryOptions<TResult>,
+  _options: UseQueryOptions<TResult, TError>,
 ): UseQueryReturn<TResult, TError> {
   const store = useQueryCache()
   const USE_QUERY_DEFAULTS = useQueryOptions()
@@ -53,7 +53,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
   const options = {
     ...USE_QUERY_DEFAULTS,
     ..._options,
-  } satisfies UseQueryOptionsWithDefaults<TResult>
+  } satisfies UseQueryOptionsWithDefaults<TResult, TError>
 
   // TODO:
   // allows warning against potentially wrong usage
@@ -171,7 +171,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
 
 // TODO: createQuery with access to other properties as arguments for advanced (maybe even recommended) usage
 function _defineQuery<TResult, TError = ErrorDefault>(
-  setup: () => UseQueryOptions<TResult>,
+  setup: () => UseQueryOptions<TResult, TError>,
 ) {
   return () => useQuery<TResult, TError>(setup())
 }

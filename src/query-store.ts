@@ -71,7 +71,7 @@ export interface UseQueryEntry<TResult = unknown, TError = unknown>
   /**
    * Options used to create the query. They can be undefined during hydration but are needed for fetching. This is why `store.ensureEntry()` sets this property.
    */
-  options?: UseQueryOptionsWithDefaults<TResult>
+  options?: UseQueryOptionsWithDefaults<TResult, TError>
 }
 
 /**
@@ -144,7 +144,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
 
   function ensureEntry<TResult = unknown, TError = ErrorDefault>(
     keyRaw: UseQueryKey,
-    options: UseQueryOptionsWithDefaults<TResult>,
+    options: UseQueryOptionsWithDefaults<TResult, TError>,
   ): UseQueryEntry<TResult, TError> {
     if (process.env.NODE_ENV !== 'production' && keyRaw.length === 0) {
       throw new Error(

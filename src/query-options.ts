@@ -2,6 +2,7 @@ import { type InjectionKey, type MaybeRefOrGetter, inject } from 'vue'
 import type { EntryNodeKey } from './tree-map'
 import type { _ObjectFlat } from './utils'
 import type { QueryPluginOptions } from './query-plugin'
+import type { ErrorDefault } from './types-extension'
 
 /**
  * `true` refetch if data is stale (refresh()), `false` never refetch, 'always' always refetch.
@@ -75,7 +76,7 @@ export interface UseQueryFnContext {
  * }
  * ```
  */
-export interface UseQueryOptions<TResult = unknown> {
+export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
   /**
    * The key used to identify the query. Array of primitives **without** reactive values or a reactive array or getter.
    * It should be treaded as an array of dependencies of your queries, e.g. if you use the `route.params.id` property,
@@ -112,6 +113,23 @@ export interface UseQueryOptions<TResult = unknown> {
 
   initialData?: () => TResult
 
+  /**
+   * Function to type and ensure the `error` property is always an instance of `TError`.
+   *
+   * @param error - error thrown
+   * @example
+   * ```ts
+   * useQuery({
+   *   key: ['user', id],
+   *   query: () => fetchUser(id),
+   *   transformError: (error): MyCustomError | UnexpectedError =>
+   *     // this assumes both `MyCustomError` and a `UnexpectedError` are valid error classes
+   *     error instanceof MyCustomError ? error : new UnexpectedError(error),
+   * })
+   * ```
+   */
+  transformError?: (error: unknown) => TError
+
   // TODO: move to a plugin
   // TODO: rename to refresh since that's the default? and change 'always' to 'force'?
   refetchOnMount?: _RefetchOnControl
@@ -138,10 +156,12 @@ export const USE_QUERY_DEFAULTS = {
   refetchOnWindowFocus: true as _RefetchOnControl,
   refetchOnReconnect: true as _RefetchOnControl,
   refetchOnMount: true as _RefetchOnControl,
+  // as any to simplify the typing with generics
+  transformError: (error: unknown) => error as any,
 } satisfies Partial<UseQueryOptions>
 
-export type UseQueryOptionsWithDefaults<TResult = unknown> =
-  typeof USE_QUERY_DEFAULTS & UseQueryOptions<TResult>
+export type UseQueryOptionsWithDefaults<TResult = unknown, TError = ErrorDefault> =
+  typeof USE_QUERY_DEFAULTS & UseQueryOptions<TResult, TError>
 
 export const USE_QUERY_OPTIONS_KEY: InjectionKey<
   typeof USE_QUERY_DEFAULTS &

@@ -23,7 +23,7 @@ describe('useQuery', () => {
 
   enableAutoUnmount(afterEach)
 
-  function mountSimple<TResult = number>(
+  function mountSimple<TResult = number, TError = Error>(
     options: Partial<UseQueryOptions<TResult>> = {},
     mountOptions?: GlobalMountOptions,
   ) {
@@ -38,7 +38,7 @@ describe('useQuery', () => {
         render: () => null,
         setup() {
           return {
-            ...useQuery<TResult>({
+            ...useQuery<TResult, TError>({
               key: ['key'],
               ...options,
               // @ts-expect-error: generic unmatched but types work
@@ -235,7 +235,7 @@ describe('useQuery', () => {
   })
 
   describe('refresh data', () => {
-    function mountDynamicKey<TResult = { id: number, when: number }>(
+    function mountDynamicKey<TResult = { id: number, when: number }, TError = Error>(
       options: Partial<UseQueryOptions<TResult>> & { initialId?: number } = {},
       mountOptions?: GlobalMountOptions,
     ) {
@@ -264,7 +264,7 @@ describe('useQuery', () => {
                 // renders again
                 await nextTick()
               },
-              ...useQuery<TResult>({
+              ...useQuery<TResult, TError>({
                 key: () => ['data', id.value],
                 ...options,
                 // @ts-expect-error: generic unmatched but types work

@@ -11,7 +11,7 @@ import type { UseQueryReturn } from './use-query'
 import type { ErrorDefault } from './types-extension'
 
 export interface QueryPluginOptions
-  extends Omit<UseQueryOptions, 'key' | 'query' | 'initialData'> {
+  extends Omit<UseQueryOptions, 'key' | 'query' | 'initialData' | 'transformError'> {
   /**
    * Executes setup code inside `useQuery()` to add custom behavior to all queries. **Must be synchronous**.
    *
@@ -20,7 +20,7 @@ export interface QueryPluginOptions
   setup?: <TResult = unknown, TError = ErrorDefault>(
     context: _Simplify<
       UseQueryReturn<TResult, TError> & {
-        options: UseQueryOptionsWithDefaults<TResult>
+        options: UseQueryOptionsWithDefaults<TResult, TError>
       }
     >,
   ) => void | Promise<never>
@@ -29,6 +29,14 @@ export interface QueryPluginOptions
   onSuccess?: () => void
   onSettled?: () => void
   onError?: () => void
+
+  /**
+   * Function to ensure the `error` property is always an instance of the default global type error. Defaults to the
+   * identity function.
+   *
+   * @param error - error thrown
+   */
+  transformError?: (error: unknown) => ErrorDefault
 }
 
 export function QueryPlugin(

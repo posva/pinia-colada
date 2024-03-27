@@ -89,6 +89,33 @@ it('can uses the global error type', () => {
   )
 })
 
+it('can type the error with "transformError"', () => {
+  expectTypeOf<MyCustomError | UnexpectedError | null>(
+    useQuery({
+      query: async () => 42,
+      key: ['foo'],
+      transformError: (error) => {
+        return error instanceof MyCustomError ? error : new UnexpectedError(error)
+      },
+    }).error.value,
+  )
+})
+
+class MyCustomError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'MyCustomError'
+  }
+}
+
+class UnexpectedError extends Error {
+  error: unknown
+  constructor(error: unknown) {
+    super()
+    this.error = error
+  }
+}
+
 declare module './types-extension' {
   interface TypesConfig {
     Error: { custom: Error }
