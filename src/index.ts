@@ -16,10 +16,13 @@ export { useQuery, type UseQueryReturn } from './use-query'
 // export { type UseQueryKeyList } from './query-keys'
 
 export {
+  type EntryKey,
+} from './entry-options'
+
+export {
   // TODO: figure out if worth compared to `defineQuery()`
   // queryOptions,
   // type InferUseQueryKeyData,
-  type UseQueryKey,
   type UseQueryOptions,
   type UseQueryOptionsWithDefaults,
 } from './query-options'

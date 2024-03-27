@@ -4,6 +4,21 @@ import { useMutation } from './use-mutation'
 it('types the parameters for the key', () => {
   const { mutate } = useMutation({
     mutation: (_one: string) => Promise.resolve({ name: 'foo' }),
+    key(result, one) {
+      expectTypeOf(one).toBeString()
+      expectTypeOf(result).toEqualTypeOf<{ name: string }>()
+      return ['foo']
+    },
+  })
+
+  mutate('one')
+  // @ts-expect-error: missing arg
+  mutate()
+})
+
+it('types the parameters for the keys', () => {
+  const { mutate } = useMutation({
+    mutation: (_one: string) => Promise.resolve({ name: 'foo' }),
     keys(result, one) {
       expectTypeOf(one).toBeString()
       expectTypeOf(result).toEqualTypeOf<{ name: string }>()
