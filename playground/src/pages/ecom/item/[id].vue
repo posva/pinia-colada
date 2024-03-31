@@ -25,7 +25,7 @@ const itemAvailability = ref()
 watch(() => item.value?.availability, (value) => itemAvailability.value = value)
 
 const { mutate: bookProduct } = useMutation({
-  key: ['book-item'],
+  key: (product) => ['book-item', product.id],
   keys: (product) => [['items'], ['items', product.id]],
   mutation: async (product: ProductListItem) => {
     await delay(Math.random() * 1000 + 200)

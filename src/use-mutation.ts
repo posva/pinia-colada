@@ -5,9 +5,9 @@ import type { EntryKey } from './entry-options'
 import type { ErrorDefault } from './types-extension'
 import { type _Awaitable, noop } from './utils'
 
-type _MutationKey<TVars, TResult> =
+type _MutationKey<TVars> =
   | EntryKey
-  | ((data: TResult, vars: TVars) => EntryKey)
+  | ((vars: TVars) => EntryKey)
 
 // TODO: move to a plugin
 /**
@@ -73,7 +73,7 @@ export interface UseMutationOptions<
    */
   mutation: (vars: TVars, context: NoInfer<TContext>) => Promise<TResult>
 
-  key?: _MutationKey<TVars, TResult>
+  key?: _MutationKey<TVars>
 
   // TODO: move this to a plugin that calls invalidateEntry()
   /**
