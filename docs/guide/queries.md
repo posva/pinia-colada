@@ -30,37 +30,18 @@ const { data, status } = useQuery({
   </main>
 </template>
 ```
-Let's cover the basics first: the query, then the key, what is expected from them. Then explain how the query is automatically triggered when needed (no need to go into details yet) and that it will update data, and others enabling a declarative approach
 
-This composable:
-- accepts an option object, which configures the key of the query, how to fetch de data, and options related to the cache and its revalidation
-- returns the state of the query, which can be used in the UI, and some methods to declaratively revalidate the cache if needed
+// TODO: link mentioned options/returns to the API doc
+
+As we can see, to define a query, we need at least:
+- a key: it will be used to store and retrieve the query
+- the query function: the actual function to fetch the data (indeed, Pinia Colada does not and is not meant to provide an HTTP client, and is therefore agnostic on the way that you fetch the data, the only constraint being that the query function returns a promise)
+`useQuery` accepts other options, which are not required, to configure the query cache (for example, the `staleTime`) or when and how the query should be triggered.
+
+Then, the query will be automatically triggered when needed (more precisely on specific events cf // TODO: link to the relevant section), either to fetch or to refresh the data, enabling a declarative approach. You can access to the fetched data through the references returned by the composable (`data`), as well as to more information on the query state, such as its status (`status`). It also returns methods to manually trigger the query if needed.
 
 ## The `defineQuery()` API:
 
 Alternatively, a query can be defined with the `defineQuery()` function, which allows you to create related properties associated with the queries.
 
 // TODO
-
-## Query options and return:
-
-// TODO: link mentioned options to the API doc
-
-### Options
-Queries have two mandatory options:
-- [`key`](./query-keys.md): the key used internally to identify the query. It can also be used to [invalidate a query](./query-invalidation.md).
-- `query`: the function called to fetch the data, which **must** be async.
-
-The other options are not required. They are related to:
-- the cache: for example, the `staleTime` option, which defines the time after which the data is considered stale, or the `gcTime`, which defines the time after which an inactive query should be garbage collected.
-- revalidation events: the query cache can be revalidated on specific events (component mount, window focus or reconnection). We can then, for each of these events, define whether the data should be revalidated or not, and how (refreshed or refetch, cf the 'returns' section for more details // TODO: add link).
-
-// TODO: how to define options defaults,
-
-### Returns:
-
-`useQuery` returns:
-- the state of the query: for example `data` (the last successful data resolved by the query) or `status` (the current state of the query)
-- methods (to imperatively trigger data revalidation): `refresh` which check if the data is stale, and refetch it in that case, and `refetch`, which refetch the data regardless of the stale time.
-
-*Nb: about revalidation methods, since `useQuery` already takes care of revalidating the data on specific events (cf the options section // TODO: add link), make sure to check them before manually using the following methods.*
