@@ -14,6 +14,7 @@ import { stringifyFlatObject } from './utils'
 import { type EntryNodeKey, TreeMapNode } from './tree-map'
 import type { UseQueryKey, UseQueryOptionsWithDefaults } from './query-options'
 import type { ErrorDefault } from './types-extension'
+import type { defineQuery } from './define-query'
 
 /**
  * The status of the request.
@@ -339,27 +340,17 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
   }
 
   // TODO: find a way to make it possible to prefetch. Right now we need the actual options of the query
-  function _prefetch(key: UseQueryKey) {
-    const entry = cachesRaw.get(key.map(stringifyFlatObject))
-    if (!entry) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.warn(
-          `⚠️ trying to prefetch "${String(key)}" but it's not in the registry`,
-        )
-      }
-      return
-    }
-    return refetch(entry)
-  }
+  function _preload(_useQueryFn: ReturnType<typeof defineQuery>) {}
 
   return {
     caches,
+    // TODO: figure out if worth or eslint is enough
     // used to warn the user against wrong usage and redirect them to the docs
     // to use `defineQuery()` instead
-    warnChecksMap:
-      process.env.NODE_ENV !== 'production'
-        ? new WeakMap<object, boolean>()
-        : undefined,
+    // warnChecksMap:
+    //   process.env.NODE_ENV !== 'production'
+    //     ? new WeakMap<object, boolean>()
+    //     : undefined,
 
     ensureEntry,
     ensureDefinedQuery,

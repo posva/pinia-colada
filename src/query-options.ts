@@ -72,7 +72,7 @@ export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
   staleTime?: number
 
   /**
-   * Time in ms after which, once the data is no longer being used, it will be garbage collected to free resources.
+   * Time in ms after which, once the data is no longer being used, it will be garbage collected to free resources. TODO: **NOT IMPLEMENTED YET**
    */
   gcTime?: number
 
