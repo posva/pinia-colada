@@ -6,12 +6,16 @@ import {
   type UseQueryOptionsWithDefaults,
 } from './query-options'
 import { useQueryCache } from './query-store'
-import { type _Simplify, noop } from './utils'
+import { noop } from './utils'
+import type { _Simplify } from './utils'
 import type { UseQueryReturn } from './use-query'
 import type { ErrorDefault } from './types-extension'
 
 export interface QueryPluginOptions
-  extends Omit<UseQueryOptions, 'key' | 'query' | 'initialData' | 'transformError'> {
+  extends Omit<
+    UseQueryOptions,
+    'key' | 'query' | 'initialData' | 'transformError'
+  > {
   /**
    * Executes setup code inside `useQuery()` to add custom behavior to all queries. **Must be synchronous**.
    *
@@ -25,10 +29,28 @@ export interface QueryPluginOptions
     >,
   ) => void | Promise<never>
 
-  // TODO: and others
-  onSuccess?: () => void
-  onSettled?: () => void
-  onError?: () => void
+  /**
+   * Global handler for when a query is successful.
+   *
+   * @param data - data returned by the query
+   */
+  onSuccess?: (data: unknown) => unknown
+
+  /**
+   * Global handler for when a query is settled (either successfully or with an error). Will await for the `onSuccess`
+   * or `onError` handlers to resolve if they return a promise.
+   *
+   * @param data - data returned by the query if any
+   * @param error - error thrown if any
+   */
+  onSettled?: (data: unknown | undefined, error: unknown | null) => unknown
+
+  /**
+   * Global error handler for all queries.
+   *
+   * @param error - error thrown
+   */
+  onError?: (error: unknown) => unknown
 
   /**
    * Function to ensure the `error` property is always an instance of the default global type error. Defaults to the
@@ -63,15 +85,15 @@ export function QueryPlugin(
 
   const store = useQueryCache(pinia)
   store.$onAction(({ name, after, onError: _onError }) => {
-    // FIXME: refetch / refresh
     if (name === 'refetch' || name === 'refresh') {
-      after(() => {
-        onSuccess()
-        onSettled()
+      // TODO: the refetch/refresh should probably return more information so we can query the error or data here. They don't throw errors
+      after(async (data) => {
+        await onSuccess(data)
+        onSettled(data, null)
       })
-      _onError(() => {
-        onError()
-        onSettled()
+      _onError(async (error) => {
+        await onError(error)
+        onSettled(undefined, error)
       })
     }
   })

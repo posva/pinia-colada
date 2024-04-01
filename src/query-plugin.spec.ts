@@ -1,0 +1,84 @@
+import { enableAutoUnmount, mount } from '@vue/test-utils'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { defineComponent } from 'vue'
+import { createPinia } from 'pinia'
+import { runTimers } from '../test/utils'
+import { useQuery } from './use-query'
+import { QueryPlugin } from './query-plugin'
+
+describe('QueryPlugin', () => {
+  const MyComponent = defineComponent({
+    template: '<div></div>',
+    setup() {
+      return {
+        ...useQuery({
+          query: async () => 42,
+          key: ['key'],
+        }),
+      }
+    },
+  })
+
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  enableAutoUnmount(afterEach)
+
+  it('calls the hooks on success', async () => {
+    const onSuccess = vi.fn()
+    const onSettled = vi.fn()
+    const onError = vi.fn()
+    mount(MyComponent, {
+      global: {
+        plugins: [createPinia(), [QueryPlugin, { onSuccess, onSettled, onError }]],
+      },
+    })
+
+    await runTimers()
+
+    expect(onSuccess).toHaveBeenCalledTimes(1)
+    expect(onSettled).toHaveBeenCalledTimes(1)
+    expect(onError).not.toHaveBeenCalled()
+    expect(onSuccess).toHaveBeenCalledWith(42)
+    expect(onSettled).toHaveBeenCalledWith(42, null)
+  })
+
+  it.todo('calls the hooks on error', async () => {
+    const onSuccess = vi.fn()
+    const onSettled = vi.fn()
+    const onError = vi.fn()
+    mount(
+      defineComponent({
+        template: '<div></div>',
+        setup() {
+          return {
+            ...useQuery({
+              query: async () => {
+                throw new Error('oops')
+              },
+              key: ['key'],
+            }),
+          }
+        },
+      }),
+      {
+        global: {
+          plugins: [createPinia(), [QueryPlugin, { onSuccess, onSettled, onError }]],
+        },
+      },
+    )
+
+    await runTimers()
+
+    expect(onSuccess).not.toHaveBeenCalled()
+    expect(onSettled).toHaveBeenCalledTimes(1)
+    expect(onError).toHaveBeenCalledTimes(1)
+
+    expect(onError).toHaveBeenCalledWith(new Error('oops'))
+    expect(onSettled).toHaveBeenCalledWith(undefined, new Error('oops'))
+  })
+})
