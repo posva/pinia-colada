@@ -1,14 +1,8 @@
 # Queries
 
-## Definition:
+Queries handle async state declaratively. They let you focus on the state, its async status and any eventual error. They also automatically dedupe multiple requests and cache results to create a fast user experience.
 
-Queries are dependencies to an async source of data. They allow us to declaratively fetch, cache and refresh the data.
-
-::: info
 Queries are meant to **read** data. In terms of REST, for example, queries would handle `GET` requests. If you need to **write** (or mutate) data, you can use [mutations](./mutations.md).
-:::
-
-## Defining a query:
 
 The API to define a query is the `useQuery` composable:
 
@@ -16,7 +10,7 @@ The API to define a query is the `useQuery` composable:
 <script setup lang="ts">
 import { useQuery } from '@pinia/colada'
 
-const { data, error, isFetching } = useQuery({
+const { data, status } = useQuery({
   key: ['todos'],
   query: () => fetch('/api/todos').then((res) => res.json())
 })
@@ -24,18 +18,19 @@ const { data, error, isFetching } = useQuery({
 
 <template>
   <main>
-    <div v-if="isFetching">
+    <div v-if="status.isLoading">
       Loading
     </div>
-    <div v-else-if="error">
-      Oups, an error happened...
+    <div v-else-if="status.error">
+      Oops, an error happened...
     </div>
     <div v-else>
-      <Todo v-for="todo in data" :key="todo.id" :todo />
+      <TodoItem v-for="todo in data" :key="todo.id" :todo />
     </div>
   </main>
 </template>
 ```
+Let's cover the basics first: the query, then the key, what is expected from them. Then explain how the query is automatically triggered when needed (no need to go into details yet) and that it will update data, and others enabling a declarative approach
 
 This composable:
 - accepts an option object, which configures the key of the query, how to fetch de data, and options related to the cache and its revalidation
@@ -51,7 +46,7 @@ Alternatively, a query can be defined with the `defineQuery()` function, which a
 
 // TODO: link mentioned options to the API doc
 
-### Options:
+### Options
 Queries have two mandatory options:
 - [`key`](./query-keys.md): the key used internally to identify the query. It can also be used to [invalidate a query](./query-invalidation.md).
 - `query`: the function called to fetch the data, which **must** be async.
