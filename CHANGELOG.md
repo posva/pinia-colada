@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.6.0](https://github.com/posva/pinia-colada/compare/v0.5.3...v0.6.0) (2024-04-02)
+
+
+### ⚠ BREAKING CHANGES
+
+* **mutation:** Rename type `UseQueryStatus` to `QueryStatus`
+* **mutation:** `mutate` no longer returns a promise and catches errors
+to be safely used in templates. The old behavior remains the same with
+`mutateAsync`
+* **mutation:** the `mutation` option in `useMutation()` now only
+accepts one argument for the variables. This allows to add extra
+parameters in the future like a signal, an extra context, etc
+
+### Features
+
+* abort pending query signal on new query ([6b6195f](https://github.com/posva/pinia-colada/commit/6b6195fbf747b8f5d040912307501657e6b4d45d))
+* allow typing the error with transformError ([fd35f6f](https://github.com/posva/pinia-colada/commit/fd35f6fd67901322a8a3580886e4ae5b73f2743f))
+* **mutation:** add mutateAsync ([5c97b69](https://github.com/posva/pinia-colada/commit/5c97b69070595b2b654cba7d5e8aa8fb7309c1fc))
+* **mutation:** allow passing the context to mutation ([b9acca0](https://github.com/posva/pinia-colada/commit/b9acca02bbd68b86f09dd67efd450833e71ed69a))
+* **mutation:** defineMutation wip ([5866907](https://github.com/posva/pinia-colada/commit/5866907bac550138cc54734b47d66eb9f6ade982))
+* **mutation:** require one argument only for useMutation ([86b5996](https://github.com/posva/pinia-colada/commit/86b5996cc4c7510b27c32f9c627c3d568c1f0c0d))
+* **query:** add data and errors to global hooks ([b4caeca](https://github.com/posva/pinia-colada/commit/b4caeca07009c92c5a271641e9ebd7f31f2d82cc))
+* **query:** defineQuery ([e0f7768](https://github.com/posva/pinia-colada/commit/e0f7768a5ab274956da1368b3fd3c2cf4a8dbd6d))
+* return promise when invalidating query ([c431284](https://github.com/posva/pinia-colada/commit/c4312849df5ec6d9e8eae306d567bae3190cfe58))
+* **useMutation:** add hook context ([0894a81](https://github.com/posva/pinia-colada/commit/0894a81e52b8882322a574db49162d45558e0f77))
+* **useMutation:** add hooks ([c44af13](https://github.com/posva/pinia-colada/commit/c44af132ffbee94cd0678e3ec7a2b9c21ee3054c))
+
+
+* **mutation:** rename UseQueryStatus to QueryStatus ([ff0067a](https://github.com/posva/pinia-colada/commit/ff0067a39de4cce04e285a041a43c36775cad4ea))
+
 ### [0.5.3](https://github.com/posva/pinia-colada/compare/v0.5.2...v0.5.3) (2024-02-21)
 
 ### Bug Fixes
