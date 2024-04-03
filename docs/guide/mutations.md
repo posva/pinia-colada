@@ -40,18 +40,24 @@ Alternatively, they can be defined with the `defineMutation()` function, which a
 ```ts [mutations/todos.ts] twoslash
 // @filename: mutations/todos.ts
 // ---cut-before---
+// NOTE: to sync with mutations.md
 import { ref } from 'vue'
-import { defineMutation } from '@pinia/colada'
+import { defineMutation, useMutation } from '@pinia/colada'
 
 export const useCreateTodo = defineMutation(() => {
   const todoText = ref('')
-  return {
+  const mutation = useMutation({
     mutation: () =>
       fetch('/api/todos', {
         method: 'POST',
         body: JSON.stringify({ text: todoText.value }),
       }),
 
+  })
+
+  return {
+    ...mutation,
+    createTodo: mutation.mutate,
     // expose the todoText ref
     todoText,
   }
@@ -63,7 +69,7 @@ export const useCreateTodo = defineMutation(() => {
 import { ref } from 'vue'
 import { useCreateTodo } from './mutations/todos'
 
-const { mutate: createTodo, status } = useCreateTodo()
+const { createTodo, status } = useCreateTodo()
 // FIXME: should be part of useCreateTodo
 const todoText = ref('')
 </script>
