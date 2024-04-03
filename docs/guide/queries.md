@@ -42,6 +42,47 @@ Then, the query will be automatically triggered when needed (more precisely on s
 
 ## The `defineQuery()` API:
 
-Alternatively, a query can be defined with the `defineQuery()` function, which allows you to create related properties associated with the queries.
+Alternatively, a query can be defined with the `defineQuery()` function, which allows you to create related properties associated with the queries. This is particularily usefull if we need to share a query between components.
 
-// TODO
+Let's take an example, where we have a query depending on a search param. Let's assume we want to abstract a query into a composable:
+
+```ts twoslash
+import { useQuery } from '@pinia/colada'
+import { ref } from 'vue'
+
+export const useSearchedTodos = () => {
+  const search = ref('')
+  const query = useQuery({
+    key: () => ['todos', search.value],
+    query: () =>
+      fetch(`/api/todos?search=${search.value}`, { method: 'GET' }),
+  })
+  return { search, ...query }
+}
+```
+
+This implementation presents couple of drawbacks.
+
+First, the ref `search` can't be shared among components (each new component instance will create a new ref).
+
+Second, in the case where this query in used in several components, there can be a desynchronisation between the `search` ref instanciated in each component and the one used in the query's key. Indeed, the query being registered globally, the `search` ref actually used in the query key will be the one instanciated by the first component calling the query, and will consequently be scoped to this component. Therefore, if the first component is unmounted while the other still lives, the `search` ref used by the query key will not be reactive anymore, breaking the usage.
+
+For all these reasons, Pinia Colada provides an alternative way of defining a query, through the `defineQuery` composable:
+
+```vue
+<script setup lang="ts">
+import { defineQuery, useQuery } from '@pinia/colada'
+import { ref } from 'vue'
+
+const searchedTodos = defineQuery(() => {
+    const search = ref('')
+    const { data, ...rest } = useQuery({
+     key: ['todos', { search: search.value }],
+      query: () =>
+        fetch(`/api/todos?filter=${search.value}`, { method: 'GET' }),
+    })
+    return { ...rest, todoList: data, search }
+})
+</script>
+ ```
+The advantage of the `defineQuery` composable is that it will register globally all that is returned along to the query, giving us the possibility to create a context to the query.
