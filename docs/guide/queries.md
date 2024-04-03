@@ -33,24 +33,27 @@ const { data, status } = useQuery({
 
 // TODO: link mentioned options/returns to the API doc
 
-As we can see, to define a query, we need at least:
-- a key: it will be used to store and retrieve the query
-- the query function: the actual function to fetch the data (indeed, Pinia Colada does not and is not meant to provide an HTTP client, and is therefore agnostic on the way that you fetch the data, the only constraint being that the query function returns a promise)
-`useQuery` accepts other options, which are not required, to configure the query cache (for example, the `staleTime`) or when and how the query should be triggered.
+All queries require two properties:
 
-Then, the query will be automatically triggered when needed (more precisely on specific events cf // TODO: link to the relevant section), either to fetch or to refresh the data, enabling a declarative approach. You can access to the fetched data through the references returned by the composable (`data`), as well as to more information on the query state, such as its status (`status`). It also returns methods to manually trigger the query if needed.
+- A unique `key`. It allows to reuse of any query 
+- A `query` function. The actual function to fetch the data (indeed, Pinia Colada does not and is not meant to provide an HTTP client and is therefore agnostic on the way that you fetch the data, the only constraint being that the query function must return a promise)
 
-## The `defineQuery()` API:
+`useQuery` accepts other options to configure the query cache (for example, the `staleTime`) or when and how the query should be triggered.
 
-Alternatively, a query can be defined with the `defineQuery()` function, which allows you to create related properties associated with the queries. This is particularily usefull if we need to share a query between components.
+Queries are automatically triggered when needed (more precisely on specific events cf // TODO: link to the relevant section), **enabling a declarative approach**. You can access the fetched data through the references returned by the composable (`data`), as well as other query state, such as its `status`, `error` and more. It also returns methods to manually trigger the query.
 
-Let's take an example, where we have a query depending on a search param. Let's assume we want to abstract a query into a composable:
+## Reusable Queries
+
+While `useQuery()` can be directly called in components, we often need to reuse the same query across components or even add extra properties like consuming the route via `useRoute()` or passing a _search_ text to the API request. In those scenarios, it's convenient to _define_ queries and reuse them where needed. 
+
+You might think that we could just create a regular composable for this:
 
 ```ts twoslash
+// src/queries/todos.ts
 import { useQuery } from '@pinia/colada'
 import { ref } from 'vue'
 
-export const useSearchedTodos = () => {
+export function useFilteredTodos() {
   const search = ref('')
   const query = useQuery({
     key: () => ['todos', search.value],
@@ -61,7 +64,7 @@ export const useSearchedTodos = () => {
 }
 ```
 
-This implementation presents couple of drawbacks.
+But this implementation has a few drawbacks.
 
 First, the ref `search` can't be shared among components (each new component instance will create a new ref).
 
