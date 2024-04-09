@@ -1,9 +1,13 @@
 import { computed, shallowRef } from 'vue'
 import type { ComputedRef, ShallowRef } from 'vue'
 import { useQueryCache } from './query-store'
-import type { UseQueryKey } from './query-options'
+import type { EntryKey } from './entry-options'
 import type { ErrorDefault } from './types-extension'
 import { type _Awaitable, noop } from './utils'
+
+type _MutationKey<TVars> =
+  | EntryKey
+  | ((vars: TVars) => EntryKey)
 
 // TODO: move to a plugin
 /**
@@ -11,8 +15,8 @@ import { type _Awaitable, noop } from './utils'
  * @internal
  */
 type _MutationKeys<TVars, TResult> =
-  | UseQueryKey[]
-  | ((data: TResult, vars: TVars) => UseQueryKey[])
+  | EntryKey[]
+  | ((data: TResult, vars: TVars) => EntryKey[])
 
 /**
  * The status of the mutation.
@@ -68,6 +72,8 @@ export interface UseMutationOptions<
    * The key of the mutation. If the mutation is successful, it will invalidate the query with the same key and refetch it
    */
   mutation: (vars: TVars, context: NoInfer<TContext>) => Promise<TResult>
+
+  key?: _MutationKey<TVars>
 
   // TODO: move this to a plugin that calls invalidateEntry()
   /**

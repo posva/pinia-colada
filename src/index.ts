@@ -17,7 +17,10 @@ export { defineQuery } from './define-query'
 // export { type UseQueryKeyList } from './query-keys'
 
 export {
-  type UseQueryKey,
+  type EntryKey,
+} from './entry-options'
+
+export {
   type UseQueryOptions,
   type UseQueryOptionsWithDefaults,
 } from './query-options'
