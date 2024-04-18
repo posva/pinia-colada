@@ -22,12 +22,12 @@ describe('defineQuery', () => {
       query: async () => [{ id: 1 }],
     })
 
-    let returendValues!: ReturnType<typeof useTodoList>
+    let returnedValues!: ReturnType<typeof useTodoList>
     mount(
       {
         setup() {
-          returendValues = useTodoList()
-          return { ...returendValues }
+          returnedValues = useTodoList()
+          return { ...returnedValues }
         },
         template: `<div></div>`,
       },
@@ -40,7 +40,7 @@ describe('defineQuery', () => {
 
     const { data } = useTodoList()
     expect(data).toBe(useTodoList().data)
-    expect(data).toBe(returendValues.data)
+    expect(data).toBe(returnedValues.data)
   })
 
   it('reuses the query in multiple places with a setup function', async () => {
@@ -53,12 +53,12 @@ describe('defineQuery', () => {
       return { ...rest, todoList: data, todoFilter }
     })
 
-    let returendValues!: ReturnType<typeof useTodoList>
+    let returnedValues!: ReturnType<typeof useTodoList>
     mount(
       {
         setup() {
-          returendValues = useTodoList()
-          return { ...returendValues }
+          returnedValues = useTodoList()
+          return { ...returnedValues }
         },
         template: `<div></div>`,
       },
@@ -71,8 +71,8 @@ describe('defineQuery', () => {
 
     const { todoList, todoFilter } = useTodoList()
     expect(todoList).toBe(useTodoList().todoList)
-    expect(todoList).toBe(returendValues.todoList)
+    expect(todoList).toBe(returnedValues.todoList)
     expect(todoFilter).toBe(useTodoList().todoFilter)
-    expect(todoFilter).toBe(returendValues.todoFilter)
+    expect(todoFilter).toBe(returnedValues.todoFilter)
   })
 })

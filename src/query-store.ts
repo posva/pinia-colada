@@ -74,6 +74,11 @@ export interface UseQueryEntry<TResult = unknown, TError = unknown>
    * Options used to create the query. They can be undefined during hydration but are needed for fetching. This is why `store.ensureEntry()` sets this property.
    */
   options?: UseQueryOptionsWithDefaults<TResult, TError>
+
+  /**
+   * ID of the GC timeout
+   */
+  gcTimeoutId: number | null
 }
 
 /**
@@ -101,6 +106,7 @@ export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
     isPending: computed(() => data.value === undefined),
     isFetching: computed(() => status.value === 'loading'),
     pending: null,
+    gcTimeoutId: null,
   }
 }
 
@@ -236,6 +242,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
     }
     const { staleTime } = entry.options!
     const _key = toValue(entry.options!.key).map(stringifyFlatObject)
+    registerGcTimeout(entry, _key)
 
     if (entry.error.value || isExpired(entry.when, staleTime)) {
       // console.log(`⬇️ refresh "${key}". expired ${entry.when} / ${staleTime}`)
@@ -267,8 +274,8 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
     // console.log('🔄 refetching', key)
     entry.status.value = 'loading'
 
-    // we create an object and verify we are the most recent pending request
-    // before doing anything
+    // TODO: find a way to prevent this function to be called twice in a row (in case it was already called `refresh`)
+    registerGcTimeout(entry, _key)
     const abortController = new AbortController()
     const { signal } = abortController
     // abort any ongoing request
@@ -343,6 +350,20 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
   // TODO: find a way to make it possible to prefetch. Right now we need the actual options of the query
   function _preload(_useQueryFn: ReturnType<typeof defineQuery>) {}
 
+  function registerGcTimeout<TResult, TError>(
+    entry: UseQueryEntry<TResult, TError>,
+    key: string[],
+  ) {
+    // TODO: exclude SSR
+    if (entry.gcTimeoutId) {
+      window.clearTimeout(entry.gcTimeoutId)
+    }
+    // TODO: define 300000 as global parameter
+    entry.gcTimeoutId = window.setTimeout(() => {
+      caches.delete(key)
+    }, entry.options?.gcTime || 300000)
+  }
+
   return {
     caches,
     // TODO: figure out if worth or eslint is enough
@@ -376,21 +397,21 @@ export type _UseQueryEntryNodeValueSerialized<
   TResult = unknown,
   TError = unknown,
 > = [
-  /**
-   * The data returned by the query.
-   */
-  data: TResult | undefined,
+    /**
+     * The data returned by the query.
+     */
+    data: TResult | undefined,
 
-  /**
-   * The error thrown by the query.
-   */
-  error: TError | null,
+    /**
+     * The error thrown by the query.
+     */
+    error: TError | null,
 
-  /**
-   * When was this data fetched the last time in ms
-   */
-  when?: number,
-]
+    /**
+     * When was this data fetched the last time in ms
+     */
+    when?: number,
+  ]
 
 /**
  * Serialized version of a query entry node.
