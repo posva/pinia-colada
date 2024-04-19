@@ -22,7 +22,7 @@ describe('gcTime', async () => {
       gcTime: 1000,
     })
 
-    let queryCache: any // TODO: improve
+    let queryCache!: ReturnType<typeof useQueryCache>
 
     mount(
       {
@@ -37,10 +37,9 @@ describe('gcTime', async () => {
         },
       },
     )
-    expect(queryCache.caches.get(['todos']).gcTimeoutId).toBeDefined()
-    vi.advanceTimersByTime(500)
+    vi.advanceTimersByTime(999)
     expect(queryCache.caches.get(['todos'])).toBeDefined()
-    vi.advanceTimersByTime(1200)
+    vi.advanceTimersByTime(1)
     expect(queryCache.caches.get(['todos'])).toBeUndefined()
   })
 
@@ -51,7 +50,7 @@ describe('gcTime', async () => {
       gcTime: 1000,
     })
 
-    let queryCache: any // TODO: improve
+    let queryCache!: ReturnType<typeof useQueryCache>
 
     mount(
       {
@@ -67,14 +66,13 @@ describe('gcTime', async () => {
       },
     )
 
-    expect(queryCache.caches.get(['todos']).gcTimeoutId).toBeDefined()
-    vi.advanceTimersByTime(500)
+    vi.advanceTimersByTime(999)
     expect(queryCache.caches.get(['todos'])).toBeDefined()
 
-    await queryCache.refresh(queryCache.caches.get(['todos']))
-    vi.advanceTimersByTime(999)
-    expect(queryCache.caches.get(['todos']).gcTimeoutId).toBeDefined()
+    await queryCache.refresh(queryCache.caches.get(['todos']) as any) // TODO: improve typing
     vi.advanceTimersByTime(1)
+    expect(queryCache.caches.get(['todos'])).toBeDefined()
+    vi.advanceTimersByTime(1000)
     expect(queryCache.caches.get(['todos'])).toBeUndefined()
   })
 })
