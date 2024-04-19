@@ -14,7 +14,7 @@ describe('defineQuery', () => {
       vi.restoreAllMocks()
     })
 
-    enableAutoUnmount(afterEach)
+  enableAutoUnmount(afterEach)
 
   it('reuses the query in multiple places', async () => {
     const useTodoList = defineQuery({

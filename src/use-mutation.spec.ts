@@ -23,6 +23,7 @@ describe('useMutation', () => {
     const mutation = options.mutation
       ? vi.fn(options.mutation)
       : vi.fn(async () => {
+        // TODO: remove and use flushPromises
           await delay(0)
           return 42
         })

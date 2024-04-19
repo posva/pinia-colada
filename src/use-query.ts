@@ -11,7 +11,11 @@ import {
   watch,
 } from 'vue'
 import { IS_CLIENT, computedRef, useEventListener } from './utils'
-import { type _UseQueryEntry_State, useQueryCache } from './query-store'
+import {
+  type UseQueryEntry,
+  type _UseQueryEntry_State,
+  useQueryCache,
+} from './query-store'
 import { useQueryOptions } from './query-options'
 import type { EntryKey } from './entry-options'
 import type {
@@ -81,6 +85,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
   } satisfies UseQueryReturn<TResult, TError>
 
   const hasCurrentInstance = getCurrentInstance()
+  const currentEffect = getCurrentScope()
 
   if (hasCurrentInstance) {
     // only happens on server, app awaits this
@@ -96,23 +101,38 @@ export function useQuery<TResult, TError = ErrorDefault>(
     })
   }
 
+  function addDep(entry: UseQueryEntry<TResult, TError>) {
+    entry.deps.add(currentEffect)
+    clearTimeout(entry.gcTimeout)
+  }
+
+  function removeDep(entry: UseQueryEntry<TResult, TError>) {
+    entry.deps.delete(currentEffect)
+    if (entry.deps.size > 0) return
+    clearTimeout(entry.gcTimeout)
+    entry.gcTimeout = setTimeout(() => {
+      store.deleteQueryData(entry.key)
+    }, options.gcTime)
+  }
+
   // should we be watching entry
   let isActive = false
   if (hasCurrentInstance) {
     onMounted(() => {
       isActive = true
+      addDep(entry.value)
       // add instance to Set of refs
     })
   } else {
     isActive = true
+    addDep(entry.value)
   }
 
-  watch(entry, (entry, _, onCleanup) => {
+  watch(entry, (entry, previousEntry) => {
     if (!isActive) return
+    removeDep(previousEntry)
+    addDep(entry)
     refresh()
-    onCleanup(() => {
-      // TODO: decrement ref count
-    })
   })
 
   // only happens on client
@@ -131,9 +151,9 @@ export function useQuery<TResult, TError = ErrorDefault>(
   }
   // TODO: we could save the time it was fetched to avoid fetching again. This is useful to not refetch during SSR app but do refetch in SSG apps if the data is stale. Careful with timers and timezones
 
-  if (getCurrentScope()) {
+  if (currentEffect) {
     onScopeDispose(() => {
-      // TODO: add a reference count to the entry and garbage collect it if it's 0 after the given delay
+      removeDep(entry.value)
     })
   }
 

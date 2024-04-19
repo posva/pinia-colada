@@ -7,7 +7,6 @@ import {
   getCurrentScope,
   shallowReactive,
   shallowRef,
-  toValue,
   triggerRef,
 } from 'vue'
 import { stringifyFlatObject } from './utils'
@@ -64,6 +63,21 @@ export interface UseQueryEntry<TResult = unknown, TError = unknown>
    */
   when: number
 
+  /**
+   * The key associated with this query entry.
+   */
+  key: EntryNodeKey[]
+
+  /**
+   * Components and effects scopes that use this query entry.
+   */
+  deps: Set<unknown>
+
+  /**
+   * Timeout id that scheduled a garbage collection. It is set here to clear it when the entry is used by a different component
+   */
+  gcTimeout: ReturnType<typeof setTimeout> | undefined
+
   pending: null | {
     abortController: AbortController
     refreshCall: Promise<void>
@@ -74,22 +88,19 @@ export interface UseQueryEntry<TResult = unknown, TError = unknown>
    * Options used to create the query. They can be undefined during hydration but are needed for fetching. This is why `store.ensureEntry()` sets this property.
    */
   options?: UseQueryOptionsWithDefaults<TResult, TError>
-
-  /**
-   * ID of the GC timeout
-   */
-  gcTimeoutId: number | null
 }
 
 /**
  * Creates a new query entry.
  *
  * @internal
+ * @param key - key of the entry
  * @param initialData - initial data to set
  * @param error - initial error to set
  * @param when - when the data was fetched the last time. defaults to 0, meaning it's stale
  */
 export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
+  key: EntryNodeKey[],
   initialData?: TResult,
   error: TError | null = null,
   when: number = 0, // stale by default
@@ -99,6 +110,7 @@ export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
     error ? 'error' : initialData !== undefined ? 'success' : 'pending',
   )
   return {
+    key,
     data,
     error: shallowRef(error),
     when,
@@ -106,7 +118,8 @@ export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
     isPending: computed(() => data.value === undefined),
     isFetching: computed(() => status.value === 'loading'),
     pending: null,
-    gcTimeoutId: null,
+    deps: new Set(),
+    gcTimeout: undefined,
   }
 }
 
@@ -174,7 +187,9 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
     if (!entry) {
       cachesRaw.set(
         key,
-        (entry = scope.run(() => createQueryEntry(options.initialData?.()))!),
+        (entry = scope.run(() =>
+          createQueryEntry(key, options.initialData?.()),
+        )!),
       )
     }
 
@@ -241,18 +256,16 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
       )
     }
     const { staleTime } = entry.options!
-    const _key = toValue(entry.options!.key).map(stringifyFlatObject)
-    registerGcTimeout(entry, _key)
 
     if (entry.error.value || isExpired(entry.when, staleTime)) {
-      // console.log(`⬇️ refresh "${key}". expired ${entry.when} / ${staleTime}`)
+      // console.log(`⬇️ refresh "${entry.key}". expired ${entry.when} / ${staleTime}`)
 
       // if (entry.pending?.refreshCall) console.log('  -> skipped!')
 
       await (entry.pending?.refreshCall ?? refetch(entry))
     }
 
-    // console.log(`${key}  ->`, entry.data.value, entry.error.value)
+    // console.log(`${entry.key}  ->`, entry.data.value, entry.error.value)
 
     return entry.data.value!
   }
@@ -269,13 +282,9 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
       )
     }
 
-    const _key = toValue(entry.options!.key).map(stringifyFlatObject)
-
-    // console.log('🔄 refetching', key)
+    // console.log('🔄 refetching', entry.key)
     entry.status.value = 'loading'
 
-    // TODO: find a way to prevent this function to be called twice in a row (in case it was already called `refresh`)
-    registerGcTimeout(entry, _key)
     const abortController = new AbortController()
     const { signal } = abortController
     // abort any ongoing request
@@ -316,7 +325,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
     return entry.data.value!
   }
 
-  // TODO: tests, remove function version
+  // TODO: tests
   function setQueryData<TResult = unknown>(
     key: EntryKey,
     data: TResult | ((data: Ref<TResult | undefined>) => void),
@@ -338,31 +347,20 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
     entry.error.value = null
   }
 
-  function getQueryData<TResult = unknown>(
-    key: EntryKey,
-  ): TResult | undefined {
+  function getQueryData<TResult = unknown>(key: EntryKey): TResult | undefined {
     const entry = caches.get(key.map(stringifyFlatObject)) as
       | UseQueryEntry<TResult>
       | undefined
     return entry?.data.value
   }
 
+  function deleteQueryData(key: EntryKey) {
+    // console.log('🗑 data', key, Date.now())
+    caches.delete(key.map(stringifyFlatObject))
+  }
+
   // TODO: find a way to make it possible to prefetch. Right now we need the actual options of the query
   function _preload(_useQueryFn: ReturnType<typeof defineQuery>) {}
-
-  function registerGcTimeout<TResult, TError>(
-    entry: UseQueryEntry<TResult, TError>,
-    key: string[],
-  ) {
-    // TODO: exclude SSR
-    if (entry.gcTimeoutId) {
-      window.clearTimeout(entry.gcTimeoutId)
-    }
-    // TODO: define 300000 as global parameter
-    entry.gcTimeoutId = window.setTimeout(() => {
-      caches.delete(key)
-    }, entry.options?.gcTime || 300000)
-  }
 
   return {
     caches,
@@ -379,6 +377,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
     invalidateEntry,
     setQueryData,
     getQueryData,
+    deleteQueryData,
 
     refetch,
     refresh,
@@ -397,21 +396,21 @@ export type _UseQueryEntryNodeValueSerialized<
   TResult = unknown,
   TError = unknown,
 > = [
-    /**
-     * The data returned by the query.
-     */
-    data: TResult | undefined,
+  /**
+   * The data returned by the query.
+   */
+  data: TResult | undefined,
 
-    /**
-     * The error thrown by the query.
-     */
-    error: TError | null,
+  /**
+   * The error thrown by the query.
+   */
+  error: TError | null,
 
-    /**
-     * When was this data fetched the last time in ms
-     */
-    when?: number,
-  ]
+  /**
+   * When was this data fetched the last time in ms
+   */
+  when?: number,
+]
 
 /**
  * Serialized version of a query entry node.
@@ -465,11 +464,12 @@ export function createTreeMap(
 function appendToTree(
   parent: TreeMapNode<UseQueryEntry>,
   [key, value, children]: UseQueryEntryNodeSerialized,
+  parentKey: EntryNodeKey[] = [],
 ) {
   parent.children ??= new Map()
   const node = new TreeMapNode<UseQueryEntry>(
     [],
-    value && createQueryEntry(...value),
+    value && createQueryEntry([...parentKey, key], ...value),
   )
   parent.children.set(key, node)
   if (children) {
