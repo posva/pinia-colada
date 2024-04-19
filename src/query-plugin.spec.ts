@@ -1,8 +1,7 @@
-import { enableAutoUnmount, mount } from '@vue/test-utils'
+import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent } from 'vue'
 import { createPinia } from 'pinia'
-import { runTimers } from '../test/utils'
 import { useQuery } from './use-query'
 import { QueryPlugin } from './query-plugin'
 
@@ -20,6 +19,7 @@ describe('QueryPlugin', () => {
   })
 
   beforeEach(() => {
+    vi.clearAllTimers()
     vi.useFakeTimers()
   })
   afterEach(() => {
@@ -38,7 +38,7 @@ describe('QueryPlugin', () => {
       },
     })
 
-    await runTimers()
+    await flushPromises()
 
     expect(onSuccess).toHaveBeenCalledTimes(1)
     expect(onSettled).toHaveBeenCalledTimes(1)
@@ -72,7 +72,7 @@ describe('QueryPlugin', () => {
       },
     )
 
-    await runTimers()
+    await flushPromises()
 
     expect(onSuccess).not.toHaveBeenCalled()
     expect(onSettled).toHaveBeenCalledTimes(1)

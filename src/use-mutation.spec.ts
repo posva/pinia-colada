@@ -1,15 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { defineComponent } from 'vue'
 import type { GlobalMountOptions } from '../test/utils'
-import { delay, runTimers } from '../test/utils'
+import { delay } from '../test/utils'
 import type { UseMutationOptions } from './use-mutation'
 import { useMutation } from './use-mutation'
 import { QueryPlugin } from './query-plugin'
 
 describe('useMutation', () => {
   beforeEach(() => {
+    vi.clearAllTimers()
     vi.useFakeTimers()
   })
   afterEach(() => {
@@ -23,8 +24,6 @@ describe('useMutation', () => {
     const mutation = options.mutation
       ? vi.fn(options.mutation)
       : vi.fn(async () => {
-        // TODO: remove and use flushPromises
-          await delay(0)
           return 42
         })
     const wrapper = mount(
@@ -54,7 +53,7 @@ describe('useMutation', () => {
     const { wrapper } = mountSimple()
 
     wrapper.vm.mutate()
-    await runTimers()
+    await flushPromises()
 
     expect(wrapper.vm.data).toBe(42)
   })
@@ -63,7 +62,7 @@ describe('useMutation', () => {
     const { wrapper } = mountSimple()
 
     const p = wrapper.vm.mutateAsync()
-    await runTimers()
+    await flushPromises()
     await expect(p).resolves.toBe(42)
   })
 
@@ -85,7 +84,7 @@ describe('useMutation', () => {
     })
 
     expect((async () => wrapper.vm.mutate())()).resolves.toBeUndefined()
-    await runTimers()
+    await flushPromises()
     expect(wrapper.vm.error).toEqual(new Error('foobar'))
   })
 
@@ -117,7 +116,7 @@ describe('useMutation', () => {
 
     expect(onError).not.toHaveBeenCalled()
     wrapper.vm.mutate(24)
-    await runTimers()
+    await flushPromises()
     expect(onError).toHaveBeenCalledWith(
       expect.objectContaining({
         error: new Error('24'),
@@ -136,7 +135,7 @@ describe('useMutation', () => {
     })
 
     wrapper.vm.mutate()
-    await runTimers(false)
+    await flushPromises()
     expect(onError).toHaveBeenCalledWith(
       expect.objectContaining({
         error: new Error('onMutate'),
@@ -155,20 +154,22 @@ describe('useMutation', () => {
     })
 
     wrapper.vm.mutate()
-    await runTimers()
+    await flushPromises()
     expect(onError).toHaveBeenCalled()
     // couldn't be set
     expect(wrapper.vm.error).toEqual(null)
   })
 
   it('awaits the "onMutate" hook before mutation', async () => {
-    const onMutate = vi.fn(() => delay(10))
+    const onMutate = vi.fn(async () => delay(10))
     const { wrapper, mutation } = mountSimple({ onMutate })
 
     wrapper.vm.mutate()
     expect(onMutate).toHaveBeenCalled()
     expect(mutation).not.toHaveBeenCalled()
-    await runTimers()
+    vi.advanceTimersByTime(10)
+    expect(mutation).not.toHaveBeenCalled()
+    await flushPromises()
     expect(mutation).toHaveBeenCalled()
   })
 
@@ -177,7 +178,7 @@ describe('useMutation', () => {
     const { wrapper } = mountSimple({ onSuccess })
 
     wrapper.vm.mutate()
-    await runTimers()
+    await flushPromises()
     expect(onSuccess).toHaveBeenCalledWith(
       expect.objectContaining({
         data: 42,
@@ -191,7 +192,7 @@ describe('useMutation', () => {
     const { wrapper, mutation } = mountSimple({ onSuccess })
 
     wrapper.vm.mutate()
-    await runTimers()
+    await flushPromises()
     expect(onSuccess).toHaveBeenCalled()
     expect(mutation).toHaveBeenCalled()
     // since it threw
@@ -203,7 +204,7 @@ describe('useMutation', () => {
     const { wrapper } = mountSimple({ onSuccess })
 
     wrapper.vm.mutate()
-    await runTimers()
+    await flushPromises()
     expect(onSuccess).toHaveBeenCalled()
     expect(wrapper.vm.error).toEqual(new Error('onSuccess'))
   })
@@ -213,7 +214,7 @@ describe('useMutation', () => {
     const { wrapper } = mountSimple({ onMutate })
 
     wrapper.vm.mutate()
-    await runTimers()
+    await flushPromises()
     expect(onMutate).toHaveBeenCalled()
     expect(wrapper.vm.error).toEqual(new Error('onMutate'))
  })
@@ -226,7 +227,7 @@ describe('useMutation', () => {
       })
 
       wrapper.vm.mutate()
-      await runTimers()
+      await flushPromises()
       expect(onSettled).toHaveBeenCalledWith(
         expect.objectContaining({
           error: undefined,
@@ -246,7 +247,7 @@ describe('useMutation', () => {
       })
 
       expect(wrapper.vm.mutateAsync()).rejects.toThrow()
-      await runTimers()
+      await flushPromises()
       expect(onSettled).toHaveBeenCalledWith(
         expect.objectContaining({
           error: new Error('foobar'),
@@ -261,7 +262,7 @@ describe('useMutation', () => {
     const { wrapper } = mountSimple()
 
     wrapper.vm.mutate()
-    await runTimers()
+    await flushPromises()
     expect(wrapper.vm.data).toBe(42)
     wrapper.vm.reset()
     expect(wrapper.vm.data).toBeUndefined()
