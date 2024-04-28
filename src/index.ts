@@ -33,6 +33,7 @@ export {
   serialize,
   type UseQueryEntry,
 } from './query-store'
+export { useQueriesState } from './use-queries-state'
 
 export { TreeMapNode, type EntryNodeKey } from './tree-map'
 
