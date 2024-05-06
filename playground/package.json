@@ -22,13 +22,13 @@
     "fuse.js": "^7.0.0",
     "mande": "^2.0.8",
     "pinia": "^2.1.7",
-    "vue": "^3.4.25",
+    "vue": "^3.4.26",
     "vue-router": "^4.3.2",
     "water.css": "^2.1.1"
   },
   "devDependencies": {
     "@tsconfig/node18": "^18.2.4",
-    "@types/node": "^20.12.7",
+    "@types/node": "^20.12.8",
     "@vitejs/plugin-vue": "^5.0.4",
     "@vue/tsconfig": "^0.5.1",
     "autoprefixer": "^10.4.19",
@@ -38,7 +38,7 @@
     "tailwindcss": "^3.4.3",
     "typescript": "~5.4.5",
     "unplugin-vue-router": "^0.8.6",
-    "vite": "^5.2.10",
-    "vue-tsc": "^2.0.14"
+    "vite": "^5.2.11",
+    "vue-tsc": "^2.0.16"
   }
 }
