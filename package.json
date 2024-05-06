@@ -117,7 +117,7 @@
     "standard-version": "^9.5.0",
     "tsup": "^8.0.2",
     "typedoc": "^0.25.13",
-    "typedoc-plugin-markdown": "^3.17.1",
+    "typedoc-plugin-markdown": "^4.0.0",
     "typescript": "~5.4.5",
     "vitepress": "1.1.4",
     "vitest": "^1.6.0",
