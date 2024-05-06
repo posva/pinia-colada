@@ -1,14 +1,10 @@
 <script lang="ts" setup>
 import { useRouteQuery } from '@vueuse/router'
-import { useQuery } from '@pinia/colada'
-import { searchContacts } from '@/api/contacts'
+import { useContacts } from '@/composables/contacts'
 
 const searchText = useRouteQuery('search', '', { mode: 'push' })
 
-const { data: searchResult, status } = useQuery({
-  key: () => ['contacts-search', { searchText: searchText.value }],
-  query: ({ signal }) => searchContacts(searchText.value, {}, { signal }),
-})
+const { data: searchResult, status } = useContacts()
 
 // TODO: tip in tests if they are reading data, error or other as they are computed properties, on the server they won't
 // update so they will keep their initial undefined value

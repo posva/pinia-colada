@@ -163,12 +163,23 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
   // this allows use to attach reactive effects to the scope later on
   const scope = getCurrentScope()!
 
-  const defineQueryMap = new WeakMap<() => unknown, any>()
+  const defineQueryMap = new WeakMap<() => unknown, { queries: string[][], result: any }>()
+  let currentDefineQuerySetupFunction: (() => unknown) | null
   function ensureDefinedQuery<T>(fn: () => T): T {
     if (!defineQueryMap.has(fn)) {
-      defineQueryMap.set(fn, scope.run(fn)!)
+      currentDefineQuerySetupFunction = fn
+      defineQueryMap.set(fn, { queries: [], result: null })
+      defineQueryMap.get(fn)!.result = scope.run(fn)!
+      currentDefineQuerySetupFunction = null
+    } else {
+      defineQueryMap.get(fn)!.queries.forEach(
+        (key) => {
+          const query = cachesRaw.get(key) as UseQueryEntry | undefined
+          if (query) refresh(query)
+        },
+      )
     }
-    return defineQueryMap.get(fn)!
+    return defineQueryMap.get(fn)!.result
   }
 
   function ensureEntry<TResult = unknown, TError = ErrorDefault>(
@@ -181,6 +192,10 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
       )
     }
     const key = keyRaw.map(stringifyFlatObject)
+    if (currentDefineQuerySetupFunction) {
+      const currentDefineQueryEntry = defineQueryMap.get(currentDefineQuerySetupFunction)
+      currentDefineQueryEntry!.queries.push(key)
+    }
     // ensure the state
     // console.log('⚙️ Ensuring entry', key)
     let entry = cachesRaw.get(key) as UseQueryEntry<TResult, TError> | undefined
