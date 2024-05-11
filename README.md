@@ -29,7 +29,7 @@ This is a more complete and production-ready (not yet!) version of the exercises
 > Pinia Colada is still experimental and not ready for production. New versions might introduce breaking changes.
 > Feedback regarding new and existing options and features is welcome!
 
-Pinia Colada is an opinionated yet flexible data fetching layer on top of Pinia. It features
+Pinia Colada is an opinionated yet flexible data fetching layer on top of Pinia. It's built as a set of **pinia plugins**, **stores** and **composables** to benefit from Pinia's features and ecosystem. Pinia Colada has:
 
 - ⚡️ **Automatic caching**: Smart client-side caching with request deduplication
 - 🗄️ **Async State**: Handle any async state
