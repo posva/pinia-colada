@@ -27,8 +27,10 @@ features:
     details: Stores are as familiar as components. API designed to let you write well organized stores.
   - title: 🔑 Type Safe
     details: Types are inferred, which means stores provide you with autocompletion even in JavaScript!
-  - title: ⚙️ Devtools support
-    details: Pinia hooks into Vue devtools to give you an enhanced development experience in both Vue 2 and Vue 3.
+  - title: 🍍 Pinia based
+    details: Being built on top of Pinia, it leverages its store pattern and plugins like Devtools!
+  # - title: ⚙️ Devtools support
+  #   details: Pinia hooks into Vue devtools to give you an enhanced development experience in both Vue 2 and Vue 3.
   - title: 🔌 Extensible
     details: React to store changes to extend Pinia with transactions, local storage synchronization, etc.
   - title: 🏗 Modular by design
