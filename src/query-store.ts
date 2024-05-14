@@ -223,9 +223,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
     entry.options ??= options
 
     // if this query was defined within a defineQuery call, add it to the list
-    if (currentDefineQueryEntry) {
-      currentDefineQueryEntry[0].push(entry)
-    }
+    currentDefineQueryEntry?.[0].push(entry)
 
     return entry
   }
