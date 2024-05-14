@@ -32,4 +32,18 @@ it('can define a query with a function', () => {
   expectTypeOf(foo).toEqualTypeOf<string>()
 })
 
-it.todo('can type the error', () => {})
+it('can type the error', () => {
+  class MyError extends Error {
+    code = 42
+  }
+  const useMyQuery = defineQuery<unknown, MyError>({
+    key: ['todos'],
+    query: async () => {
+      throw new MyError('error')
+    },
+  })
+
+  const { error } = useMyQuery()
+
+  expectTypeOf(error.value).toEqualTypeOf<MyError | null>()
+})
