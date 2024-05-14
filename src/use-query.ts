@@ -116,6 +116,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
   }
 
   // should we be watching entry
+  // NOTE: this avoids fetching initially during SSR but it could be refactored
   let isActive = false
   if (hasCurrentInstance) {
     onMounted(() => {
@@ -128,19 +129,30 @@ export function useQuery<TResult, TError = ErrorDefault>(
     addDep(entry.value)
   }
 
-  watch(entry, (entry, previousEntry) => {
-    if (!isActive) return
-    removeDep(previousEntry)
-    addDep(entry)
-    refresh()
-  })
+  watch(
+    entry,
+    (entry, previousEntry) => {
+      if (!isActive) return
+      if (previousEntry) {
+        removeDep(previousEntry)
+      }
+      addDep(entry)
+      refresh()
+    },
+    { immediate: true },
+  )
 
   // only happens on client
   // we could also call fetch instead but forcing a refresh is more interesting
-  if (options.refetchOnMount && hasCurrentInstance) {
+  if (hasCurrentInstance) {
     // TODO: optimize so it doesn't refresh if we are hydrating
     onMounted(() => {
-      if (options.refetchOnMount) {
+      if (
+        options.refetchOnMount
+        // always fetch initially if no vaule is present
+        // TODO: refactor noce we introduce the enabled option
+        || queryReturn.status.value === 'pending'
+      ) {
         if (options.refetchOnMount === 'always') {
           refetch()
         } else {

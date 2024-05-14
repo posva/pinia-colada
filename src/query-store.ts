@@ -163,25 +163,39 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
   // this allows use to attach reactive effects to the scope later on
   const scope = getCurrentScope()!
 
-  const defineQueryMap = new WeakMap<() => unknown, { queries: string[][], result: any }>()
-  let currentDefineQuerySetupFunction: (() => unknown) | null
+  type DefineQueryEntry = [entries: UseQueryEntry[], returnValue: unknown]
+  // keep track of the entry being defined so we can add the queries in ensureEntry
+  // this allows us to refresh the entry when a defined query is used again
+  // and refetchOnMount is true
+  let currentDefineQueryEntry: DefineQueryEntry | undefined | null
+  const defineQueryMap = new WeakMap<() => unknown, DefineQueryEntry>()
   function ensureDefinedQuery<T>(fn: () => T): T {
-    if (!defineQueryMap.has(fn)) {
-      currentDefineQuerySetupFunction = fn
-      defineQueryMap.set(fn, { queries: [], result: null })
-      defineQueryMap.get(fn)!.result = scope.run(fn)!
-      currentDefineQuerySetupFunction = null
+    let defineQueryEntry = defineQueryMap.get(fn)
+    if (!defineQueryEntry) {
+      // create the entry first
+      currentDefineQueryEntry = defineQueryEntry = [[], null]
+      // then run it s oit can add the queries to the entry
+      defineQueryEntry[1] = scope.run(fn)
+      currentDefineQueryEntry = null
+      defineQueryMap.set(fn, defineQueryEntry)
     } else {
-      defineQueryMap.get(fn)!.queries.forEach(
-        (key) => {
-          const query = cachesRaw.get(key) as UseQueryEntry | undefined
-          if (query) refresh(query)
-        },
-      )
+      // if the entry already exists, we know the queries inside
+      for (const queryEntry of defineQueryEntry[0]) {
+        // TODO: refactor this to be a method of the store so it can be used in useQuery too
+        // and not be called during hydration
+        if (queryEntry.options?.refetchOnMount) {
+          if (queryEntry.options.refetchOnMount === 'always') {
+            refetch(queryEntry)
+          } else {
+            // console.log('refreshing')
+            refresh(queryEntry)
+          }
+        }
+      }
     }
-    return defineQueryMap.get(fn)!.result
-  }
 
+    return defineQueryEntry[1] as T
+  }
   function ensureEntry<TResult = unknown, TError = ErrorDefault>(
     keyRaw: EntryKey,
     options: UseQueryOptionsWithDefaults<TResult, TError>,
@@ -191,11 +205,8 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
         `useQuery() was called with an empty array as the key. It must have at least one element.`,
       )
     }
+
     const key = keyRaw.map(stringifyFlatObject)
-    if (currentDefineQuerySetupFunction) {
-      const currentDefineQueryEntry = defineQueryMap.get(currentDefineQuerySetupFunction)
-      currentDefineQueryEntry!.queries.push(key)
-    }
     // ensure the state
     // console.log('⚙️ Ensuring entry', key)
     let entry = cachesRaw.get(key) as UseQueryEntry<TResult, TError> | undefined
@@ -208,8 +219,12 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
       )
     }
 
-    if (!entry.options) {
-      entry.options = options
+    // add the options to the entry the first time only
+    entry.options ??= options
+
+    // if this query was defined within a defineQuery call, add it to the list
+    if (currentDefineQueryEntry) {
+      currentDefineQueryEntry[0].push(entry)
     }
 
     return entry

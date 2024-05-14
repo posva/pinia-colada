@@ -17,16 +17,14 @@ import { useQuery } from './use-query'
  * })
  * ```
  */
-export function defineQuery<
-  TResult,
-  TError = ErrorDefault,
->(
+export function defineQuery<TResult, TError = ErrorDefault>(
   options: UseQueryOptions<TResult, TError>,
 ): () => UseQueryReturn<TResult, TError>
 
 /**
  * Define a query with a setup function. Allows to return arbitrary values from the query function, create contextual
- * refs, rename the returned values, etc.
+ * refs, rename the returned values, etc. The setup function will be called only once, like stores, and **must be
+ * synchronous**.
  *
  * @param setup - a function to setup the query
  * @example
@@ -47,6 +45,9 @@ export function defineQuery<T>(setup: () => T): () => T
 export function defineQuery(
   optionsOrSetup: UseQueryOptions | (() => unknown),
 ): () => unknown {
-  const setupFn = typeof optionsOrSetup === 'function' ? optionsOrSetup : () => useQuery(optionsOrSetup)
+  const setupFn
+    = typeof optionsOrSetup === 'function'
+      ? optionsOrSetup
+      : () => useQuery(optionsOrSetup)
   return () => useQueryCache().ensureDefinedQuery(setupFn)
 }
