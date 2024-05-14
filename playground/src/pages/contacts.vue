@@ -1,10 +1,7 @@
 <script lang="ts" setup>
-import { useRouteQuery } from '@vueuse/router'
-import { useContacts } from '@/composables/contacts'
+import { useContactSearch } from '@/composables/contacts'
 
-const searchText = useRouteQuery('search', '', { mode: 'push' })
-
-const { data: searchResult, status } = useContacts()
+const { data: searchResult, status, searchText } = useContactSearch()
 
 // TODO: tip in tests if they are reading data, error or other as they are computed properties, on the server they won't
 // update so they will keep their initial undefined value
