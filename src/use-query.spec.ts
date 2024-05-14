@@ -115,6 +115,13 @@ describe('useQuery', () => {
       await flushPromises()
       expect(wrapper.vm.error).toEqual(new Error('foo'))
     })
+
+    it('fetches the first time with refetchOnMount false', async () => {
+      const { query } = mountSimple({ refetchOnMount: false })
+
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+    })
   })
 
   describe('staleTime', () => {
