@@ -217,7 +217,7 @@ describe('useMutation', () => {
     await flushPromises()
     expect(onMutate).toHaveBeenCalled()
     expect(wrapper.vm.error).toEqual(new Error('onMutate'))
- })
+  })
 
   describe('invokes the "onSettled" hook', () => {
     it('on success', async () => {

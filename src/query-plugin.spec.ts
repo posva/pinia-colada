@@ -34,7 +34,10 @@ describe('QueryPlugin', () => {
     const onError = vi.fn()
     mount(MyComponent, {
       global: {
-        plugins: [createPinia(), [QueryPlugin, { onSuccess, onSettled, onError }]],
+        plugins: [
+          createPinia(),
+          [QueryPlugin, { onSuccess, onSettled, onError }],
+        ],
       },
     })
 
@@ -67,7 +70,10 @@ describe('QueryPlugin', () => {
       }),
       {
         global: {
-          plugins: [createPinia(), [QueryPlugin, { onSuccess, onSettled, onError }]],
+          plugins: [
+            createPinia(),
+            [QueryPlugin, { onSuccess, onSettled, onError }],
+          ],
         },
       },
     )

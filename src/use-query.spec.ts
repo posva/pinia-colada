@@ -16,10 +16,7 @@ import { QueryPlugin } from './query-plugin'
 describe('useQuery', () => {
   beforeEach(() => {
     vi.clearAllTimers()
-    vi.useFakeTimers({
-      // easier to read, some date in 2001
-      now: 1_000_000_000_000,
-    })
+    vi.useFakeTimers()
   })
   afterEach(async () => {
     // clear all gc timers to avoid log polluting across tests
