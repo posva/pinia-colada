@@ -3,7 +3,6 @@ import {
   computed,
   getCurrentInstance,
   getCurrentScope,
-isRef,
   onMounted,
   onScopeDispose,
   onServerPrefetch,
@@ -76,8 +75,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
 
   // if passed by client
   // & check if watchable
-  if (_options.enabled !== undefined
-      && (isRef(options.enabled) || typeof options.enabled === 'function')) {
+  if (_options.enabled !== undefined && typeof options.enabled !== 'boolean') {
     watch(options.enabled, (newEnabled, oldEnabled) => {
       // add test case why we check !oldEnabled
       // add test case when we update entry, add test case when we update enabled
@@ -184,13 +182,11 @@ export function useQuery<TResult, TError = ErrorDefault>(
   if (IS_CLIENT) {
     if (options.refetchOnWindowFocus) {
       useEventListener(document, 'visibilitychange', () => {
-        if (document.visibilityState === 'visible') {
-          if (toValue(options.enabled)) {
-            if (options.refetchOnWindowFocus === 'always') {
-              refetch()
-            } else {
-              refresh()
-            }
+        if (document.visibilityState === 'visible' && toValue(options.enabled)) {
+          if (options.refetchOnWindowFocus === 'always') {
+            refetch()
+          } else {
+            refresh()
           }
         }
       })
@@ -198,10 +194,12 @@ export function useQuery<TResult, TError = ErrorDefault>(
 
     if (options.refetchOnReconnect) {
       useEventListener(window, 'online', () => {
-        if (options.refetchOnReconnect === 'always' && toValue(options.enabled)) {
-          refetch()
-        } else {
-          refresh()
+        if (toValue(options.enabled)) {
+          if (options.refetchOnReconnect === 'always') {
+            refetch()
+          } else {
+            refresh()
+          }
         }
       })
     }
