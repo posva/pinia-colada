@@ -532,6 +532,43 @@ describe('useQuery', () => {
       expect(query).toHaveBeenCalledTimes(2)
     })
 
+    it('does not refresh/refetch when disabled', async () => {
+      const { wrapper, query } = mountDynamicKey({ enabled: () => false })
+
+      await flushPromises()
+      expect(query).toBeCalledTimes(0)
+
+      // should refresh manually
+      await wrapper.vm.refresh()
+      await flushPromises()
+      expect(query).toBeCalledTimes(1)
+
+      await wrapper.vm.setId(2)
+      expect(query).toBeCalledTimes(1)
+    })
+
+    it('refetches when enabled toggled', async () => {
+      const enabled = ref(false)
+      const { wrapper, query } = mountDynamicKey({ enabled })
+
+      await flushPromises()
+      expect(query).toBeCalledTimes(0)
+
+      enabled.value = true
+      await nextTick()
+      await flushPromises()
+      expect(query).toBeCalledTimes(1)
+
+      await wrapper.vm.setId(2)
+      expect(query).toBeCalledTimes(2)
+
+      // no refetch when value is not toggled
+      enabled.value = true
+      await nextTick()
+      await flushPromises()
+      expect(query).toBeCalledTimes(1)
+    })
+
     it.todo('can avoid throwing', async () => {
       const { wrapper, query } = mountSimple({
         staleTime: 0,

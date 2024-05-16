@@ -73,6 +73,15 @@ export function useQuery<TResult, TError = ErrorDefault>(
   const refresh = () => store.refresh(entry.value)
   const refetch = () => store.refetch(entry.value)
 
+  // if passed by client
+  if (_options.enabled !== undefined) {
+    watch(options.enabled, (newEnabled, oldEnabled) => {
+      // add test case why we check !oldEnabled
+      // add test case when we update entry, add test case when we update enabled
+      if (!oldEnabled && newEnabled) refetch()
+    })
+  }
+
   const queryReturn = {
     data: computedRef(() => entry.value.data),
     error: computedRef(() => entry.value.error),
@@ -90,7 +99,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
   if (hasCurrentInstance) {
     // only happens on server, app awaits this
     onServerPrefetch(async () => {
-      await refresh()
+      if (toValue(options.enabled)) await refresh()
       // TODO: after adding a test, remove these lines and refactor the const queryReturn to just a return statement
       // NOTE: workaround to https://github.com/vuejs/core/issues/5300
       // eslint-disable-next-line no-unused-expressions, no-sequences
@@ -137,7 +146,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
         removeDep(previousEntry)
       }
       addDep(entry)
-      refresh()
+      if (toValue(options.enabled)) refresh()
     },
     { immediate: true },
   )
@@ -153,10 +162,12 @@ export function useQuery<TResult, TError = ErrorDefault>(
         // TODO: refactor noce we introduce the enabled option
         || queryReturn.status.value === 'pending'
       ) {
-        if (options.refetchOnMount === 'always') {
-          refetch()
-        } else {
-          refresh()
+        if (toValue(options.enabled)) {
+          if (options.refetchOnMount === 'always') {
+            refetch()
+          } else {
+            refresh()
+          }
         }
       }
     })
@@ -173,10 +184,12 @@ export function useQuery<TResult, TError = ErrorDefault>(
     if (options.refetchOnWindowFocus) {
       useEventListener(document, 'visibilitychange', () => {
         if (document.visibilityState === 'visible') {
-          if (options.refetchOnWindowFocus === 'always') {
-            refetch()
-          } else {
-            refresh()
+          if (toValue(options.enabled)) {
+            if (options.refetchOnWindowFocus === 'always') {
+              refetch()
+            } else {
+              refresh()
+            }
           }
         }
       })
@@ -184,10 +197,12 @@ export function useQuery<TResult, TError = ErrorDefault>(
 
     if (options.refetchOnReconnect) {
       useEventListener(window, 'online', () => {
-        if (options.refetchOnReconnect === 'always') {
-          refetch()
-        } else {
-          refresh()
+        if (toValue(options.enabled)) {
+          if (options.refetchOnReconnect === 'always') {
+            refetch()
+          } else {
+            refresh()
+          }
         }
       })
     }
