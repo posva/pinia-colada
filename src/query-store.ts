@@ -87,7 +87,13 @@ export interface UseQueryEntry<TResult = unknown, TError = unknown>
   /**
    * Options used to create the query. They can be undefined during hydration but are needed for fetching. This is why `store.ensureEntry()` sets this property.
    */
-  options?: UseQueryOptionsWithDefaults<TResult, TError>
+  options: UseQueryOptionsWithDefaults<TResult, TError> | null
+  // TODO: ideally shouldn't be null, there should be different kind of types
+
+  /**
+   * Whether the data is stale or not, requires `options.staleTime` to be set.
+   */
+  readonly stale: boolean
 }
 
 /**
@@ -120,6 +126,10 @@ export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
     pending: null,
     deps: new Set(),
     gcTimeout: undefined,
+    options: null,
+    get stale() {
+      return Date.now() > this.when + this.options!.staleTime
+    },
   }
 }
 
@@ -283,9 +293,8 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
         `"entry.refresh()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`,
       )
     }
-    const { staleTime } = entry.options!
 
-    if (entry.error.value || isExpired(entry.when, staleTime)) {
+    if (entry.error.value || entry.stale) {
       // console.log(`⬇️ refresh "${entry.key}". expired ${entry.when} / ${staleTime}`)
 
       // if (entry.pending?.refreshCall) console.log('  -> skipped!')
@@ -411,10 +420,6 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
     refresh,
   }
 })
-
-function isExpired(lastRefresh: number, staleTime: number): boolean {
-  return Date.now() > lastRefresh + staleTime
-}
 
 /**
  * Raw data of a query entry. Can be serialized from the server and used to hydrate the store.
