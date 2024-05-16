@@ -28,3 +28,5 @@ jobs:
       - run: pnpm run build
 
       - uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
