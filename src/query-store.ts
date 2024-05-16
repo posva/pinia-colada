@@ -63,8 +63,6 @@ export interface UseQueryEntry<TResult = unknown, TError = unknown>
    */
   when: number
 
-  readonly stale: boolean
-
   /**
    * The key associated with this query entry.
    */
@@ -116,9 +114,6 @@ export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
     data,
     error: shallowRef(error),
     when,
-    get stale() {
-      return !!this.options?.staleTime && Date.now() > this.when + this.options.staleTime
-    },
     status,
     isPending: computed(() => data.value === undefined),
     isFetching: computed(() => status.value === 'loading'),
@@ -254,9 +249,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
     const entryNode = cachesRaw.find(key.map(stringifyFlatObject))
 
     // nothing to invalidate
-    if (!entryNode) {
- return
-}
+    if (!entryNode) return
 
     const list = exact
       ? entryNode.value != null
@@ -290,8 +283,9 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
         `"entry.refresh()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`,
       )
     }
+    const { staleTime } = entry.options!
 
-    if (entry.error.value || entry.stale) {
+    if (entry.error.value || isExpired(entry.when, staleTime)) {
       // console.log(`⬇️ refresh "${entry.key}". expired ${entry.when} / ${staleTime}`)
 
       // if (entry.pending?.refreshCall) console.log('  -> skipped!')
@@ -368,9 +362,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
       | UseQueryEntry<TResult>
       | undefined
     // TODO: Should it create the entry?
-    if (!entry) {
- return
-}
+    if (!entry) return
 
     if (typeof data === 'function') {
       // the remaining type is TResult & Fn, so we need a cast
@@ -419,6 +411,10 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
     refresh,
   }
 })
+
+function isExpired(lastRefresh: number, staleTime: number): boolean {
+  return Date.now() > lastRefresh + staleTime
+}
 
 /**
  * Raw data of a query entry. Can be serialized from the server and used to hydrate the store.
