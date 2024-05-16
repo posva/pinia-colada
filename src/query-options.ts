@@ -61,8 +61,8 @@ export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
   query: (context: UseQueryFnContext) => Promise<TResult>
 
   /**
-   * Reactive boolean, indicating whether refetch/refresh should be called internally,
-   * calling refetch when toggled to true
+   * Whether the query should be enabled or not. If `false`, the query will not be executed until `refetch()` or
+   * `refresh()` is called. If it becomes `true`, the query will be refreshed.
    */
   enabled?: MaybeRefOrGetter<boolean>
 
