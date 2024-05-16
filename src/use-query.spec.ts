@@ -532,8 +532,8 @@ describe('useQuery', () => {
       expect(query).toHaveBeenCalledTimes(2)
     })
 
-    it('does not refresh/refetch when disabled', async () => {
-      const { wrapper, query } = mountDynamicKey({ enabled: () => false })
+    it('does not automatically refresh when enabled is false', async () => {
+      const { wrapper, query } = mountDynamicKey({ enabled: false })
 
       await flushPromises()
       expect(query).toBeCalledTimes(0)
@@ -547,7 +547,7 @@ describe('useQuery', () => {
       expect(query).toBeCalledTimes(1)
     })
 
-    it('refetches when enabled toggled', async () => {
+    it('triggers the query function when enabled becomes true', async () => {
       const enabled = ref(false)
       const { wrapper, query } = mountDynamicKey({ enabled })
 
@@ -563,6 +563,24 @@ describe('useQuery', () => {
       expect(query).toBeCalledTimes(2)
 
       // no refetch when value is not toggled
+      enabled.value = true
+      await nextTick()
+      await flushPromises()
+      expect(query).toBeCalledTimes(2)
+    })
+
+    it('does not trigger the query function when enabled becomes true if data is not stale', async () => {
+      const enabled = ref(true)
+      const { query } = mountDynamicKey({ enabled })
+
+      await flushPromises()
+      expect(query).toBeCalledTimes(1)
+
+      enabled.value = false
+      await nextTick()
+      await flushPromises()
+      expect(query).toBeCalledTimes(1)
+
       enabled.value = true
       await nextTick()
       await flushPromises()

@@ -3,6 +3,7 @@ import {
   computed,
   getCurrentInstance,
   getCurrentScope,
+isRef,
   onMounted,
   onScopeDispose,
   onServerPrefetch,
@@ -74,11 +75,13 @@ export function useQuery<TResult, TError = ErrorDefault>(
   const refetch = () => store.refetch(entry.value)
 
   // if passed by client
-  if (_options.enabled !== undefined) {
+  // & check if watchable
+  if (_options.enabled !== undefined
+      && (isRef(options.enabled) || typeof options.enabled === 'function')) {
     watch(options.enabled, (newEnabled, oldEnabled) => {
       // add test case why we check !oldEnabled
       // add test case when we update entry, add test case when we update enabled
-      if (!oldEnabled && newEnabled) refetch()
+      if (!oldEnabled && newEnabled) refresh()
     })
   }
 
@@ -157,17 +160,15 @@ export function useQuery<TResult, TError = ErrorDefault>(
     // TODO: optimize so it doesn't refresh if we are hydrating
     onMounted(() => {
       if (
-        options.refetchOnMount
+        (options.refetchOnMount
         // always fetch initially if no vaule is present
-        // TODO: refactor noce we introduce the enabled option
-        || queryReturn.status.value === 'pending'
+        || queryReturn.status.value === 'pending')
+        && toValue(options.enabled)
       ) {
-        if (toValue(options.enabled)) {
-          if (options.refetchOnMount === 'always') {
-            refetch()
-          } else {
-            refresh()
-          }
+        if (options.refetchOnMount === 'always') {
+          refetch()
+        } else {
+          refresh()
         }
       }
     })
@@ -197,12 +198,10 @@ export function useQuery<TResult, TError = ErrorDefault>(
 
     if (options.refetchOnReconnect) {
       useEventListener(window, 'online', () => {
-        if (toValue(options.enabled)) {
-          if (options.refetchOnReconnect === 'always') {
-            refetch()
-          } else {
-            refresh()
-          }
+        if (options.refetchOnReconnect === 'always' && toValue(options.enabled)) {
+          refetch()
+        } else {
+          refresh()
         }
       })
     }

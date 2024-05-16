@@ -1,4 +1,4 @@
-import { type InjectionKey, type MaybeRefOrGetter, type WatchSource, inject } from 'vue'
+import { type InjectionKey, type MaybeRefOrGetter, inject } from 'vue'
 import type { EntryKey } from './entry-options'
 import type { QueryPluginOptions } from './query-plugin'
 import type { ErrorDefault } from './types-extension'
@@ -64,7 +64,7 @@ export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
    * Reactive boolean, indicating whether refetch/refresh should be called internally,
    * calling refetch when toggled to true
    */
-  enabled?: WatchSource<boolean>
+  enabled?: MaybeRefOrGetter<boolean>
 
   /**
    * Time in ms after which the data is considered stale and will be refreshed on next read
@@ -112,7 +112,7 @@ export const USE_QUERY_DEFAULTS = {
   refetchOnWindowFocus: true as _RefetchOnControl,
   refetchOnReconnect: true as _RefetchOnControl,
   refetchOnMount: true as _RefetchOnControl,
-  enabled: (() => true) as WatchSource<boolean>,
+  enabled: true as MaybeRefOrGetter<boolean>,
   // as any to simplify the typing with generics
   transformError: (error: unknown) => error as any,
 } satisfies Partial<UseQueryOptions>
