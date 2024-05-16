@@ -61,6 +61,12 @@ export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
   query: (context: UseQueryFnContext) => Promise<TResult>
 
   /**
+   * Reactive boolean, indicating whether refetch/refresh should be called internally,
+   * calling refetch when toggled to true
+   */
+  enabled?: MaybeRefOrGetter<boolean>
+
+  /**
    * Time in ms after which the data is considered stale and will be refreshed on next read
    */
   staleTime?: number
@@ -106,6 +112,7 @@ export const USE_QUERY_DEFAULTS = {
   refetchOnWindowFocus: true as _RefetchOnControl,
   refetchOnReconnect: true as _RefetchOnControl,
   refetchOnMount: true as _RefetchOnControl,
+  enabled: true as MaybeRefOrGetter<boolean>,
   // as any to simplify the typing with generics
   transformError: (error: unknown) => error as any,
 } satisfies Partial<UseQueryOptions>
