@@ -73,14 +73,6 @@ export function useQuery<TResult, TError = ErrorDefault>(
   const refresh = () => store.refresh(entry.value)
   const refetch = () => store.refetch(entry.value)
 
-  if (typeof options.enabled !== 'boolean') {
-    watch(options.enabled, (newEnabled, oldEnabled) => {
-      // add test case why we check !oldEnabled
-      // add test case when we update entry, add test case when we update enabled
-      if (!oldEnabled && newEnabled) refresh()
-    })
-  }
-
   const queryReturn = {
     data: computedRef(() => entry.value.data),
     error: computedRef(() => entry.value.error),
@@ -149,6 +141,14 @@ export function useQuery<TResult, TError = ErrorDefault>(
     },
     { immediate: true },
   )
+
+  // avoid adding a watcher if enabled cannot change
+  if (typeof options.enabled !== 'boolean') {
+    watch(options.enabled, (newEnabled) => {
+      // no need to check for the previous value since the watcher will only trigger if the value changed
+      if (newEnabled) refresh()
+    })
+  }
 
   // only happens on client
   // we could also call fetch instead but forcing a refresh is more interesting
