@@ -73,9 +73,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
   const refresh = () => store.refresh(entry.value)
   const refetch = () => store.refetch(entry.value)
 
-  // if passed by client
-  // & check if watchable
-  if (_options.enabled !== undefined && typeof options.enabled !== 'boolean') {
+  if (typeof options.enabled !== 'boolean') {
     watch(options.enabled, (newEnabled, oldEnabled) => {
       // add test case why we check !oldEnabled
       // add test case when we update entry, add test case when we update enabled
