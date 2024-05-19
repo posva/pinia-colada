@@ -57,7 +57,9 @@ export type _MaybeArray<T> = T | T[]
  * `defineMutation()`.
  * @internal
  */
-export type _MaybeFunction<T, Args extends any[] = []> = T | ((...args: Args) => T)
+export type _MaybeFunction<T, Args extends any[] = []> =
+  | T
+  | ((...args: Args) => T)
 
 /**
  * Type that represents a value that can be a promise or a single value.
@@ -161,3 +163,10 @@ export const computedRef = <T>(other: () => Ref<T>): ShallowRef<T> =>
     get: () => other().value,
     set: (value) => (other().value = value),
   })
+
+/**
+ * Renames a property in an object type.
+ */
+export type _RenameProperty<T, Key extends keyof T, NewKey extends string> = {
+  [P in keyof T as P extends Key ? NewKey : P]: T[P]
+}
