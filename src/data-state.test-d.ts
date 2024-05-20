@@ -5,7 +5,8 @@ import type { AsyncDataState, DataState } from './data-state'
 describe('DataState', () => {
   const asyncState = reactive<AsyncDataState<number, Error>>({} as any)
   const dataState = reactive<DataState<number, Error>>({} as any)
-  it.each([asyncState, dataState] as const)('narrowing', (state) => {
+  const state: typeof asyncState | typeof dataState = dataState
+  it('narrowing', () => {
     if (state.status === 'pending') {
       expectTypeOf(state.data).toEqualTypeOf<undefined>()
       expectTypeOf(state.error).toEqualTypeOf<null>()
