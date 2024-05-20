@@ -1,9 +1,9 @@
 import type { ErrorDefault } from './types-extension'
 import {
-  type UseMutationOptions,
   type UseMutationReturn,
   useMutation,
 } from './use-mutation'
+import type { UseMutationOptions } from './mutation-options'
 
 /**
  * Define a mutation with the given options. Similar to `useMutation(options)` but allows you to reuse the mutation in

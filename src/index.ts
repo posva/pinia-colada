@@ -4,11 +4,13 @@
 export {
   useMutation,
   type UseMutationReturn,
+} from './use-mutation'
+export {
   type UseMutationOptions,
   type _ReduceContext,
   type _EmptyObject,
   type MutationStatus,
-} from './use-mutation'
+} from './mutation-options'
 export { defineMutation } from './define-mutation'
 
 export { useQuery, type UseQueryReturn } from './use-query'
@@ -26,6 +28,7 @@ export {
 } from './query-options'
 
 export { QueryPlugin, type QueryPluginOptions } from './query-plugin'
+export { MutationPlugin, type MutationPluginOptions } from './mutation-plugin'
 
 export {
   useQueryCache,

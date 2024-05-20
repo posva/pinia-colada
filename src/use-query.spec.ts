@@ -12,6 +12,7 @@ import { QUERY_STORE_ID, createQueryEntry, useQueryCache } from './query-store'
 import { TreeMapNode, entryNodeSize } from './tree-map'
 import type { UseQueryOptions } from './query-options'
 import { QueryPlugin } from './query-plugin'
+import { MutationPlugin } from './mutation-plugin'
 
 describe('useQuery', () => {
   beforeEach(() => {
@@ -52,7 +53,7 @@ describe('useQuery', () => {
       {
         global: {
           ...mountOptions,
-          plugins: [...(mountOptions?.plugins || [createPinia()]), QueryPlugin],
+          plugins: [...(mountOptions?.plugins || [createPinia()]), QueryPlugin, MutationPlugin],
         },
       },
     )
