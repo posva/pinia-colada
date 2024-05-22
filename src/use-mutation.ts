@@ -1,11 +1,12 @@
-import { computed, shallowRef } from 'vue'
+import { computed, onUnmounted } from 'vue'
 import type { ComputedRef, ShallowRef } from 'vue'
 import { useQueryCache } from './query-store'
 import type { EntryKey } from './entry-options'
 import type { ErrorDefault } from './types-extension'
 import { type _Awaitable, noop } from './utils'
+import { useMutationStore } from './mutation-store'
 
-type _MutationKey<TVars> =
+export type _MutationKey<TVars> =
   | EntryKey
   | ((vars: TVars) => EntryKey)
 
@@ -209,11 +210,15 @@ export function useMutation<
   options: UseMutationOptions<TResult, TVars, TError, TContext>,
 ): UseMutationReturn<TResult, TVars, TError> {
   const store = useQueryCache()
+  const mutationStore = useMutationStore()
 
   // TODO: there could be a mutation store that stores the state based on an optional key (if passed). This would allow to retrieve the state of a mutation with useMutationState(key)
-  const status = shallowRef<MutationStatus>('pending')
-  const data = shallowRef<TResult>()
-  const error = shallowRef<TError | null>(null)
+  const entry = mutationStore.createEntry(options)
+  const {
+    status,
+    data,
+    error,
+  } = entry
 
   // a pending promise allows us to discard previous ongoing requests
   // let pendingPromise: Promise<TResult> | null = null
@@ -226,6 +231,8 @@ export function useMutation<
     let currentData: TResult | undefined
     let currentError: TError | undefined
     let context!: _ReduceContext<TContext>
+
+    mutationStore.updateKey(entry, vars)
 
     const currentCall = (pendingCall = Symbol())
     try {
@@ -284,7 +291,13 @@ export function useMutation<
     data.value = undefined
     error.value = null
     status.value = 'pending'
+    // return initial value of the key
+    mutationStore.resetKey(entry)
   }
+
+  onUnmounted(() => {
+    mutationStore.removeEntry(entry)
+  })
 
   return {
     data,
