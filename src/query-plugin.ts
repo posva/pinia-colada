@@ -1,4 +1,5 @@
 import type { App } from 'vue'
+import type { Pinia } from 'pinia'
 import {
   USE_QUERY_DEFAULTS,
   USE_QUERY_OPTIONS_KEY,
@@ -59,6 +60,11 @@ export interface QueryPluginOptions
    * @param error - error thrown
    */
   transformError?: (error: unknown) => ErrorDefault
+
+  /**
+   * Pinia instance to use. This is only needed if installing before the Pinia plugin.
+   */
+  pinia?: Pinia
 }
 
 export function QueryPlugin(
@@ -67,6 +73,7 @@ export function QueryPlugin(
     onSuccess = noop,
     onSettled = noop,
     onError = noop,
+    pinia = app.config.globalProperties.$pinia,
     ...useQueryOptions
   }: QueryPluginOptions = {},
 ) {
@@ -74,8 +81,6 @@ export function QueryPlugin(
     ...USE_QUERY_DEFAULTS,
     ...useQueryOptions,
   })
-
-  const pinia = app.config.globalProperties.$pinia
 
   if (process.env.NODE_ENV !== 'production' && !pinia) {
     throw new Error(

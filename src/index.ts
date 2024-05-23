@@ -1,3 +1,7 @@
+import type { App } from 'vue'
+import type { QueryPluginOptions } from './query-plugin'
+import { QueryPlugin } from './query-plugin'
+
 /**
  * @module @pinia/colada
  */
@@ -16,9 +20,7 @@ export { defineQuery } from './define-query'
 
 // export { type UseQueryKeyList } from './query-keys'
 
-export {
-  type EntryKey,
-} from './entry-options'
+export { type EntryKey } from './entry-options'
 
 export {
   type UseQueryOptions,
@@ -26,6 +28,29 @@ export {
 } from './query-options'
 
 export { QueryPlugin, type QueryPluginOptions } from './query-plugin'
+
+/**
+ * Plugin that installs the Query and Mutation plugins alonside some extra plugins.
+ *
+ * @see {@link QueryPlugin} to only install the Query plugin.
+ * @see {@link MutationPlugin} to only install the Query plugin.
+ *
+ * @param app - Vue App
+ * @param options - Pinia Colada options
+ * @param options.query - Options for the query plugin
+ */
+export function PiniaColada(
+  app: App,
+  options: {
+    query?: QueryPluginOptions
+    // TODO:
+    // mutation?: MutationPluginOptions
+  } = {},
+) {
+  app.use(QueryPlugin, options.query)
+  // app.use(MutationPlugin, options.mutation)
+  // TODO: extract other parts like retrying into plugins
+}
 
 export {
   useQueryCache,

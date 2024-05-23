@@ -3,6 +3,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitepress'
 import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
+import { extraFiles } from '../twoslash/files'
 
 export const META_IMAGE = 'https://pinia-colada.esm.dev/social.png'
 export const META_URL = 'https://pinia-colada.esm.dev'
@@ -55,8 +56,10 @@ export default defineConfig({
     },
     codeTransformers: [
       transformerTwoslash({
+        // renderer: rendererRich(),
         twoslashOptions: {
           extraFiles: {
+            ...extraFiles,
             'mutations/todos.ts': mutations_todos,
           },
         },
