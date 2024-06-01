@@ -8,6 +8,8 @@ import {
   shallowReactive,
   shallowRef,
   triggerRef,
+  EffectScope,
+  effectScope,
 } from 'vue'
 import { stringifyFlatObject } from './utils'
 import { type EntryNodeKey, TreeMapNode } from './tree-map'
@@ -173,19 +175,20 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
   // this allows use to attach reactive effects to the scope later on
   const scope = getCurrentScope()!
 
-  type DefineQueryEntry = [entries: UseQueryEntry[], returnValue: unknown]
+  type DefineQueryEntry = [entries: UseQueryEntry[], returnValue: unknown, defineQueryScope: EffectScope, deps: Set<EffectScope>]
   // keep track of the entry being defined so we can add the queries in ensureEntry
   // this allows us to refresh the entry when a defined query is used again
   // and refetchOnMount is true
   let currentDefineQueryEntry: DefineQueryEntry | undefined | null
   const defineQueryMap = new WeakMap<() => unknown, DefineQueryEntry>()
-  function ensureDefinedQuery<T>(fn: () => T): T {
+  function ensureDefinedQuery<T>(fn: () => T) {
     let defineQueryEntry = defineQueryMap.get(fn)
     if (!defineQueryEntry) {
       // create the entry first
-      currentDefineQueryEntry = defineQueryEntry = [[], null]
+      const defineQueryScope = effectScope()
+      currentDefineQueryEntry = defineQueryEntry = [[], null, defineQueryScope, new Set()]
       // then run it s oit can add the queries to the entry
-      defineQueryEntry[1] = scope.run(fn)
+      defineQueryEntry[1] = defineQueryScope.run(fn)
       currentDefineQueryEntry = null
       defineQueryMap.set(fn, defineQueryEntry)
     } else {
@@ -195,16 +198,17 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
         // and not be called during hydration
         if (queryEntry.options?.refetchOnMount) {
           if (queryEntry.options.refetchOnMount === 'always') {
-            refetch(queryEntry)
+            defineQueryEntry[2].run(() => refetch(queryEntry))
           } else {
             // console.log('refreshing')
-            refresh(queryEntry)
+            defineQueryEntry[2].run(() => refresh(queryEntry))
           }
         }
       }
     }
 
-    return defineQueryEntry[1] as T
+    // TODO: no need to return `defineQueryEntry[1]`
+    return defineQueryEntry
   }
   function ensureEntry<TResult = unknown, TError = ErrorDefault>(
     keyRaw: EntryKey,

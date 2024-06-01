@@ -6,6 +6,7 @@ import { createApp, defineComponent, ref } from 'vue'
 import { QueryPlugin } from './query-plugin'
 import { defineQuery } from './define-query'
 import { useQuery } from './use-query'
+import { useQueryCache } from './query-store'
 
 describe('defineQuery', () => {
   beforeEach(() => {
@@ -295,5 +296,166 @@ describe('defineQuery', () => {
         expect(spy).toHaveBeenCalledTimes(2)
       })
     })
+  })
+
+  describe('gcTime', () => {
+    // Todo: outside components ?
+    
+    it('deletes the cache once the component is unmounted after the delay', async () => {
+      const spy = vi.fn(async () => {
+        return 'todos'
+      })
+      // Todo: with options ?
+      const useTodoList = defineQuery(() => {
+        const query = useQuery({
+          key: ['todos'],
+          query: spy,
+          gcTime: 1000
+        })
+        return {...query}
+      })
+      let returnedValues!: ReturnType<typeof useTodoList>
+
+      const pinia = createPinia()
+      const Component = defineComponent({
+        setup() {
+          returnedValues = useTodoList()
+          return {}
+        },
+        template: `<div></div>`,
+      })
+
+      const wrapper = mount(Component, {
+        global: {
+          plugins: [pinia, QueryPlugin],
+        },
+      })
+      await flushPromises()
+
+      const cache = useQueryCache()
+      expect(cache.getQueryData(['todos'])).toBe('todos')
+
+      wrapper.unmount()
+      await vi.advanceTimersByTime(999)
+      // still there
+      expect(cache.getQueryData(['todos'])).toBe('todos')
+      await vi.advanceTimersByTime(1)
+      expect(cache.getQueryData(['todos'])).toBeUndefined()
+    })
+
+    it('keeps the cache if the query is reused by a new component before the delay', async () => {
+      const spy = vi.fn(async () => {
+        return 'todos'
+      })
+      // Todo: with options ?
+      const useTodoList = defineQuery(() => {
+        const query = useQuery({
+          key: ['todos'],
+          query: spy,
+          gcTime: 1000
+        })
+        return {...query}
+      })
+      let returnedValues!: ReturnType<typeof useTodoList>
+
+      const pinia = createPinia()
+      const Component = defineComponent({
+        setup() {
+          returnedValues = useTodoList()
+          return {}
+        },
+        template: `<div></div>`,
+      })
+
+      const wrapper = mount(Component, {
+        global: {
+          plugins: [pinia, QueryPlugin],
+        },
+      })
+      await flushPromises()
+
+      const cache = useQueryCache()
+      expect(cache.getQueryData(['todos'])).toBe('todos')
+
+      wrapper.unmount()
+      await vi.advanceTimersByTime(999)
+      // still there
+      expect(cache.getQueryData(['todos'])).toBe('todos')
+
+      // create new component
+
+      const Component2 = defineComponent({
+        setup() {
+          returnedValues = useTodoList()
+          return {}
+        },
+        template: `<div></div>`,
+      })
+
+      const wrapper2 = mount(Component2, {
+        global: {
+          plugins: [pinia, QueryPlugin],
+        },
+      })
+      await vi.advanceTimersByTime(1)
+      expect(cache.getQueryData(['todos'])).toBe('todos')
+    })
+
+    // it('deletes the cache of an old key while the component is mounted', async () => {
+    //   const key = ref(1)
+    //   mountSimple({ key: () => [key.value], gcTime: 1000 })
+    //   const cache = useQueryCache()
+
+    //   await flushPromises()
+    //   expect(cache.getQueryData(['1'])).toBe(42)
+
+    //   // trigger a new entry
+    //   key.value = 2
+    //   await nextTick()
+
+    //   // let the query finish
+    //   await flushPromises()
+
+    //   expect(cache.getQueryData(['2'])).toBe(42)
+    //   // still not deleted
+    //   expect(cache.getQueryData(['1'])).toBe(42)
+
+    //   // trigger cleanup
+    //   vi.advanceTimersByTime(1000)
+    //   expect(cache.getQueryData(['1'])).toBeUndefined()
+    // })
+
+    // it('keeps the cache if the query key changes before the delay', async () => {
+    //   const key = ref(1)
+    //   mountSimple({ key: () => [key.value], gcTime: 1000 })
+    //   const cache = useQueryCache()
+
+    //   await flushPromises()
+
+    //   // trigger a new entry
+    //   key.value = 2
+    //   await nextTick()
+
+    //   // let the query finish
+    //   await flushPromises()
+
+    //   // check the values are still there
+    //   expect(cache.getQueryData(['1'])).toBe(42)
+    //   expect(cache.getQueryData(['2'])).toBe(42)
+
+    //   vi.advanceTimersByTime(999)
+    //   expect(cache.getQueryData(['1'])).toBe(42)
+
+    //   // go back to 1
+    //   key.value = 1
+    //   await nextTick()
+    //   await flushPromises()
+
+    //   // should not have deleted it
+    //   expect(cache.getQueryData(['1'])).toBe(42)
+    //   expect(cache.getQueryData(['2'])).toBe(42)
+    // })
+
+    // it.todo('works with effectScope too')
   })
 })

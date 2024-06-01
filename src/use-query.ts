@@ -70,8 +70,16 @@ export function useQuery<TResult, TError = ErrorDefault>(
     store.ensureEntry<TResult, TError>(toValue(options.key), options),
   )
 
-  const refresh = () => store.refresh(entry.value)
-  const refetch = () => store.refetch(entry.value)
+  const refresh = () => {
+    const currentEffect = getCurrentScope()
+    if (!entry.value.deps.has(currentEffect)) entry.value.deps.add(currentEffect)
+    return store.refresh(entry.value)
+  }
+  const refetch = () => {
+    const currentEffect = getCurrentScope()
+    if (!entry.value.deps.has(currentEffect)) entry.value.deps.add(currentEffect)
+    return store.refetch(entry.value)
+  }
 
   const queryReturn = {
     data: computedRef(() => entry.value.data),
