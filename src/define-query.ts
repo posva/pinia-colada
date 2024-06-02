@@ -1,4 +1,4 @@
-import { getCurrentInstance, getCurrentScope, onMounted, onUnmounted } from 'vue'
+import { getCurrentScope, onScopeDispose } from 'vue'
 import type { UseQueryOptions } from './query-options'
 import { useQueryCache } from './query-store'
 import type { ErrorDefault } from './types-extension'
@@ -52,12 +52,11 @@ export function defineQuery(
       : () => useQuery(optionsOrSetup)
   return () => {
     const defineQueryEntry = useQueryCache().ensureDefinedQuery(setupFn)
-    if (getCurrentInstance()) {
-      onMounted(() => {
-        defineQueryEntry[3].add(getCurrentScope()!)
-      })
-      onUnmounted(() => {
-        defineQueryEntry[3].delete(getCurrentScope()!)
+    const currentScope = getCurrentScope()
+    if (currentScope) {
+      if (!defineQueryEntry[3].has(currentScope)) defineQueryEntry[3].add(currentScope)
+      onScopeDispose(() => {
+        defineQueryEntry[3].delete(currentScope)
         if (defineQueryEntry[3].size === 0) {
           defineQueryEntry[2].stop()
           useQueryCache().removeFromDefineQueryMap(setupFn)
