@@ -1,15 +1,15 @@
 import { defineStore } from 'pinia'
 import {
   type ComputedRef,
+  type EffectScope,
   type Ref,
   type ShallowRef,
   computed,
+  effectScope,
   getCurrentScope,
   shallowReactive,
   shallowRef,
   triggerRef,
-  EffectScope,
-  effectScope,
 } from 'vue'
 import { stringifyFlatObject } from './utils'
 import { type EntryNodeKey, TreeMapNode } from './tree-map'
@@ -175,7 +175,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
   // this allows use to attach reactive effects to the scope later on
   const scope = getCurrentScope()!
 
-  type DefineQueryEntry = [entries: UseQueryEntry[], returnValue: unknown, defineQueryScope: EffectScope, deps: Set<EffectScope>]
+  type DefineQueryEntry = [entries: UseQueryEntry[], returnValue: unknown, scope: EffectScope, deps: Set<EffectScope>]
   // keep track of the entry being defined so we can add the queries in ensureEntry
   // this allows us to refresh the entry when a defined query is used again
   // and refetchOnMount is true
@@ -209,6 +209,9 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
 
     // TODO: no need to return `defineQueryEntry[1]`
     return defineQueryEntry
+  }
+  function removeFromDefineQueryMap<T>(fn: () => T) {
+    defineQueryMap.delete(fn)
   }
   function ensureEntry<TResult = unknown, TError = ErrorDefault>(
     keyRaw: EntryKey,
@@ -415,6 +418,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
 
     ensureEntry,
     ensureDefinedQuery,
+    removeFromDefineQueryMap,
     invalidateEntry,
     setQueryData,
     getQueryData,

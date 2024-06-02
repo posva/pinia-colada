@@ -300,7 +300,7 @@ describe('defineQuery', () => {
 
   describe('gcTime', () => {
     // Todo: outside components ?
-    
+
     it('deletes the cache once the component is unmounted after the delay', async () => {
       const spy = vi.fn(async () => {
         return 'todos'
@@ -310,17 +310,17 @@ describe('defineQuery', () => {
         const query = useQuery({
           key: ['todos'],
           query: spy,
-          gcTime: 1000
+          gcTime: 1000,
         })
-        return {...query}
+        return { ...query }
       })
-      let returnedValues!: ReturnType<typeof useTodoList>
+      let returnedValues: ReturnType<typeof useTodoList>
 
       const pinia = createPinia()
       const Component = defineComponent({
         setup() {
           returnedValues = useTodoList()
-          return {}
+          return { ...returnedValues }
         },
         template: `<div></div>`,
       })
@@ -352,17 +352,17 @@ describe('defineQuery', () => {
         const query = useQuery({
           key: ['todos'],
           query: spy,
-          gcTime: 1000
+          gcTime: 1000,
         })
-        return {...query}
+        return { ...query }
       })
-      let returnedValues!: ReturnType<typeof useTodoList>
+      let returnedValues: ReturnType<typeof useTodoList>
 
       const pinia = createPinia()
       const Component = defineComponent({
         setup() {
           returnedValues = useTodoList()
-          return {}
+          return { ...returnedValues }
         },
         template: `<div></div>`,
       })
@@ -392,7 +392,7 @@ describe('defineQuery', () => {
         template: `<div></div>`,
       })
 
-      const wrapper2 = mount(Component2, {
+      mount(Component2, {
         global: {
           plugins: [pinia, QueryPlugin],
         },

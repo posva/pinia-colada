@@ -58,8 +58,10 @@ export function defineQuery(
       })
       onUnmounted(() => {
         defineQueryEntry[3].delete(getCurrentScope()!)
-        if (defineQueryEntry[3].size === 0) defineQueryEntry[2].stop()
-          // TODO: remove the entry in DefineQueryMap 
+        if (defineQueryEntry[3].size === 0) {
+          defineQueryEntry[2].stop()
+          useQueryCache().removeFromDefineQueryMap(setupFn)
+        }
       })
     }
     return defineQueryEntry[1]
