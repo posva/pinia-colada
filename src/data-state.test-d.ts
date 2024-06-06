@@ -1,11 +1,10 @@
 import { describe, expectTypeOf, it } from 'vitest'
 import { shallowReactive } from 'vue'
-import type { AsyncDataState, DataState } from './data-state'
+import type { DataState } from './data-state'
 
 describe('DataState', () => {
-  const asyncState = shallowReactive<AsyncDataState<number, Error>>({} as any)
   const dataState = shallowReactive<DataState<number, Error>>({} as any)
-  const state: typeof asyncState | typeof dataState = dataState
+  const state = dataState
   it('narrowing', () => {
     if (state.status === 'pending') {
       expectTypeOf(state.data).toEqualTypeOf<undefined>()
