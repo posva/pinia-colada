@@ -117,8 +117,10 @@ export const USE_QUERY_DEFAULTS = {
   transformError: (error: unknown) => error as any,
 } satisfies Partial<UseQueryOptions>
 
-export type UseQueryOptionsWithDefaults<TResult = unknown, TError = ErrorDefault> =
-  typeof USE_QUERY_DEFAULTS & UseQueryOptions<TResult, TError>
+export type UseQueryOptionsWithDefaults<
+  TResult = unknown,
+  TError = ErrorDefault,
+> = UseQueryOptions<TResult, TError> & typeof USE_QUERY_DEFAULTS
 
 export const USE_QUERY_OPTIONS_KEY: InjectionKey<
   typeof USE_QUERY_DEFAULTS &

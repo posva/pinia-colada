@@ -1,9 +1,31 @@
-import { getCurrentScope, onScopeDispose } from 'vue'
+import {
+  type EffectScope,
+  getCurrentInstance,
+  getCurrentScope,
+  onScopeDispose,
+} from 'vue'
 import type { UseQueryOptions } from './query-options'
-import { useQueryCache } from './query-store'
+import {
+  queryEntry_addDep,
+  queryEntry_removeDep,
+  useQueryCache,
+} from './query-store'
 import type { ErrorDefault } from './types-extension'
 import type { UseQueryReturn } from './use-query'
 import { useQuery } from './use-query'
+
+/**
+ * The current effect scope where the function returned by `defineQuery` is being called. This allows `useQuery()` to know if it should be attached to an effect scope or not
+ */
+let currentDefineQueryEffect: undefined | EffectScope
+
+export function setCurrentDefineQueryEffect(effect: EffectScope | undefined) {
+  return (currentDefineQueryEffect = effect)
+}
+
+export function getCurrentDefineQueryEffect() {
+  return currentDefineQueryEffect
+}
 
 /**
  * Define a query with the given options. Similar to `useQuery(options)` but allows you to reuse the query in multiple
@@ -51,18 +73,29 @@ export function defineQuery(
       ? optionsOrSetup
       : () => useQuery(optionsOrSetup)
   return () => {
-    const defineQueryEntry = useQueryCache().ensureDefinedQuery(setupFn)
-    const currentScope = getCurrentScope()
+    const store = useQueryCache()
+    // preserve any current effect to account for nested usage of these functions
+    const previousEffect = currentDefineQueryEffect
+    const currentScope
+      = getCurrentInstance() || setCurrentDefineQueryEffect(getCurrentScope())
+
+    const [entries, ret] = store.ensureDefinedQuery(setupFn)
+    // NOTE: most of the time this should be set, so maybe we should show a dev warning
+    // if it's not set instead
     if (currentScope) {
-      if (!defineQueryEntry[3].has(currentScope)) defineQueryEntry[3].add(currentScope)
+      entries.forEach((entry) => {
+        queryEntry_addDep(entry, currentScope)
+      })
       onScopeDispose(() => {
-        defineQueryEntry[3].delete(currentScope)
-        if (defineQueryEntry[3].size === 0) {
-          defineQueryEntry[2].stop()
-          useQueryCache().removeFromDefineQueryMap(setupFn)
-        }
+        entries.forEach((entry) => {
+          queryEntry_removeDep(entry, currentScope, store)
+        })
       })
     }
-    return defineQueryEntry[1]
+
+    // reset the previous effect
+    setCurrentDefineQueryEffect(previousEffect)
+
+    return ret
   }
 }

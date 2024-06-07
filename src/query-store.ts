@@ -1,11 +1,11 @@
 import { defineStore } from 'pinia'
 import {
+  type ComponentInternalInstance,
   type ComputedRef,
   type EffectScope,
   type Ref,
   type ShallowRef,
   computed,
-  effectScope,
   getCurrentScope,
   shallowReactive,
   shallowRef,
@@ -98,6 +98,30 @@ export interface UseQueryEntry<TResult = unknown, TError = unknown>
   readonly stale: boolean
 }
 
+export function queryEntry_addDep(
+  entry: UseQueryEntry,
+  effect: EffectScope | ComponentInternalInstance | null | undefined,
+) {
+  if (!effect) return
+  entry.deps.add(effect)
+  clearTimeout(entry.gcTimeout)
+}
+
+export function queryEntry_removeDep(
+  entry: UseQueryEntry,
+  effect: EffectScope | ComponentInternalInstance | undefined | null,
+  store: ReturnType<typeof useQueryCache>,
+) {
+  if (!effect) return
+
+  entry.deps.delete(effect)
+  if (entry.deps.size > 0 || !entry.options) return
+  clearTimeout(entry.gcTimeout)
+  entry.gcTimeout = setTimeout(() => {
+    store.deleteQueryData(entry.key)
+  }, entry.options.gcTime)
+}
+
 /**
  * Creates a new query entry.
  *
@@ -175,7 +199,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
   // this allows use to attach reactive effects to the scope later on
   const scope = getCurrentScope()!
 
-  type DefineQueryEntry = [entries: UseQueryEntry[], returnValue: unknown, scope: EffectScope, deps: Set<EffectScope>]
+  type DefineQueryEntry = [entries: UseQueryEntry[], returnValue: unknown]
   // keep track of the entry being defined so we can add the queries in ensureEntry
   // this allows us to refresh the entry when a defined query is used again
   // and refetchOnMount is true
@@ -185,10 +209,9 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
     let defineQueryEntry = defineQueryMap.get(fn)
     if (!defineQueryEntry) {
       // create the entry first
-      const defineQueryScope = effectScope()
-      currentDefineQueryEntry = defineQueryEntry = [[], null, defineQueryScope, new Set()]
+      currentDefineQueryEntry = defineQueryEntry = [[], null]
       // then run it s oit can add the queries to the entry
-      defineQueryEntry[1] = defineQueryScope.run(fn)
+      defineQueryEntry[1] = scope.run(fn)
       currentDefineQueryEntry = null
       defineQueryMap.set(fn, defineQueryEntry)
     } else {
@@ -198,20 +221,16 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
         // and not be called during hydration
         if (queryEntry.options?.refetchOnMount) {
           if (queryEntry.options.refetchOnMount === 'always') {
-            defineQueryEntry[2].run(() => refetch(queryEntry))
+            refetch(queryEntry)
           } else {
             // console.log('refreshing')
-            defineQueryEntry[2].run(() => refresh(queryEntry))
+            refresh(queryEntry)
           }
         }
       }
     }
 
-    // TODO: no need to return `defineQueryEntry[1]`
     return defineQueryEntry
-  }
-  function removeFromDefineQueryMap<T>(fn: () => T) {
-    defineQueryMap.delete(fn)
   }
   function ensureEntry<TResult = unknown, TError = ErrorDefault>(
     keyRaw: EntryKey,
@@ -418,7 +437,6 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
 
     ensureEntry,
     ensureDefinedQuery,
-    removeFromDefineQueryMap,
     invalidateEntry,
     setQueryData,
     getQueryData,

@@ -1,13 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
-import type { GlobalMountOptions } from 'test/utils'
 import { createPinia } from 'pinia'
 import type { App } from 'vue'
 import { createApp, defineComponent, effectScope, ref } from 'vue'
-import type { UseQueryOptions } from './query-options'
 import { QueryPlugin } from './query-plugin'
 import { defineQuery } from './define-query'
 import { useQuery } from './use-query'
+import type { UseQueryOptions } from './query-options'
+import type { GlobalMountOptions } from '../test/utils'
 import { useQueryCache } from './query-store'
 
 describe('defineQuery', () => {
@@ -302,7 +302,7 @@ describe('defineQuery', () => {
 
   describe('gcTime', () => {
     describe('with component', () => {
-      function mountSimple<TResult = number>(
+      function mountSimple<TResult = string>(
         options: Partial<UseQueryOptions<TResult>> = {},
         mountOptions?: GlobalMountOptions,
       ) {
