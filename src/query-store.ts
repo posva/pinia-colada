@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import {
+  type ComponentInternalInstance,
   type ComputedRef,
+  type EffectScope,
   type Ref,
   type ShallowRef,
   computed,
@@ -96,6 +98,30 @@ export interface UseQueryEntry<TResult = unknown, TError = unknown>
   readonly stale: boolean
 }
 
+export function queryEntry_addDep(
+  entry: UseQueryEntry,
+  effect: EffectScope | ComponentInternalInstance | null | undefined,
+) {
+  if (!effect) return
+  entry.deps.add(effect)
+  clearTimeout(entry.gcTimeout)
+}
+
+export function queryEntry_removeDep(
+  entry: UseQueryEntry,
+  effect: EffectScope | ComponentInternalInstance | undefined | null,
+  store: ReturnType<typeof useQueryCache>,
+) {
+  if (!effect) return
+
+  entry.deps.delete(effect)
+  if (entry.deps.size > 0 || !entry.options) return
+  clearTimeout(entry.gcTimeout)
+  entry.gcTimeout = setTimeout(() => {
+    store.deleteQueryData(entry.key)
+  }, entry.options.gcTime)
+}
+
 /**
  * Creates a new query entry.
  *
@@ -179,7 +205,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
   // and refetchOnMount is true
   let currentDefineQueryEntry: DefineQueryEntry | undefined | null
   const defineQueryMap = new WeakMap<() => unknown, DefineQueryEntry>()
-  function ensureDefinedQuery<T>(fn: () => T): T {
+  function ensureDefinedQuery<T>(fn: () => T) {
     let defineQueryEntry = defineQueryMap.get(fn)
     if (!defineQueryEntry) {
       // create the entry first
@@ -204,8 +230,9 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
       }
     }
 
-    return defineQueryEntry[1] as T
+    return defineQueryEntry
   }
+
   function ensureEntry<TResult = unknown, TError = ErrorDefault>(
     keyRaw: EntryKey,
     options: UseQueryOptionsWithDefaults<TResult, TError>,

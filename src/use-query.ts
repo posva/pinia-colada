@@ -12,8 +12,9 @@ import {
 } from 'vue'
 import { IS_CLIENT, computedRef, useEventListener } from './utils'
 import {
-  type UseQueryEntry,
   type _UseQueryEntry_State,
+  queryEntry_addDep,
+  queryEntry_removeDep,
   useQueryCache,
 } from './query-store'
 import { useQueryOptions } from './query-options'
@@ -23,6 +24,7 @@ import type {
   UseQueryOptionsWithDefaults,
 } from './query-options'
 import type { ErrorDefault } from './types-extension'
+import { getCurrentDefineQueryEffect } from './define-query'
 
 /**
  * Return type of `useQuery()`.
@@ -85,7 +87,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
   } satisfies UseQueryReturn<TResult, TError>
 
   const hasCurrentInstance = getCurrentInstance()
-  const currentEffect = getCurrentScope()
+  const currentEffect = getCurrentDefineQueryEffect() || getCurrentScope()
 
   if (hasCurrentInstance) {
     // only happens on server, app awaits this
@@ -101,32 +103,26 @@ export function useQuery<TResult, TError = ErrorDefault>(
     })
   }
 
-  function addDep(entry: UseQueryEntry<TResult, TError>) {
-    entry.deps.add(currentEffect)
-    clearTimeout(entry.gcTimeout)
-  }
-
-  function removeDep(entry: UseQueryEntry<TResult, TError>) {
-    entry.deps.delete(currentEffect)
-    if (entry.deps.size > 0) return
-    clearTimeout(entry.gcTimeout)
-    entry.gcTimeout = setTimeout(() => {
-      store.deleteQueryData(entry.key)
-    }, options.gcTime)
-  }
-
   // should we be watching entry
-  // NOTE: this avoids fetching initially during SSR but it could be refactored
+  // NOTE: this avoids fetching initially during SSR but it could be refactored to only use the watcher
   let isActive = false
   if (hasCurrentInstance) {
     onMounted(() => {
       isActive = true
-      addDep(entry.value)
-      // add instance to Set of refs
+      queryEntry_addDep(entry.value, hasCurrentInstance)
+    })
+    onUnmounted(() => {
+      // remove instance from Set of refs
+      queryEntry_removeDep(entry.value, hasCurrentInstance, store)
     })
   } else {
     isActive = true
-    addDep(entry.value)
+    if (currentEffect) {
+      queryEntry_addDep(entry.value, currentEffect)
+    onScopeDispose(() => {
+      queryEntry_removeDep(entry.value, currentEffect, store)
+    })
+    }
   }
 
   watch(
@@ -134,9 +130,13 @@ export function useQuery<TResult, TError = ErrorDefault>(
     (entry, previousEntry) => {
       if (!isActive) return
       if (previousEntry) {
-        removeDep(previousEntry)
+        queryEntry_removeDep(previousEntry, hasCurrentInstance, store)
+        queryEntry_removeDep(previousEntry, currentEffect, store)
       }
-      addDep(entry)
+      // track the current effect and component
+      queryEntry_addDep(entry, hasCurrentInstance)
+      queryEntry_addDep(entry, currentEffect)
+
       if (toValue(options.enabled)) refresh()
     },
     { immediate: true },
@@ -157,8 +157,8 @@ export function useQuery<TResult, TError = ErrorDefault>(
     onMounted(() => {
       if (
         (options.refetchOnMount
-        // always fetch initially if no vaule is present
-        || queryReturn.status.value === 'pending')
+          // always fetch initially if no vaule is present
+          || queryReturn.status.value === 'pending')
         && toValue(options.enabled)
       ) {
         if (options.refetchOnMount === 'always') {
@@ -171,16 +171,13 @@ export function useQuery<TResult, TError = ErrorDefault>(
   }
   // TODO: we could save the time it was fetched to avoid fetching again. This is useful to not refetch during SSR app but do refetch in SSG apps if the data is stale. Careful with timers and timezones
 
-  if (currentEffect) {
-    onScopeDispose(() => {
-      removeDep(entry.value)
-    })
-  }
-
   if (IS_CLIENT) {
     if (options.refetchOnWindowFocus) {
       useEventListener(document, 'visibilitychange', () => {
-        if (document.visibilityState === 'visible' && toValue(options.enabled)) {
+        if (
+          document.visibilityState === 'visible'
+          && toValue(options.enabled)
+        ) {
           if (options.refetchOnWindowFocus === 'always') {
             refetch()
           } else {
