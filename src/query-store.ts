@@ -232,6 +232,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
 
     return defineQueryEntry
   }
+
   function ensureEntry<TResult = unknown, TError = ErrorDefault>(
     keyRaw: EntryKey,
     options: UseQueryOptionsWithDefaults<TResult, TError>,

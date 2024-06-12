@@ -19,10 +19,13 @@ import { useQuery } from './use-query'
  */
 let currentDefineQueryEffect: undefined | EffectScope
 
-export function setCurrentDefineQueryEffect(effect: EffectScope | undefined) {
-  return (currentDefineQueryEffect = effect)
-}
+// NOTE: no setter because it cannot be set outside of defineQuery()
 
+/**
+ * Gets the current defineQuery effect scope. This is used internally by `useQuery` to attach the effect to the query
+ * entry dependency list.
+ * @internal
+ */
 export function getCurrentDefineQueryEffect() {
   return currentDefineQueryEffect
 }
@@ -77,7 +80,7 @@ export function defineQuery(
     // preserve any current effect to account for nested usage of these functions
     const previousEffect = currentDefineQueryEffect
     const currentScope
-      = getCurrentInstance() || setCurrentDefineQueryEffect(getCurrentScope())
+      = getCurrentInstance() || (currentDefineQueryEffect = getCurrentScope())
 
     const [entries, ret] = store.ensureDefinedQuery(setupFn)
     // NOTE: most of the time this should be set, so maybe we should show a dev warning
@@ -94,7 +97,7 @@ export function defineQuery(
     }
 
     // reset the previous effect
-    setCurrentDefineQueryEffect(previousEffect)
+    currentDefineQueryEffect = previousEffect
 
     return ret
   }
