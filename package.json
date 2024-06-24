@@ -2,7 +2,7 @@
   "name": "@pinia/colada",
   "type": "module",
   "version": "0.6.0",
-  "packageManager": "pnpm@9.3.0",
+  "packageManager": "pnpm@9.4.0",
   "description": "The smart data fetching layer for Pinia",
   "publishConfig": {
     "access": "public"
@@ -100,15 +100,15 @@
   "devDependencies": {
     "@antfu/eslint-config": "^2.21.1",
     "@pinia/colada": "workspace:*",
-    "@shikijs/vitepress-twoslash": "^1.6.5",
+    "@shikijs/vitepress-twoslash": "^1.9.0",
     "@size-limit/preset-small-lib": "^11.1.4",
-    "@types/node": "^20.14.2",
+    "@types/node": "^20.14.8",
     "@vitejs/plugin-vue": "^5.0.5",
     "@vitest/coverage-v8": "^1.6.0",
     "@vitest/ui": "^1.6.0",
     "@vue/test-utils": "^2.4.6",
     "eslint": "^9.5.0",
-    "happy-dom": "^14.12.0",
+    "happy-dom": "^14.12.3",
     "lint-staged": "^15.2.7",
     "pinia": "^2.1.7",
     "prettier": "^3.3.2",
@@ -116,12 +116,12 @@
     "size-limit": "^11.1.4",
     "standard-version": "^9.5.0",
     "tsup": "^8.1.0",
-    "typedoc": "^0.25.13",
-    "typedoc-plugin-markdown": "^4.0.3",
-    "typescript": "~5.4.5",
+    "typedoc": "^0.26.2",
+    "typedoc-plugin-markdown": "^4.1.0",
+    "typescript": "~5.5.2",
     "vitepress": "1.2.3",
     "vitest": "^1.6.0",
-    "vue": "^3.4.29"
+    "vue": "^3.4.30"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm lint-staged",
