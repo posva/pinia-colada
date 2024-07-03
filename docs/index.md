@@ -26,7 +26,7 @@ features:
   - title: ⚡️ Automatic caching
     details: Smart and configurable client-side caching with automatic cache invalidation and request deduplication.
   - title: ♾️ Flexible
-    details: Works with any asynchronous state. Data fetching, webs ockets, Web APIs, etc
+    details: Works with any asynchronous state. Data fetching, websockets, Web APIs, etc
   - title: 🔑 Type Safe
     details: Designed with TypeScript in mind for an effortless and type-safe experience.
   - title: 🍍 Extensible
