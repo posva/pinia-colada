@@ -235,7 +235,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
 
   function ensureEntry<TResult = unknown, TError = ErrorDefault>(
     keyRaw: EntryKey,
-    options: UseQueryOptionsWithDefaults<TResult, TError>,
+    options?: UseQueryOptionsWithDefaults<TResult, TError>,
   ): UseQueryEntry<TResult, TError> {
     if (process.env.NODE_ENV !== 'production' && keyRaw.length === 0) {
       throw new Error(
@@ -251,7 +251,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
       cachesRaw.set(
         key,
         (entry = scope.run(() =>
-          createQueryEntry(key, options.initialData?.()),
+          createQueryEntry(key, options?.initialData?.()),
         )!),
       )
     }
