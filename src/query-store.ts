@@ -353,6 +353,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
     const { signal } = abortController
     // abort any ongoing request
     // TODO: test
+    // TODO: define in which cases we should abort
     entry.pending?.abortController.abort()
 
     const pendingCall = (entry.pending = {
