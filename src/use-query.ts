@@ -94,12 +94,6 @@ export function useQuery<TResult, TError = ErrorDefault>(
     onServerPrefetch(async () => {
       if (toValue(options.enabled)) await refresh()
       // TODO: after adding a test, remove these lines and refactor the const queryReturn to just a return statement
-      // NOTE: workaround to https://github.com/vuejs/core/issues/5300
-      // eslint-disable-next-line no-unused-expressions, no-sequences
-      queryReturn.data.value,
-        queryReturn.error.value,
-        queryReturn.isFetching.value,
-        queryReturn.isPending.value
     })
   }
 
