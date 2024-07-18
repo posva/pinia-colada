@@ -15,7 +15,7 @@ declare module 'vitest' {
 }
 
 export function mockWarn() {
-  let warn: MockInstance<Parameters<typeof console['warn']>, void>
+  let warn: MockInstance<typeof console['warn']>
   const asserted = new Map<string, string | RegExp>()
 
   expect.extend({
