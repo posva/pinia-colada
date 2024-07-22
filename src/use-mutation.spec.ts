@@ -4,9 +4,10 @@ import { createPinia } from 'pinia'
 import { defineComponent } from 'vue'
 import type { GlobalMountOptions } from '../test/utils'
 import { delay } from '../test/utils'
-import type { UseMutationOptions } from './use-mutation'
+import type { UseMutationOptions } from './mutation-options'
 import { useMutation } from './use-mutation'
 import { QueryPlugin } from './query-plugin'
+import { MutationPlugin } from './mutation-plugin'
 
 describe('useMutation', () => {
   beforeEach(() => {
@@ -41,7 +42,7 @@ describe('useMutation', () => {
       }),
       {
         global: {
-          plugins: [createPinia(), QueryPlugin],
+          plugins: [createPinia(), QueryPlugin, MutationPlugin],
           ...mountOptions,
         },
       },

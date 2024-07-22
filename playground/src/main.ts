@@ -2,7 +2,7 @@ import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router/auto'
 import { routes } from 'vue-router/auto-routes'
 import { createPinia } from 'pinia'
-import { QueryPlugin } from '@pinia/colada'
+import { MutationPlugin, QueryPlugin } from '@pinia/colada'
 import './style.css'
 import 'water.css'
 
@@ -16,6 +16,7 @@ const router = createRouter({
 
 app.use(createPinia())
 app.use(QueryPlugin, {})
+app.use(MutationPlugin, {})
 app.use(router)
 
 app.mount('#app')
