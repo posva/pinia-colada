@@ -2,11 +2,12 @@ import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router/auto'
 import { routes } from 'vue-router/auto-routes'
 import { createPinia } from 'pinia'
-import { QueryPlugin } from '@pinia/colada'
+import { PiniaColada } from '@pinia/colada'
 import './style.css'
 import 'water.css'
 
 import App from './App.vue'
+import { PiniaColadaDebugPlugin } from '../../src/plugins/entries/debug'
 
 const app = createApp(App)
 const router = createRouter({
@@ -15,7 +16,9 @@ const router = createRouter({
 })
 
 app.use(createPinia())
-app.use(QueryPlugin, {})
+app.use(PiniaColada, {
+  plugins: [PiniaColadaDebugPlugin],
+})
 app.use(router)
 
 app.mount('#app')

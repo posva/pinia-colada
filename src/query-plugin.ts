@@ -67,6 +67,13 @@ export interface QueryPluginOptions
   pinia?: Pinia
 }
 
+/**
+ * Plugin for the Pinia Colada Query functionality.
+ * @param app - Vue App
+ * @param options
+ *
+ * @deprecated Use `PiniaColada` instead
+ */
 export function QueryPlugin(
   app: App,
   {
@@ -84,7 +91,7 @@ export function QueryPlugin(
 
   if (process.env.NODE_ENV !== 'production' && !pinia) {
     throw new Error(
-      '[@pinia/colada] root pinia plugin not detected. Make sure you install pinia before installing the "QueryPlugin" plugin.',
+      '[@pinia/colada] root pinia plugin not detected. Make sure you install pinia before installing the "QueryPlugin" plugin or to manually pass the pinia instance.',
     )
   }
 
