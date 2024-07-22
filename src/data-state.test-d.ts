@@ -2,7 +2,7 @@ import { describe, expectTypeOf, it } from 'vitest'
 import { shallowReactive } from 'vue'
 import type { DataState } from './data-state'
 
-describe('DataState', () => {
+describe('DataState type narrowing', () => {
   const dataState = shallowReactive<DataState<number, Error>>({} as any)
   const state = dataState
   it('narrowing', () => {

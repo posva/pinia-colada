@@ -61,7 +61,7 @@
     "dist"
   ],
   "scripts": {
-    "dev": "vitest --ui --typecheck",
+    "dev": "vitest --ui",
     "docs": "vitepress dev docs",
     "docs:build": "pnpm run docs:api:build && vitepress build docs",
     "docs:api:build": "node ./scripts/run-typedoc.js",
@@ -72,7 +72,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "test:types": "tsc --build ./tsconfig.json",
-    "test:cov": "vitest run --typecheck --coverage",
+    "test:cov": "vitest run --coverage",
     "build": "tsup",
     "size": "size-limit",
     "prepare": "simple-git-hooks"
@@ -115,7 +115,7 @@
     "simple-git-hooks": "^2.11.1",
     "size-limit": "^11.1.4",
     "standard-version": "^9.5.0",
-    "tsup": "^8.2.1",
+    "tsup": "^8.2.2",
     "typedoc": "^0.26.5",
     "typedoc-plugin-markdown": "^4.2.1",
     "typescript": "~5.5.3",

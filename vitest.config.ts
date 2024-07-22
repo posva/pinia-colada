@@ -10,7 +10,11 @@ export default defineConfig({
       // easier to read, some date in 2001
       now: 1_000_000_000_000,
     },
+    typecheck: {
+      enabled: true,
+    },
     coverage: {
+      enabled: true,
       provider: 'v8',
       reporter: ['text', 'lcovonly', 'html'],
       all: true,
