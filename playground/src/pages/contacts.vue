@@ -1,7 +1,10 @@
 <script lang="ts" setup>
 import { useContactSearch } from '@/composables/contacts'
+import { useDebugData } from '../../../src/plugins/entries/debug'
 
 const { data: searchResult, status, searchText } = useContactSearch()
+
+const debugData = useDebugData()
 
 // TODO: tip in tests if they are reading data, error or other as they are computed properties, on the server they won't
 // update so they will keep their initial undefined value
@@ -12,6 +15,19 @@ const { data: searchResult, status, searchText } = useContactSearch()
     <h1 class="mb-12">
       📇 My Contacts
     </h1>
+
+    <details open>
+      <summary>Debug</summary>
+
+      <p>
+        Total entries fetched: {{ debugData.totalRefetches }}
+        <br>
+        Total success: {{ debugData.totalSuccess }}
+        <br>
+        Total errors: {{ debugData.totalErrors }}
+      </p>
+      <p>Refetching entries: {{ debugData.refetchingEntries.size }}</p>
+    </details>
 
     <div class="gap-4 contacts-search md:flex">
       <div>
