@@ -86,3 +86,5 @@ export { delayLoadingRef, type _MaybeArray, type _Awaitable } from './utils'
 export type { TypesConfig } from './types-extension'
 
 // TODO: idea of plugin that persists the cached values
+
+export type { PiniaColadaPlugin, PiniaColadaPluginContext } from './plugins'
