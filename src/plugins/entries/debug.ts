@@ -30,61 +30,62 @@ export const useDebugData = defineStore('pinia-colada-debug', () => {
   }
 })
 
-export function PiniaColadaDebugPlugin({
-  cache,
-  pinia,
-}: PiniaColadaPluginContext) {
-  const debugData = useDebugData(pinia)
+export function PiniaColadaDebugPlugin(): (
+  context: PiniaColadaPluginContext,
+) => void {
+  return ({ cache, pinia }) => {
+    const debugData = useDebugData(pinia)
 
-  cache.$onAction(async ({ name, onError, after, args }) => {
-    if (name === 'refetch' || name === 'refresh') {
-      const [entry] = args
-      await tick()
-      if (
-        entry.status.value === 'loading'
-        || entry.status.value === 'pending'
-      ) {
-        debugData.addRefetchingEntry(entry)
-        showMessage('🔄', 'refetch', `[${entry.key.join(', ')}]`, entry)
+    cache.$onAction(async ({ name, onError, after, args }) => {
+      if (name === 'refetch' || name === 'refresh') {
+        const [entry] = args
+        await tick()
+        if (
+          entry.status.value === 'loading'
+          || entry.status.value === 'pending'
+        ) {
+          debugData.addRefetchingEntry(entry)
+          showMessage('🔄', 'refetch', `[${entry.key.join(', ')}]`, entry)
 
-        after(() => {
-          debugData.removeRefetchingEntry(entry)
-          if (entry.status.value === 'error') {
-            debugData.totalErrors++
+          after(() => {
+            debugData.removeRefetchingEntry(entry)
+            if (entry.status.value === 'error') {
+              debugData.totalErrors++
+              showMessage(
+                'error',
+                'refetch failed',
+                `[${entry.key.join(', ')}]`,
+                entry.error.value,
+              )
+            } else {
+              debugData.totalSuccess++
+              showMessage(
+                '✅',
+                'refetch',
+                `[${entry.key.join(', ')}]`,
+                entry.data.value,
+              )
+            }
+          })
+
+          onError((error) => {
             showMessage(
               'error',
-              'refetch failed',
+              'Unexpected Error',
               `[${entry.key.join(', ')}]`,
-              entry.error.value,
+              error,
             )
-          } else {
-            debugData.totalSuccess++
-            showMessage(
-              '✅',
-              'refetch',
-              `[${entry.key.join(', ')}]`,
-              entry.data.value,
-            )
-          }
-        })
-
-        onError((error) => {
-          showMessage(
-            'error',
-            'Unexpected Error',
-            `[${entry.key.join(', ')}]`,
-            error,
-          )
-        })
+          })
+        }
+      } else if (name === 'setQueryData') {
+        const [key, data] = args
+        showMessage('log', 'setQueryData', `[${key.join(', ')}]`, data)
+      } else if (name === 'invalidateEntry') {
+        const [key] = args
+        showMessage('🗑️', 'invalidateEntry', `[${key.join(', ')}]`)
       }
-    } else if (name === 'setQueryData') {
-      const [key, data] = args
-      showMessage('log', 'setQueryData', `[${key.join(', ')}]`, data)
-    } else if (name === 'invalidateEntry') {
-      const [key] = args
-      showMessage('🗑️', 'invalidateEntry', `[${key.join(', ')}]`)
-    }
-  })
+    })
+  }
 }
 
 export type LogeMessageType =
