@@ -4,32 +4,29 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [0.7.0](https://github.com/posva/pinia-colada/compare/v0.6.0...v0.7.0) (2024-07-26)
 
-
 ### ⚠ BREAKING CHANGES
 
-* rename type `UseEntryKey` to `EntryKey`
-* the exported type 'UseQueryKey' is replaced by the more generic type 'UseEntryKey', which will be also used to type mutations
+- rename type `UseEntryKey` to `EntryKey`
+- the exported type 'UseQueryKey' is replaced by the more generic type 'UseEntryKey', which will be also used to type mutations
 
 ### Features
 
-* debug plugin ([8fde25b](https://github.com/posva/pinia-colada/commit/8fde25be458b4bf593ca0701679bbc9f404d7ea7))
-* expose plugin types ([83ef198](https://github.com/posva/pinia-colada/commit/83ef1989bf537cccea66c386a29859c800208fe3))
-* **mutation:** allow passing mutation variables to mutation key getter ([bc8a47f](https://github.com/posva/pinia-colada/commit/bc8a47fd18c4a4839f20d792383c48d84fa013b2))
-* retry plugin ([0d837a2](https://github.com/posva/pinia-colada/commit/0d837a2e426fe3b046316e7462e21a890ad6f3ee))
-* support plugins and deprecate `QueryPlugin` in favor of `PiniaColada` ([bde53d9](https://github.com/posva/pinia-colada/commit/bde53d9e1045ecf433820bc1d21a57f56cc62b27))
-* **use-query:** Add enabled option ([#43](https://github.com/posva/pinia-colada/issues/43)) ([1b755c5](https://github.com/posva/pinia-colada/commit/1b755c5183526f60cb0a3169b363cda1f8bbb659))
-* **wip:** add gcTime ([#29](https://github.com/posva/pinia-colada/issues/29)) ([56659d1](https://github.com/posva/pinia-colada/commit/56659d1c31a3208756a5361ac97b8f274b2b6533))
-
+- debug plugin ([8fde25b](https://github.com/posva/pinia-colada/commit/8fde25be458b4bf593ca0701679bbc9f404d7ea7))
+- expose plugin types ([83ef198](https://github.com/posva/pinia-colada/commit/83ef1989bf537cccea66c386a29859c800208fe3))
+- **mutation:** allow passing mutation variables to mutation key getter ([bc8a47f](https://github.com/posva/pinia-colada/commit/bc8a47fd18c4a4839f20d792383c48d84fa013b2))
+- retry plugin ([0d837a2](https://github.com/posva/pinia-colada/commit/0d837a2e426fe3b046316e7462e21a890ad6f3ee))
+- support plugins and deprecate `QueryPlugin` in favor of `PiniaColada` ([bde53d9](https://github.com/posva/pinia-colada/commit/bde53d9e1045ecf433820bc1d21a57f56cc62b27))
+- **use-query:** Add enabled option ([#43](https://github.com/posva/pinia-colada/issues/43)) ([1b755c5](https://github.com/posva/pinia-colada/commit/1b755c5183526f60cb0a3169b363cda1f8bbb659))
+- **wip:** add gcTime ([#29](https://github.com/posva/pinia-colada/issues/29)) ([56659d1](https://github.com/posva/pinia-colada/commit/56659d1c31a3208756a5361ac97b8f274b2b6533))
 
 ### Bug Fixes
 
-* gcTime on defined queries ([#50](https://github.com/posva/pinia-colada/issues/50)) ([82df409](https://github.com/posva/pinia-colada/commit/82df409c13a166c3c1a54a121029740e103d2a52))
-* **query:** query refresh on defineQuery output composable call ([28a3ec1](https://github.com/posva/pinia-colada/commit/28a3ec1741b38b8f672c90badbc38327813e1238))
-* trigger nested actions ([7e3a9f6](https://github.com/posva/pinia-colada/commit/7e3a9f6d2582ddab4d7bed4943899bcff7c1ced2))
+- gcTime on defined queries ([#50](https://github.com/posva/pinia-colada/issues/50)) ([82df409](https://github.com/posva/pinia-colada/commit/82df409c13a166c3c1a54a121029740e103d2a52))
+- **query:** query refresh on defineQuery output composable call ([28a3ec1](https://github.com/posva/pinia-colada/commit/28a3ec1741b38b8f672c90badbc38327813e1238))
+- trigger nested actions ([7e3a9f6](https://github.com/posva/pinia-colada/commit/7e3a9f6d2582ddab4d7bed4943899bcff7c1ced2))
 
-
-* rename type 'UseQueryKey' to 'UseEntryKey' ([6a32d89](https://github.com/posva/pinia-colada/commit/6a32d894a61d3af5c2e8f549c59aba1c28425ba8))
-* rename type `UseEntryKey` to `EntryKey` ([8110feb](https://github.com/posva/pinia-colada/commit/8110feb9fd0f0e5372574a7f4dc6b9707b1a59a7))
+- rename type 'UseQueryKey' to 'UseEntryKey' ([6a32d89](https://github.com/posva/pinia-colada/commit/6a32d894a61d3af5c2e8f549c59aba1c28425ba8))
+- rename type `UseEntryKey` to `EntryKey` ([8110feb](https://github.com/posva/pinia-colada/commit/8110feb9fd0f0e5372574a7f4dc6b9707b1a59a7))
 
 ## [0.6.0](https://github.com/posva/pinia-colada/compare/v0.5.3...v0.6.0) (2024-04-02)
 
