@@ -21,6 +21,7 @@ export default antfu(
       'no-console': 'warn',
       'style/indent': 'off',
       'style/indent-binary-ops': 'off',
+      'ts/no-use-before-define': 'off',
     },
   },
   {

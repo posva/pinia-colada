@@ -190,7 +190,7 @@ export const queryEntry_toString: <TResult, TError>(
  */
 export const QUERY_STORE_ID = '_pc_query'
 
-export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
+export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
   // We have two versions of the cache, one that track changes and another that doesn't so the actions can be used
   // inside computed properties
   const cachesRaw = new TreeMapNode<UseQueryEntry<unknown, unknown>>()
@@ -205,7 +205,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
   // and refetchOnMount is true
   let currentDefineQueryEntry: DefineQueryEntry | undefined | null
   const defineQueryMap = new WeakMap<() => unknown, DefineQueryEntry>()
-  function ensureDefinedQuery<T>(fn: () => T) {
+  const ensureDefinedQuery = action(<T>(fn: () => T) => {
     let defineQueryEntry = defineQueryMap.get(fn)
     if (!defineQueryEntry) {
       // create the entry first
@@ -231,12 +231,12 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
     }
 
     return defineQueryEntry
-  }
+  })
 
-  function ensureEntry<TResult = unknown, TError = ErrorDefault>(
+  const ensureEntry = action(<TResult = unknown, TError = ErrorDefault>(
     keyRaw: EntryKey,
     options: UseQueryOptionsWithDefaults<TResult, TError>,
-  ): UseQueryEntry<TResult, TError> {
+  ): UseQueryEntry<TResult, TError> => {
     if (process.env.NODE_ENV !== 'production' && keyRaw.length === 0) {
       throw new Error(
         `useQuery() was called with an empty array as the key. It must have at least one element.`,
@@ -263,7 +263,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
     currentDefineQueryEntry?.[0].push(entry)
 
     return entry
-  }
+  })
 
   /**
    * Invalidates a query entry, forcing a refetch of the data if `refetch` is true
@@ -273,7 +273,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
    * @param options.exact - if true, it will only invalidate the exact query, not the children
    * @param options.refetch - if true, it will refetch the data
    */
-  function invalidateEntry(
+  const invalidateEntry = action((
     key: EntryKey,
     {
       refetch: shouldRefetch = true,
@@ -282,7 +282,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
       refetch?: boolean
       exact?: boolean
     } = {},
-  ) {
+  ) => {
     const entryNode = cachesRaw.find(key.map(stringifyFlatObject))
 
     // nothing to invalidate
@@ -306,15 +306,15 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
         return refetch(entry)
       }
     }
-  }
+  })
 
   /**
    * Ensures the current data is fresh. If the data is stale, refetch, if not return as is. Can only be called if the
    * entry has options.
    */
-  async function refresh<TResult, TError>(
+  const refresh = action(async <TResult, TError>(
     entry: UseQueryEntry<TResult, TError>,
-  ): Promise<TResult> {
+  ): Promise<TResult> => {
     if (process.env.NODE_ENV !== 'production' && !entry.options) {
       throw new Error(
         `"entry.refresh()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`,
@@ -332,14 +332,14 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
     // console.log(`${entry.key}  ->`, entry.data.value, entry.error.value)
 
     return entry.data.value!
-  }
+  })
 
   /**
    * Ignores fresh data and triggers a new fetch. Can only be called if the entry has options.
    */
-  async function refetch<TResult, TError>(
+  const refetch = action(async <TResult, TError>(
     entry: UseQueryEntry<TResult, TError>,
-  ): Promise<TResult> {
+  ): Promise<TResult> => {
     if (process.env.NODE_ENV !== 'production' && !entry.options) {
       throw new Error(
         `"entry.refetch()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`,
@@ -388,13 +388,13 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
     // console.log('  ->', entry.data.value, entry.error.value)
 
     return entry.data.value!
-  }
+  })
 
   // TODO: tests
-  function setQueryData<TResult = unknown>(
+  const setQueryData = action(<TResult = unknown>(
     key: EntryKey,
     data: TResult | ((data: Ref<TResult | undefined>) => void),
-  ) {
+  ) => {
     const entry = caches.get(key.map(stringifyFlatObject)) as
       | UseQueryEntry<TResult>
       | undefined
@@ -410,22 +410,22 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
     }
     // TODO: complete and test
     entry.error.value = null
-  }
+  })
 
-  function getQueryData<TResult = unknown>(key: EntryKey): TResult | undefined {
+  const getQueryData = action(<TResult = unknown>(key: EntryKey): TResult | undefined => {
     const entry = caches.get(key.map(stringifyFlatObject)) as
       | UseQueryEntry<TResult>
       | undefined
     return entry?.data.value
-  }
+  })
 
-  function deleteQueryData(key: EntryKey) {
+  const deleteQueryData = action((key: EntryKey) => {
     // console.log('🗑 data', key, Date.now())
     caches.delete(key.map(stringifyFlatObject))
-  }
+  })
 
   // TODO: find a way to make it possible to prefetch. Right now we need the actual options of the query
-  function _preload(_useQueryFn: ReturnType<typeof defineQuery>) {}
+  const _preload = action((_useQueryFn: ReturnType<typeof defineQuery>) => {})
 
   return {
     caches,

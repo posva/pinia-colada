@@ -8,6 +8,7 @@ import 'water.css'
 
 import App from './App.vue'
 import { PiniaColadaDebugPlugin } from '../../src/plugins/entries/debug'
+import { PiniaColadaRetriesPlugin } from '../../src/plugins/entries/retries'
 
 const app = createApp(App)
 const router = createRouter({
@@ -17,7 +18,7 @@ const router = createRouter({
 
 app.use(createPinia())
 app.use(PiniaColada, {
-  plugins: [PiniaColadaDebugPlugin],
+  plugins: [PiniaColadaDebugPlugin(), PiniaColadaRetriesPlugin()],
 })
 app.use(router)
 

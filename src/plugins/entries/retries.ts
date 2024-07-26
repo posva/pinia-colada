@@ -70,16 +70,17 @@ export function PiniaColadaRetriesPlugin(
       const localOptions = queryEntry.options?.retry
 
       const options = {
-        ...defaults,
         ...(typeof localOptions === 'object'
           ? localOptions
           : {
               retry: localOptions,
             }),
-      }
+      } satisfies RetryOptions
 
+      const retry = options.retry ?? defaults.retry
+      const delay = options.delay ?? defaults.delay
       // avoid setting up anything at all
-      if (options.retry === 0) return
+      if (retry === 0) return
 
       const key = queryEntry.key.join('/')
 
@@ -100,15 +101,15 @@ export function PiniaColadaRetriesPlugin(
           }
 
           const shouldRetry
-            = typeof options.retry === 'number'
-              ? options.retry > entry.retryCount
-              : options.retry(entry.retryCount, error)
+            = typeof retry === 'number'
+              ? retry > entry.retryCount
+              : retry(entry.retryCount, error)
 
           if (shouldRetry) {
-            const delay
-              = typeof options.delay === 'function'
-                ? options.delay(entry.retryCount)
-                : options.delay
+            const delayTime
+              = typeof delay === 'function'
+                ? delay(entry.retryCount)
+                : delay
             entry.timeoutId = setTimeout(() => {
               // NOTE: we could add some default error handler
               isInternalCall = true
@@ -119,7 +120,7 @@ export function PiniaColadaRetriesPlugin(
               if (entry) {
                 entry.retryCount++
               }
-            }, delay)
+            }, delayTime)
           } else {
             // remove the entry if we are not going to retry
             retryMap.delete(key)

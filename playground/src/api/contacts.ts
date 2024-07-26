@@ -31,7 +31,10 @@ export async function getAllContacts(options?: Options<'json'>) {
  *
  * @param id id of the contact
  */
-export function getContactById(id: string | number, options?: Options<'json'>) {
+export async function getContactById(id: string | number, options?: Options<'json'>) {
+  if (Math.random() > 0.75) {
+    throw new Error('Failed to fetch')
+  }
   return contacts.get<Contact>(id, options)
 }
 
