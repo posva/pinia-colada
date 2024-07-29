@@ -28,8 +28,8 @@
   },
   "devDependencies": {
     "@tsconfig/node18": "^18.2.4",
-    "@types/node": "^20.14.12",
-    "@vitejs/plugin-vue": "^5.1.0",
+    "@types/node": "^20.14.13",
+    "@vitejs/plugin-vue": "^5.1.1",
     "@vue/tsconfig": "^0.5.1",
     "autoprefixer": "^10.4.19",
     "json-server": "0.17.4",
