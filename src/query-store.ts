@@ -256,8 +256,8 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
       )
     }
 
-    // add the options to the entry the first time only
-    entry.options ??= options
+    // during HMR, the options might change, so it's better to always update them
+    entry.options = options
 
     // if this query was defined within a defineQuery call, add it to the list
     currentDefineQueryEntry?.[0].push(entry)
