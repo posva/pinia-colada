@@ -12,7 +12,7 @@ createTypeDocApp({
   plugin: ['typedoc-plugin-markdown'],
   entryPoints: [
     path.resolve(__dirname, '../src/index.ts'),
-    path.resolve(__dirname, '../src/plugins/invalidate-queries.ts'),
+    path.resolve(__dirname, '../plugins/retry/src/index.ts'),
     // path.resolve(__dirname, '../src/plugins/persist-pending-queries.ts'),
   ],
 }).then((app) => app.build())

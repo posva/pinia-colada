@@ -2,7 +2,12 @@
   "extends": "./tsconfig.common.json",
   "compilerOptions": {
     "baseUrl": ".",
-    "rootDir": "."
+    "rootDir": ".",
+    "paths": {
+      "@pinia/colada": [
+        "./src/index.ts"
+      ]
+    }
   },
   "include": [
     "src/**/*",

@@ -1,5 +1,5 @@
 {
-  "include": ["../src/**/*.ts"],
+  "include": ["../src/**/*.ts", "../plugins/*/src/**/*.ts"],
   "exclude": [
     "**/*.spec.ts",
     "../playground"
@@ -12,7 +12,7 @@
     "noEmit": true,
     "paths": {
       "@pinia/colada": ["../src"],
-      "@pinia/colada/plugins/invalidate-queries": ["../src/plugins/invalidate-queries.ts"]
+      "@pinia/colada-plugin-retry": ["../plugins/retry/src"]
     },
 
     "target": "esnext",

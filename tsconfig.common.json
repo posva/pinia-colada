@@ -4,7 +4,9 @@
     "target": "esnext",
     "module": "esnext",
     "moduleResolution": "Bundler",
-    "types": [],
+    "types": [
+      "node"
+    ],
     "strict": true,
     "noEmit": true,
     // TSUP issue https://github.com/egoist/tsup/issues/571

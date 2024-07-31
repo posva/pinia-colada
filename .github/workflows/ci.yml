@@ -25,7 +25,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm run lint
       - run: pnpm run test
-      - run: pnpm run build
+      - run: pnpm run size
+      # avoid updating deps that do not build docs
+      - run: pnpm run docs:api:build
 
       - uses: codecov/codecov-action@v4
         with:
