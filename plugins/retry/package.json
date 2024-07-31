@@ -1,0 +1,45 @@
+{
+  "name": "@pinia/colada-plugin-retry",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Retry failed requests with Pinia Colada",
+  "author": {
+    "name": "Eduardo San Martin Morote",
+    "email": "posva13@gmail.com"
+  },
+  "license": "MIT",
+  "funding": "https://github.com/sponsors/posva",
+  "homepage": "https://github.com/posva/pinia-colada/plugins/retry#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/posva/pinia-colada.git"
+  },
+  "bugs": {
+    "url": "https://github.com/posva/pinia-colada/issues"
+  },
+  "keywords": [
+    "pinia",
+    "plugin",
+    "data",
+    "fetching",
+    "query",
+    "mutation",
+    "cache",
+    "layer"
+  ],
+  "sideEffects": false,
+  "main": "index.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "peerDependencies": {
+    "@pinia/colada": "^0.7.0"
+  },
+  "devDependencies": {
+    "@pinia/colada": "workspace:^"
+  }
+}

@@ -102,7 +102,7 @@
     "@pinia/colada": "workspace:*",
     "@shikijs/vitepress-twoslash": "^1.12.0",
     "@size-limit/preset-small-lib": "^11.1.4",
-    "@types/node": "^20.14.13",
+    "@types/node": "^22.0.0",
     "@vitejs/plugin-vue": "^5.1.1",
     "@vitest/coverage-v8": "^2.0.4",
     "@vitest/ui": "^2.0.4",
@@ -121,7 +121,7 @@
     "typescript": "~5.5.4",
     "vitepress": "1.3.1",
     "vitest": "^2.0.4",
-    "vue": "^3.4.34"
+    "vue": "^3.4.35"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm lint-staged",

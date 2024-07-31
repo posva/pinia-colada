@@ -6,7 +6,8 @@
     "rootDir": "..",
     "paths": {
       "@/*": ["./src/*"],
-      "@pinia/colada": ["../src/index.ts"]
+      "@pinia/colada": ["../src/index.ts"],
+      "@pinia/colada-plugin-retry": ["../plugins/retry/src/index.ts"]
     },
     "types": ["unplugin-vue-router/client"],
     "noEmit": true

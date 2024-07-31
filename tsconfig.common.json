@@ -1,0 +1,15 @@
+{
+
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "Bundler",
+    "types": [],
+    "strict": true,
+    "noEmit": true,
+    // TSUP issue https://github.com/egoist/tsup/issues/571
+    // "composite": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.common.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "rootDir": "."
+  },
+  "include": [
+    "src/**/*",
+    "plugins/*/src/**/*",
+    "test/**/*"
+  ]
+}

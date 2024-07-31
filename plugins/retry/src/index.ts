@@ -137,6 +137,9 @@ export function PiniaColadaRetriesPlugin(
 declare module '@pinia/colada' {
   // eslint-disable-next-line unused-imports/no-unused-vars
   export interface UseQueryOptions<TResult, TError> {
+    /**
+     * Options for the retries of this query added by `@pinia/colada-plugin-retry`.
+     */
     retry?: RetryOptions | Exclude<RetryOptions['retry'], undefined>
   }
 }
