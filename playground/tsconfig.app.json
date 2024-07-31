@@ -7,7 +7,7 @@
     "paths": {
       "@/*": ["./src/*"],
       "@pinia/colada": ["../src/index.ts"],
-      "@pinia/colada-plugin-retry": ["../plugins/retry/src/index.ts"]
+      "@pinia/colada-plugin-*": ["../plugins/*/src/index.ts"]
     },
     "types": ["unplugin-vue-router/client"],
     "noEmit": true
@@ -17,7 +17,8 @@
     "./typed-router.d.ts",
     "src",
     "src/**/*.vue",
-    "../src"
+    "../src",
+    "../plugins/*/src"
   ],
   "exclude": ["src/**/__tests__/*"]
 }

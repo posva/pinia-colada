@@ -45,7 +45,7 @@ const RETRY_OPTIONS_DEFAULTS = {
  *
  * @param globalOptions - global options for the retries
  */
-export function PiniaColadaRetriesPlugin(
+export function PiniaColadaRetry(
   globalOptions?: RetryOptions,
 ): (context: PiniaColadaPluginContext) => void {
   const defaults = { ...RETRY_OPTIONS_DEFAULTS, ...globalOptions }

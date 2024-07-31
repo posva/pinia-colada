@@ -14,6 +14,6 @@ export default defineConfig([
     ...commonOptions,
     clean: true,
     entry: ['src/index.ts'],
-    globalName: 'PiniaColadaRetry',
+    globalName: 'PiniaColadaAutoInvalidate',
   },
 ])

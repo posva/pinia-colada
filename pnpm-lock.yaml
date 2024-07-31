@@ -160,6 +160,24 @@ importers:
         specifier: ^2.0.29
         version: 2.0.29(typescript@5.5.4)
 
+  plugins/auto-invalidate:
+    devDependencies:
+      '@pinia/colada':
+        specifier: workspace:^
+        version: link:../..
+
+  plugins/cache-persister:
+    devDependencies:
+      '@pinia/colada':
+        specifier: workspace:^
+        version: link:../..
+
+  plugins/debug:
+    devDependencies:
+      '@pinia/colada':
+        specifier: workspace:^
+        version: link:../..
+
   plugins/retry:
     devDependencies:
       '@pinia/colada':

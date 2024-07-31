@@ -5,10 +5,10 @@ import { createPinia } from 'pinia'
 import { PiniaColada } from '@pinia/colada'
 import './style.css'
 import 'water.css'
+import { PiniaColadaRetry } from '@pinia/colada-plugin-retry'
 
 import App from './App.vue'
-import { PiniaColadaDebugPlugin } from '../../src/plugins/entries/debug'
-import { PiniaColadaRetriesPlugin } from '../../src/plugins/entries/retries'
+import { PiniaColadaDebugPlugin } from '@pinia/colada-plugin-debug'
 
 const app = createApp(App)
 const router = createRouter({
@@ -18,7 +18,7 @@ const router = createRouter({
 
 app.use(createPinia())
 app.use(PiniaColada, {
-  plugins: [PiniaColadaDebugPlugin(), PiniaColadaRetriesPlugin()],
+  plugins: [PiniaColadaDebugPlugin(), PiniaColadaRetry()],
 })
 app.use(router)
 
