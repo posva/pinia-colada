@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useContactSearch } from '@/composables/contacts'
-import { useDebugData } from '../../../src/plugins/entries/debug'
+import { useDebugData } from '@pinia/colada-plugin-debug'
 
 const { data: searchResult, status, searchText } = useContactSearch()
 

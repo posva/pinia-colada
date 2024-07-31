@@ -92,6 +92,12 @@ importers:
       '@pinia/colada':
         specifier: workspace:*
         version: link:..
+      '@pinia/colada-plugin-debug':
+        specifier: workspace:^
+        version: link:../plugins/debug
+      '@pinia/colada-plugin-retry':
+        specifier: workspace:^
+        version: link:../plugins/retry
       '@vueuse/core':
         specifier: ^10.11.0
         version: 10.11.0(vue@3.4.35(typescript@5.5.4))
