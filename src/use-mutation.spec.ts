@@ -6,7 +6,7 @@ import type { GlobalMountOptions } from '../test/utils'
 import { delay } from '../test/utils'
 import type { UseMutationOptions } from './use-mutation'
 import { useMutation } from './use-mutation'
-import { QueryPlugin } from './query-plugin'
+import { PiniaColada } from './pinia-colada'
 
 describe('useMutation', () => {
   beforeEach(() => {
@@ -41,7 +41,7 @@ describe('useMutation', () => {
       }),
       {
         global: {
-          plugins: [createPinia(), QueryPlugin],
+          plugins: [createPinia(), PiniaColada],
           ...mountOptions,
         },
       },

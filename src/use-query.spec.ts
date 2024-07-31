@@ -11,7 +11,7 @@ import type { UseQueryEntry } from './query-store'
 import { QUERY_STORE_ID, createQueryEntry, useQueryCache } from './query-store'
 import { TreeMapNode, entryNodeSize } from './tree-map'
 import type { UseQueryOptions } from './query-options'
-import { QueryPlugin } from './query-plugin'
+import { PiniaColada } from './pinia-colada'
 
 describe('useQuery', () => {
   beforeEach(() => {
@@ -52,7 +52,7 @@ describe('useQuery', () => {
       {
         global: {
           ...mountOptions,
-          plugins: [...(mountOptions?.plugins || [createPinia()]), QueryPlugin],
+          plugins: [...(mountOptions?.plugins || [createPinia()]), PiniaColada],
         },
       },
     )
@@ -399,7 +399,7 @@ describe('useQuery', () => {
             ...mountOptions,
             plugins: [
               ...(mountOptions?.plugins || [createPinia()]),
-              QueryPlugin,
+              PiniaColada,
             ],
           },
         },
@@ -760,7 +760,7 @@ describe('useQuery', () => {
           },
           {
             global: {
-              plugins: [createPinia(), QueryPlugin],
+              plugins: [createPinia(), PiniaColada],
             },
           },
         )

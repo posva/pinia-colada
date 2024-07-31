@@ -3,9 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent } from 'vue'
 import { createPinia } from 'pinia'
 import { useQuery } from './use-query'
-import { QueryPlugin } from './query-plugin'
+import { PiniaColada } from './pinia-colada'
 
-describe('QueryPlugin', () => {
+describe('PiniaColada', () => {
   const MyComponent = defineComponent({
     template: '<div></div>',
     setup() {
@@ -36,7 +36,7 @@ describe('QueryPlugin', () => {
       global: {
         plugins: [
           createPinia(),
-          [QueryPlugin, { onSuccess, onSettled, onError }],
+          [PiniaColada, { onSuccess, onSettled, onError }],
         ],
       },
     })
@@ -72,7 +72,7 @@ describe('QueryPlugin', () => {
         global: {
           plugins: [
             createPinia(),
-            [QueryPlugin, { onSuccess, onSettled, onError }],
+            [PiniaColada, { onSuccess, onSettled, onError }],
           ],
         },
       },

@@ -4,31 +4,29 @@ import {
   USE_QUERY_DEFAULTS,
   USE_QUERY_OPTIONS_KEY,
   type UseQueryOptions,
-  type UseQueryOptionsWithDefaults,
 } from './query-options'
 import { useQueryCache } from './query-store'
 import { noop } from './utils'
-import type { _Simplify } from './utils'
-import type { UseQueryReturn } from './use-query'
 import type { ErrorDefault } from './types-extension'
+import type { PiniaColadaPlugin } from './plugins'
 
-export interface QueryPluginOptions
+/**
+ * Options for the Pinia Colada plugin.
+ */
+export interface PiniaColadaOptions
   extends Omit<
     UseQueryOptions,
     'key' | 'query' | 'initialData' | 'transformError'
   > {
   /**
-   * Executes setup code inside `useQuery()` to add custom behavior to all queries. **Must be synchronous**.
-   *
-   * @param context - properties of the `useQuery` return value and the options
+   * Pinia instance to use. This is only needed if installing before the Pinia plugin.
    */
-  setup?: <TResult = unknown, TError = ErrorDefault>(
-    context: _Simplify<
-      UseQueryReturn<TResult, TError> & {
-        options: UseQueryOptionsWithDefaults<TResult, TError>
-      }
-    >,
-  ) => void | Promise<never>
+  pinia?: Pinia
+
+  /**
+   * Pinia Colada plugins to install.
+   */
+  plugins?: PiniaColadaPlugin[]
 
   /**
    * Global handler for when a query is successful.
@@ -60,30 +58,30 @@ export interface QueryPluginOptions
    * @param error - error thrown
    */
   transformError?: (error: unknown) => ErrorDefault
-
-  /**
-   * Pinia instance to use. This is only needed if installing before the Pinia plugin.
-   */
-  pinia?: Pinia
 }
 
 /**
- * Plugin for the Pinia Colada Query functionality.
- * @param app - Vue App
- * @param options
+ * Plugin that installs the Query and Mutation plugins alongside some extra plugins.
  *
- * @deprecated Use `PiniaColada` instead
+ * @see {@link PiniaColada} to only install the Query plugin.
+ * @see {@link MutationPlugin} to only install the Query plugin.
+ *
+ * @param app - Vue App
+ * @param options - Pinia Colada options
+ * @param options.pinia - Pinia instance to use. This is only needed if installing before the Pinia plugin.
+ * @param options.query - Query plugin options
+ * @param options.plugins - Pinia Colada plugins to install.
  */
-export function QueryPlugin(
-  app: App,
-  {
-    onSuccess = noop,
-    onSettled = noop,
-    onError = noop,
+export function PiniaColada(app: App, options: PiniaColadaOptions = {}) {
+  const {
     pinia = app.config.globalProperties.$pinia,
+    plugins,
+    onError = noop,
+    onSettled = noop,
+    onSuccess = noop,
     ...useQueryOptions
-  }: QueryPluginOptions = {},
-) {
+  } = options
+
   app.provide(USE_QUERY_OPTIONS_KEY, {
     ...USE_QUERY_DEFAULTS,
     ...useQueryOptions,
@@ -91,7 +89,7 @@ export function QueryPlugin(
 
   if (process.env.NODE_ENV !== 'production' && !pinia) {
     throw new Error(
-      '[@pinia/colada] root pinia plugin not detected. Make sure you install pinia before installing the "QueryPlugin" plugin or to manually pass the pinia instance.',
+      '[@pinia/colada] root pinia plugin not detected. Make sure you install pinia before installing the "PiniaColada" plugin or to manually pass the pinia instance.',
     )
   }
 
@@ -110,4 +108,7 @@ export function QueryPlugin(
       })
     }
   })
+
+  // install plugins
+  plugins?.forEach((plugin) => plugin({ cache: useQueryCache(pinia), pinia }))
 }

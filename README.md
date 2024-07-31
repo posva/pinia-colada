@@ -50,11 +50,11 @@ Install the plugins for the features you need:
 
 ```js
 import { createPinia } from 'pinia'
-import { QueryPlugin } from '@pinia/colada'
+import { PiniaColada } from '@pinia/colada'
 
 app.use(createPinia())
 // install after pinia
-app.use(QueryPlugin, {
+app.use(PiniaColada, {
   // optional options
 })
 ```

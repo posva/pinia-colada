@@ -3,12 +3,12 @@ import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import type { App } from 'vue'
 import { createApp, defineComponent, effectScope, ref } from 'vue'
-import { QueryPlugin } from './query-plugin'
 import { defineQuery } from './define-query'
 import { useQuery } from './use-query'
 import type { UseQueryOptions } from './query-options'
 import type { GlobalMountOptions } from '../test/utils'
 import { useQueryCache } from './query-store'
+import { PiniaColada } from './pinia-colada'
 
 describe('defineQuery', () => {
   beforeEach(() => {
@@ -37,7 +37,7 @@ describe('defineQuery', () => {
       },
       {
         global: {
-          plugins: [createPinia(), QueryPlugin],
+          plugins: [createPinia(), PiniaColada],
         },
       },
     )
@@ -68,7 +68,7 @@ describe('defineQuery', () => {
       },
       {
         global: {
-          plugins: [createPinia(), QueryPlugin],
+          plugins: [createPinia(), PiniaColada],
         },
       },
     )
@@ -104,7 +104,7 @@ describe('defineQuery', () => {
 
       mount(Component, {
         global: {
-          plugins: [pinia, QueryPlugin],
+          plugins: [pinia, PiniaColada],
         },
       })
       await flushPromises()
@@ -116,7 +116,7 @@ describe('defineQuery', () => {
 
       mount(Component, {
         global: {
-          plugins: [pinia, QueryPlugin],
+          plugins: [pinia, PiniaColada],
         },
       })
       // still called only once
@@ -130,7 +130,7 @@ describe('defineQuery', () => {
       vi.advanceTimersByTime(101)
       mount(Component, {
         global: {
-          plugins: [pinia, QueryPlugin],
+          plugins: [pinia, PiniaColada],
         },
       })
       // it should be loading
@@ -164,7 +164,7 @@ describe('defineQuery', () => {
 
       mount(Component, {
         global: {
-          plugins: [pinia, QueryPlugin],
+          plugins: [pinia, PiniaColada],
         },
       })
       await flushPromises()
@@ -176,7 +176,7 @@ describe('defineQuery', () => {
 
       mount(Component, {
         global: {
-          plugins: [pinia, QueryPlugin],
+          plugins: [pinia, PiniaColada],
         },
       })
       expect(spy).toHaveBeenCalledTimes(2)
@@ -205,7 +205,7 @@ describe('defineQuery', () => {
 
       mount(Component, {
         global: {
-          plugins: [pinia, QueryPlugin],
+          plugins: [pinia, PiniaColada],
         },
       })
       await flushPromises()
@@ -217,7 +217,7 @@ describe('defineQuery', () => {
 
       mount(Component, {
         global: {
-          plugins: [pinia, QueryPlugin],
+          plugins: [pinia, PiniaColada],
         },
       })
       expect(spy).toHaveBeenCalledTimes(1)
@@ -230,7 +230,7 @@ describe('defineQuery', () => {
       const pinia = createPinia()
       app = createApp({ render: () => null })
         .use(pinia)
-        .use(QueryPlugin)
+        .use(PiniaColada)
       app.mount(document.createElement('div'))
     })
     afterEach(() => {
@@ -333,7 +333,7 @@ describe('defineQuery', () => {
           }),
           {
             global: {
-              plugins: [...(mountOptions?.plugins || [createPinia()]), QueryPlugin],
+              plugins: [...(mountOptions?.plugins || [createPinia()]), PiniaColada],
             },
           },
         )
@@ -456,7 +456,7 @@ describe('defineQuery', () => {
         const pinia = createPinia()
         app = createApp({ render: () => null })
           .use(pinia)
-          .use(QueryPlugin)
+          .use(PiniaColada)
         app.mount(document.createElement('div'))
       })
       afterEach(() => {

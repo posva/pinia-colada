@@ -1,24 +1,24 @@
 import { describe, it } from 'vitest'
 import type { App } from 'vue'
-import { QueryPlugin } from './query-plugin'
+import { PiniaColada } from './pinia-colada'
 
 declare const app: App
 
-describe('QueryPlugin types', () => {
+describe('PiniaColada types', () => {
   it('disallows "setup" to return a promise', () => {
-    app.use(QueryPlugin, {
+    app.use(PiniaColada, {
       // @ts-expect-error: async await
       async setup() {},
     })
 
-    app.use(QueryPlugin, {
+    app.use(PiniaColada, {
       // @ts-expect-error: explicit promise
       setup() {
         return Promise.resolve()
       },
     })
 
-    app.use(QueryPlugin, {
+    app.use(PiniaColada, {
       setup() {
         // works!
       },
