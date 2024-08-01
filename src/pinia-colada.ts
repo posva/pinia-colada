@@ -95,13 +95,13 @@ export function PiniaColada(app: App, options: PiniaColadaOptions = {}) {
 
   const store = useQueryCache(pinia)
   store.$onAction(({ name, after, onError: _onError }) => {
-    if (name === 'refetch') {
+    if (name === 'fetch') {
       // TODO: the refetch/refresh should probably return more information so we can query the error or data here. They don't throw errors
       after(async (data) => {
         await onSuccess(data)
         onSettled(data, null)
       })
-      // FIXME: this doesn't work since the error is caught by refetch/refresh
+
       _onError(async (error) => {
         await onError(error)
         onSettled(undefined, error)

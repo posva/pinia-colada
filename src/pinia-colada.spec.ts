@@ -50,7 +50,7 @@ describe('PiniaColada', () => {
     expect(onSettled).toHaveBeenCalledWith(42, null)
   })
 
-  it.todo('calls the hooks on error', async () => {
+  it('calls the hooks on error', async () => {
     const onSuccess = vi.fn()
     const onSettled = vi.fn()
     const onError = vi.fn()

@@ -1,3 +1,6 @@
+/**
+ * Key type for nodes in the tree map. Differently from {@link EntryKey}, this type is serializable to JSON.
+ */
 export type EntryNodeKey = string | number
 
 /**

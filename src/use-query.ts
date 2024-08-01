@@ -10,7 +10,7 @@ import {
   toValue,
   watch,
 } from 'vue'
-import { IS_CLIENT, computedRef, useEventListener } from './utils'
+import { IS_CLIENT, computedRef, noop, useEventListener } from './utils'
 import {
   type _UseQueryEntry_State,
   queryEntry_addDep,
@@ -35,13 +35,14 @@ export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault>
    * Ensures the current data is fresh. If the data is stale, refetch, if not return as is.
    * @returns a promise that resolves when the refresh is done
    */
-  refresh: () => Promise<TResult>
+  refresh: () => Promise<unknown>
+  // FIXME: these two methods should return a result object that has both the error and the data
 
   /**
    * Ignores fresh data and triggers a new fetch
    * @returns a promise that resolves when the refresh is done
    */
-  refetch: () => Promise<TResult>
+  refetch: () => Promise<unknown>
 }
 
 /**
@@ -52,7 +53,7 @@ export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault>
 export function useQuery<TResult, TError = ErrorDefault>(
   _options: UseQueryOptions<TResult, TError>,
 ): UseQueryReturn<TResult, TError> {
-  const store = useQueryCache()
+  const cacheEntries = useQueryCache()
   const USE_QUERY_DEFAULTS = useQueryOptions()
   // const effect = (getActivePinia() as any)._e as EffectScope
 
@@ -69,11 +70,11 @@ export function useQuery<TResult, TError = ErrorDefault>(
   //     : options.key
 
   const entry = computed(() =>
-    store.ensureEntry<TResult, TError>(toValue(options.key), options),
+    cacheEntries.ensure<TResult, TError>(options),
   )
 
-  const refresh = () => store.refresh(entry.value)
-  const refetch = () => store.refetch(entry.value)
+  const refresh = () => cacheEntries.refresh(entry.value).then(noop).catch(noop)
+  const refetch = () => cacheEntries.fetch(entry.value).then(noop).catch(noop)
 
   const queryReturn = {
     data: computedRef(() => entry.value.data),
@@ -107,14 +108,14 @@ export function useQuery<TResult, TError = ErrorDefault>(
     })
     onUnmounted(() => {
       // remove instance from Set of refs
-      queryEntry_removeDep(entry.value, hasCurrentInstance, store)
+      queryEntry_removeDep(entry.value, hasCurrentInstance, cacheEntries)
     })
   } else {
     isActive = true
     if (currentEffect) {
       queryEntry_addDep(entry.value, currentEffect)
     onScopeDispose(() => {
-      queryEntry_removeDep(entry.value, currentEffect, store)
+      queryEntry_removeDep(entry.value, currentEffect, cacheEntries)
     })
     }
   }
@@ -124,8 +125,8 @@ export function useQuery<TResult, TError = ErrorDefault>(
     (entry, previousEntry) => {
       if (!isActive) return
       if (previousEntry) {
-        queryEntry_removeDep(previousEntry, hasCurrentInstance, store)
-        queryEntry_removeDep(previousEntry, currentEffect, store)
+        queryEntry_removeDep(previousEntry, hasCurrentInstance, cacheEntries)
+        queryEntry_removeDep(previousEntry, currentEffect, cacheEntries)
       }
       // track the current effect and component
       queryEntry_addDep(entry, hasCurrentInstance)

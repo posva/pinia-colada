@@ -65,7 +65,7 @@ export function PiniaColadaRetry(
         }
       }
 
-      if (name !== 'refetch') return
+      if (name !== 'fetch') return
       const [queryEntry] = args
       const localOptions = queryEntry.options?.retry
 

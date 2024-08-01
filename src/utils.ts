@@ -83,6 +83,10 @@ export const toArray = <T>(value: _MaybeArray<T>): T[] =>
 
 export type _JSONPrimitive = string | number | boolean | null | undefined
 
+/**
+ * Utility type to represent a flat object that can be stringified with `JSON.stringify` no matter the order of keys.
+ * @internal
+ */
 export interface _ObjectFlat {
   [key: string]: _JSONPrimitive | Array<_JSONPrimitive>
 }
