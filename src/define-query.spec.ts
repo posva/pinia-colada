@@ -109,7 +109,7 @@ describe('defineQuery', () => {
       })
       await flushPromises()
 
-      const { data, status } = returnedValues
+      const { data, status, queryStatus } = returnedValues
       expect(spy).toHaveBeenCalledTimes(1)
       expect(status.value).toBe('success')
       expect(data.value).toEqual('todos')
@@ -134,7 +134,7 @@ describe('defineQuery', () => {
         },
       })
       // it should be loading
-      expect(status.value).toBe('loading')
+      expect(queryStatus.value).toBe('running')
       expect(data.value).toEqual('todos')
       await flushPromises()
 

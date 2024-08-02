@@ -1,4 +1,4 @@
-import type { MaybeRefOrGetter } from 'vue'
+import type { ComputedRef, MaybeRefOrGetter, ShallowRef } from 'vue'
 import {
   computed,
   getCurrentInstance,
@@ -10,9 +10,8 @@ import {
   toValue,
   watch,
 } from 'vue'
-import { IS_CLIENT, computedRef, noop, useEventListener } from './utils'
+import { IS_CLIENT, useEventListener } from './utils'
 import {
-  type _UseQueryEntry_State,
   queryEntry_addDep,
   queryEntry_removeDep,
   useQueryCache,
@@ -25,24 +24,59 @@ import type {
 } from './query-options'
 import type { ErrorDefault } from './types-extension'
 import { getCurrentDefineQueryEffect } from './define-query'
+import type { DataState, DataStateStatus, OperationStateStatus } from './data-state'
 
 /**
  * Return type of `useQuery()`.
  */
-export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault>
-  extends _UseQueryEntry_State<TResult, TError> {
+export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault> {
+  /**
+   * The state of the query. Contains its data, error, and status.
+   */
+  state: ComputedRef<DataState<TResult, TError>>
+
+  /**
+   * Status of the query. Becomes `'running'` while the query is being fetched.
+   */
+  queryStatus: ComputedRef<OperationStateStatus>
+
+  /**
+   * The last successful data resolved by the query.
+   */
+  data: ShallowRef<TResult | undefined>
+
+  /**
+   * The error rejected by the query.
+   */
+  error: ShallowRef<TError | null>
+
+  /**
+   * The status of the query.
+   * @see {@link DataStateStatus}
+   */
+  status: ShallowRef<DataStateStatus>
+
+  /**
+   * Returns whether the request is still pending its first call. Alias for `status.value === 'pending'`
+   */
+  isPending: ComputedRef<boolean>
+
+  /**
+   * Returns whether the request is currently fetching data.
+   */
+  isFetching: ShallowRef<boolean>
+
   /**
    * Ensures the current data is fresh. If the data is stale, refetch, if not return as is.
    * @returns a promise that resolves when the refresh is done
    */
-  refresh: () => Promise<unknown>
-  // FIXME: these two methods should return a result object that has both the error and the data
+  refresh: () => Promise<DataState<TResult, TError>>
 
   /**
    * Ignores fresh data and triggers a new fetch
-   * @returns a promise that resolves when the refresh is done
+   * @returns a promise that resolves when the fetch is done
    */
-  refetch: () => Promise<unknown>
+  refetch: () => Promise<DataState<TResult, TError>>
 }
 
 /**
@@ -73,15 +107,19 @@ export function useQuery<TResult, TError = ErrorDefault>(
     cacheEntries.ensure<TResult, TError>(options),
   )
 
-  const refresh = () => cacheEntries.refresh(entry.value).then(noop).catch(noop)
-  const refetch = () => cacheEntries.fetch(entry.value).then(noop).catch(noop)
+  // adapter that returns the entry state
+  const errorCatcher = () => entry.value.state.value
+  const refresh = () => cacheEntries.refresh(entry.value).catch(errorCatcher)
+  const refetch = () => cacheEntries.fetch(entry.value).catch(errorCatcher)
 
   const queryReturn = {
-    data: computedRef(() => entry.value.data),
-    error: computedRef(() => entry.value.error),
-    isFetching: computed(() => entry.value.isFetching.value),
-    isPending: computed(() => entry.value.isPending.value),
-    status: computedRef(() => entry.value.status),
+    state: computed(() => entry.value.state.value),
+    queryStatus: computed(() => entry.value.queryStatus.value),
+    data: computed(() => entry.value.state.value.data),
+    error: computed(() => entry.value.state.value.error),
+    isFetching: computed(() => entry.value.queryStatus.value === 'running'),
+    isPending: computed(() => entry.value.state.value.status === 'pending'),
+    status: computed(() => entry.value.state.value.status),
 
     refresh,
     refetch,
@@ -152,7 +190,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
     onMounted(() => {
       if (
         (options.refetchOnMount
-          // always fetch initially if no vaule is present
+          // always fetch initially if no value is present
           || queryReturn.status.value === 'pending')
         && toValue(options.enabled)
       ) {

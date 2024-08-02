@@ -2,18 +2,18 @@
 import { useRoute } from 'vue-router/auto'
 import { useMutation, useQuery } from '@pinia/colada'
 import ContactCard from '@/components/ContactCard.vue'
-import { updateContact as _updateContact, getContactById } from '@/api/contacts'
+import { type Contact, updateContact as _updateContact, getContactById } from '@/api/contacts'
 
 const route = useRoute('/contacts/[id]')
 
-const { data: contact } = useQuery({
+const { data: contact, state } = useQuery({
   key: () => ['contacts', route.params.id],
   query: ({ signal }) => getContactById(route.params.id, { signal }),
 })
 
 const { mutate: updateContact } = useMutation({
   keys: ({ id }) => [['contacts-search'], ['contacts', id]],
-  mutation: _updateContact,
+  mutation: (contact: Partial<Contact> & { id: number }) => _updateContact(contact),
 })
 </script>
 
@@ -26,4 +26,14 @@ const { mutate: updateContact } = useMutation({
       @update:contact="updateContact"
     />
   </section>
+
+  <template v-if="state.status === 'pending'">
+    Loading...
+  </template>
+  <template v-else-if="state.status === 'error'">
+    <div>Error: {{ state.error }}</div>
+  </template>
+  <template v-else>
+    <ContactCard :contact="state.data" />
+  </template>
 </template>

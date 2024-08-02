@@ -69,8 +69,8 @@ export function createContact(
 export function updateContact(
   contact: Partial<ContactInfo> & { id: number },
   options?: Options<'json'>,
-) {
-  return contacts.patch<Contact>(`/${contact.id}`, contact, options)
+): Promise<Contact> {
+  return contacts.patch<Contact, 'json'>(`/${contact.id}`, contact, options)
 }
 
 /**

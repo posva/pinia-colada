@@ -9,7 +9,6 @@
       "@pinia/colada": ["../src/index.ts"],
       "@pinia/colada-plugin-*": ["../plugins/*/src/index.ts"]
     },
-    "types": ["unplugin-vue-router/client"],
     "noEmit": true
   },
   "include": [

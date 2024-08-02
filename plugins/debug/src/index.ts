@@ -36,25 +36,25 @@ export function PiniaColadaDebugPlugin(): (
     const debugData = useDebugData(pinia)
 
     cache.$onAction(async ({ name, onError, after, args }) => {
-      if (name === 'refetch' || name === 'refresh') {
+      if (name === 'fetch' || name === 'refresh') {
         const [entry] = args
         await tick()
         if (
-          entry.status.value === 'loading'
-          || entry.status.value === 'pending'
+          entry.queryStatus.value === 'running'
+          || entry.state.value.status === 'pending'
         ) {
           debugData.addRefetchingEntry(entry)
           showMessage('🔄', 'refetch', `[${entry.key.join(', ')}]`, entry)
 
           after(() => {
             debugData.removeRefetchingEntry(entry)
-            if (entry.status.value === 'error') {
+            if (entry.state.value.status === 'error') {
               debugData.totalErrors++
               showMessage(
                 'error',
                 'refetch failed',
                 `[${entry.key.join(', ')}]`,
-                entry.error.value,
+                entry.state.value.error,
               )
             } else {
               debugData.totalSuccess++
@@ -62,7 +62,7 @@ export function PiniaColadaDebugPlugin(): (
                 '✅',
                 'refetch',
                 `[${entry.key.join(', ')}]`,
-                entry.data.value,
+                entry.state.value.data,
               )
             }
           })
@@ -79,9 +79,9 @@ export function PiniaColadaDebugPlugin(): (
       } else if (name === 'setQueryData') {
         const [key, data] = args
         showMessage('log', 'setQueryData', `[${key.join(', ')}]`, data)
-      } else if (name === 'invalidateEntry') {
-        const [key] = args
-        showMessage('🗑️', 'invalidateEntry', `[${key.join(', ')}]`)
+      } else if (name === 'invalidate') {
+        const [entry] = args
+        showMessage('🗑️', 'invalidateEntry', `[${entry.key.join(', ')}]`)
       }
     })
   }

@@ -97,7 +97,7 @@ export function PiniaColada(app: App, options: PiniaColadaOptions = {}) {
   store.$onAction(({ name, after, onError: _onError }) => {
     if (name === 'fetch') {
       // TODO: the refetch/refresh should probably return more information so we can query the error or data here. They don't throw errors
-      after(async (data) => {
+      after(async ({ data }) => {
         await onSuccess(data)
         onSettled(data, null)
       })

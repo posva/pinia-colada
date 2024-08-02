@@ -5,6 +5,7 @@ export default defineConfig({
   plugins: [Vue()],
 
   test: {
+    include: ['src/**/*.{test,spec}.ts'],
     environment: 'happy-dom',
     fakeTimers: {
       // easier to read, some date in 2001

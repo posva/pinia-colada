@@ -91,8 +91,8 @@ export function PiniaColadaRetry(
         retryMap.delete(key)
       }
       after(() => {
-        if (queryEntry.status.value === 'error') {
-          const error = queryEntry.error.value
+        if (queryEntry.state.value.status === 'error') {
+          const error = queryEntry.state.value.error
           // ensure the entry exists
           let entry = retryMap.get(key)
           if (!entry) {

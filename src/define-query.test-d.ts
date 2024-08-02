@@ -1,6 +1,7 @@
 import { describe, expectTypeOf, it } from 'vitest'
 import { defineQuery } from './define-query'
 import { useQuery } from './use-query'
+import type { DataState } from './data-state'
 
 describe('defineQuery types', () => {
   it('can define a query with an options object', () => {
@@ -12,7 +13,9 @@ describe('defineQuery types', () => {
     const { data, refresh } = useMyMutation()
 
     expectTypeOf(data.value).toEqualTypeOf<{ id: number }[] | undefined>()
-    expectTypeOf(refresh()).toEqualTypeOf<Promise<{ id: number }[]>>()
+    expectTypeOf(refresh()).toEqualTypeOf<
+      Promise<DataState<{ id: number }[], { custom: Error }>>
+    >()
   })
 
   it('can define a query with a function', () => {
@@ -29,7 +32,9 @@ describe('defineQuery types', () => {
     const { data, refresh, foo } = useMyQuery()
 
     expectTypeOf(data.value).toEqualTypeOf<{ id: number }[] | undefined>()
-    expectTypeOf(refresh()).toEqualTypeOf<Promise<{ id: number }[]>>()
+    expectTypeOf(refresh()).toEqualTypeOf<
+      Promise<DataState<{ id: number }[], { custom: Error }>>
+    >()
     expectTypeOf(foo).toEqualTypeOf<string>()
   })
 

@@ -1,11 +1,8 @@
 import { defineStore } from 'pinia'
 import {
   type ComponentInternalInstance,
-  type ComputedRef,
   type EffectScope,
-  type Ref,
   type ShallowRef,
-  computed,
   getCurrentScope,
   shallowReactive,
   shallowRef,
@@ -18,59 +15,19 @@ import type { EntryKey } from './entry-options'
 import type { UseQueryOptionsWithDefaults } from './query-options'
 import type { ErrorDefault } from './types-extension'
 import type { defineQuery } from './define-query'
+import type { DataState, DataStateStatus, OperationStateStatus } from './data-state'
 
-/**
- * Error thrown when a query result is dropped because it's outdated.
- */
-export class QueryAbort extends Error {
-  constructor() {
-    super()
-    this.name = 'QueryAbort'
-  }
-}
-
-/**
- * The status of the request.
- * - `pending`: initial state
- * - `loading`: request is being made
- * - `error`: when the last request failed
- * - `success`: when the last request succeeded
- */
-export type QueryStatus = 'pending' | 'loading' | 'error' | 'success'
-
-/**
- * Properties of a query entry that will be exposed to the user. Split to keep the documented properties in one place.
- * @internal
- */
-export interface _UseQueryEntry_State<TResult, TError> {
+export interface UseQueryEntry<TResult = unknown, TError = unknown> {
   /**
-   * The last successful data resolved by the query.
+   * The state of the query. Contains the data, error and status.
    */
-  data: ShallowRef<TResult | undefined>
-
-  /**
-   * The error rejected by the query.
-   */
-  error: ShallowRef<TError | null>
+  state: ShallowRef<DataState<TResult, TError>>
 
   /**
    * The status of the query.
-   * @see {@link QueryStatus}
    */
-  status: ShallowRef<QueryStatus>
-  /**
-   * Returns whether the request is still pending its first call. Alias for `status.value === 'pending'`
-   */
-  isPending: ComputedRef<boolean>
+  queryStatus: ShallowRef<OperationStateStatus>
 
-  /**
-   * Returns whether the request is currently fetching data.
-   */
-  isFetching: ShallowRef<boolean>
-}
-
-export interface UseQueryEntry<TResult = unknown, TError = unknown>
-  extends _UseQueryEntry_State<TResult, TError> {
   /**
    * When was this data fetched the last time in ms
    */
@@ -93,7 +50,7 @@ export interface UseQueryEntry<TResult = unknown, TError = unknown>
 
   pending: null | {
     abortController: AbortController
-    refreshCall: Promise<TResult>
+    refreshCall: Promise<DataState<TResult, TError>>
     when: number
   }
 
@@ -138,7 +95,7 @@ export interface UseQueryEntryFilter {
   /**
    * If defined, it will only return the entries with the given status.
    */
-  status?: QueryStatus
+  status?: DataStateStatus
 }
 
 export function queryEntry_addDep(
@@ -180,18 +137,24 @@ export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
   error: TError | null = null,
   when: number = 0, // stale by default
 ): UseQueryEntry<TResult, TError> {
-  const data = shallowRef(initialData)
-  const status = shallowRef<QueryStatus>(
-    error ? 'error' : initialData !== undefined ? 'success' : 'pending',
+  const state = shallowRef<DataState<TResult, TError>>(
+    // @ts-expect-error: to make the code shorter we are using one declaration instead of multiple ternaries
+    {
+      data: initialData,
+      error,
+      status: error
+        ? 'error'
+        : initialData !== undefined
+          ? 'success'
+          : 'pending',
+    },
   )
+  const queryStatus = shallowRef<OperationStateStatus>('idle')
   return {
     key,
-    data,
-    error: shallowRef(error),
+    state,
     when,
-    status,
-    isPending: computed(() => data.value === undefined),
-    isFetching: computed(() => status.value === 'loading'),
+    queryStatus,
     pending: null,
     deps: new Set(),
     gcTimeout: undefined,
@@ -210,10 +173,10 @@ export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
  */
 export const queryEntry_toJSON: <TResult, TError>(
   entry: UseQueryEntry<TResult, TError>,
-) => _UseQueryEntryNodeValueSerialized<TResult, TError> = (entry) => [
-  entry.data.value,
-  entry.error.value,
-  entry.when,
+) => _UseQueryEntryNodeValueSerialized<TResult, TError> = ({ state: { value }, when }) => [
+  value.data,
+  value.error,
+  when,
 ]
 
 /**
@@ -300,7 +263,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
       return node
         ? [...node].filter((entry) => {
             if (filters.stale != null) return entry.stale === filters.stale
-            if (filters.status != null) return entry.status.value === filters.status
+            if (filters.status != null) return entry.state.value.status === filters.status
             // TODO:
             if (filters.type !== 'all') return filters.type === 'active' ? (entry.deps.size > 0) : (entry.deps.size === 0)
 
@@ -367,25 +330,18 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
    */
   const refresh = action(async <TResult, TError>(
     entry: UseQueryEntry<TResult, TError>,
-  ): Promise<TResult> => {
+  ): Promise<DataState<TResult, TError>> => {
     if (process.env.NODE_ENV !== 'production' && !entry.options) {
       throw new Error(
         `"entry.refresh()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`,
       )
     }
 
-    if (entry.error.value || entry.stale) {
-      // console.log(`⬇️ refresh "${entry.key}". expired ${entry.when} / ${staleTime}`)
-
-      // if (entry.pending?.refreshCall) console.log('  -> skipped!')
-
+    if (entry.state.value.error || entry.stale) {
       return (entry.pending?.refreshCall ?? fetch(entry))
     }
 
-    // console.log(`${entry.key}  ->`, entry.data.value, entry.error.value)
-
-    // since there is no error, data should be present
-    return entry.data.value!
+    return entry.state.value
   })
 
   /**
@@ -393,14 +349,14 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
    */
   const fetch = action(async <TResult, TError>(
     entry: UseQueryEntry<TResult, TError>,
-  ): Promise<TResult> => {
+  ): Promise<DataState<TResult, TError>> => {
     if (process.env.NODE_ENV !== 'production' && !entry.options) {
       throw new Error(
         `"entry.fetch()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`,
       )
     }
 
-    entry.status.value = 'loading'
+    entry.queryStatus.value = 'running'
 
     const abortController = new AbortController()
     const { signal } = abortController
@@ -415,23 +371,27 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
         .options!.query({ signal })
         .then((data) => {
           if (pendingCall === entry.pending && !signal.aborted) {
-            entry.error.value = null
-            entry.data.value = data
-            entry.status.value = 'success'
-            return data
+            entry.state.value = {
+              data,
+              error: null,
+              status: 'success',
+            }
           }
-          // TODO:
-          throw signal.reason ?? new QueryAbort()
+            return entry.state.value
         })
         .catch((error) => {
           if (pendingCall === entry.pending && error && (error.name !== 'AbortError' || error === signal.reason)) {
-            entry.error.value = error
-            entry.status.value = 'error'
+            entry.state.value = {
+              data: entry.state.value.data,
+              error,
+              status: 'error',
+            }
             throw error
           }
-          throw signal.reason ?? new QueryAbort()
+            return entry.state.value
         })
         .finally(() => {
+          entry.queryStatus.value = 'idle'
           if (pendingCall === entry.pending) {
             entry.pending = null
             entry.when = Date.now()
@@ -444,32 +404,35 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
   })
 
   // TODO: tests
+  /**
+   * Set the data of a query entry. Note this doesn't change the status of the query.
+   */
   const setQueryData = action(<TResult = unknown>(
     key: EntryKey,
-    data: TResult | ((data: Ref<TResult | undefined>) => void),
+    data: undefined | TResult | ((oldData: TResult | undefined) => TResult),
   ) => {
     const entry = caches.get(key.map(stringifyFlatObject)) as
       | UseQueryEntry<TResult>
       | undefined
-    // TODO: Should it create the entry?
+    // FIXME: it should create the entry if it doesn't exist
     if (!entry) return
 
+      // NOTE: why does this type narrowing doesn't work?
     if (typeof data === 'function') {
       // the remaining type is TResult & Fn, so we need a cast
-      ;(data as (data: Ref<TResult | undefined>) => void)(entry.data)
-      triggerRef(entry.data)
+      entry.state.value.data = (data as (oldData: TResult | undefined) => TResult)(entry.state.value.data)
     } else {
-      entry.data.value = data
+      entry.state.value.data = data
     }
-    // TODO: complete and test
-    entry.error.value = null
+
+    triggerRef(entry.state)
   })
 
   const getQueryData = action(<TResult = unknown>(key: EntryKey): TResult | undefined => {
     const entry = caches.get(key.map(stringifyFlatObject)) as
       | UseQueryEntry<TResult>
       | undefined
-    return entry?.data.value
+    return entry?.state.value.data
   })
 
   const deleteQueryData = action((key: EntryKey) => {

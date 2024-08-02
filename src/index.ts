@@ -17,7 +17,15 @@ export { defineQuery } from './define-query'
 // export { type UseQueryKeyList } from './query-keys'
 
 export { type EntryKey } from './entry-options'
-
+export type {
+  DataState,
+  DataStateStatus,
+  DataState_Error,
+  DataState_Pending,
+  DataState_Success,
+  _DataState_Base,
+  OperationStateStatus,
+} from './data-state'
 export {
   type UseQueryOptions,
   type UseQueryOptionsWithDefaults,
@@ -28,7 +36,6 @@ export type { PiniaColadaOptions } from './pinia-colada'
 
 export {
   useQueryCache,
-  type QueryStatus,
   serialize,
   type UseQueryEntry,
 } from './query-store'

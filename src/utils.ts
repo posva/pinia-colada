@@ -174,3 +174,9 @@ export const computedRef = <T>(other: () => Ref<T>): ShallowRef<T> =>
 export type _RenameProperty<T, Key extends keyof T, NewKey extends string> = {
   [P in keyof T as P extends Key ? NewKey : P]: T[P]
 }
+
+/**
+ * Type safe version of `Object.assign` that allows to set all properties of a reactive object at once. Used to set
+ * {@link DataState} properties in a type safe way.
+ */
+export const setReactiveValue = Object.assign as <T>(value: T, ...args: T[]) => T

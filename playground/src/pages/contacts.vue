@@ -2,7 +2,7 @@
 import { useContactSearch } from '@/composables/contacts'
 import { useDebugData } from '@pinia/colada-plugin-debug'
 
-const { data: searchResult, status, searchText } = useContactSearch()
+const { data: searchResult, queryStatus, searchText } = useContactSearch()
 
 const debugData = useDebugData()
 
@@ -40,8 +40,8 @@ const debugData = useDebugData()
           >
           <!-- NOTE: ensure no fetch is done on client while hydrating or this will cause
            a Hydration mismatch -->
-          <div v-if="status === 'loading'">
-            <span class="spinner" /><span> Fetching</span>
+          <div v-if="queryStatus === 'running'">
+            <span class="spinner" /><span> Fetching...</span>
           </div>
         </form>
 
