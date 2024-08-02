@@ -107,9 +107,7 @@ export function PiniaColadaRetry(
 
           if (shouldRetry) {
             const delayTime
-              = typeof delay === 'function'
-                ? delay(entry.retryCount)
-                : delay
+              = typeof delay === 'function' ? delay(entry.retryCount) : delay
             entry.timeoutId = setTimeout(() => {
               // NOTE: we could add some default error handler
               isInternalCall = true

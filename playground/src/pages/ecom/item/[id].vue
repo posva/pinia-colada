@@ -4,7 +4,11 @@ import { StarIcon } from '@heroicons/vue/20/solid'
 import { HeartIcon } from '@heroicons/vue/24/outline'
 import { useMutation, useQuery } from '@pinia/colada'
 import { useRoute } from 'vue-router/auto'
-import { type ProductListItem, changeProductAvailability, getProductById } from '@/api/products'
+import {
+  type ProductListItem,
+  changeProductAvailability,
+  getProductById,
+} from '@/api/products'
 import { delay } from '@/api/utils'
 
 const route = useRoute('/ecom/item/[id]')
@@ -22,7 +26,10 @@ const { data: item, isPending } = useQuery({
 })
 
 const itemAvailability = ref()
-watch(() => item.value?.availability, (value) => itemAvailability.value = value)
+watch(
+  () => item.value?.availability,
+  (value) => (itemAvailability.value = value),
+)
 
 const { mutate: bookProduct } = useMutation({
   key: (product) => ['book-item', product.id],

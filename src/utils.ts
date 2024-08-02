@@ -179,4 +179,7 @@ export type _RenameProperty<T, Key extends keyof T, NewKey extends string> = {
  * Type safe version of `Object.assign` that allows to set all properties of a reactive object at once. Used to set
  * {@link DataState} properties in a type safe way.
  */
-export const setReactiveValue = Object.assign as <T>(value: T, ...args: T[]) => T
+export const setReactiveValue = Object.assign as <T>(
+  value: T,
+  ...args: T[]
+) => T

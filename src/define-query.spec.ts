@@ -309,8 +309,8 @@ describe('defineQuery', () => {
         const queryFunction = options.query
           ? vi.fn(options.query)
           : vi.fn(async () => {
-            return 'todos'
-          })
+              return 'todos'
+            })
         const useTodoList = defineQuery(() => {
           const query = useQuery({
             key: ['todos'],
@@ -333,7 +333,10 @@ describe('defineQuery', () => {
           }),
           {
             global: {
-              plugins: [...(mountOptions?.plugins || [createPinia()]), PiniaColada],
+              plugins: [
+                ...(mountOptions?.plugins || [createPinia()]),
+                PiniaColada,
+              ],
             },
           },
         )

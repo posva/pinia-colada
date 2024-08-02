@@ -2,7 +2,11 @@
 import { useRoute } from 'vue-router/auto'
 import { useMutation, useQuery } from '@pinia/colada'
 import ContactCard from '@/components/ContactCard.vue'
-import { type Contact, updateContact as _updateContact, getContactById } from '@/api/contacts'
+import {
+  type Contact,
+  updateContact as _updateContact,
+  getContactById,
+} from '@/api/contacts'
 
 const route = useRoute('/contacts/[id]')
 
@@ -13,7 +17,8 @@ const { data: contact, state } = useQuery({
 
 const { mutate: updateContact } = useMutation({
   keys: ({ id }) => [['contacts-search'], ['contacts', id]],
-  mutation: (contact: Partial<Contact> & { id: number }) => _updateContact(contact),
+  mutation: (contact: Partial<Contact> & { id: number }) =>
+    _updateContact(contact),
 })
 </script>
 

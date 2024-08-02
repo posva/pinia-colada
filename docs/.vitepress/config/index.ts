@@ -16,7 +16,10 @@ const rCombining = /[\u0300-\u036F]/g
 
 // get all code snippets
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
-const mutations_todos = fs.readFileSync(path.join(__dirname, '../code-snippets/mutations/todos.ts'), 'utf-8')
+const mutations_todos = fs.readFileSync(
+  path.join(__dirname, '../code-snippets/mutations/todos.ts'),
+  'utf-8',
+)
 
 /**
  * Default slugification function

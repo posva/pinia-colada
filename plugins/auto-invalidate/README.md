@@ -23,9 +23,11 @@ import { PiniaColadaRetry } from '@pinia/colada-plugin-retry'
 // Pass the plugin to Pinia Colada options
 app.use(PiniaColadaRetry, {
   // ...
-  plugins: [PiniaColadaRetry({
-    // Pinia Colada Retry options
-  })],
+  plugins: [
+    PiniaColadaRetry({
+      // Pinia Colada Retry options
+    }),
+  ],
 })
 ```
 

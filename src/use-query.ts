@@ -24,7 +24,11 @@ import type {
 } from './query-options'
 import type { ErrorDefault } from './types-extension'
 import { getCurrentDefineQueryEffect } from './define-query'
-import type { DataState, DataStateStatus, OperationStateStatus } from './data-state'
+import type {
+  DataState,
+  DataStateStatus,
+  OperationStateStatus,
+} from './data-state'
 
 /**
  * Return type of `useQuery()`.
@@ -103,9 +107,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
   //     ? computedKeyWithWarnings(options.key, store.warnChecksMap!)
   //     : options.key
 
-  const entry = computed(() =>
-    cacheEntries.ensure<TResult, TError>(options),
-  )
+  const entry = computed(() => cacheEntries.ensure<TResult, TError>(options))
 
   // adapter that returns the entry state
   const errorCatcher = () => entry.value.state.value
@@ -152,9 +154,9 @@ export function useQuery<TResult, TError = ErrorDefault>(
     isActive = true
     if (currentEffect) {
       queryEntry_addDep(entry.value, currentEffect)
-    onScopeDispose(() => {
-      queryEntry_removeDep(entry.value, currentEffect, cacheEntries)
-    })
+      onScopeDispose(() => {
+        queryEntry_removeDep(entry.value, currentEffect, cacheEntries)
+      })
     }
   }
 

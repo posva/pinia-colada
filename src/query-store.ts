@@ -15,7 +15,11 @@ import type { EntryKey } from './entry-options'
 import type { UseQueryOptionsWithDefaults } from './query-options'
 import type { ErrorDefault } from './types-extension'
 import type { defineQuery } from './define-query'
-import type { DataState, DataStateStatus, OperationStateStatus } from './data-state'
+import type {
+  DataState,
+  DataStateStatus,
+  OperationStateStatus,
+} from './data-state'
 
 export interface UseQueryEntry<TResult = unknown, TError = unknown> {
   /**
@@ -173,11 +177,10 @@ export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
  */
 export const queryEntry_toJSON: <TResult, TError>(
   entry: UseQueryEntry<TResult, TError>,
-) => _UseQueryEntryNodeValueSerialized<TResult, TError> = ({ state: { value }, when }) => [
-  value.data,
-  value.error,
+) => _UseQueryEntryNodeValueSerialized<TResult, TError> = ({
+  state: { value },
   when,
-]
+}) => [value.data, value.error, when]
 
 /**
  * UseQueryEntry method to serialize the entry to a string.
@@ -263,9 +266,15 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
       return node
         ? [...node].filter((entry) => {
             if (filters.stale != null) return entry.stale === filters.stale
-            if (filters.status != null) return entry.state.value.status === filters.status
+            if (filters.status != null) {
+ return entry.state.value.status === filters.status
+}
             // TODO:
-            if (filters.type !== 'all') return filters.type === 'active' ? (entry.deps.size > 0) : (entry.deps.size === 0)
+            if (filters.type !== 'all') {
+              return filters.type === 'active'
+                ? entry.deps.size > 0
+                : entry.deps.size === 0
+}
 
             return true
           })
@@ -279,37 +288,41 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
    *
    * @param key - the key of the query
    */
-  const ensure = action(<TResult = unknown, TError = ErrorDefault>(
-    options: UseQueryOptionsWithDefaults<TResult, TError>,
-  ): UseQueryEntry<TResult, TError> => {
-    const key = toValue(options.key).map(stringifyFlatObject)
+  const ensure = action(
+    <TResult = unknown, TError = ErrorDefault>(
+      options: UseQueryOptionsWithDefaults<TResult, TError>,
+    ): UseQueryEntry<TResult, TError> => {
+      const key = toValue(options.key).map(stringifyFlatObject)
 
-    if (process.env.NODE_ENV !== 'production' && key.length === 0) {
-      throw new Error(
-        `useQuery() was called with an empty array as the key. It must have at least one element.`,
-      )
-    }
+      if (process.env.NODE_ENV !== 'production' && key.length === 0) {
+        throw new Error(
+          `useQuery() was called with an empty array as the key. It must have at least one element.`,
+        )
+      }
 
-    // ensure the state
-    // console.log('⚙️ Ensuring entry', key)
-    let entry = cachesRaw.get(key) as UseQueryEntry<TResult, TError> | undefined
-    if (!entry) {
-      cachesRaw.set(
-        key,
-        (entry = scope.run(() =>
-          createQueryEntry(key, options.initialData?.()),
-        )!),
-      )
-    }
+      // ensure the state
+      // console.log('⚙️ Ensuring entry', key)
+      let entry = cachesRaw.get(key) as
+        | UseQueryEntry<TResult, TError>
+        | undefined
+      if (!entry) {
+        cachesRaw.set(
+          key,
+          (entry = scope.run(() =>
+            createQueryEntry(key, options.initialData?.()),
+          )!),
+        )
+      }
 
-    // during HMR, the options might change, so it's better to always update them
-    entry.options = options
+      // during HMR, the options might change, so it's better to always update them
+      entry.options = options
 
-    // if this query was defined within a defineQuery call, add it to the list
-    currentDefineQueryEntry?.[0].push(entry)
+      // if this query was defined within a defineQuery call, add it to the list
+      currentDefineQueryEntry?.[0].push(entry)
 
-    return entry
-  })
+      return entry
+    },
+  )
 
   /**
    * Invalidates a query entry by its key. This forces a {@link fetch} of the data if `refetch` is `true`.
@@ -320,120 +333,134 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
    * @param options.refetch - if true, it will refetch the data
    */
   const invalidate = action((entry: UseQueryEntry) => {
-      // will force a fetch next time
-      entry.when = 0
+    // will force a fetch next time
+    entry.when = 0
   })
 
   /**
    * Ensures the current data is fresh. If the data is stale, calls {@link fetch}, if not return the current data. Can only be called if the
    * entry has options.
    */
-  const refresh = action(async <TResult, TError>(
-    entry: UseQueryEntry<TResult, TError>,
-  ): Promise<DataState<TResult, TError>> => {
-    if (process.env.NODE_ENV !== 'production' && !entry.options) {
-      throw new Error(
-        `"entry.refresh()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`,
-      )
-    }
+  const refresh = action(
+    async <TResult, TError>(
+      entry: UseQueryEntry<TResult, TError>,
+    ): Promise<DataState<TResult, TError>> => {
+      if (process.env.NODE_ENV !== 'production' && !entry.options) {
+        throw new Error(
+          `"entry.refresh()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`,
+        )
+      }
 
-    if (entry.state.value.error || entry.stale) {
-      return (entry.pending?.refreshCall ?? fetch(entry))
-    }
+      if (entry.state.value.error || entry.stale) {
+        return entry.pending?.refreshCall ?? fetch(entry)
+      }
 
-    return entry.state.value
-  })
+      return entry.state.value
+    },
+  )
 
   /**
    * Fetch an entry. Ignores fresh data and triggers a new fetch. Can only be called if the entry has options.
    */
-  const fetch = action(async <TResult, TError>(
-    entry: UseQueryEntry<TResult, TError>,
-  ): Promise<DataState<TResult, TError>> => {
-    if (process.env.NODE_ENV !== 'production' && !entry.options) {
-      throw new Error(
-        `"entry.fetch()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`,
-      )
-    }
+  const fetch = action(
+    async <TResult, TError>(
+      entry: UseQueryEntry<TResult, TError>,
+    ): Promise<DataState<TResult, TError>> => {
+      if (process.env.NODE_ENV !== 'production' && !entry.options) {
+        throw new Error(
+          `"entry.fetch()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`,
+        )
+      }
 
-    entry.queryStatus.value = 'running'
+      entry.queryStatus.value = 'running'
 
-    const abortController = new AbortController()
-    const { signal } = abortController
-    // abort any ongoing request
-    // TODO: test
-    // TODO: define in which cases we should abort
-    entry.pending?.abortController.abort()
+      const abortController = new AbortController()
+      const { signal } = abortController
+      // abort any ongoing request
+      // TODO: test
+      // TODO: define in which cases we should abort
+      entry.pending?.abortController.abort()
 
-    const pendingCall = (entry.pending = {
-      abortController,
-      refreshCall: entry
-        .options!.query({ signal })
-        .then((data) => {
-          if (pendingCall === entry.pending && !signal.aborted) {
-            entry.state.value = {
-              data,
-              error: null,
-              status: 'success',
+      const pendingCall = (entry.pending = {
+        abortController,
+        refreshCall: entry
+          .options!.query({ signal })
+          .then((data) => {
+            if (pendingCall === entry.pending && !signal.aborted) {
+              entry.state.value = {
+                data,
+                error: null,
+                status: 'success',
+              }
             }
-          }
             return entry.state.value
-        })
-        .catch((error) => {
-          if (pendingCall === entry.pending && error && (error.name !== 'AbortError' || error === signal.reason)) {
-            entry.state.value = {
-              data: entry.state.value.data,
-              error,
-              status: 'error',
+          })
+          .catch((error) => {
+            if (
+              pendingCall === entry.pending
+              && error
+              && (error.name !== 'AbortError' || error === signal.reason)
+            ) {
+              entry.state.value = {
+                data: entry.state.value.data,
+                error,
+                status: 'error',
+              }
+              throw error
             }
-            throw error
-          }
             return entry.state.value
-        })
-        .finally(() => {
-          entry.queryStatus.value = 'idle'
-          if (pendingCall === entry.pending) {
-            entry.pending = null
-            entry.when = Date.now()
-          }
-        }),
-      when: Date.now(),
-    })
+          })
+          .finally(() => {
+            entry.queryStatus.value = 'idle'
+            if (pendingCall === entry.pending) {
+              entry.pending = null
+              entry.when = Date.now()
+            }
+          }),
+        when: Date.now(),
+      })
 
-    return pendingCall.refreshCall
-  })
+      return pendingCall.refreshCall
+    },
+  )
 
   // TODO: tests
   /**
    * Set the data of a query entry. Note this doesn't change the status of the query.
    */
-  const setQueryData = action(<TResult = unknown>(
-    key: EntryKey,
-    data: undefined | TResult | ((oldData: TResult | undefined) => TResult),
-  ) => {
-    const entry = caches.get(key.map(stringifyFlatObject)) as
-      | UseQueryEntry<TResult>
-      | undefined
-    // FIXME: it should create the entry if it doesn't exist
-    if (!entry) return
+  const setQueryData = action(
+    <TResult = unknown>(
+      key: EntryKey,
+      data: undefined | TResult | ((oldData: TResult | undefined) => TResult),
+    ) => {
+      const entry = caches.get(key.map(stringifyFlatObject)) as
+        | UseQueryEntry<TResult>
+        | undefined
+      // FIXME: it should create the entry if it doesn't exist
+      if (!entry) return
 
       // NOTE: why does this type narrowing doesn't work?
-    if (typeof data === 'function') {
-      // the remaining type is TResult & Fn, so we need a cast
-      entry.state.value.data = (data as (oldData: TResult | undefined) => TResult)(entry.state.value.data)
-    } else {
-      entry.state.value.data = data
-    }
+      if (typeof data === 'function') {
+        // the remaining type is TResult & Fn, so we need a cast
+        entry.state.value.data = (
+          data as (oldData: TResult | undefined) => TResult
+        )(entry.state.value.data)
+      } else {
+        entry.state.value.data = data
+      }
 
-    triggerRef(entry.state)
-  })
+      triggerRef(entry.state)
+    },
+  )
 
-  const getQueryData = action(<TResult = unknown>(key: EntryKey): TResult | undefined => {
-    const entry = caches.get(key.map(stringifyFlatObject)) as
-      | UseQueryEntry<TResult>
-      | undefined
-    return entry?.state.value.data
-  })
+  const getQueryData = action(
+    <TResult = unknown>(key: EntryKey): TResult | undefined => {
+      const entry = caches.get(key.map(stringifyFlatObject)) as
+        | UseQueryEntry<TResult>
+        | undefined
+      return entry?.state.value.data
+    },
+  )
 
   const deleteQueryData = action((key: EntryKey) => {
     // console.log('🗑 data', key, Date.now())

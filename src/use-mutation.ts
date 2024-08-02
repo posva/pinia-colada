@@ -250,7 +250,9 @@ export function useMutation<
             = typeof options.keys === 'function'
               ? options.keys(newData, vars)
               : options.keys
-          for (const entry of keys.flatMap((key) => store.getEntries({ key, exact: true }))) {
+          for (const entry of keys.flatMap((key) =>
+            store.getEntries({ key, exact: true }),
+          )) {
             // TODO: find a way to pass a source of the invalidation, could be a symbol associated with the mutation, the parameters
             store.invalidate(entry)
           }

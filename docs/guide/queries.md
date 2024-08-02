@@ -58,7 +58,8 @@ import { useQuery } from '@pinia/colada'
 const route = useRoute()
 const { data, status } = useQuery({
   key: () => ['contacts', route.params.id as string],
-  query: () => fetch(`/api/contacts/${route.params.id}`).then((res) => res.json()),
+  query: () =>
+    fetch(`/api/contacts/${route.params.id}`).then((res) => res.json()),
 })
 </script>
 ```
