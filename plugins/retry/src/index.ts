@@ -56,8 +56,9 @@ export function PiniaColadaRetry(
     let isInternalCall = false
     cache.$onAction(({ name, args, after, store }) => {
       // cleanup all pending retries when data is deleted (means the data is not needed anymore)
-      if (name === 'deleteQueryData') {
-        const key = args[0].join('/')
+      if (name === 'remove') {
+        const [cacheEntry] = args
+        const key = cacheEntry.key.join('/')
         const entry = retryMap.get(key)
         if (entry) {
           clearTimeout(entry.timeoutId)
