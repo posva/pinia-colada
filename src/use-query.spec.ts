@@ -736,6 +736,8 @@ describe('useQuery', () => {
       expect(wrapper.vm.status).toBe('error')
       expect(wrapper.vm.error).toEqual(new Error('fail'))
     })
+
+    it.todo('initialData is ignored if there is already data in the cache')
   })
 
   describe('warns', () => {
