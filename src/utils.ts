@@ -62,6 +62,20 @@ export type _MaybeFunction<T, Args extends any[] = []> =
   | ((...args: Args) => T)
 
 /**
+ * Transforms a value or a function that returns a value to a value.
+ * @param valFn either a value or a function that returns a value
+ * @param args  arguments to pass to the function if `valFn` is a function
+ */
+export function toValueWithArgs<T, Args extends any[]>(
+  valFn: T | ((...args: Args) => T),
+  ...args: Args
+): T {
+  return typeof valFn === 'function'
+    ? (valFn as (...args: Args) => T)(...args)
+    : valFn
+}
+
+/**
  * Type that represents a value that can be a promise or a single value.
  * @internal
  */

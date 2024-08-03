@@ -7,9 +7,8 @@ import {
   shallowReactive,
   shallowRef,
   toValue,
-  triggerRef,
 } from 'vue'
-import { stringifyFlatObject } from './utils'
+import { stringifyFlatObject, toValueWithArgs } from './utils'
 import { type EntryNodeKey, TreeMapNode } from './tree-map'
 import type { EntryKey } from './entry-options'
 import type { UseQueryOptionsWithDefaults } from './query-options'
@@ -18,6 +17,7 @@ import type { defineQuery } from './define-query'
 import type {
   DataState,
   DataStateStatus,
+  DataState_Success,
   OperationStateStatus,
 } from './data-state'
 
@@ -122,7 +122,7 @@ export function queryEntry_removeDep(
   if (entry.deps.size > 0 || !entry.options) return
   clearTimeout(entry.gcTimeout)
   entry.gcTimeout = setTimeout(() => {
-    store.deleteQueryData(entry.key)
+    store.remove(entry)
   }, entry.options.gcTime)
 }
 
@@ -267,14 +267,14 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
         ? [...node].filter((entry) => {
             if (filters.stale != null) return entry.stale === filters.stale
             if (filters.status != null) {
- return entry.state.value.status === filters.status
-}
+              return entry.state.value.status === filters.status
+            }
             // TODO:
             if (filters.type !== 'all') {
               return filters.type === 'active'
                 ? entry.deps.size > 0
                 : entry.deps.size === 0
-}
+            }
 
             return true
           })
@@ -335,6 +335,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
   const invalidate = action((entry: UseQueryEntry) => {
     // will force a fetch next time
     entry.when = 0
+    cancelQuery(entry)
   })
 
   /**
@@ -378,8 +379,8 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
       const { signal } = abortController
       // abort any ongoing request
       // TODO: test
-      // TODO: define in which cases we should abort
-      entry.pending?.abortController.abort()
+      // TODO: The abort should only happen when the query is out of date, becomes inactive or is manually cancelled
+      // entry.pending?.abortController.abort()
 
       const pendingCall = (entry.pending = {
         abortController,
@@ -387,11 +388,11 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
           .options!.query({ signal })
           .then((data) => {
             if (pendingCall === entry.pending && !signal.aborted) {
-              entry.state.value = {
+              setQueryState(entry, {
                 data,
                 error: null,
                 status: 'success',
-              }
+              })
             }
             return entry.state.value
           })
@@ -401,11 +402,11 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
               && error
               && (error.name !== 'AbortError' || error === signal.reason)
             ) {
-              entry.state.value = {
+              setQueryState(entry, {
                 data: entry.state.value.data,
                 error,
                 status: 'error',
-              }
+              })
               throw error
             }
             return entry.state.value
@@ -424,14 +425,32 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
     },
   )
 
+  const cancelQuery = action((entry: UseQueryEntry, reason?: unknown) => {
+    entry.pending?.abortController.abort(reason)
+  })
+
+  /**
+   * Sets the state of a query entry in the cache. This action is called every time the cache state changes and can be
+   * used by plugins to detect changes.
+   */
+  const setQueryState = action(
+    <TResult, TError>(
+      entry: UseQueryEntry<TResult, TError>,
+      state: DataState<TResult, TError>,
+    ) => {
+      entry.state.value = state
+      entry.when = Date.now()
+    },
+  )
+
   // TODO: tests
   /**
-   * Set the data of a query entry. Note this doesn't change the status of the query.
+   * Set the data of a query entry in the cache. Note this doesn't change the status of the query.
    */
   const setQueryData = action(
     <TResult = unknown>(
       key: EntryKey,
-      data: undefined | TResult | ((oldData: TResult | undefined) => TResult),
+      data: TResult | ((oldData: TResult | undefined) => TResult),
     ) => {
       const entry = caches.get(key.map(stringifyFlatObject)) as
         | UseQueryEntry<TResult>
@@ -439,17 +458,12 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
       // FIXME: it should create the entry if it doesn't exist
       if (!entry) return
 
-      // NOTE: why does this type narrowing doesn't work?
-      if (typeof data === 'function') {
-        // the remaining type is TResult & Fn, so we need a cast
-        entry.state.value.data = (
-          data as (oldData: TResult | undefined) => TResult
-        )(entry.state.value.data)
-      } else {
-        entry.state.value.data = data
-      }
-
-      triggerRef(entry.state)
+      setQueryState(entry, {
+        // if we don't cast, this is not technically correct
+        // the user is responsible for setting the data
+        ...(entry.state.value as DataState_Success<TResult>),
+        data: toValueWithArgs(data, entry.state.value.data),
+      })
     },
   )
 
@@ -462,10 +476,11 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
     },
   )
 
-  const deleteQueryData = action((key: EntryKey) => {
-    // console.log('🗑 data', key, Date.now())
-    caches.delete(key.map(stringifyFlatObject))
-  })
+  /**
+   * Removes a query entry from the cache.
+   */
+  const remove = action((entry: UseQueryEntry) => caches.delete(entry.key),
+                       )
 
   // TODO: find a way to make it possible to prefetch. Right now we need the actual options of the query
   const _preload = action((_useQueryFn: ReturnType<typeof defineQuery>) => {})
@@ -486,15 +501,17 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
     //     : undefined,
 
     ensureDefinedQuery,
+    setQueryState,
     setQueryData,
     getQueryData,
-    deleteQueryData,
+    cancelQuery,
 
     // Actions for entries
     invalidate,
     fetch,
     refresh,
     ensure,
+    remove,
     getEntries,
   }
 })
