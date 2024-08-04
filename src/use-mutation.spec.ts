@@ -7,6 +7,7 @@ import { delay } from '../test/utils'
 import type { UseMutationOptions } from './use-mutation'
 import { useMutation } from './use-mutation'
 import { PiniaColada } from './pinia-colada'
+import { useQuery } from './use-query'
 
 describe('useMutation', () => {
   beforeEach(() => {
@@ -268,5 +269,53 @@ describe('useMutation', () => {
     expect(wrapper.vm.data).toBeUndefined()
     expect(wrapper.vm.error).toBeNull()
     expect(wrapper.vm.status).toBe('pending')
+  })
+
+  it('handles the "keys queries" : refetch them if they are active, marked them as stale otherwise', async () => {
+    const query = vi.fn(async () => 42)
+    const plugins = [createPinia(), PiniaColada]
+    const mountQueryWrapper = () => {
+      return mount(
+        defineComponent({
+          render: () => null,
+          setup() {
+            return {
+              ...useQuery({
+                query,
+                key: ['key'],
+              }),
+            }
+          },
+        }),
+        {
+          global: {
+            plugins,
+          },
+        },
+      )
+    }
+    let queryWrapper = mountQueryWrapper()
+    const [mutationWrapper, mutation] = mountSimple({ keys: [['key']] }, { plugins })
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(1)
+    expect(queryWrapper.vm.data).toBe(42)
+    query.mockImplementation(async () => 43)
+    mutationWrapper.vm.mutate()
+    await flushPromises()
+    expect(mutation).toHaveBeenCalledTimes(1)
+    // The query (which is active) has been refetched
+    expect(query).toHaveBeenCalledTimes(2)
+    expect(queryWrapper.vm.data).toBe(43)
+    query.mockImplementation(async () => 44)
+    queryWrapper.unmount()
+    mutationWrapper.vm.mutate()
+    await flushPromises()
+    // The query (which is not active anymore) is marked as stale without being refetch
+    expect(query).toHaveBeenCalledTimes(2)
+    queryWrapper = mountQueryWrapper()
+    // Checking that the query had been marked as stale: it is refetch once it is active again
+    expect(query).toHaveBeenCalledTimes(3)
+    await flushPromises()
+    expect(queryWrapper.vm.data).toBe(44)
   })
 })

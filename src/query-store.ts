@@ -354,6 +354,15 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
     entry.when = 0
     // ignores the pending query
     cancelQuery(entry)
+    if (entry.deps.size > 0) {
+      // reset any pending request
+      entry.pending = null
+      // force refresh
+      fetch(entry)
+    } else {
+      // will force a fetch next time
+      entry.when = 0
+    }
   })
 
   /**
