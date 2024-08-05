@@ -35,10 +35,11 @@ export { PiniaColada } from './pinia-colada'
 export type { PiniaColadaOptions } from './pinia-colada'
 
 export {
-  useQueryCache,
-  serialize,
-  type UseQueryEntry,
-} from './query-store'
+  PiniaColadaQueryHooksPlugin,
+  type PiniaColadaQueryHooksPluginOptions,
+} from './plugins/query-hooks'
+
+export { useQueryCache, serialize, type UseQueryEntry } from './query-store'
 
 export { TreeMapNode, type EntryNodeKey } from './tree-map'
 

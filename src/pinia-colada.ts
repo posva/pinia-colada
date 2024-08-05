@@ -6,7 +6,6 @@ import {
   type UseQueryOptions,
 } from './query-options'
 import { useQueryCache } from './query-store'
-import { noop } from './utils'
 import type { ErrorDefault } from './types-extension'
 import type { PiniaColadaPlugin } from './plugins'
 
@@ -29,31 +28,16 @@ export interface PiniaColadaOptions
   plugins?: PiniaColadaPlugin[]
 
   /**
-   * Global handler for when a query is successful.
-   *
-   * @param data - data returned by the query
-   */
-  onSuccess?: (data: unknown) => unknown
-
-  /**
-   * Global handler for when a query is settled (either successfully or with an error). Will await for the `onSuccess`
-   * or `onError` handlers to resolve if they return a promise.
-   *
-   * @param data - data returned by the query if any
-   * @param error - error thrown if any
-   */
-  onSettled?: (data: unknown | undefined, error: unknown | null) => unknown
-
-  /**
-   * Global error handler for all queries.
+   * Function to ensure the `error` property is always an instance of the default global type error. Defaults to the
+   * identity function.
    *
    * @param error - error thrown
    */
-  onError?: (error: unknown) => unknown
+  transformError?: (error: unknown) => ErrorDefault
 
   /**
-   * Function to ensure the `error` property is always an instance of the default global type error. Defaults to the
-   * identity function.
+   * Executes setup code inside `useQuery()` to add custom behavior to all queries. **Must be synchronous**.
+   * @experimental still going through testing to see what is needed
    *
    * @param error - error thrown
    */
@@ -76,9 +60,6 @@ export function PiniaColada(app: App, options: PiniaColadaOptions = {}) {
   const {
     pinia = app.config.globalProperties.$pinia,
     plugins,
-    onError = noop,
-    onSettled = noop,
-    onSuccess = noop,
     ...useQueryOptions
   } = options
 
@@ -92,22 +73,6 @@ export function PiniaColada(app: App, options: PiniaColadaOptions = {}) {
       '[@pinia/colada] root pinia plugin not detected. Make sure you install pinia before installing the "PiniaColada" plugin or to manually pass the pinia instance.',
     )
   }
-
-  const store = useQueryCache(pinia)
-  store.$onAction(({ name, after, onError: _onError }) => {
-    if (name === 'fetch') {
-      // TODO: the refetch/refresh should probably return more information so we can query the error or data here. They don't throw errors
-      after(async ({ data }) => {
-        await onSuccess(data)
-        onSettled(data, null)
-      })
-
-      _onError(async (error) => {
-        await onError(error)
-        onSettled(undefined, error)
-      })
-    }
-  })
 
   // install plugins
   plugins?.forEach((plugin) => plugin({ cache: useQueryCache(pinia), pinia }))
