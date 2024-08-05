@@ -409,6 +409,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
               })
               throw error
             }
+            // TODO: would it make more sense to not resolve here?
             return entry.state.value
           })
           .finally(() => {
