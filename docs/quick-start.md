@@ -147,7 +147,6 @@ const {
   // can use the async status to disable a form
   mutateAsync,
   status,
-  queryStatus,
   error,
 } = useMutation({
   key: (contact) => ['contacts', contact.id],
@@ -157,7 +156,7 @@ const {
 
 <template>
   <main>
-    <LoadingIndicator v-if="queryStatus === 'running'" />
+    <LoadingIndicator v-if="status === 'loading'" />
 
     <div v-if="error">
       <ErrorMessage :error="error" />

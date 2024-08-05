@@ -1,4 +1,4 @@
-import type { UseQueryEntry } from 'src/query-store'
+import type { UseQueryEntry } from '../query-store'
 import type { PiniaColadaPlugin } from '.'
 
 /**

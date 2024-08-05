@@ -30,10 +30,10 @@
   },
   "devDependencies": {
     "@tsconfig/node18": "^18.2.4",
-    "@types/node": "^22.0.0",
-    "@vitejs/plugin-vue": "^5.1.1",
+    "@types/node": "^22.1.0",
+    "@vitejs/plugin-vue": "^5.1.2",
     "@vue/tsconfig": "^0.5.1",
-    "autoprefixer": "^10.4.19",
+    "autoprefixer": "^10.4.20",
     "json-server": "0.17.4",
     "npm-run-all2": "^6.2.2",
     "postcss": "^8.4.40",
