@@ -1,8 +1,7 @@
 import { type InjectionKey, type MaybeRefOrGetter, inject } from 'vue'
 import type { EntryKey } from './entry-options'
 import type { ErrorDefault } from './types-extension'
-import type { UseQueryReturn } from './use-query'
-import type { _Simplify } from './utils'
+import type { PiniaColadaOptions } from './pinia-colada'
 
 /**
  * `true` refetch if data is stale (refresh()), `false` never refetch, 'always' always refetch.
@@ -97,19 +96,6 @@ export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
    */
   transformError?: (error: unknown) => TError
 
-  /**
-   * Executes setup code inside `useQuery()` to add custom behavior to all queries. **Must be synchronous**.
-   *
-   * @param context - properties of the `useQuery` return value and the options
-   */
-  setup?: <TResult = unknown, TError = ErrorDefault>(
-    context: _Simplify<
-      UseQueryReturn<TResult, TError> & {
-        options: UseQueryOptionsWithDefaults<TResult, TError>
-      }
-    >,
-  ) => void | Promise<never>
-
   // TODO: move to a plugin
   // TODO: rename to refresh since that's the default? and change 'always' to 'force'?
   refetchOnMount?: _RefetchOnControl
@@ -139,7 +125,10 @@ export type UseQueryOptionsWithDefaults<
 
 export const USE_QUERY_OPTIONS_KEY: InjectionKey<
   typeof USE_QUERY_DEFAULTS &
-    Omit<UseQueryOptions, 'key' | 'query' | 'initialData'>
+  Omit<UseQueryOptions, 'key' | 'query' | 'initialData'> &
+  {
+    setup?: PiniaColadaOptions['setup']
+  }
 > = process.env.NODE_ENV !== 'production' ? Symbol('useQueryOptions') : Symbol()
 
 /**

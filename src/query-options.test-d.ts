@@ -8,19 +8,22 @@ describe('PiniaColada types', () => {
   it('disallows "setup" to return a promise', () => {
     app.use(PiniaColada, {
       // @ts-expect-error: async await
-      async setup() {},
-    })
-
-    app.use(PiniaColada, {
-      // @ts-expect-error: explicit promise
-      setup() {
-        return Promise.resolve()
+      async setup(a) {
+        return a
       },
     })
 
     app.use(PiniaColada, {
-      setup() {
+      // @ts-expect-error: explicit promise
+      setup(a) {
+        return Promise.resolve(a)
+      },
+    })
+
+    app.use(PiniaColada, {
+      setup(queryReturn) {
         // works!
+        return queryReturn
       },
     })
   })

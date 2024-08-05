@@ -235,12 +235,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
     }
   }
 
-  options.setup?.({
-    ...queryReturn,
-    options,
-  })
-
-  return queryReturn
+  return options.setup?.(queryReturn, options) || queryReturn
 }
 
 /**

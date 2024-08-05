@@ -263,22 +263,20 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
         return node.value ? [node.value] : []
       }
 
-      return node
-        ? [...node].filter((entry) => {
-            if (filters.stale != null) return entry.stale === filters.stale
-            if (filters.status != null) {
-              return entry.state.value.status === filters.status
-            }
-            // TODO:
-            if (filters.type !== 'all') {
-              return filters.type === 'active'
-                ? entry.deps.size > 0
-                : entry.deps.size === 0
-            }
+      return [...node].filter((entry) => {
+        if (filters.stale != null) return entry.stale === filters.stale
+        if (filters.status) {
+          return entry.state.value.status === filters.status
+        }
+        // TODO:
+        if (filters.type !== 'all') {
+          return filters.type === 'active'
+            ? entry.deps.size > 0
+            : entry.deps.size === 0
+        }
 
-            return true
-          })
-        : []
+        return true
+      })
     },
   )
 

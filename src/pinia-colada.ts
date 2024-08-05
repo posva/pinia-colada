@@ -4,10 +4,12 @@ import {
   USE_QUERY_DEFAULTS,
   USE_QUERY_OPTIONS_KEY,
   type UseQueryOptions,
+  type UseQueryOptionsWithDefaults,
 } from './query-options'
 import { useQueryCache } from './query-store'
 import type { ErrorDefault } from './types-extension'
 import type { PiniaColadaPlugin } from './plugins'
+import type { UseQueryReturn } from './use-query'
 
 /**
  * Options for the Pinia Colada plugin.
@@ -39,9 +41,12 @@ export interface PiniaColadaOptions
    * Executes setup code inside `useQuery()` to add custom behavior to all queries. **Must be synchronous**.
    * @experimental still going through testing to see what is needed
    *
-   * @param error - error thrown
+   * @param context - properties of the `useQuery` return value and the options
    */
-  transformError?: (error: unknown) => ErrorDefault
+  setup?: <TResult = unknown, TError = unknown>(
+    useQueryReturn: UseQueryReturn<TResult, TError>,
+    options: UseQueryOptionsWithDefaults<TResult, TError>,
+  ) => UseQueryReturn<TResult, TError>
 }
 
 /**
