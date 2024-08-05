@@ -14,7 +14,7 @@ import { defineComponent } from 'vue'
 const TodoItem = defineComponent({})
 // ---cut-end---
 
-const { data, status } = useQuery({
+const { data, status, queryStatus } = useQuery({
   key: ['todos'],
   query: () => fetch('/api/todos').then((res) => res.json()),
 })
@@ -22,7 +22,7 @@ const { data, status } = useQuery({
 
 <template>
   <main>
-    <div v-if="status === 'loading'">
+    <div v-if="queryStatus === 'running'">
       Loading...
     </div>
     <div v-else-if="status === 'error'">

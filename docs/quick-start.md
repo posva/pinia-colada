@@ -55,6 +55,7 @@ const {
   // it is convenient to rename `data`
   data: productList,
   status,
+  queryStatus,
   error,
 } = useQuery({
   key: ['products-list'],
@@ -64,7 +65,7 @@ const {
 
 <template>
   <main>
-    <LoadingIndicator v-if="status === 'loading'" />
+    <LoadingIndicator v-if="queryStatus === 'running'" />
 
     <div v-if="error">
       <ErrorMessage :error="error" />
@@ -99,6 +100,7 @@ const route = useRoute()
 const {
   data: product,
   status,
+  queryStatus,
   error,
 } = useQuery({
   key: () => ['products', route.params.id as string],
@@ -108,7 +110,7 @@ const {
 
 <template>
   <main>
-    <LoadingIndicator v-if="status === 'loading'" />
+    <LoadingIndicator v-if="queryStatus === 'running'" />
 
     <div v-if="error">
       <ErrorMessage :error="error" />
@@ -145,6 +147,7 @@ const {
   // can use the async status to disable a form
   mutateAsync,
   status,
+  queryStatus,
   error,
 } = useMutation({
   key: (contact) => ['contacts', contact.id],
@@ -154,7 +157,7 @@ const {
 
 <template>
   <main>
-    <LoadingIndicator v-if="status === 'loading'" />
+    <LoadingIndicator v-if="queryStatus === 'running'" />
 
     <div v-if="error">
       <ErrorMessage :error="error" />
