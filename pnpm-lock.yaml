@@ -106,7 +106,7 @@ importers:
         version: 10.11.0(focus-trap@7.5.4)(fuse.js@7.0.0)(vue@3.4.35(typescript@5.5.4))
       '@vueuse/router':
         specifier: ^10.11.0
-        version: 10.11.0(vue-router@4.4.0(vue@3.4.35(typescript@5.5.4)))(vue@3.4.35(typescript@5.5.4))
+        version: 10.11.0(vue-router@4.4.2(vue@3.4.35(typescript@5.5.4)))(vue@3.4.35(typescript@5.5.4))
       fuse.js:
         specifier: ^7.0.0
         version: 7.0.0
@@ -120,8 +120,8 @@ importers:
         specifier: ^3.4.35
         version: 3.4.35(typescript@5.5.4)
       vue-router:
-        specifier: ^4.4.0
-        version: 4.4.0(vue@3.4.35(typescript@5.5.4))
+        specifier: ^4.4.2
+        version: 4.4.2(vue@3.4.35(typescript@5.5.4))
       water.css:
         specifier: ^2.1.1
         version: 2.1.1
@@ -158,7 +158,7 @@ importers:
         version: 5.5.4
       unplugin-vue-router:
         specifier: ^0.10.2
-        version: 0.10.2(rollup@4.20.0)(vue-router@4.4.0(vue@3.4.35(typescript@5.5.4)))(vue@3.4.35(typescript@5.5.4))
+        version: 0.10.2(rollup@4.20.0)(vue-router@4.4.2(vue@3.4.35(typescript@5.5.4)))(vue@3.4.35(typescript@5.5.4))
       vite:
         specifier: ^5.3.5
         version: 5.3.5(@types/node@22.1.0)
@@ -4205,8 +4205,8 @@ packages:
     peerDependencies:
       vue: ^3.0.0
 
-  vue-router@4.4.0:
-    resolution: {integrity: sha512-HB+t2p611aIZraV2aPSRNXf0Z/oLZFrlygJm+sZbdJaW6lcFqEDQwnzUBXn+DApw+/QzDU/I9TeWx9izEjTmsA==}
+  vue-router@4.4.2:
+    resolution: {integrity: sha512-1qNybkn2L7QsLzaXs8nvlQmRKp8XF8DCxZys/Jr1JpQcHsKUxTKzTxCVA1G7NfBfwRIBgCJPoujOG5lHCCNUxw==}
     peerDependencies:
       vue: ^3.2.0
 
@@ -5464,11 +5464,11 @@ snapshots:
 
   '@vueuse/metadata@10.11.0': {}
 
-  '@vueuse/router@10.11.0(vue-router@4.4.0(vue@3.4.35(typescript@5.5.4)))(vue@3.4.35(typescript@5.5.4))':
+  '@vueuse/router@10.11.0(vue-router@4.4.2(vue@3.4.35(typescript@5.5.4)))(vue@3.4.35(typescript@5.5.4))':
     dependencies:
       '@vueuse/shared': 10.11.0(vue@3.4.35(typescript@5.5.4))
       vue-demi: 0.14.10(vue@3.4.35(typescript@5.5.4))
-      vue-router: 4.4.0(vue@3.4.35(typescript@5.5.4))
+      vue-router: 4.4.2(vue@3.4.35(typescript@5.5.4))
     transitivePeerDependencies:
       - '@vue/composition-api'
       - vue
@@ -8514,7 +8514,7 @@ snapshots:
 
   unpipe@1.0.0: {}
 
-  unplugin-vue-router@0.10.2(rollup@4.20.0)(vue-router@4.4.0(vue@3.4.35(typescript@5.5.4)))(vue@3.4.35(typescript@5.5.4)):
+  unplugin-vue-router@0.10.2(rollup@4.20.0)(vue-router@4.4.2(vue@3.4.35(typescript@5.5.4)))(vue@3.4.35(typescript@5.5.4)):
     dependencies:
       '@babel/types': 7.25.2
       '@rollup/pluginutils': 5.1.0(rollup@4.20.0)
@@ -8530,7 +8530,7 @@ snapshots:
       unplugin: 1.12.0
       yaml: 2.5.0
     optionalDependencies:
-      vue-router: 4.4.0(vue@3.4.35(typescript@5.5.4))
+      vue-router: 4.4.2(vue@3.4.35(typescript@5.5.4))
     transitivePeerDependencies:
       - rollup
       - vue
@@ -8706,7 +8706,7 @@ snapshots:
     dependencies:
       vue: 3.4.35(typescript@5.5.4)
 
-  vue-router@4.4.0(vue@3.4.35(typescript@5.5.4)):
+  vue-router@4.4.2(vue@3.4.35(typescript@5.5.4)):
     dependencies:
       '@vue/devtools-api': 6.6.3
       vue: 3.4.35(typescript@5.5.4)
