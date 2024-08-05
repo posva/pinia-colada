@@ -2,7 +2,7 @@ import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router/auto'
 import { routes } from 'vue-router/auto-routes'
 import { createPinia } from 'pinia'
-import { PiniaColada } from '@pinia/colada'
+import { PiniaColada, PiniaColadaQueryHooksPlugin } from '@pinia/colada'
 import './style.css'
 import 'water.css'
 import { PiniaColadaRetry } from '@pinia/colada-plugin-retry'
@@ -18,7 +18,13 @@ const router = createRouter({
 
 app.use(createPinia())
 app.use(PiniaColada, {
-  plugins: [PiniaColadaDebugPlugin(), PiniaColadaRetry()],
+  plugins: [
+    PiniaColadaDebugPlugin(),
+    PiniaColadaRetry(),
+    PiniaColadaQueryHooksPlugin({
+      onSettled() {},
+    }),
+  ],
 })
 app.use(router)
 
