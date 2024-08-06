@@ -1,7 +1,7 @@
 {
   "name": "@pinia/colada",
   "type": "module",
-  "version": "0.8.0",
+  "version": "0.7.1",
   "packageManager": "pnpm@9.6.0",
   "description": "The smart data fetching layer for Pinia",
   "publishConfig": {
@@ -67,7 +67,7 @@
     "docs:api:build": "node ./scripts/run-typedoc.js",
     "play": "pnpm -C playground dev",
     "prepublishOnly": "pnpm run build",
-    "release": "node scripts/release.js",
+    "release": "node scripts/release.mjs",
     "test": "pnpm run test:cov && pnpm run build && pnpm run build:plugins && pnpm run test:types",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
