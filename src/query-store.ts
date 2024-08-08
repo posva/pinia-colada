@@ -342,27 +342,14 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
   )
 
   /**
-   * Invalidates a query entry by its key. This forces a {@link fetch} of the data if `refetch` is `true`.
-   *
-   * @param key - the key of the query to invalidate
-   * @param options - options to invalidate the query
-   * @param options.exact - if true, it will only invalidate the exact query, not the children
-   * @param options.refetch - if true, it will refetch the data
+   * Invalidates a query entry
+   * @param entry - the entry of the query to invalidate
    */
   const invalidate = action((entry: UseQueryEntry) => {
     // will force a fetch next time
     entry.when = 0
     // ignores the pending query
     cancelQuery(entry)
-    if (entry.deps.size > 0) {
-      // reset any pending request
-      entry.pending = null
-      // force refresh
-      fetch(entry)
-    } else {
-      // will force a fetch next time
-      entry.when = 0
-    }
   })
 
   /**
