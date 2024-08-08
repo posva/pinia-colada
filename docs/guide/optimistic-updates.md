@@ -16,36 +16,37 @@ There are mainly two ways implement optimistic updates: by updating locally (for
 
 We will walk through the two methods. For that, let's take again our todo list example. We added a feature, now we can edit the todo description. To achieve this, we created the following component:
 
-```vue twoslash
+```vue
 <script setup lang="ts">
-import { useMutation } from '@pinia/colada'
+  import { ref } from 'vue'
+  import { useMutation } from '@pinia/colada'
+
   const props = withDefaults(
     defineProps<{
       description: string
       id: string
     }>()
   )
-  const isEditing = ref(false)
 
-  const { mutate } = useMutation({
-    key: () => ['update-todo-description', route.params.id],
-    // Invalidate the `todos` query (so it will be refetch if the mutation is successful)
-    keys: () => [['todos']],
-    mutation: (newDescription) =>
-      fetch(`/api/todos/${props.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ description: newDescription }),
-      }),
+  const isEditing = ref(false)
+  const newDescription = ref('')
+  const { mutate, status } = useMutation({
+      keys: () => [['todos']],
+      mutation: () =>
+        fetch(`/api/todos/${props.id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ description: newDescription }),
+        }),
   })
 </script>
 
 <template>
   <div>
     <input v-if="isEditing" @blur="mutate">
-    <span v-else>{{ displayedDescription }}</span>
+    <span v-else>{{ description }}</span>
   </div>
-  <button @click="isEditing = !isEditing">
-    {{ isEditing ? 'Cancel' : 'Edit description' }}
+  <button v-if="!isEditing" @click="isEditing = true">
+    Edit description
   </button>
 </template>
 ```
@@ -60,7 +61,7 @@ We can distinguish two ways of doing this.
 
 A possibility is to use the mutation hooks to optimistically update the state of the component (and in particular to rollback the `onError` hook in case of failure).
 
-```vue twoslash
+```vue
 <script setup lang="ts">
 import { useMutation } from '@pinia/colada'
   const props = withDefaults(
@@ -78,7 +79,6 @@ import { useMutation } from '@pinia/colada'
   })
 
   const { mutate } = useMutation({
-    key: () => ['update-todo-description', route.params.id],
     keys: () => [['todos']],
     mutation: (newDescription) =>
       fetch(`/api/todos/${props.id}`, {
@@ -114,7 +114,44 @@ In this case, we will use the mutation state (especially the `pending` ref) to m
 
 ::: code-group
 
-```ts [src/mutations/update-todo-description.ts] twoslash
+```ts [src/mutations/update-todos.ts]
+import { ref } from 'vue'
+import { defineMutation, useMutation } from '@pinia/colada'
+
+export const useCreateTodo = defineMutation(() => {
+  const { mutate, ...rest } = useMutation({
+    keys: () => [['todos']],
+    mutation: (todoId, description) =>
+      fetch(`/api/todos/${todoId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ description }),
+      })
+  })
+
+  return {
+    ...rest,
+    updateTodo: mutate
+  }
+})
+```
+
+```ts [src/queries/todos.ts]
+import { defineQuery, useQuery } from '@pinia/colada'
+import { ref } from 'vue'
+
+export const useTodos = defineQuery(() => {
+  const { data, ...rest } = useQuery({
+    key: ['todos'],
+    query: () => fetch(`/api/todos?filter=${search.value}`, { method: 'GET' }),
+  })
+  return {
+    ...rest,
+    todoList: data,
+  }
+})
+```
+
+```ts [src/mutations/update-todo-description.ts]
 import { useMutation } from '@pinia/colada'
 
 export const useUpdateTodoDescription = () => useMutation({
@@ -128,21 +165,7 @@ export const useUpdateTodoDescription = () => useMutation({
   })
 ```
 
-```ts [src/mutations/update-todo-description.ts] twoslash
-import { useMutation } from '@pinia/colada'
-
-export const useUpdateTodoDescription = () => useMutation({
-    key: () => ['update-todo-description', route.params.id],
-    keys: () => [['todos']],
-    mutation: (newDescription) =>
-      fetch(`/api/todos/${props.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ description: newDescription }),
-      })
-  })
-```
-
-```vue [src/components/todo-description.vue] twoslash
+```vue [src/components/todo-description.vue]
 <script setup lang="ts">
   import { useUpdateTodoDescription } from '@/mutations/update-todo-description'
 
