@@ -21,6 +21,14 @@ import type {
   OperationStateStatus,
 } from './data-state'
 
+/**
+ * NOTE: Entries could be classes but the point of having all functions within the store is to allow plugins to hook
+ * into actions.
+ */
+
+/**
+ * A query entry in the cache.
+ */
 export interface UseQueryEntry<TResult = unknown, TError = unknown> {
   /**
    * The state of the query. Contains the data, error and status.
@@ -70,6 +78,11 @@ export interface UseQueryEntry<TResult = unknown, TError = unknown> {
    * Whether the data is stale or not, requires `options.staleTime` to be set.
    */
   readonly stale: boolean
+
+  /**
+   * Whether the query is currently being used by a Component or EffectScope (e.g. a store).
+   */
+  readonly active: boolean
 }
 
 /**
@@ -165,6 +178,9 @@ export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
     options: null,
     get stale() {
       return Date.now() > this.when + this.options!.staleTime
+    },
+    get active() {
+      return this.deps.size > 0
     },
   }
 }
@@ -336,6 +352,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
   const invalidate = action((entry: UseQueryEntry) => {
     // will force a fetch next time
     entry.when = 0
+    // ignores the pending query
     cancelQuery(entry)
   })
 
@@ -429,6 +446,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
 
   const cancelQuery = action((entry: UseQueryEntry, reason?: unknown) => {
     entry.pending?.abortController.abort(reason)
+    entry.pending = null
   })
 
   /**
