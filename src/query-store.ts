@@ -45,7 +45,7 @@ export interface UseQueryEntry<TResult = unknown, TError = unknown> {
   /**
    * Components and effects scopes that use this query entry.
    */
-  deps: Set<unknown>
+  deps: Set<EffectScope | ComponentInternalInstance>
 
   /**
    * Timeout id that scheduled a garbage collection. It is set here to clear it when the entry is used by a different component
