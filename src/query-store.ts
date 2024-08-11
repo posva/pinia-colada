@@ -100,14 +100,14 @@ export interface UseQueryEntryFilter {
   exact?: boolean
 
   /**
-   * Type of entries to return. Defaults to 'all'.
-   */
-  type?: 'active' | 'inactive' | 'all'
-
-  /**
-   * If true, it will only return the stale entries.
+   * If true or false, it will only return entries that match the stale status.
    */
   stale?: boolean
+
+  /**
+   * If true or false, it will only return entries that match the active status.
+   */
+  active?: boolean
 
   /**
    * If defined, it will only return the entries with the given status.
@@ -289,14 +289,9 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
 
       return [...node].filter((entry) => {
         if (filters.stale != null) return entry.stale === filters.stale
+        if (filters.active != null) return entry.active === filters.active
         if (filters.status) {
           return entry.state.value.status === filters.status
-        }
-        // TODO:
-        if (filters.type !== 'all') {
-          return filters.type === 'active'
-            ? entry.deps.size > 0
-            : entry.deps.size === 0
         }
 
         return true
