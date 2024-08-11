@@ -51,8 +51,8 @@ export type DataState<TResult, TError> =
 
 /**
  * The status of an async operation tied to pinia colada e.g. queries and mutations.
- * - `idle`: not running
- * - `running`: currently running
+ * - `idle`: not loading
+ * - `loading`: currently loading
  */
-export type OperationStateStatus = 'idle' | 'running'
+export type AsyncStatus = 'idle' | 'loading'
 // TODO: ? - `paused`: waiting to be run e.g. offline, debunce/throttle, etc

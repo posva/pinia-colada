@@ -25,9 +25,9 @@ import type {
 import type { ErrorDefault } from './types-extension'
 import { getCurrentDefineQueryEffect } from './define-query'
 import type {
+  AsyncStatus,
   DataState,
   DataStateStatus,
-  OperationStateStatus,
 } from './data-state'
 
 /**
@@ -40,9 +40,9 @@ export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault> {
   state: ComputedRef<DataState<TResult, TError>>
 
   /**
-   * Status of the query. Becomes `'running'` while the query is being fetched.
+   * Status of the query. Becomes `'loading'` while the query is being fetched.
    */
-  queryStatus: ComputedRef<OperationStateStatus>
+  asyncStatus: ComputedRef<AsyncStatus>
 
   /**
    * The last successful data resolved by the query.
@@ -116,10 +116,10 @@ export function useQuery<TResult, TError = ErrorDefault>(
 
   const queryReturn = {
     state: computed(() => entry.value.state.value),
-    queryStatus: computed(() => entry.value.queryStatus.value),
+    asyncStatus: computed(() => entry.value.asyncStatus.value),
     data: computed(() => entry.value.state.value.data),
     error: computed(() => entry.value.state.value.error),
-    isFetching: computed(() => entry.value.queryStatus.value === 'running'),
+    isFetching: computed(() => entry.value.asyncStatus.value === 'loading'),
     isPending: computed(() => entry.value.state.value.status === 'pending'),
     status: computed(() => entry.value.state.value.status),
 

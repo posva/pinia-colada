@@ -24,7 +24,7 @@ export type {
   DataState_Pending,
   DataState_Success,
   _DataState_Base,
-  OperationStateStatus,
+  AsyncStatus,
 } from './data-state'
 export {
   type UseQueryOptions,

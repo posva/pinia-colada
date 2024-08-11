@@ -15,10 +15,10 @@ import type { UseQueryOptionsWithDefaults } from './query-options'
 import type { ErrorDefault } from './types-extension'
 import type { defineQuery } from './define-query'
 import type {
+  AsyncStatus,
   DataState,
   DataStateStatus,
   DataState_Success,
-  OperationStateStatus,
 } from './data-state'
 
 /**
@@ -38,7 +38,7 @@ export interface UseQueryEntry<TResult = unknown, TError = unknown> {
   /**
    * The status of the query.
    */
-  queryStatus: ShallowRef<OperationStateStatus>
+  asyncStatus: ShallowRef<AsyncStatus>
 
   /**
    * When was this data fetched the last time in ms
@@ -166,12 +166,12 @@ export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
           : 'pending',
     },
   )
-  const queryStatus = shallowRef<OperationStateStatus>('idle')
+  const asyncStatus = shallowRef<AsyncStatus>('idle')
   return {
     key,
     state,
     when,
-    queryStatus,
+    asyncStatus,
     pending: null,
     deps: new Set(),
     gcTimeout: undefined,
@@ -391,7 +391,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
         )
       }
 
-      entry.queryStatus.value = 'running'
+      entry.asyncStatus.value = 'loading'
 
       const abortController = new AbortController()
       const { signal } = abortController
@@ -431,7 +431,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
             return entry.state.value
           })
           .finally(() => {
-            entry.queryStatus.value = 'idle'
+            entry.asyncStatus.value = 'idle'
             if (pendingCall === entry.pending) {
               entry.pending = null
               entry.when = Date.now()

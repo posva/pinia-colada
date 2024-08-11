@@ -55,7 +55,7 @@ const {
   // it is convenient to rename `data`
   data: productList,
   status,
-  queryStatus,
+  asyncStatus,
   error,
 } = useQuery({
   key: ['products-list'],
@@ -65,7 +65,7 @@ const {
 
 <template>
   <main>
-    <LoadingIndicator v-if="queryStatus === 'running'" />
+    <LoadingIndicator v-if="asyncStatus === 'loading'" />
 
     <div v-if="error">
       <ErrorMessage :error="error" />
@@ -100,7 +100,7 @@ const route = useRoute()
 const {
   data: product,
   status,
-  queryStatus,
+  asyncStatus,
   error,
 } = useQuery({
   key: () => ['products', route.params.id as string],
@@ -110,7 +110,7 @@ const {
 
 <template>
   <main>
-    <LoadingIndicator v-if="queryStatus === 'running'" />
+    <LoadingIndicator v-if="asyncStatus === 'loading'" />
 
     <div v-if="error">
       <ErrorMessage :error="error" />

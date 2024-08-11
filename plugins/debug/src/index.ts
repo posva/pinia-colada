@@ -40,7 +40,7 @@ export function PiniaColadaDebugPlugin(): (
         const [entry] = args
         await tick()
         if (
-          entry.queryStatus.value === 'running'
+          entry.asyncStatus.value === 'loading'
           || entry.state.value.status === 'pending'
         ) {
           debugData.addRefetchingEntry(entry)
