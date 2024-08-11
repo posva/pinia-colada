@@ -218,6 +218,12 @@ export const queryEntry_toString: <TResult, TError>(
  */
 export const QUERY_STORE_ID = '_pc_query'
 
+/**
+ * A query entry that is defined with {@link defineQuery}.
+ * @internal
+ */
+type DefineQueryEntry = [entries: UseQueryEntry[], returnValue: unknown]
+
 export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
   // We have two versions of the cache, one that track changes and another that doesn't so the actions can be used
   // inside computed properties
@@ -227,7 +233,6 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
   // this allows use to attach reactive effects to the scope later on
   const scope = getCurrentScope()!
 
-  type DefineQueryEntry = [entries: UseQueryEntry[], returnValue: unknown]
   // keep track of the entry being defined so we can add the queries in ensure
   // this allows us to refresh the entry when a defined query is used again
   // and refetchOnMount is true
