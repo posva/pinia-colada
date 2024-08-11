@@ -444,6 +444,10 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
     },
   )
 
+  /**
+   * Cancels a query if it's currently pending. This will effectively abort the `AbortSignal` of the query and any
+   * pending request will be ignored.
+   */
   const cancelQuery = action((entry: UseQueryEntry, reason?: unknown) => {
     entry.pending?.abortController.abort(reason)
     entry.pending = null
@@ -505,8 +509,6 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
   const _preload = action((_useQueryFn: ReturnType<typeof defineQuery>) => {})
 
   // TODO: implement
-  // const remove = action((key: EntryKey) => { })
-  // const cancelQuery = action((key: EntryKey) => { })
   // activate? untrack? these actions should help plugins to augment pinia colada
 
   return {
