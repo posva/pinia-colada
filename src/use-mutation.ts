@@ -255,6 +255,10 @@ export function useMutation<
           )) {
             // TODO: find a way to pass a source of the invalidation, could be a symbol associated with the mutation, the parameters
             store.invalidate(entry)
+            // auto refresh of the active queries
+            if (entry.active) {
+              store.fetch(entry)
+            }
           }
         }
       }

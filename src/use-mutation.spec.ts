@@ -1,12 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
-import { defineComponent } from 'vue'
+import { defineComponent, nextTick } from 'vue'
 import type { GlobalMountOptions } from '../test/utils'
 import { delay } from '../test/utils'
 import type { UseMutationOptions } from './use-mutation'
 import { useMutation } from './use-mutation'
 import { PiniaColada } from './pinia-colada'
+import { useQuery } from './use-query'
+import type { UseQueryOptions } from './query-options'
 
 describe('useMutation', () => {
   beforeEach(() => {
@@ -47,6 +49,34 @@ describe('useMutation', () => {
       },
     )
     return Object.assign([wrapper, mutation] as const, { wrapper, mutation })
+  }
+
+  function mountSimpleQuery(
+    options: Partial<UseQueryOptions<number>> = {},
+    mountOptions?: GlobalMountOptions,
+  ) {
+    const query = vi.fn(options.query ?? (async () => 0))
+    const wrapper = mount(
+      defineComponent({
+        render: () => null,
+        setup() {
+          return {
+            ...useQuery({
+              ...options,
+              query,
+              key: options.key ?? ['key'],
+            }),
+          }
+        },
+      }),
+      {
+        global: {
+          plugins: [createPinia(), PiniaColada],
+          ...mountOptions,
+        },
+      },
+    )
+    return Object.assign([wrapper, query] as const, { wrapper, query })
   }
 
   it('invokes the mutation', async () => {
@@ -268,5 +298,38 @@ describe('useMutation', () => {
     expect(wrapper.vm.data).toBeUndefined()
     expect(wrapper.vm.error).toBeNull()
     expect(wrapper.vm.status).toBe('pending')
+  })
+
+  it('refetches active queries that match "keys"', async () => {
+    const plugins = [createPinia(), PiniaColada]
+    const { query } = mountSimpleQuery({ key: ['key'] }, { plugins })
+    const [mutationWrapper] = mountSimple(
+      { keys: [['key']] },
+      { plugins },
+    )
+    // wait for the query to be fetched
+    await flushPromises()
+
+    query.mockClear()
+    mutationWrapper.vm.mutate()
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not refetch inactive queries that match "keys"', async () => {
+    const plugins = [createPinia(), PiniaColada]
+    const { query, wrapper: queryWrapper } = mountSimpleQuery({ key: ['key'] }, { plugins })
+    const [mutationWrapper] = mountSimple(
+      { keys: [['key']] },
+      { plugins },
+    )
+    // wait for the query to be fetched
+    await flushPromises()
+    queryWrapper.unmount()
+    query.mockClear()
+    await nextTick()
+    mutationWrapper.vm.mutate()
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(0)
   })
 })
