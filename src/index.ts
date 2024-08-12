@@ -43,11 +43,12 @@ export { useQueryCache, serialize, type UseQueryEntry } from './query-store'
 export { TreeMapNode, type EntryNodeKey } from './tree-map'
 
 export {
-  delayLoadingRef,
   type _MaybeArray,
   type _Awaitable,
   type _EmptyObject,
 } from './utils'
+
+export { delayLoadingRef } from './delay-loading'
 
 export type { TypesConfig } from './types-extension'
 
