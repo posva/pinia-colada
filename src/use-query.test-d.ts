@@ -103,6 +103,27 @@ describe('useQuery type inference', () => {
       }).error.value,
     )
   })
+
+  it('narrows down the state type based on the status', () => {
+    const { state } = useQuery<number, Error>({
+      query: async () => 42,
+      key: ['foo'],
+    })
+
+    if (state.value.status === 'success') {
+      expectTypeOf<number>(state.value.data)
+      expectTypeOf<null>(state.value.error)
+      expectTypeOf<'success'>(state.value.status)
+    } else if (state.value.status === 'error') {
+      expectTypeOf<number | undefined>(state.value.data)
+      expectTypeOf<Error>(state.value.error)
+      expectTypeOf<'error'>(state.value.status)
+    } else if (state.value.status === 'pending') {
+      expectTypeOf<undefined>(state.value.data)
+      expectTypeOf<null>(state.value.error)
+      expectTypeOf<'pending'>(state.value.status)
+    }
+  })
 })
 
 class MyCustomError extends Error {
