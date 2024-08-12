@@ -74,7 +74,7 @@
     "test:types": "tsc --build ./tsconfig.json",
     "test:cov": "vitest run --coverage",
     "build": "tsup",
-    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s --commit-path . -l @pinia/colada -r 1",
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s --commit-path src -l @pinia/colada -r 1",
     "build:plugins": "pnpm run --stream --parallel --filter './plugins/*' build",
     "size": "size-limit",
     "prepare": "simple-git-hooks"
