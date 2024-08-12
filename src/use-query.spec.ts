@@ -71,9 +71,9 @@ describe('useQuery', () => {
     it('sets the fetching state', async () => {
       const { wrapper } = mountSimple()
 
-      expect(wrapper.vm.isFetching).toBe(true)
+      expect(wrapper.vm.isLoading).toBe(true)
       await flushPromises()
-      expect(wrapper.vm.isFetching).toBe(false)
+      expect(wrapper.vm.isLoading).toBe(false)
     })
 
     it('sets the pending state', async () => {

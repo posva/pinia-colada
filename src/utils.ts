@@ -132,7 +132,7 @@ export type _MergeObjects<Obj, MaybeNull> = MaybeNull extends undefined | null
 export const noop = () => {}
 
 /**
- * Creates a delayed computed ref from an existing ref, computed, or getter. Use this to delay a loading state (`isFetching`, `isLoading`) to avoid flickering.
+ * Creates a delayed computed ref from an existing ref, computed, or getter. Use this to delay a loading state (`isLoading`, `isLoading`) to avoid flickering.
  *
  * @example
  * ```ts

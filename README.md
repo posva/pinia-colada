@@ -69,7 +69,7 @@ import { updateContact as _updateContact, getContactById } from '~/api/contacts'
 
 const route = useRoute()
 
-const { data: contact, isFetching } = useQuery({
+const { data: contact, isLoading } = useQuery({
   // recognizes this query as ['contacts', id]
   key: () => ['contacts', route.params.id],
   query: () => getContactById(route.params.id),
@@ -87,7 +87,7 @@ const { mutate: updateContact } = useMutation({
     <ContactCard
       :key="contact.id"
       :contact="contact"
-      :is-updating="isFetching"
+      :is-updating="isLoading"
       @update:contact="updateContact"
     />
   </section>

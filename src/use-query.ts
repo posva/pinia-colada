@@ -68,7 +68,7 @@ export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault> {
   /**
    * Returns whether the request is currently fetching data.
    */
-  isFetching: ShallowRef<boolean>
+  isLoading: ShallowRef<boolean>
 
   /**
    * Ensures the current data is fresh. If the data is stale, refetch, if not return as is.
@@ -116,12 +116,14 @@ export function useQuery<TResult, TError = ErrorDefault>(
 
   const queryReturn = {
     state: computed(() => entry.value.state.value),
-    asyncStatus: computed(() => entry.value.asyncStatus.value),
+
+    status: computed(() => entry.value.state.value.status),
     data: computed(() => entry.value.state.value.data),
     error: computed(() => entry.value.state.value.error),
-    isFetching: computed(() => entry.value.asyncStatus.value === 'loading'),
+    asyncStatus: computed(() => entry.value.asyncStatus.value),
+
     isPending: computed(() => entry.value.state.value.status === 'pending'),
-    status: computed(() => entry.value.state.value.status),
+    isLoading: computed(() => entry.value.asyncStatus.value === 'loading'),
 
     refresh,
     refetch,
