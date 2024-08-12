@@ -4,23 +4,24 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [0.8.0](https://github.com/posva/pinia-colada/compare/v0.7.1...v0.8.0) (2024-08-12)
 
-
 ### ⚠ BREAKING CHANGES
 
-* `isFetching` from `useQuery()` is renamed to
-`isLoading` to better reflect that it's connected to `asyncStatus`.
-* The setup option in useQuery now receives the options
-as the second argument instead of a context object with the query return
-value and the options. This allows the setup function to have a more
-predictable signature and makes it easier to type. Only `PiniaColada`
-has this option, **it has been removed from useQuery**. Overall, the
-option still needs more thinking and will probably change in the future
-again.
-* **plugins:** The `onSuccess`, `onError`, and `onSettled` global
-hooks have been moved from `PiniaPlugin` to a Pinia Colada plugin:
-`PiniaColadaQueryHooksPlugin`
+- `isFetching` from `useQuery()` is renamed to
+  `isLoading` to better reflect that it's connected to `asyncStatus`.
+- The setup option in useQuery now receives the options
+  as the second argument instead of a context object with the query return
+  value and the options. This allows the setup function to have a more
+  predictable signature and makes it easier to type. Only `PiniaColada`
+  has this option, **it has been removed from useQuery**. Overall, the
+  option still needs more thinking and will probably change in the future
+  again.
+- **plugins:** The `onSuccess`, `onError`, and `onSettled` global
+  hooks have been moved from `PiniaPlugin` to a Pinia Colada plugin:
+  `PiniaColadaQueryHooksPlugin`
 
   ```diff
+  +import { PiniaColada, PiniaColadaQueryHooksPlugin } from '@pinia/colada'
+
    app.use(PiniaColada, {
   +  plugins: [
   +    PiniaColadaQueryHooksPlugin({
@@ -31,48 +32,50 @@ hooks have been moved from `PiniaPlugin` to a Pinia Colada plugin:
   +  ],
    })
   ```
-* This feature splits up the `status` state into two
-different _status_ properties:
-- `status` is now just for the data `'pending' | 'success' | 'error'`
-- `queryStatus` tells if the query is still running or not with `'idle' |
-  'running'`
-* `refetch`, `refresh` and similar methods now resolve
-the `state` property without rejecting. This is usually more convenient.
-* The `QueryStatus` type has been split into
-`DataStateStatus` and `OperationStateStatus`.
-* the cache store is going through a refactor to empower
-plugins. **This change shouldn't affect end users unless you are
-directly using the cache store**.
-As a result a lot of the actions have been renamed
 
-- refetch -> fetch
-- invalidateEntry -> invalidate
-- ensureEntry -> ensure
+- `status` state is split into two different _status_ properties:
 
-Their arguments have changed as well.
-* This release removes the deprecated `QueryPlugin`. Use
-`PiniaColada` instead.
+  - `status` is now just for the data `'pending' | 'success' | 'error'`
+  - `asyncStatus` tells if the query is still running or not with `'idle' | 'running'`
+
+  Note this affects both `useQuery()` and `useMutation()`
+
+- `refetch`, `refresh` and similar methods now resolve
+  the `state` property without rejecting. This is usually more convenient.
+- The `QueryStatus` type has been split into
+  `DataStateStatus` and `OperationStateStatus`.
+- the cache store is going through a refactor to empower
+  plugins. **This change shouldn't affect end users unless you are
+  directly using the cache store**.
+  As a result a lot of the actions have been renamed
+
+  - refetch -> fetch
+  - invalidateEntry -> invalidate
+  - ensureEntry -> ensure
+
+  Their arguments have changed as well. This is part of a bigger refactor to empower plugins and make the cache store more flexible.
+
+- This release removes the deprecated `QueryPlugin`. Use
+  `PiniaColada` instead.
 
 ### Features
 
-* add a `state` property to `useQuery` for type narrowing ([22f3e21](https://github.com/posva/pinia-colada/commit/22f3e216c03ee4e7e536fa3e4c8f4fad42717daf))
-* **mutation:** refetch active queries ([#65](https://github.com/posva/pinia-colada/issues/65)) ([3ebc734](https://github.com/posva/pinia-colada/commit/3ebc734468305750d5ea132f73db78d52cef9180))
-* **plugins:** Refactor query global hooks into a plugin ([bbe5199](https://github.com/posva/pinia-colada/commit/bbe51992dfd548a77325a908c6a5a1aa0254420b))
-* **query:** add `active` property to query entry ([994db63](https://github.com/posva/pinia-colada/commit/994db63ebbba91660ee9602dfbbd5797fe441524)), closes [#65](https://github.com/posva/pinia-colada/issues/65)
-* split useMutation status like useQuery ([6c6078f](https://github.com/posva/pinia-colada/commit/6c6078fee55a3c82df038c7e66ba384882923c47))
+- add a `state` property to `useQuery` for type narrowing ([22f3e21](https://github.com/posva/pinia-colada/commit/22f3e216c03ee4e7e536fa3e4c8f4fad42717daf))
+- **mutation:** refetch active queries ([#65](https://github.com/posva/pinia-colada/issues/65)) ([3ebc734](https://github.com/posva/pinia-colada/commit/3ebc734468305750d5ea132f73db78d52cef9180))
+- **plugins:** Refactor query global hooks into a plugin ([bbe5199](https://github.com/posva/pinia-colada/commit/bbe51992dfd548a77325a908c6a5a1aa0254420b))
+- **query:** add `active` property to query entry ([994db63](https://github.com/posva/pinia-colada/commit/994db63ebbba91660ee9602dfbbd5797fe441524)), closes [#65](https://github.com/posva/pinia-colada/issues/65)
+- split useMutation status like useQuery ([6c6078f](https://github.com/posva/pinia-colada/commit/6c6078fee55a3c82df038c7e66ba384882923c47))
 
-
-* rename `isFetching` to `isLoading` ([003f7a1](https://github.com/posva/pinia-colada/commit/003f7a162d475300f5ab7880fafefbde3c467716))
-* rename cache store actions ([792ec6e](https://github.com/posva/pinia-colada/commit/792ec6ec16bebd01f24d5c0a24f66884d902ebc8))
-* Replace QueryPlugin with PiniaColada ([2a3f3d9](https://github.com/posva/pinia-colada/commit/2a3f3d9b2c1fe23767765238094b2d753c0a8fc6))
-* useQuery setup option now receives the options as the second argument ([a86b41d](https://github.com/posva/pinia-colada/commit/a86b41dd74a7bbbfc355c1dd19b7f40d96e8bab6))
+- rename `isFetching` to `isLoading` ([003f7a1](https://github.com/posva/pinia-colada/commit/003f7a162d475300f5ab7880fafefbde3c467716))
+- rename cache store actions ([792ec6e](https://github.com/posva/pinia-colada/commit/792ec6ec16bebd01f24d5c0a24f66884d902ebc8))
+- Replace QueryPlugin with PiniaColada ([2a3f3d9](https://github.com/posva/pinia-colada/commit/2a3f3d9b2c1fe23767765238094b2d753c0a8fc6))
+- useQuery setup option now receives the options as the second argument ([a86b41d](https://github.com/posva/pinia-colada/commit/a86b41dd74a7bbbfc355c1dd19b7f40d96e8bab6))
 
 ### [0.7.1](https://github.com/posva/pinia-colada/compare/v0.7.0...v0.7.1) (2024-07-30)
 
-
 ### Bug Fixes
 
-* **hmr:** always update options ([a6a6b7a](https://github.com/posva/pinia-colada/commit/a6a6b7a209bfbff4cc0644ba40e6486a35166d1c))
+- **hmr:** always update options ([a6a6b7a](https://github.com/posva/pinia-colada/commit/a6a6b7a209bfbff4cc0644ba40e6486a35166d1c))
 
 ## [0.7.0](https://github.com/posva/pinia-colada/compare/v0.6.0...v0.7.0) (2024-07-26)
 
