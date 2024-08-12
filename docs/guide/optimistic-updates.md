@@ -1,4 +1,4 @@
-## Optimistic updates
+# Optimistic updates
 
 *NOTE: we assume that the auto-refetch of invalidated queries is available*
 
@@ -35,24 +35,25 @@ We will walk through the two methods. For that, let's take again our todo list e
   )
 
   const isEditing = ref(false)
-  const newDescription = ref('')
-  const { mutate, status } = useMutation({
-      keys: () => [['todos']],
-      mutation: () =>
-        fetch(`/api/todos/${props.id}`, {
-          method: 'PATCH',
-          body: JSON.stringify({ description: newDescription }),
-        }),
+
+  const { mutate } = useMutation({
+    keys: () => [['todos']], // invalidates the `todos` query
+    mutation: (newDescription: string) => {
+      fetch(`/api/todos/${props.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ description: newDescription }),
+      })
+    }
   })
 </script>
 
 <template>
   <div>
-    <input v-if="isEditing" @blur="mutate">
+    <input v-if="isEditing" @blur="mutate($event.target.value)">
     <span v-else>{{ description }}</span>
   </div>
-  <button v-if="!isEditing" @click="isEditing = true">
-    Edit description
+  <button @click="isEditing = !isEditing">
+    {{ isEditing ? 'Cancel' : 'Edit description' }}
   </button>
 </template>
 ```
@@ -70,41 +71,43 @@ A possibility is to use the mutation hooks to optimistically update the state of
 ```vue {10-11,25-26,29-30}
 <script setup lang="ts">
 import { useMutation } from '@pinia/colada'
-  const props = withDefaults(
-    defineProps<{
-      description: string
-      id: string
-    }>()
-  )
-  const isEditing = ref(false)
-  // The component state, which will be optimistically updated
-  const displayedDescription = ref('')
+import { ref, watch } from 'vue'
 
-  watch(() => props.description, () => {
-    if (!isEditing.value) displayedDescription.value = props.description
-  })
+const props = defineProps<{
+  description: string
+  id: string
+}>()
 
-  const { mutate } = useMutation({
-    keys: () => [['todos']],
-    mutation: (newDescription) =>
-      fetch(`/api/todos/${props.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ description: newDescription }),
-      }),
-    onMutate(newDescription) {
+const isEditing = ref(false)
+// The component state, which will be optimistically updated
+const displayedDescription = ref('')
+
+watch(() => props.description, () => {
+  if (!isEditing.value) displayedDescription.value = props.description
+})
+
+const { mutate } = useMutation({
+  keys: () => [['todos']],
+  mutation: (newDescription: string) => {
+    fetch(`/api/todos/${props.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ description: newDescription }),
+    })
+  },
+  onMutate(newDescription) {
     // Optimistic update
-      displayedDescription.value = newDescription
-    },
-    onError() {
-      // Rollback to the initial state if an error happened
-      displayedDescription.value = props.description
-    },
-  })
+    displayedDescription.value = newDescription
+  },
+  onError() {
+    // Rollback to the initial state if an error happened
+    displayedDescription.value = props.description
+  },
+})
 </script>
 
 <template>
   <div>
-    <input v-if="isEditing" @blur="mutate">
+    <input v-if="isEditing" @blur="mutate($event.target.value)">
     <span v-else>{{ displayedDescription }}</span>
   </div>
   <button @click="isEditing = !isEditing">
@@ -122,8 +125,6 @@ In this case, we will use the mutation state (especially the `pending` ref) to m
 
 ```vue [src/components/todo-description.vue] {19-20}
 <script setup lang="ts">
-  import { useUpdateTodo } from '@/mutations/update-todo'
-
   const props = withDefaults(
     defineProps<{
       description: string
@@ -138,9 +139,9 @@ In this case, we will use the mutation state (especially the `pending` ref) to m
 
 <template>
   <div>
-    <input v-if="isEditing" @blur="updateDescription">
+    <input v-if="isEditing" v-model="newDescription" @blur="newDescription = updateTodo(newDescription)">
     <!-- Opimistic update based on the `pending` state of the mutation -->
-    <span v-else>{{ mutationPending ? newDescription : description }}</span>
+    <span v-else>{{ updateTodoPending ? newDescription : description }}</span>
   </div>
   <button @click="isEditing = !isEditing">
     {{ isEditing ? 'Cancel' : 'Edit description' }}
@@ -164,7 +165,8 @@ export const useCreateTodo = defineMutation(() => {
 
   return {
     ...rest,
-    updateTodo: mutate
+    updateTodo: mutate,
+    updateTodoPending: pending,
   }
 })
 ```
@@ -191,3 +193,56 @@ export const useTodos = defineQuery(() => {
 Note: as you may have noticed, here a rollback in case of errors is not needed.
 
 // NOTE: since `pending` does not include the refetch of the invalidated queries, there will be here a "blank time" while the queries are refetching where the description will disappear.
+
+## Second method: updating globally
+
+Here, the idea will be to update (in advance) the cache of the queries itself (and rollbacking it to its initial state if the mutation fails). For this, we will use the mutation hooks.
+
+```ts [src/mutations/update-todos.ts]
+import { ref } from 'vue'
+import { defineMutation, useMutation } from '@pinia/colada'
+import { useTodos } from '@/queries/todos'
+
+export const useCreateTodo = defineMutation(() => {
+  const { mutate, ...rest } = useMutation({
+    keys: () => [['todos']],
+    mutation: (todoId, description) =>
+      fetch(`/api/todos/${todoId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ description }),
+      }),
+    onMutate: (todoId, description) => {
+      const { todos } = useTodos()
+      // Copy of the current todo list (for the rollback in case of errors)
+      const initialTodos = [...todos.value]
+      // Optimistically updated todo list
+      // Note: we don't mutate `todos.value` directly because, for performance reasons, it is a `ShallowRef`
+      // (and we will therefore have to reassign `todos.value` for the update to be effective)
+      const updatedTodos = todos.value.map((todo) => {
+        if (todo.id === todoId) {
+          // Optimistic update
+          return { ...todo, description }
+        } else {
+          return todo
+        }
+      })
+      // Reasignement of `todos.value` (cf upper comment)
+      todos.value = updatedTodos
+      // The copy of the todos is returned to be available in the `onError` hook
+      return { initialTodos }
+    },
+    onError: ({ initialTodos }) => {
+      const { todos } = useTodos()
+      // Rollback to the initial state in case of errors
+      todos.value = initialTodos
+    }
+  })
+
+  return {
+    ...rest,
+    updateTodo: mutate
+  }
+})
+```
+
+As you may have noticed, with this method the optimistic update is completely handled on the mutation side, and there is therefore no need to do anything on the component side.
