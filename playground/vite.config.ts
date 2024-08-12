@@ -13,6 +13,12 @@ export default defineConfig({
       '@pinia/colada': fileURLToPath(
         new URL('../src/index.ts', import.meta.url),
       ),
+      '@pinia/colada-plugin-retry': fileURLToPath(
+        new URL('../plugins/retry/src/index.ts', import.meta.url),
+      ),
+      '@pinia/colada-plugin-debug': fileURLToPath(
+        new URL('../plugins/debug/src/index.ts', import.meta.url),
+      ),
     },
   },
 })

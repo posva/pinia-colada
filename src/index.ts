@@ -6,7 +6,6 @@ export {
   type UseMutationReturn,
   type UseMutationOptions,
   type _ReduceContext,
-  type MutationStatus,
 } from './use-mutation'
 export { defineMutation } from './define-mutation'
 

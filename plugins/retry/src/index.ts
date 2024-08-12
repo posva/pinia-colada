@@ -54,7 +54,7 @@ export function PiniaColadaRetry(
     const retryMap = new Map<string, RetryEntry>()
 
     let isInternalCall = false
-    cache.$onAction(({ name, args, after, store }) => {
+    cache.$onAction(({ name, args, after, onError }) => {
       // cleanup all pending retries when data is deleted (means the data is not needed anymore)
       if (name === 'remove') {
         const [cacheEntry] = args
@@ -91,7 +91,8 @@ export function PiniaColadaRetry(
       if (!isInternalCall) {
         retryMap.delete(key)
       }
-      after(() => {
+
+      const retryFetch = () => {
         if (queryEntry.state.value.status === 'error') {
           const error = queryEntry.state.value.error
           // ensure the entry exists
@@ -112,7 +113,7 @@ export function PiniaColadaRetry(
             entry.timeoutId = setTimeout(() => {
               // NOTE: we could add some default error handler
               isInternalCall = true
-              Promise.resolve(store[name](queryEntry)).catch(
+              Promise.resolve(cache.fetch(queryEntry)).catch(
                 process.env.NODE_ENV !== 'test' ? console.error : () => {},
               )
               isInternalCall = false
@@ -128,7 +129,9 @@ export function PiniaColadaRetry(
           // remove the entry if it worked out to reset it
           retryMap.delete(key)
         }
-      })
+      }
+      onError(retryFetch)
+      after(retryFetch)
     })
   }
 }

@@ -4,6 +4,7 @@ import { useQueryCache } from './query-store'
 import type { EntryKey } from './entry-options'
 import type { ErrorDefault } from './types-extension'
 import { type _Awaitable, type _EmptyObject, noop } from './utils'
+import type { AsyncStatus, DataState, DataStateStatus } from './data-state'
 
 type _MutationKey<TVars> =
   | EntryKey
@@ -17,15 +18,6 @@ type _MutationKey<TVars> =
 type _MutationKeys<TVars, TResult> =
   | EntryKey[]
   | ((data: TResult, vars: TVars) => EntryKey[])
-
-/**
- * The status of the mutation.
- * - `pending`: initial state
- * - `loading`: mutation is being made
- * - `error`: when the last mutation failed
- * - `success`: when the last mutation succeeded
- */
-export type MutationStatus = 'pending' | 'loading' | 'error' | 'success'
 
 /**
  * Removes the nullish types from the context type to make `A & TContext` work instead of yield `never`.
@@ -135,6 +127,22 @@ export interface UseMutationOptions<
 
 export interface UseMutationReturn<TResult, TVars, TError> {
   /**
+   * The combined state of the mutation. Contains its data, error, and status. It enables type narrowing based on the {@link UseMutationReturn.status}.
+   */
+  state: ComputedRef<DataState<TResult, TError>>
+
+  /**
+   * The status of the mutation.
+   * @see {@link DataStateStatus}
+   */
+  status: ShallowRef<DataStateStatus>
+
+  /**
+   * Status of the mutation. Becomes `'loading'` while the query is being fetched, is `'idle'` otherwise.
+   */
+  asyncStatus: ShallowRef<AsyncStatus>
+
+  /**
    * The result of the mutation. `undefined` if the mutation has not been called yet.
    */
   data: ShallowRef<TResult | undefined>
@@ -150,15 +158,9 @@ export interface UseMutationReturn<TResult, TVars, TError> {
   isLoading: ComputedRef<boolean>
 
   /**
-   * The status of the mutation.
-   * @see {@link MutationStatus}
-   */
-  status: ShallowRef<MutationStatus>
-
-  /**
    * Calls the mutation and returns a promise with the result.
    *
-   * @param args - parameters to pass to the mutation
+   * @param vars - parameters to pass to the mutation
    */
   mutateAsync: unknown | void extends TVars
     ? () => Promise<TResult>
@@ -176,9 +178,6 @@ export interface UseMutationReturn<TResult, TVars, TError> {
    */
   reset: () => void
 }
-
-// TODO: it might be worth having multiple UseMutationReturnState:
-// type UseMutationReturn<TResult, TVars, TError> = UseMutationReturnSuccess | UseMutationReturnError | UseMutationReturnLoading
 
 /**
  * Setups a mutation.
@@ -205,7 +204,8 @@ export function useMutation<
   const store = useQueryCache()
 
   // TODO: there could be a mutation store that stores the state based on an optional key (if passed). This would allow to retrieve the state of a mutation with useMutationState(key)
-  const status = shallowRef<MutationStatus>('pending')
+  const status = shallowRef<DataStateStatus>('pending')
+  const asyncStatus = shallowRef<AsyncStatus>('idle')
   const data = shallowRef<TResult>()
   const error = shallowRef<TError | null>(null)
 
@@ -214,7 +214,7 @@ export function useMutation<
 
   let pendingCall: symbol | undefined
   async function mutateAsync(vars: TVars): Promise<TResult> {
-    status.value = 'loading'
+    asyncStatus.value = 'loading'
 
     // TODO: AbortSignal that is aborted when the mutation is called again so we can throw in pending
     let currentData: TResult | undefined
@@ -265,6 +265,7 @@ export function useMutation<
       }
       throw newError
     } finally {
+      asyncStatus.value = 'idle'
       await options.onSettled?.({
         data: currentData,
         error: currentError,
@@ -288,8 +289,9 @@ export function useMutation<
 
   return {
     data,
-    isLoading: computed(() => status.value === 'loading'),
+    isLoading: computed(() => asyncStatus.value === 'loading'),
     status,
+    asyncStatus,
     error,
     // @ts-expect-error: it would be nice to find a type-only refactor that works
     mutate,

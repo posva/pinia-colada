@@ -10,12 +10,13 @@ import {
 
 const route = useRoute('/contacts/[id]')
 
-const { data: contact, state } = useQuery({
+const { data: contact, error, asyncStatus } = useQuery({
   key: () => ['contacts', route.params.id],
   query: ({ signal }) => getContactById(route.params.id, { signal }),
 })
 
 const { mutate: updateContact } = useMutation({
+  // TODO: adapt with plugin
   keys: ({ id }) => [['contacts-search'], ['contacts', id]],
   mutation: (contact: Partial<Contact> & { id: number }) =>
     _updateContact(contact),
@@ -24,6 +25,15 @@ const { mutate: updateContact } = useMutation({
 
 <template>
   <section class="flex-grow pt-6 md:pt-0">
+    <pre>{{ asyncStatus }}</pre>
+    <template v-if="error">
+      <div>Error: {{ error }}</div>
+    </template>
+
+    <template v-if="asyncStatus === 'loading'">
+      <p>Loading...</p>
+    </template>
+
     <ContactCard
       v-if="contact"
       :key="contact.id"
@@ -31,14 +41,4 @@ const { mutate: updateContact } = useMutation({
       @update:contact="updateContact"
     />
   </section>
-
-  <template v-if="state.status === 'pending'">
-    Loading...
-  </template>
-  <template v-else-if="state.status === 'error'">
-    <div>Error: {{ state.error }}</div>
-  </template>
-  <template v-else>
-    <ContactCard :contact="state.data" />
-  </template>
 </template>
