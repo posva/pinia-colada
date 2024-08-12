@@ -2,9 +2,9 @@
 
 Queries handle async state declaratively. They let you focus on the state, its async status and any eventual error. They also automatically dedupe multiple requests and cache results to create a fast user experience.
 
-Queries are meant to **read** data. In terms of REST, for example, queries would handle `GET` requests. If you need to **write** (or mutate) data, you can use [mutations](./mutations.md).
+Queries are meant to **read** data. In terms of REST, for example, queries would handle `GET` requests. If you need to **write** (or mutate) data, use [mutations](./mutations.md).
 
-The API to define a query is the `useQuery` composable:
+Queries can be created with `useQuery()` or [`defineQuery()`](#reusable-queries).
 
 ```vue twoslash
 <script setup lang="ts">
@@ -40,7 +40,7 @@ const { data, status, asyncStatus } = useQuery({
 All queries require two properties:
 
 - A unique `key`. It allows to reuse of any query
-- A `query` function. The actual function to fetch the data (indeed, Pinia Colada does not and is not meant to provide an HTTP client and is therefore agnostic on the way that you fetch the data, the only constraint being that the query function must return a promise)
+- A `query` function. The actual function to fetch the data (indeed, Pinia Colada does not and is not meant to provide an HTTP client and is therefore agnostic on the way that you fetch the data, the only constraint being that the query function **must return a promise**)
 
 `useQuery` accepts other options to configure the query cache (for example, the `staleTime`) or when and how the query should be triggered.
 
@@ -92,7 +92,7 @@ But this implementation has a few drawbacks.
 
 First, the ref `search` can't be shared among components (each new component instance will create a new ref).
 
-Second, in the case where this query in used in several components, there can be a desynchronisation between the `search` ref instanciated in each component and the one used in the query's key. Indeed, the query being registered globally, the `search` ref actually used in the query key will be the one instanciated by the first component calling the query, and will consequently be scoped to this component. Therefore, if the first component is unmounted while the other still lives, the `search` ref used by the query key will not be reactive anymore, breaking the usage.
+Second, in the case where this query in used in several components, there can be a de-synchronization between the `search` ref instantiated in each component and the one used in the query's key. Indeed, the query being registered globally, the `search` ref actually used in the query key will be the one instantiated by the first component calling the query, and will consequently be scoped to this component. Therefore, if the first component is unmounted while the other still lives, the `search` ref used by the query key will not be reactive anymore, breaking the usage.
 
 For all these reasons, Pinia Colada provides an alternative way of defining a query, through the `defineQuery` composable:
 
