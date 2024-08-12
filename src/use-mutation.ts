@@ -257,8 +257,6 @@ export function useMutation<
             store.invalidate(entry)
             // auto refresh of the active queries
             if (entry.active) {
-              // reset any pending request
-              entry.pending = null
               store.fetch(entry)
             }
           }
