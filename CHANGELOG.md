@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [0.8.0](https://github.com/posva/pinia-colada/compare/v0.7.1...v0.8.0) (2024-08-12)
 
+This release contains many breaking changes to improve the library. If you find anything missing, please open a pull request or issue.
+
 ### ⚠ BREAKING CHANGES
 
 - `isFetching` from `useQuery()` is renamed to
