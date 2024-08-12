@@ -3,7 +3,7 @@ import type { ComputedRef, ShallowRef } from 'vue'
 import { useQueryCache } from './query-store'
 import type { EntryKey } from './entry-options'
 import type { ErrorDefault } from './types-extension'
-import { type _Awaitable, noop } from './utils'
+import { type _Awaitable, type _EmptyObject, noop } from './utils'
 
 type _MutationKey<TVars> =
   | EntryKey
@@ -26,12 +26,6 @@ type _MutationKeys<TVars, TResult> =
  * - `success`: when the last mutation succeeded
  */
 export type MutationStatus = 'pending' | 'loading' | 'error' | 'success'
-
-/**
- * To avoid using `{}`
- * @internal
- */
-export interface _EmptyObject {}
 
 /**
  * Removes the nullish types from the context type to make `A & TContext` work instead of yield `never`.

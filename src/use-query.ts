@@ -40,7 +40,7 @@ export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault> {
   state: ComputedRef<DataState<TResult, TError>>
 
   /**
-   * Status of the query. Becomes `'loading'` while the query is being fetched.
+   * Status of the query. Becomes `'loading'` while the query is being fetched, is `'idle'` otherwise.
    */
   asyncStatus: ComputedRef<AsyncStatus>
 

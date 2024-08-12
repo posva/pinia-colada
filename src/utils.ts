@@ -197,3 +197,9 @@ export const setReactiveValue = Object.assign as <T>(
   value: T,
   ...args: T[]
 ) => T
+
+/**
+ * To avoid using `{}`
+ * @internal
+ */
+export interface _EmptyObject {}
