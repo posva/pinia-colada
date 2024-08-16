@@ -22,28 +22,28 @@ We will walk through the two methods. For that, let's take again our Todo List e
 
 ```vue
 <script setup lang="ts">
-  import { ref } from 'vue'
-  import { useMutation } from '@pinia/colada'
+import { ref } from 'vue'
+import { useMutation } from '@pinia/colada'
 
-  interface Todo {
-    id: string
-    description: string
-  }
+interface Todo {
+  id: string
+  description: string
+}
 
-  const props = defineProps<{
-    todo: Todo
-  }>()
+const props = defineProps<{
+  todo: Todo
+}>()
 
-  const isEditing = ref(false)
-  const newDescription = ref('')
+const isEditing = ref(false)
+const newDescription = ref('')
 
-  const { mutate, isLoading } = useMutation({
-    keys: () => [['todos']], // invalidates the `todos` query
-    mutation: () => fetch(`/api/todos/${props.todo.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ description: newDescription }),
-      }),
-  })
+const { mutate, isLoading } = useMutation({
+  keys: () => [['todos']], // invalidates the `todos` query
+  mutation: () => fetch(`/api/todos/${props.todo.id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ description: newDescription }),
+  }),
+})
 </script>
 
 <template>
@@ -74,12 +74,12 @@ import { ref, watch } from 'vue'
 import { useMutation } from '@pinia/colada'
 
 interface Todo {
-    id: string
-    description: string
+  id: string
+  description: string
 }
 
 const props = defineProps<{
-    todo: Todo
+  todo: Todo
 }>()
 
 const isEditing = ref(false)
@@ -92,22 +92,22 @@ watch(() => props.todo, () => {
 })
 
 const { mutate } = useMutation({
-    keys: () => [['todos']],
-    mutation: async () => {
-        await new Promise((res) => setTimeout(res, 2000))
-        return fetch(`/api/todos/${props.todo.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ description: newDescription }),
-        })
-    },
-    onMutate() {
-        // Optimistic update
-        displayedDescription.value = newDescription.value
-    },
-    onError() {
-        // Rollback to the initial state if an error happened
-        displayedDescription.value = props.todo.description
-    },
+  keys: () => [['todos']],
+  mutation: async () => {
+    await new Promise((res) => setTimeout(res, 2000))
+    return fetch(`/api/todos/${props.todo.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ description: newDescription }),
+    })
+  },
+  onMutate() {
+    // Optimistic update
+    displayedDescription.value = newDescription.value
+  },
+  onError() {
+    // Rollback to the initial state if an error happened
+    displayedDescription.value = props.todo.description
+  },
 })
 </script>
 
@@ -136,11 +136,11 @@ import { ref } from 'vue'
 import { useUpdateTodo } from '@/mutations/updateTodos'
 
 interface Todo {
-    id: string
-    description: string
+  id: string
+  description: string
 }
 defineProps<{
-    todo: Todo
+  todo: Todo
 }>()
 
 const { mutate, isLoading } = useUpdateTodo()
@@ -198,37 +198,37 @@ import { defineMutation, useMutation, useQueryCache } from '@pinia/colada'
 import { useTodos } from '@/queries/todos'
 
 export const useCreateTodo = defineMutation(() => {
-    // To update the `todos` query cache
-    const { setQueryData } = useQueryCache()
-    return useMutation({
-        keys: () => [['todos']],
-        mutation: ({ id, description }: { id: string, description: string }) => fetch(`/api/todos/${id}`, {
-            method: 'PATCH',
-            body: JSON.stringify({ description }),
-        }),
-        onMutate: ({ id, description }) => {
-            const { todos } = useTodos()
-            // Copy of the current todo list (for the rollback in case of errors)
-            const initialTodos = [...todos.value]
-            const updatedTodos = todos.value.map((todo) => {
-                if (todo.id === id) {
-                    // Update of the modified Todo
-                    return { ...todo, description }
-                } else {
-                    return todo
-                }
-            })
-            // Updates the `todos` query cache
-            // Note: this does not modify the invalidated status of the query (cf. `keys` option)
-            setQueryData(['todos'], updatedTodos)
-            // The copy of the todos is returned to be available in the `onError` hook
-            return { initialTodos }
-        },
-        onError: ({ initialTodos }) => {
-            // Rollback to the initial state in case of errors
-            setQueryData(['todos'], initialTodos)
+  // To update the `todos` query cache
+  const { setQueryData } = useQueryCache()
+  return useMutation({
+    keys: () => [['todos']],
+    mutation: ({ id, description }: { id: string, description: string }) => fetch(`/api/todos/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ description }),
+    }),
+    onMutate: ({ id, description }) => {
+      const { todos } = useTodos()
+      // Copy of the current todo list (for the rollback in case of errors)
+      const initialTodos = [...todos.value]
+      const updatedTodos = todos.value.map((todo) => {
+        if (todo.id === id) {
+          // Update of the modified Todo
+          return { ...todo, description }
+        } else {
+          return todo
         }
-    })
+      })
+      // Updates the `todos` query cache
+      // Note: this does not modify the invalidated status of the query (cf. `keys` option)
+      setQueryData(['todos'], updatedTodos)
+      // The copy of the todos is returned to be available in the `onError` hook
+      return { initialTodos }
+    },
+    onError: ({ initialTodos }) => {
+      // Rollback to the initial state in case of errors
+      setQueryData(['todos'], initialTodos)
+    }
+  })
 })
 ```
 
