@@ -397,11 +397,9 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
       // TODO: The abort should only happen when the query is out of date, becomes inactive or is manually cancelled
       // entry.pending?.abortController.abort()
 
-      const pendingCall = (entry.pending = {
-        abortController,
-        refreshCall: entry
-          .options!.query({ signal })
-          .then((data) => {
+      const refreshCall = async (entry: UseQueryEntry<TResult, TError>, signal: AbortSignal) => {
+        try {
+          const data = await entry.options!.query({ signal })
             if (pendingCall === entry.pending && !signal.aborted) {
               setQueryState(entry, {
                 data,
@@ -410,8 +408,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
               })
             }
             return entry.state.value
-          })
-          .catch((error) => {
+        } catch (error: any) {
             if (
               pendingCall === entry.pending
               && error
@@ -426,16 +423,22 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
             }
             // TODO: would it make more sense to not resolve here?
             return entry.state.value
-          })
-          .finally(() => {
-            entry.asyncStatus.value = 'idle'
-            if (pendingCall === entry.pending) {
-              entry.pending = null
-              entry.when = Date.now()
-            }
-          }),
+        } finally {
+          entry.asyncStatus.value = 'idle'
+          if (pendingCall === entry.pending) {
+            entry.pending = null
+            entry.when = Date.now()
+          }
+        }
+      }
+
+      const pendingCall = (entry.pending = {
+        abortController,
         when: Date.now(),
+        refreshCall: '' as unknown as Promise<DataState<TResult, TError>>,
       })
+
+      pendingCall.refreshCall = refreshCall(entry, signal)
 
       return pendingCall.refreshCall
     },
