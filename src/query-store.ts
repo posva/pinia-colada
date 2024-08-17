@@ -4,6 +4,7 @@ import {
   type EffectScope,
   type ShallowRef,
   getCurrentScope,
+  markRaw,
   shallowReactive,
   shallowRef,
   toValue,
@@ -611,7 +612,8 @@ export function reviveTreeMap(
   for (const entry of raw) {
     appendToTree(root, entry)
   }
-  return root
+  // NOTE: limitation of pinia: properties are added to `pinia.state.value` which is a `ref` so the class gets deeply checked
+  return markRaw(root)
 }
 
 function appendToTree(
