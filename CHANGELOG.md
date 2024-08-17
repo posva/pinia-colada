@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.8.1](https://github.com/posva/pinia-colada/compare/v0.8.0...v0.8.1) (2024-08-17)
+
+
+### Features
+
+* **ssr:** expose reviveTreeMap ([32b4f17](https://github.com/posva/pinia-colada/commit/32b4f17786dae1ed1c2dbaeeed34e5db0dfe2683))
+
+
+### Bug Fixes
+
+* **ssr:** mark raw tree node in reviver ([4ff13ad](https://github.com/posva/pinia-colada/commit/4ff13addcd0168c7b2f5e4196aff795e0c690b39))
+
 ## [0.8.0](https://github.com/posva/pinia-colada/compare/v0.7.1...v0.8.0) (2024-08-12)
 
 This release contains many breaking changes to improve the library. If you find anything missing, please open a pull request or issue.
