@@ -37,15 +37,17 @@ export {
   type PiniaColadaQueryHooksPluginOptions,
 } from './plugins/query-hooks'
 
-export { useQueryCache, serialize, type UseQueryEntry } from './query-store'
+export {
+  useQueryCache,
+  serializeTreeMap,
+  serialize,
+  reviveTreeMap,
+  type UseQueryEntry,
+} from './query-store'
 
 export { TreeMapNode, type EntryNodeKey } from './tree-map'
 
-export {
-  type _MaybeArray,
-  type _Awaitable,
-  type _EmptyObject,
-} from './utils'
+export { type _MaybeArray, type _Awaitable, type _EmptyObject } from './utils'
 
 export { delayLoadingRef } from './delay-loading'
 

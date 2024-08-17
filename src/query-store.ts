@@ -572,7 +572,7 @@ export type UseQueryEntryNodeSerialized = [
  * @param root - root node of the tree
  * @returns Array representation of the tree
  */
-export function serialize(
+export function serializeTreeMap(
   root: TreeMapNode<UseQueryEntry>,
 ): UseQueryEntryNodeSerialized[] {
   return root.children ? [...root.children.entries()].map(_serialize) : []
@@ -593,9 +593,17 @@ function _serialize([key, tree]: [
   ]
 }
 
-// TODO: rename to revive or similar to better convey the idea of hydrating
+/**
+ * @deprecated Use {@link serializeTreeMap} instead.
+ */
+export const serialize = serializeTreeMap
 
-export function createTreeMap(
+/**
+ * Creates a {@link TreeMapNode} from a serialized array.
+ *
+ * @param raw - array af values created with {@link serializeTreeMap}
+ */
+export function reviveTreeMap(
   raw: UseQueryEntryNodeSerialized[] = [],
 ): TreeMapNode<UseQueryEntry> {
   const root = new TreeMapNode<UseQueryEntry>()
