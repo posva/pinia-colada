@@ -18,7 +18,7 @@
     "@pinia/colada": "workspace:*",
     "@pinia/colada-plugin-debug": "workspace:^",
     "@pinia/colada-plugin-retry": "workspace:^",
-    "@vueuse/core": "^10.11.1",
+    "@vueuse/core": "^11.0.0",
     "@vueuse/integrations": "^10.11.1",
     "@vueuse/router": "^10.11.1",
     "fuse.js": "^7.0.0",
