@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### [0.8.2](https://github.com/posva/pinia-colada/compare/v0.8.1...v0.8.2) (2024-08-21)
 
+Small performance improvements.
+
 ### [0.8.1](https://github.com/posva/pinia-colada/compare/v0.8.0...v0.8.1) (2024-08-17)
 
 ### Features
