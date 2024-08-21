@@ -168,13 +168,16 @@ export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
     },
   )
   const asyncStatus = shallowRef<AsyncStatus>('idle')
-  return {
+  // we markRaw to avoid unnecessary vue traversal
+  return markRaw<UseQueryEntry<TResult, TError>>({
     key,
     state,
     when,
     asyncStatus,
     pending: null,
-    deps: new Set(),
+    // this set can contain components and effects and worsen the performance
+    // and create weird warnings
+    deps: markRaw(new Set()),
     gcTimeout: undefined,
     options: null,
     get stale() {
@@ -183,7 +186,7 @@ export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
     get active() {
       return this.deps.size > 0
     },
-  }
+  })
 }
 
 /**
