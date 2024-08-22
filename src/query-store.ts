@@ -3,6 +3,7 @@ import {
   type ComponentInternalInstance,
   type EffectScope,
   type ShallowRef,
+  getCurrentInstance,
   getCurrentScope,
   markRaw,
   shallowReactive,
@@ -84,6 +85,16 @@ export interface UseQueryEntry<TResult = unknown, TError = unknown> {
    * Whether the query is currently being used by a Component or EffectScope (e.g. a store).
    */
   readonly active: boolean
+
+  /**
+   * Component `__hmrId` to track wrong usage of `useQuery` and warn the user.
+   * @internal
+   */
+  __hmr?: {
+    id?: string
+    deps?: Set<EffectScope | ComponentInternalInstance>
+    skip?: boolean
+  }
 }
 
 /**
@@ -335,7 +346,24 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
         )
       }
 
-      // during HMR, the options might change, so it's better to always update them
+      // warn against using the same key for different functions
+      // this only applies outside of HMR since during HMR, the `useQuery()` will be called
+      // when remounting the component and it's essential to update the options.
+      // in other scenarios, it's a mistake
+      if (process.env.NODE_ENV !== 'production') {
+        const currentInstance = getCurrentInstance()
+        if (currentInstance) {
+          entry.__hmr ??= {}
+
+          entry.__hmr.deps ??= new Set()
+          entry.__hmr.id
+            // @ts-expect-error: internal property
+            = currentInstance.type.__hmrId
+        }
+      }
+
+      // technically we don't need to set this every time but it's shorter than entry.options ??= options and the check
+      // in useQuery already catches possible problems
       entry.options = options
 
       // if this query was defined within a defineQuery call, add it to the list

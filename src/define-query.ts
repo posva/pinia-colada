@@ -75,6 +75,7 @@ export function defineQuery(
     = typeof optionsOrSetup === 'function'
       ? optionsOrSetup
       : () => useQuery(optionsOrSetup)
+
   return () => {
     const store = useQueryCache()
     // preserve any current effect to account for nested usage of these functions
@@ -88,6 +89,10 @@ export function defineQuery(
     if (currentScope) {
       entries.forEach((entry) => {
         queryEntry_addDep(entry, currentScope)
+        if (process.env.NODE_ENV !== 'production') {
+          entry.__hmr ??= {}
+          entry.__hmr.skip = true
+        }
       })
       onScopeDispose(() => {
         entries.forEach((entry) => {

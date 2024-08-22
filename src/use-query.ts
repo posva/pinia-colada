@@ -11,6 +11,7 @@ import {
   watch,
 } from 'vue'
 import { IS_CLIENT, useEventListener } from './utils'
+import type { UseQueryEntry } from './query-store'
 import {
   queryEntry_addDep,
   queryEntry_removeDep,
@@ -24,11 +25,7 @@ import type {
 } from './query-options'
 import type { ErrorDefault } from './types-extension'
 import { getCurrentDefineQueryEffect } from './define-query'
-import type {
-  AsyncStatus,
-  DataState,
-  DataStateStatus,
-} from './data-state'
+import type { AsyncStatus, DataState, DataStateStatus } from './data-state'
 
 /**
  * Return type of `useQuery()`.
@@ -103,9 +100,46 @@ export function useQuery<TResult, TError = ErrorDefault>(
   // TODO:
   // allows warning against potentially wrong usage
   // const keyGetter
-  //   = process.env.NODE_DEV !== 'production'
+  //   = process.env.NODE_ENV !== 'production'
   //     ? computedKeyWithWarnings(options.key, store.warnChecksMap!)
   //     : options.key
+
+  // warn against using the same key for different functions
+  // this only applies outside of HMR since during HMR, the `useQuery()` will be called
+  // when remounting the component and it's essential to update the options.
+  // in other scenarios, it's a mistake
+  if (process.env.NODE_ENV !== 'production') {
+    const currentInstance = getCurrentInstance()
+    if (currentInstance) {
+      const entry: UseQueryEntry | undefined = cacheEntries.getEntries({
+        exact: true,
+        key: toValue(options.key),
+      })[0]
+      const currentQueryFn = entry?.options?.query
+
+      onMounted(() => {
+        // if this entry existed before and we are not doing HMR, the user is probably using the same key in different
+        // places with the same query
+        if (
+          // the query function is different
+          currentQueryFn != null
+          && entry.options != null
+          && currentQueryFn !== options.query
+          // skip definedQuery and let them check on their own
+          && !entry?.__hmr?.skip
+          // we are not in HMR, so this update comes from a different component
+          && (!('__hmrId' in currentInstance.type)
+            || currentInstance.type.__hmrId !== entry.__hmr?.id
+            // it comes from the same component but duplicated, maybe data loaders + useQuery
+            || entry.deps.has(currentInstance))
+        ) {
+          console.warn(
+            `The same query key [${entry.key.join(', ')}] was used with different query functions. This might lead to unexpected behavior.`,
+          )
+        }
+      })
+    }
+  }
 
   const entry = computed(() => cacheEntries.ensure<TResult, TError>(options))
 

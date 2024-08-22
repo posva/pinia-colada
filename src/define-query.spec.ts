@@ -6,9 +6,10 @@ import { createApp, defineComponent, effectScope, ref } from 'vue'
 import { defineQuery } from './define-query'
 import { useQuery } from './use-query'
 import type { UseQueryOptions } from './query-options'
-import type { GlobalMountOptions } from '../test/utils'
+import { type GlobalMountOptions, isSpy } from '../test/utils'
 import { useQueryCache } from './query-store'
 import { PiniaColada } from './pinia-colada'
+import { mockWarn } from '../test/mock-warn'
 
 describe('defineQuery', () => {
   beforeEach(() => {
@@ -19,6 +20,7 @@ describe('defineQuery', () => {
   })
 
   enableAutoUnmount(afterEach)
+  mockWarn()
 
   it('reuses the query in multiple places', async () => {
     const useTodoList = defineQuery({
@@ -33,7 +35,7 @@ describe('defineQuery', () => {
           returnedValues = useTodoList()
           return { ...returnedValues }
         },
-        template: `<div></div>`,
+        render: () => null,
       },
       {
         global: {
@@ -307,10 +309,10 @@ describe('defineQuery', () => {
         mountOptions?: GlobalMountOptions,
       ) {
         const queryFunction = options.query
-          ? vi.fn(options.query)
-          : vi.fn(async () => {
-              return 'todos'
-            })
+          ? isSpy(options.query)
+            ? options.query
+            : vi.fn(options.query)
+          : vi.fn(async () => 'todos')
         const useTodoList = defineQuery(() => {
           const query = useQuery({
             key: ['todos'],
@@ -360,7 +362,13 @@ describe('defineQuery', () => {
 
       it('keeps the cache if the query is reused by a new component before the delay', async () => {
         const pinia = createPinia()
-        const w1 = mountSimple({ gcTime: 1000 }, { plugins: [pinia] })
+        const query = vi.fn(async () => 'todos')
+        const options = {
+          key: ['todos'],
+          query,
+          gcTime: 1000,
+        } satisfies UseQueryOptions<string>
+        const w1 = mountSimple(options, { plugins: [pinia] })
         await flushPromises()
 
         const cache = useQueryCache()
@@ -372,7 +380,7 @@ describe('defineQuery', () => {
         expect(cache.getQueryData(['todos'])).toBe('todos')
 
         // create new component
-        const w2 = mountSimple({}, { plugins: [pinia] })
+        const w2 = mountSimple(options, { plugins: [pinia] })
 
         await vi.advanceTimersByTime(1)
         // still there

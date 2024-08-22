@@ -31,21 +31,22 @@ describe('useQuery', () => {
     mountOptions?: GlobalMountOptions,
   ) {
     const query = options.query
-      ? vi.fn(options.query)
-      : vi.fn(async () => {
-          return 42
-        })
+      ? isSpy(options.query)
+        ? options.query
+        : vi.fn(options.query)
+      : vi.fn(async () => 42)
     const wrapper = mount(
       defineComponent({
         render: () => null,
         setup() {
+          const useQueryResult = useQuery<TResult, TError>({
+            key: ['key'],
+            ...options,
+            // @ts-expect-error: generic unmatched but types work
+            query,
+          })
           return {
-            ...useQuery<TResult, TError>({
-              key: ['key'],
-              ...options,
-              // @ts-expect-error: generic unmatched but types work
-              query,
-            }),
+            ...useQueryResult,
           }
         },
       }),
@@ -143,19 +144,24 @@ describe('useQuery', () => {
 
     it('new mount does not fetch if staleTime is not elapsed', async () => {
       const pinia = createPinia()
-      const [w1, f1] = mountSimple({ staleTime: 1000 }, { plugins: [pinia] })
+      const query = vi.fn().mockResolvedValue(42)
+      const options = {
+        key: ['id'],
+        query,
+        staleTime: 1000,
+      } satisfies UseQueryOptions
+      const [w1] = mountSimple(options, { plugins: [pinia] })
 
       await flushPromises()
 
       // should not trigger a new fetch because staleTime has not passed
       vi.advanceTimersByTime(500)
 
-      const [w2, f2] = mountSimple({ staleTime: 1000 }, { plugins: [pinia] })
+      const [w2] = mountSimple(options, { plugins: [pinia] })
 
       await flushPromises()
 
-      expect(f1).toHaveBeenCalledTimes(1)
-      expect(f2).toHaveBeenCalledTimes(0)
+      expect(query).toHaveBeenCalledTimes(1)
       expect(w1.vm.data).toBe(42)
       expect(w2.vm.data).toBe(42)
     })
@@ -195,15 +201,20 @@ describe('useQuery', () => {
 
     it('new mount reuses a pending request even if the staleTime has been elapsed', async () => {
       const pinia = createPinia()
-      const [w1, f1] = mountSimple({ staleTime: 0 }, { plugins: [pinia] })
+      const query = vi.fn().mockResolvedValue(42)
+      const options = {
+        key: ['id'],
+        query,
+        staleTime: 0,
+      } satisfies UseQueryOptions
+      const [w1] = mountSimple(options, { plugins: [pinia] })
       // should not trigger a new fetch because staleTime has not passed
       vi.advanceTimersByTime(10)
-      const [w2, f2] = mountSimple({ staleTime: 0 }, { plugins: [pinia] })
+      const [w2] = mountSimple(options, { plugins: [pinia] })
 
       await flushPromises()
 
-      expect(f1).toHaveBeenCalledTimes(1)
-      expect(f2).toHaveBeenCalledTimes(0)
+      expect(query).toHaveBeenCalledTimes(1)
       expect(w1.vm.data).toBe(42)
       expect(w2.vm.data).toBe(42)
     })
@@ -273,7 +284,13 @@ describe('useQuery', () => {
 
     it('keeps the cache if the query is reused by a new component before the delay', async () => {
       const pinia = createPinia()
-      const [w1] = mountSimple({ gcTime: 1000 }, { plugins: [pinia] })
+      const query = vi.fn().mockResolvedValue(42)
+      const options = {
+        key: ['key'],
+        query,
+        gcTime: 1000,
+      } satisfies UseQueryOptions
+      const [w1] = mountSimple(options, { plugins: [pinia] })
       const cache = useQueryCache()
 
       await flushPromises()
@@ -281,7 +298,7 @@ describe('useQuery', () => {
       expect(cache.getQueryData(['key'])).toBe(42)
       w1.unmount()
       await vi.advanceTimersByTime(999)
-      const [w2] = mountSimple({ gcTime: 1000 }, { plugins: [pinia] })
+      const [w2] = mountSimple(options, { plugins: [pinia] })
       // still there
       await vi.advanceTimersByTime(1)
       expect(cache.getQueryData(['key'])).toBe(42)
@@ -474,11 +491,16 @@ describe('useQuery', () => {
     it('does not refresh by default when mounting a new component that uses the same key', async () => {
       const pinia = createPinia()
       const query = vi.fn().mockResolvedValue({ id: 0, when: Date.now() })
-      mountDynamicKey({ initialId: 0, query }, { plugins: [pinia] })
+      const options = {
+        key: ['id'],
+        query,
+        initialId: 0,
+      } satisfies UseQueryOptions & { initialId: number }
+      mountDynamicKey(options, { plugins: [pinia] })
       await flushPromises()
       expect(query).toHaveBeenCalledTimes(1)
 
-      mountDynamicKey({ initialId: 0 }, { plugins: [pinia] })
+      mountDynamicKey(options, { plugins: [pinia] })
       await flushPromises()
       // not called because data is fresh
       expect(query).toHaveBeenCalledTimes(1)
@@ -604,8 +626,9 @@ describe('useQuery', () => {
   describe('shared state', () => {
     it('reuses the same state for the same key', async () => {
       const pinia = createPinia()
-      mountSimple({ key: ['todos'] }, { plugins: [pinia] })
-      mountSimple({ key: ['todos'] }, { plugins: [pinia] })
+      const query = vi.fn().mockResolvedValue(42)
+      mountSimple({ key: ['todos'], query }, { plugins: [pinia] })
+      mountSimple({ key: ['todos'], query }, { plugins: [pinia] })
       await flushPromises()
 
       const cacheClient = useQueryCache()
@@ -629,16 +652,17 @@ describe('useQuery', () => {
 
     it('order in object keys does not matter', async () => {
       const pinia = createPinia()
+      const query = vi.fn().mockResolvedValue(42)
       mountSimple(
-        { key: ['todos', { id: 5, a: true, b: 'hello' }] },
+        { key: ['todos', { id: 5, a: true, b: 'hello' }], query },
         { plugins: [pinia] },
       )
       mountSimple(
-        { key: ['todos', { a: true, id: 5, b: 'hello' }] },
+        { key: ['todos', { a: true, id: 5, b: 'hello' }], query },
         { plugins: [pinia] },
       )
       mountSimple(
-        { key: ['todos', { id: 5, a: true, b: 'hello' }] },
+        { key: ['todos', { id: 5, a: true, b: 'hello' }], query },
         { plugins: [pinia] },
       )
       await flushPromises()
@@ -782,5 +806,73 @@ describe('useQuery', () => {
     )
 
     it.todo('can safelist other global properties not to warn')
+
+    it('warns if the same key is used with different options while mounting different components', async () => {
+      const pinia = createPinia()
+      mountSimple(
+        { key: ['id'], query: async () => 24 },
+        {
+          plugins: [pinia],
+        },
+      )
+      mountSimple(
+        { key: ['id'], query: async () => 42 },
+        {
+          plugins: [pinia],
+        },
+      )
+
+      await flushPromises()
+
+      expect(
+        /The same query key \[id\] was used with different query functions/,
+      ).toHaveBeenWarned()
+    })
+
+    // this is for data loaders
+    it('warns if the same key is used twice with different functions in the same component', async () => {
+      const pinia = createPinia()
+      mount(
+        defineComponent({
+          render: () => null,
+          __hmrId: 'some-id',
+          setup() {
+            // wrong usage
+            useQuery({ key: ['id'], query: async () => 42 })
+            useQuery({ key: ['id'], query: async () => 42 })
+            return {}
+          },
+        }),
+        {
+          global: {
+            plugins: [pinia, PiniaColada],
+          },
+        },
+      )
+
+      await flushPromises()
+
+      expect(
+        /The same query key \[id\] was used with different query functions/,
+      ).toHaveBeenWarned()
+    })
+
+    it('does not warn if the same key is used during HMR', async () => {
+      const component = defineComponent({
+        render: () => null,
+        setup() {
+          useQuery({ key: ['id'], query: async () => 42 })
+          return {}
+        },
+        // to simulate HMR
+        __hmrId: 'some-id',
+      })
+
+      const pinia = createPinia()
+      mount(component, { global: { plugins: [pinia, PiniaColada] } })
+      mount(component, { global: { plugins: [pinia, PiniaColada] } })
+      await flushPromises()
+      // No warnings!
+    })
   })
 })
