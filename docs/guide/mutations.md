@@ -1,6 +1,6 @@
 # Mutations
 
-Mutations alllow us to trigger and track the status of an async operation meant to have side effects. While [queries](./queries.md) are meant to **read** data, mutations are meant to **write** data. In terms of REST, queries handle `GET` requests and mutations handle `POST`, `PUT`, `PATCH`, and `DELETE` requests (without limiting you to do so).
+Mutations allow us to trigger and track the status of an async operation meant to have side effects. While [queries](./queries.md) are meant to **read** data, mutations are meant to **write** data. In terms of REST, queries handle `GET` requests and mutations handle `POST`, `PUT`, `PATCH`, and `DELETE` requests (without limiting you to do so).
 
 Similarly to queries, mutations are defined with the `useMutation()` composable:
 
