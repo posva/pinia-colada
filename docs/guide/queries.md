@@ -92,7 +92,7 @@ But this implementation has a few drawbacks.
 
 First, the ref `search` can't be shared among components (each new component instance will create a new ref).
 
-Second, in the case where this query in used in several components, there can be a de-synchronization between the `search` ref instantiated in each component and the one used in the query's key. Indeed, the query being registered globally, the `search` ref actually used in the query key will be the one instantiated by the first component calling the query, and will consequently be scoped to this component. Therefore, if the first component is unmounted while the other still lives, the `search` ref used by the query key will not be reactive anymore, breaking the usage.
+Second, in the case where this query in used in several components, there can be a de-synchronization between the `search` ref instantiated in each component and the one used in the query's key. Indeed, the query being registered globally, the `search` ref actually used in the query key will be the one instantiated by the first component calling the query, and will consequently be scoped to this component. Therefore, if the first component is unmounted while the other still lives, the `search` ref used by the query key **will not be reactive anymore**, breaking the usage.
 
 For all these reasons, Pinia Colada provides an alternative way of defining a query, through the `defineQuery` composable:
 

@@ -134,7 +134,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
             || entry.deps.has(currentInstance))
         ) {
           console.warn(
-            `The same query key [${entry.key.join(', ')}] was used with different query functions. This might lead to unexpected behavior.`,
+            `The same query key [${entry.key.join(', ')}] was used with different query functions. This might lead to unexpected behavior.\nSee https://pinia-colada.esm.dev/guide/queries.html#Reusable-Queries for more information.`,
           )
         }
       })
