@@ -11,6 +11,10 @@
         <RouterLink to="/contacts">
           Contacts
         </RouterLink>
+        |
+        <RouterLink to="/warnings">
+          Warnings
+        </RouterLink>
       </nav>
     </div>
   </header>

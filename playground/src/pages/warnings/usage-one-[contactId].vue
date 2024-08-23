@@ -8,11 +8,11 @@ import {
   getContactById,
 } from '@/api/contacts'
 
-const route = useRoute('/contacts/[id]')
+const route = useRoute('/warnings/usage-one-[contactId]')
 
 const { data: contact, error, asyncStatus } = useQuery({
-  key: () => ['contacts', route.params.id],
-  query: ({ signal }) => getContactById(route.params.id, { signal }),
+  key: () => ['contacts', route.params.contactId],
+  query: ({ signal }) => getContactById(route.params.contactId, { signal }),
 })
 
 const { mutate: updateContact } = useMutation({
@@ -24,9 +24,10 @@ const { mutate: updateContact } = useMutation({
 </script>
 
 <template>
-  <RouterLink :to="{ name: '/contacts/wrong-[id]' }">
-    Go to other page check
+  <RouterLink :to="{ name: '/warnings/usage-two-[contactId]' }">
+    Go to other page
   </RouterLink>
+
   <section class="flex-grow pt-6 md:pt-0">
     <pre>{{ asyncStatus }}</pre>
     <template v-if="error">

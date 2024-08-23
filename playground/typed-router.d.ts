@@ -23,5 +23,9 @@ declare module 'vue-router/auto-routes' {
     '/contacts/[id]': RouteRecordInfo<'/contacts/[id]', '/contacts/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/ecom/': RouteRecordInfo<'/ecom/', '/ecom', Record<never, never>, Record<never, never>>,
     '/ecom/item/[id]': RouteRecordInfo<'/ecom/item/[id]', '/ecom/item/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    '/warnings/': RouteRecordInfo<'/warnings/', '/warnings', Record<never, never>, Record<never, never>>,
+    '/warnings/duped-[contactId]': RouteRecordInfo<'/warnings/duped-[contactId]', '/warnings/duped-:contactId', { contactId: ParamValue<true> }, { contactId: ParamValue<false> }>,
+    '/warnings/usage-one-[contactId]': RouteRecordInfo<'/warnings/usage-one-[contactId]', '/warnings/usage-one-:contactId', { contactId: ParamValue<true> }, { contactId: ParamValue<false> }>,
+    '/warnings/usage-two-[contactId]': RouteRecordInfo<'/warnings/usage-two-[contactId]', '/warnings/usage-two-:contactId', { contactId: ParamValue<true> }, { contactId: ParamValue<false> }>,
   }
 }

@@ -40,7 +40,7 @@ const debugData = useDebugData()
           >
           <!-- NOTE: ensure no fetch is done on client while hydrating or this will cause
            a Hydration mismatch -->
-          <div v-if="asyncStatus === 'running'">
+          <div v-if="asyncStatus === 'loading'">
             <span class="spinner" /><span> Fetching...</span>
           </div>
         </form>
