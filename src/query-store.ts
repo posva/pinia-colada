@@ -446,7 +446,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
           .options!.query({ signal })
           .then((data) => {
             if (pendingCall === entry.pending && !signal.aborted) {
-              setQueryState(entry, {
+              setEntryState(entry, {
                 data,
                 error: null,
                 status: 'success',
@@ -460,7 +460,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
               && error
               && (error.name !== 'AbortError' || error === signal.reason)
             ) {
-              setQueryState(entry, {
+              setEntryState(entry, {
                 data: entry.state.value.data,
                 error,
                 status: 'error',
@@ -497,7 +497,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
    * Sets the state of a query entry in the cache. This action is called every time the cache state changes and can be
    * used by plugins to detect changes.
    */
-  const setQueryState = action(
+  const setEntryState = action(
     <TResult, TError>(
       entry: UseQueryEntry<TResult, TError>,
       state: DataState<TResult, TError>,
@@ -522,8 +522,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
       // FIXME: it should create the entry if it doesn't exist
       if (!entry) return
 
-      // FIXME: rename to setEntryState
-      setQueryState(entry, {
+      setEntryState(entry, {
         // if we don't cast, this is not technically correct
         // the user is responsible for setting the data
         ...(entry.state.value as DataState_Success<TResult>),
@@ -563,7 +562,6 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
     //     : undefined,
 
     ensureDefinedQuery,
-    setQueryState,
     setQueryData,
     getQueryData,
     cancelQuery,
@@ -576,6 +574,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
     refresh,
     ensure,
     remove,
+    setEntryState,
     getEntries,
   }
 })
