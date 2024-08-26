@@ -8,10 +8,11 @@ The simplest way to implement optimistic updates is to update the UI directly wh
 
 When a mutation lives close to the query it updates, it is possible to show the pending changes directly in the UI that displays a query:
 
-```vue{12-18,33-35}
+```vue{12-18,33-35} twoslash
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
+import { getTodoList, createTodo } from './api/todos'
 
 const { data: todoList } = useQuery({
   key: ['todos'],
@@ -21,7 +22,7 @@ const { data: todoList } = useQuery({
 const newTodoText = ref('')
 const queryCache = useQueryCache()
 const { mutate, isLoading, variables: newTodo } = useMutation({
-  mutation: (text: string) => addTodo(text),
+  mutation: (text: string) => createTodo(text),
   async onSettled() {
     // Invalidate the query to refetch the new data
     await queryCache.invalidateQueries({ key: ['todos'] })
@@ -37,8 +38,8 @@ const { mutate, isLoading, variables: newTodo } = useMutation({
     </button>
   </form>
 
-  <ul>
-    <li v-for="todo in todoList.value" :key="todo.id">
+  <ul v-if="todoList">
+    <li v-for="todo in todoList" :key="todo.id">
       {{ todo.text }}
     </li>
     <li v-if="isLoading">
@@ -60,8 +61,9 @@ When doing this, it's important to remember to invalidate the query after the mu
 
 When the mutation is not collocated with the query it updates, you can still use the mutation state next to the query. In this case, **you must specify a key for the mutation** so it can be referenced by `useMutationState()`:
 
-```ts
+```ts twoslash
 import { useMutation, useQueryCache } from '@pinia/colada'
+import { createTodo } from './api/todos'
 
 const queryCache = useQueryCache()
 const {
@@ -69,8 +71,8 @@ const {
   isLoading,
   variables: newTodo,
 } = useMutation({
-  key: ['addTodo'],
-  mutation: (text: string) => addTodo(text),
+  key: ['createTodo'],
+  mutation: (text: string) => createTodo(text),
   onSettled: () => queryCache.invalidateQueries({ key: ['todos'] }),
 })
 ```
@@ -79,6 +81,7 @@ Then, you can use `useMutationState()` to access the mutation state in another c
 
 ```ts
 import { useMutationState, useQuery } from '@pinia/colada'
+import { getTodoList } from './api/todos'
 
 const { data: todoList } = useQuery({
   key: ['todos'],
@@ -86,7 +89,7 @@ const { data: todoList } = useQuery({
 })
 
 const { isLoading, variables: newTodo } = useMutationState({
-  key: ['addTodo'],
+  key: ['createTodo'],
 })
 ```
 
@@ -96,17 +99,18 @@ If the mutation affects state being used in multiple places, it might not be con
 
 We can achieve this by only touching the `useMutation()` code:
 
-```ts
+```ts twoslash
 import { useMutation, useQueryCache } from '@pinia/colada'
+import { type TodoItem, createTodo } from './api/todos'
 
 const queryCache = useQueryCache()
 const { mutate } = useMutation({
-  mutation: (text: string) => addTodo(text),
+  mutation: (text: string) => createTodo(text),
   onMutate: (text: string) => {
     // save the current todo list
-    const todoList = queryCache.getQueryData(['todos'])
+    const todoList: TodoItem[] | undefined = queryCache.getQueryData(['todos'])
     // optimistic update the cache
-    queryCache.setQueryData(['todos'], [...todoList, { text }])
+    queryCache.setQueryData(['todos'], [...(todoList || []), { text }])
     // return the current todo list to be used in case of errors
     return { todoList }
   },

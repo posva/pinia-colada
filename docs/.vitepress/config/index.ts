@@ -64,6 +64,10 @@ export default defineConfig({
           extraFiles: {
             ...extraFiles,
             'mutations/todos.ts': mutations_todos,
+            'api/todos.ts': fs.readFileSync(
+              path.join(__dirname, '../code-snippets/api/todos.ts'),
+              'utf-8',
+            ),
           },
         },
       }),
