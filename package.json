@@ -2,7 +2,7 @@
   "name": "@pinia/colada",
   "type": "module",
   "version": "0.9.0",
-  "packageManager": "pnpm@9.7.0",
+  "packageManager": "pnpm@9.9.0",
   "description": "The smart data fetching layer for Pinia",
   "publishConfig": {
     "access": "public"
@@ -99,7 +99,7 @@
     }
   ],
   "devDependencies": {
-    "@antfu/eslint-config": "^2.27.1",
+    "@antfu/eslint-config": "^2.27.2",
     "@pinia/colada": "workspace:*",
     "@shikijs/vitepress-twoslash": "^1.14.1",
     "@size-limit/preset-small-lib": "^11.1.4",
