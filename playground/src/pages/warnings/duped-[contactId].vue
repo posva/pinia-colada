@@ -2,7 +2,6 @@
 import { useRoute } from 'vue-router/auto'
 import { useQuery } from '@pinia/colada'
 import {
-  updateContact as _updateContact,
   getContactById,
 } from '@/api/contacts'
 
