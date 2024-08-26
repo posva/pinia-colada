@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.9.0](https://github.com/posva/pinia-colada/compare/v0.8.2...v0.9.0) (2024-08-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* **query-cache:** To better match the arguments, the `setQueryState`
+action has been renamed to `setEntryState`.
+
+### Features
+
+* **mutations:** add variables ([2e03a93](https://github.com/posva/pinia-colada/commit/2e03a93ad055385b08cf78f3d1f58fd9055be103))
+* **query-cache:** Rename `setQueryState` to `setEntryState` ([f481eb0](https://github.com/posva/pinia-colada/commit/f481eb00ed4641e7698313fd3e8d8e05c7f384fa))
+* **warn:** warn about reused keys ([7375a19](https://github.com/posva/pinia-colada/commit/7375a193bb850c877644b175135bc4c4f9bb3072))
+
 ### [0.8.2](https://github.com/posva/pinia-colada/compare/v0.8.1...v0.8.2) (2024-08-21)
 
 Small performance improvements.
