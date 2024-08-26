@@ -54,7 +54,6 @@ const {
   // when using multiple queries in the same component,
   // it is convenient to rename `data`
   data: productList,
-  status,
   asyncStatus,
   error,
 } = useQuery({
@@ -99,7 +98,6 @@ const route = useRoute()
 
 const {
   data: product,
-  status,
   asyncStatus,
   error,
 } = useQuery({
@@ -144,9 +142,9 @@ const props = defineProps<{ contact: Contact }>()
 
 const {
   // we use the async version of the mutation so ContactDetail
-  // can use the async status to disable a form
+  // can use the asyncStatus to disable a form
   mutateAsync,
-  status,
+  asyncStatus,
   error,
 } = useMutation({
   key: (contact) => ['contacts', contact.id],
@@ -156,7 +154,7 @@ const {
 
 <template>
   <main>
-    <LoadingIndicator v-if="status === 'loading'" />
+    <LoadingIndicator v-if="asyncStatus === 'loading'" />
 
     <div v-if="error">
       <ErrorMessage :error="error" />

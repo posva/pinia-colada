@@ -9,7 +9,7 @@ Similarly to queries, mutations are defined with the `useMutation()` composable:
 import { ref } from 'vue'
 import { useMutation } from '@pinia/colada'
 
-const { mutate, status } = useMutation({
+const { mutate, status, asyncStatus } = useMutation({
   mutation: (todoText: string) =>
     fetch('/api/todos', {
       method: 'POST',
@@ -26,7 +26,7 @@ function createTodo() {
 <template>
   <form @submit.prevent="createTodo()">
     <input v-model="todoText">
-    <button :disabled="status === 'loading'">
+    <button :disabled="asyncStatus === 'loading'">
       Add todo
     </button>
   </form>
@@ -68,7 +68,7 @@ export const useCreateTodo = defineMutation(() => {
 import { ref } from 'vue'
 import { useCreateTodo } from './mutations/todos'
 
-const { createTodo, status } = useCreateTodo()
+const { createTodo, status, asyncStatus } = useCreateTodo()
 // FIXME: should be part of useCreateTodo
 const todoText = ref('')
 </script>
@@ -76,7 +76,7 @@ const todoText = ref('')
 <template>
   <form @submit.prevent="() => {}">
     <input v-model="todoText">
-    <button :disabled="status === 'loading'">
+    <button :disabled="asyncStatus === 'loading'">
       Add todo
     </button>
   </form>

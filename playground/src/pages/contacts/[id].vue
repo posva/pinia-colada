@@ -24,9 +24,6 @@ const { mutate: updateContact } = useMutation({
 </script>
 
 <template>
-  <RouterLink :to="{ name: '/contacts/wrong-[id]' }">
-    Go to other page check
-  </RouterLink>
   <section class="flex-grow pt-6 md:pt-0">
     <pre>{{ asyncStatus }}</pre>
     <template v-if="error">

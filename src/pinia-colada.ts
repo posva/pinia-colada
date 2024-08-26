@@ -57,9 +57,6 @@ export interface PiniaColadaOptions
  *
  * @param app - Vue App
  * @param options - Pinia Colada options
- * @param options.pinia - Pinia instance to use. This is only needed if installing before the Pinia plugin.
- * @param options.query - Query plugin options
- * @param options.plugins - Pinia Colada plugins to install.
  */
 export function PiniaColada(app: App, options: PiniaColadaOptions = {}) {
   const {
