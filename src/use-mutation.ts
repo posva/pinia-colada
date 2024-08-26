@@ -1,10 +1,11 @@
-import { computed, shallowRef } from 'vue'
 import type { ComputedRef, ShallowRef } from 'vue'
-import { useQueryCache } from './query-store'
+import { computed, ref, shallowRef } from 'vue'
+import type { AsyncStatus, DataStateStatus } from './data-state'
 import type { EntryKey } from './entry-options'
+import { type UseMutationEntry, type UseMutationOptionsWithKey, createMutationEntry, useMutationCache } from './mutation-store'
+import { useQueryCache } from './query-store'
 import type { ErrorDefault } from './types-extension'
 import { type _Awaitable, type _EmptyObject, noop } from './utils'
-import type { AsyncStatus, DataState, DataStateStatus } from './data-state'
 
 type _MutationKey<TVars> =
   | EntryKey
@@ -126,10 +127,6 @@ export interface UseMutationOptions<
 // export const USE_MUTATIONS_DEFAULTS = {} satisfies Partial<UseMutationsOptions>
 
 export interface UseMutationReturn<TResult, TVars, TError> {
-  /**
-   * The combined state of the mutation. Contains its data, error, and status. It enables type narrowing based on the {@link UseMutationReturn.status}.
-   */
-  state: ComputedRef<DataState<TResult, TError>>
 
   /**
    * The status of the mutation.
@@ -206,21 +203,42 @@ export function useMutation<
 >(
   options: UseMutationOptions<TResult, TVars, TError, TContext>,
 ): UseMutationReturn<TResult, TVars, TError> {
-  const store = useQueryCache()
-
-  // TODO: there could be a mutation store that stores the state based on an optional key (if passed). This would allow to retrieve the state of a mutation with useMutationState(key)
-  const status = shallowRef<DataStateStatus>('pending')
-  const asyncStatus = shallowRef<AsyncStatus>('idle')
-  const data = shallowRef<TResult>()
-  const error = shallowRef<TError | null>(null)
+  const queryStore = useQueryCache()
+  const cacheEntries = useMutationCache()
   const variables = shallowRef<TVars>()
+  const key = ref<EntryKey>()
+  const entry = computed(() => {
+    if (!key.value) {
+      return createMutationEntry<TResult, TError>()
+    } else {
+      return cacheEntries.ensure<TResult, TError>({ ...options, key } as unknown as UseMutationOptionsWithKey<TResult, TError>)
+    }
+  })
+  // let entry: UseMutationEntry<any, any> | undefined
+  const mutationReturn: UseMutationReturn<TResult, TVars, TError> = {
+    status: computed(() => entry.value.status.value),
+    data: computed(() => entry.value.data.value),
+    isLoading: computed(() => entry.value.asyncStatus.value === 'loading'),
+    error: computed(() => entry.value.error.value as TError | null),
+    asyncStatus: computed(() => entry.value.asyncStatus.value),
+    variables,
+    // @ts-expect-error: `mutate` arguments conditional typing
+    mutate,
+    // @ts-expect-error: `mutate` arguments conditional typing
+    mutateAsync,
+    reset,
+  }
 
   // a pending promise allows us to discard previous ongoing requests
   // let pendingPromise: Promise<TResult> | null = null
 
   let pendingCall: symbol | undefined
   async function mutateAsync(vars: TVars): Promise<TResult> {
-    asyncStatus.value = 'loading'
+    if (options.key) {
+      key.value = typeof options?.key === 'function' ? options.key(vars as TVars) : options.key
+      return await cacheEntries.mutateAsync<TResult, TVars, TError, TContext>(entry.value as UseMutationEntry<TResult, TVars, TError, TContext>, vars)
+    }
+    entry.value.asyncStatus.value = 'loading'
     variables.value = vars
 
     // TODO: AbortSignal that is aborted when the mutation is called again so we can throw in pending
@@ -241,24 +259,24 @@ export function useMutation<
       await options.onSuccess?.({ data: newData, vars, ...context })
 
       if (pendingCall === currentCall) {
-        data.value = newData
-        error.value = null
-        status.value = 'success'
+        entry.value.data.value = newData
+        entry.value.error.value = null
+        entry.value.status.value = 'success'
 
         // TODO: move to plugin
         if (options.keys) {
           const keys
             = typeof options.keys === 'function'
-              ? options.keys(newData, vars)
+              ? options.keys(newData, vars as TVars)
               : options.keys
           for (const entry of keys.flatMap((key) =>
-            store.getEntries({ key, exact: true }),
+            queryStore.getEntries({ key, exact: true }),
           )) {
             // TODO: find a way to pass a source of the invalidation, could be a symbol associated with the mutation, the parameters
-            store.invalidate(entry)
+            queryStore.invalidate(entry)
             // auto refresh of the active queries
             if (entry.active) {
-              store.fetch(entry)
+              queryStore.fetch(entry)
             }
           }
         }
@@ -267,12 +285,12 @@ export function useMutation<
       currentError = newError
       await options.onError?.({ error: newError, vars, ...context })
       if (pendingCall === currentCall) {
-        error.value = newError
-        status.value = 'error'
+        entry.value.error.value = newError
+        entry.value.status.value = 'error'
       }
       throw newError
     } finally {
-      asyncStatus.value = 'idle'
+      entry.value.asyncStatus.value = 'idle'
       await options.onSettled?.({
         data: currentData,
         error: currentError,
@@ -289,23 +307,14 @@ export function useMutation<
   }
 
   function reset() {
-    data.value = undefined
-    error.value = null
-    status.value = 'pending'
+    if (options.key) {
+      key.value = undefined
+    } else {
+      entry.value.data.value = undefined
+      entry.value.error.value = null
+      entry.value.status.value = 'pending'
+    }
   }
 
-  return {
-    data,
-    isLoading: computed(() => asyncStatus.value === 'loading'),
-    status,
-    variables,
-    asyncStatus,
-    error,
-    // FIXME: remove these and move to the variable
-    // @ts-expect-error: it would be nice to find a type-only refactor that works
-    mutate,
-    // @ts-expect-error: it would be nice to find a type-only refactor that works
-    mutateAsync,
-    reset,
-  }
+  return mutationReturn
 }
