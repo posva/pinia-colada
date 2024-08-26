@@ -158,6 +158,11 @@ export interface UseMutationReturn<TResult, TVars, TError> {
   isLoading: ComputedRef<boolean>
 
   /**
+   * The variables passed to the mutation.
+   */
+  variables: ShallowRef<TVars | undefined>
+
+  /**
    * Calls the mutation and returns a promise with the result.
    *
    * @param vars - parameters to pass to the mutation
@@ -208,6 +213,7 @@ export function useMutation<
   const asyncStatus = shallowRef<AsyncStatus>('idle')
   const data = shallowRef<TResult>()
   const error = shallowRef<TError | null>(null)
+  const variables = shallowRef<TVars>()
 
   // a pending promise allows us to discard previous ongoing requests
   // let pendingPromise: Promise<TResult> | null = null
@@ -215,6 +221,7 @@ export function useMutation<
   let pendingCall: symbol | undefined
   async function mutateAsync(vars: TVars): Promise<TResult> {
     asyncStatus.value = 'loading'
+    variables.value = vars
 
     // TODO: AbortSignal that is aborted when the mutation is called again so we can throw in pending
     let currentData: TResult | undefined
@@ -291,8 +298,10 @@ export function useMutation<
     data,
     isLoading: computed(() => asyncStatus.value === 'loading'),
     status,
+    variables,
     asyncStatus,
     error,
+    // FIXME: remove these and move to the variable
     // @ts-expect-error: it would be nice to find a type-only refactor that works
     mutate,
     // @ts-expect-error: it would be nice to find a type-only refactor that works

@@ -522,6 +522,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
       // FIXME: it should create the entry if it doesn't exist
       if (!entry) return
 
+      // FIXME: rename to setEntryState
       setQueryState(entry, {
         // if we don't cast, this is not technically correct
         // the user is responsible for setting the data
