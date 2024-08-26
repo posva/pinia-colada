@@ -287,6 +287,18 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
   })
 
   /**
+   * Invalidates and refetches (in parallel) all the queries in the cache that match the filters.
+   */
+  const invalidateQueries = action((filters?: UseQueryEntryFilter) => {
+    return Promise.all(
+      getEntries(filters).map((entry) => {
+        invalidate(entry)
+        return fetch(entry)
+      }),
+    )
+  })
+
+  /**
    * Returns all the entries in the cache that match the filters.
    * @param filters - filters to apply to the entries
    */
@@ -510,6 +522,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
       // FIXME: it should create the entry if it doesn't exist
       if (!entry) return
 
+      // FIXME: rename to setEntryState
       setQueryState(entry, {
         // if we don't cast, this is not technically correct
         // the user is responsible for setting the data
@@ -554,6 +567,8 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
     setQueryData,
     getQueryData,
     cancelQuery,
+
+    invalidateQueries,
 
     // Actions for entries
     invalidate,
