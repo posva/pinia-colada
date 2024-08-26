@@ -129,8 +129,8 @@ importers:
         specifier: ^11.0.3
         version: 11.0.3(focus-trap@7.5.4)(fuse.js@7.0.0)(vue@3.4.38(typescript@5.5.4))
       '@vueuse/router':
-        specifier: ^10.11.1
-        version: 10.11.1(vue-router@4.4.3(vue@3.4.38(typescript@5.5.4)))(vue@3.4.38(typescript@5.5.4))
+        specifier: ^11.0.3
+        version: 11.0.3(vue-router@4.4.3(vue@3.4.38(typescript@5.5.4)))(vue@3.4.38(typescript@5.5.4))
       fuse.js:
         specifier: ^7.0.0
         version: 7.0.0
@@ -1310,13 +1310,10 @@ packages:
   '@vueuse/metadata@11.0.3':
     resolution: {integrity: sha512-+FtbO4SD5WpsOcQTcC0hAhNlOid6QNLzqedtquTtQ+CRNBoAt9GuV07c6KNHK1wCmlq8DFPwgiLF2rXwgSHX5Q==}
 
-  '@vueuse/router@10.11.1':
-    resolution: {integrity: sha512-tXtDofDwgmADrnLY2mK2LtHKV9CBehaNfT2ar00HZTJ00QxmCOjYp626WdGtQsUi4E64vTScV/s+yKTXhZfl1w==}
+  '@vueuse/router@11.0.3':
+    resolution: {integrity: sha512-Sa8wNATd4DoAWkO5NgV+sfTU9dOtC8pi+GEbtzOdC7/99fWK8k5/dfbfkt+OWcpwXoToNidBqnAZafknlYb2ig==}
     peerDependencies:
       vue-router: '>=4.0.0-rc.1'
-
-  '@vueuse/shared@10.11.1':
-    resolution: {integrity: sha512-LHpC8711VFZlDaYUXEBbFBCQ7GS3dVU9mjOhhMhXP6txTV4EhYQg/KGnQuvt/sPAtoUKq7VVUnL6mVtFoL42sA==}
 
   '@vueuse/shared@11.0.3':
     resolution: {integrity: sha512-0rY2m6HS5t27n/Vp5cTDsKTlNnimCqsbh/fmT2LgE+aaU42EMfXo8+bNX91W9I7DDmxfuACXMmrd7d79JxkqWA==}
@@ -5482,18 +5479,11 @@ snapshots:
 
   '@vueuse/metadata@11.0.3': {}
 
-  '@vueuse/router@10.11.1(vue-router@4.4.3(vue@3.4.38(typescript@5.5.4)))(vue@3.4.38(typescript@5.5.4))':
+  '@vueuse/router@11.0.3(vue-router@4.4.3(vue@3.4.38(typescript@5.5.4)))(vue@3.4.38(typescript@5.5.4))':
     dependencies:
-      '@vueuse/shared': 10.11.1(vue@3.4.38(typescript@5.5.4))
+      '@vueuse/shared': 11.0.3(vue@3.4.38(typescript@5.5.4))
       vue-demi: 0.14.10(vue@3.4.38(typescript@5.5.4))
       vue-router: 4.4.3(vue@3.4.38(typescript@5.5.4))
-    transitivePeerDependencies:
-      - '@vue/composition-api'
-      - vue
-
-  '@vueuse/shared@10.11.1(vue@3.4.38(typescript@5.5.4))':
-    dependencies:
-      vue-demi: 0.14.10(vue@3.4.38(typescript@5.5.4))
     transitivePeerDependencies:
       - '@vue/composition-api'
       - vue
