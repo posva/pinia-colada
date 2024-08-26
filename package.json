@@ -118,7 +118,7 @@
     "lint-staged": "^15.2.9",
     "minimist": "^1.2.8",
     "p-series": "^3.0.0",
-    "pinia": "^2.2.1",
+    "pinia": "^2.2.2",
     "prettier": "^3.3.3",
     "semver": "^7.6.3",
     "simple-git-hooks": "^2.11.1",
