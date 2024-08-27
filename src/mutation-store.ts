@@ -93,6 +93,12 @@ export function createMutationEntry<TResult = unknown, TError = ErrorDefault>(
  */
 export const MUTATION_STORE_ID = '_pc_mutation'
 
+/**
+ * A query entry that is defined with {@link defineQuery}.
+ * @internal
+ */
+type DefineMutationEntry = unknown
+
 export const useMutationCache = defineStore(MUTATION_STORE_ID, ({ action }) => {
   // We have two versions of the cache, one that track changes and another that doesn't so the actions can be used
   // inside computed properties
@@ -102,6 +108,27 @@ export const useMutationCache = defineStore(MUTATION_STORE_ID, ({ action }) => {
 
   // this allows use to attach reactive effects to the scope later on
   const scope = getCurrentScope()!
+
+  // keep track of the entry being defined so we can add the queries in ensure
+  // this allows us to refresh the entry when a defined query is used again
+  // and refetchOnMount is true
+  // let currentDefineMutationEntry: DefineMutationEntry | undefined | null
+  const defineQueryMap = new WeakMap<() => unknown, DefineMutationEntry>()
+
+  /**
+   * Ensures a query created with {@link defineQuery} is present in the cache. If it's not, it creates a new one.
+   * @param fn - function that defines the query
+   */
+  const ensureDefinedMutation = action(<T>(fn: () => T) => {
+    let defineMutationEntry = defineQueryMap.get(fn)
+    if (!defineMutationEntry) {
+      // create the entry first
+      defineMutationEntry = scope.run(fn)
+      defineQueryMap.set(fn, defineMutationEntry)
+    }
+
+    return defineMutationEntry
+  })
 
   /**
    * Ensures a query entry is present in the cache. If it's not, it creates a new one. The resulting entry is required
@@ -113,28 +140,26 @@ export const useMutationCache = defineStore(MUTATION_STORE_ID, ({ action }) => {
     <TResult = unknown, TError = ErrorDefault>(
       options: UseMutationOptionsWithKey<TResult, TError>,
     ): UseMutationEntry<TResult, TError> => {
-        const key = toValue(options.key).map(stringifyFlatObject)
+      const key = toValue(options.key).map(stringifyFlatObject)
 
-        // ensure the state
-        // console.log('⚙️ Ensuring entry', key)
-        let entry = cachesRaw.get(key)
-        if (!entry) {
-          cachesRaw.set(
-            key,
-            (entry = scope.run(() =>
-              createMutationEntry(key),
-            )!),
-          )
-          entry = cachesRaw.get(key)
-        }
+      // ensure the state
+      // console.log('⚙️ Ensuring entry', key)
+      let entry = cachesRaw.get(key)
+      if (!entry) {
+        cachesRaw.set(
+          key,
+          (entry = scope.run(() =>
+            createMutationEntry(key),
+          )!),
+        )
+        entry = cachesRaw.get(key)
+      }
 
-        // during HMR, the options might change, so it's better to always update them
-        // @ts-expect-error: options generics
-        entry.options = options
+      // TODO: add `entry.__hmr` updates (cf. query store)
 
-        // TODO
-        // if this query was defined within a defineQuery call, add it to the list
-        // currentDefineQueryEntry?.[0].push(entry)
+      // during HMR, the options might change, so it's better to always update them
+      // @ts-expect-error: options generics
+      entry.options = options
 
       return entry as UseMutationEntry<TResult, TError>
     },
@@ -210,6 +235,7 @@ export const useMutationCache = defineStore(MUTATION_STORE_ID, ({ action }) => {
   return {
     caches,
     ensure,
+    ensureDefinedMutation,
     mutateAsync,
   }
 })

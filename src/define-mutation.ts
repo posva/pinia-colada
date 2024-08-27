@@ -1,3 +1,4 @@
+import { useMutationCache } from './mutation-store'
 import type { ErrorDefault } from './types-extension'
 import {
   type UseMutationOptions,
@@ -55,8 +56,14 @@ export function defineMutation<T>(setup: () => T): () => T
 export function defineMutation(
   optionsOrSetup: UseMutationOptions | (() => unknown),
 ): () => unknown {
-  // TODO: actual implementation
-  return typeof optionsOrSetup === 'function'
-    ? optionsOrSetup
-    : () => useMutation(optionsOrSetup)
+  const setupFn
+    = typeof optionsOrSetup === 'function'
+      ? optionsOrSetup
+      : () => useMutation(optionsOrSetup)
+
+    return () => {
+      const store = useMutationCache()
+
+      return store.ensureDefinedMutation(setupFn)
+    }
 }
