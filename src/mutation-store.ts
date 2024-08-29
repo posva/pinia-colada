@@ -14,25 +14,43 @@ export interface UseMutationEntry<TResult = unknown, TVars = unknown, TError = u
     /**
      * The state of the query. Contains the data, error and status.
      */
-    // NOTE: use `DataStatus`?
     status: Ref<'pending' | 'success' | 'error'>
+    // NOTE: replace with `state`?
+    // /**
+    //  * The state of the query. Contains the data, error and status.
+    //  */
+    // state: ShallowRef<DataState<TResult, TError>>
 
     /**
      * The status of the query.
      */
     asyncStatus: Ref<AsyncStatus>
 
+    // TODO?
+    // /**
+    //  * When was this data fetched the last time in ms
+    //  */
+    // when: number
+
     /**
      * The serialized key associated with this query entry.
      */
     key: EntryNodeKey[]
 
+    // TODO?
     // /**
     //  * Components and effects scopes that use this query entry.
     //  */
     // deps: Set<EffectScope | ComponentInternalInstance>
 
+    // TODO?
+    // /**
+    //  * Timeout id that scheduled a garbage collection. It is set here to clear it when the entry is used by a different component
+    //  */
+    // gcTimeout: ReturnType<typeof setTimeout> | undefined
+
     pendingCall?: symbol
+    // TODO?
     // pending: null | {
     //     abortController: AbortController
     //     refreshCall: Promise<DataState<TResult, TError>>
@@ -44,7 +62,6 @@ export interface UseMutationEntry<TResult = unknown, TVars = unknown, TError = u
      * `store.ensure()` sets this property. Note these options might be shared by multiple query entries when the key is
      * dynamic.
      */
-
     options: UseMutationOptions<TResult, TVars, TError, TContext> | null
     // TODO: ideally shouldn't be null, there should be different kind of types
 
@@ -52,10 +69,28 @@ export interface UseMutationEntry<TResult = unknown, TVars = unknown, TError = u
 
     error: ShallowRef<TError | null>
 
+    // TODO?
+    // /**
+    //  * Whether the data is stale or not, requires `options.staleTime` to be set.
+    //  */
+    // readonly stale: boolean
+
+    // TODO?
     // /**
     //  * Whether the query is currently being used by a Component or EffectScope (e.g. a store).
     //  */
     // readonly active: boolean
+
+    // TODO?
+    // /**
+    //  * Component `__hmrId` to track wrong usage of `useQuery` and warn the user.
+    //  * @internal
+    //  */
+    // __hmr?: {
+    //   id?: string
+    //   deps?: Set<EffectScope | ComponentInternalInstance>
+    //   skip?: boolean
+    // }
 }
 
 export interface UseMutationOptionsWithKey<TResult, TError> extends UseMutationOptions<TResult, TError> {
@@ -75,15 +110,9 @@ export function createMutationEntry<TResult = unknown, TError = ErrorDefault>(
       key: key!,
       status: shallowRef('pending'),
       asyncStatus: shallowRef<AsyncStatus>('idle'),
-      // TODO?
-      // deps: new Set(),
       options: null,
       error: shallowRef(null),
       data: shallowRef(),
-      // TODO?
-      // get active() {
-      //   return this.deps.size > 0
-      // },
     }
   }
 
