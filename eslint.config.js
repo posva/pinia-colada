@@ -36,4 +36,10 @@ export default antfu(
       'import/order': ['off'],
     },
   },
+  {
+    files: ['**/*.spec.ts'],
+    rules: {
+      'unicorn/consistent-function-scoping': 'off',
+    },
+  },
 )
