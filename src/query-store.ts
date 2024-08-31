@@ -442,8 +442,8 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
 
       const pendingCall = (entry.pending = {
         abortController,
-        refreshCall: entry
-          .options!.query({ signal })
+        // wrapping with async allows us to catch synchronous errors too
+        refreshCall: (async () => entry.options!.query({ signal }))()
           .then((data) => {
             if (pendingCall === entry.pending && !signal.aborted) {
               setEntryState(entry, {

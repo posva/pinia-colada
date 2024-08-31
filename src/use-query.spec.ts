@@ -104,8 +104,7 @@ describe('useQuery', () => {
       expect(wrapper.vm.status).toBe('success')
     })
 
-    // NOTE: is this worth adding?
-    it.skip('it works with a synchronously thrown Error', async () => {
+    it('it works with a synchronously thrown Error', async () => {
       const { wrapper } = mountSimple({
         query: () => {
           throw new Error('foo')
