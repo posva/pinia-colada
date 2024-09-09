@@ -1,53 +1,41 @@
-import { type Ref, type ShallowRef, getCurrentScope, shallowReactive, shallowRef, toValue } from 'vue'
+import { type ComponentInternalInstance, type EffectScope, type Ref, type ShallowRef, getCurrentScope, markRaw, shallowReactive, shallowRef, toValue } from 'vue'
 import type { AsyncStatus } from './data-state'
 import { type EntryNodeKey, TreeMapNode } from './tree-map'
-import type { UseMutationOptions, _ReduceContext } from './use-mutation'
+import type { UseMutationOptions, _MutationKey, _ReduceContext } from './use-mutation'
 import { defineStore } from 'pinia'
 import type { ErrorDefault } from './types-extension'
 import { useQueryCache } from './query-store'
 import { stringifyFlatObject } from './utils'
+import type { EntryKey } from './entry-options'
 
 /**
- * A query entry in the cache.
+ * A mutation entry in the cache.
  */
 export interface UseMutationEntry<TResult = unknown, TVars = unknown, TError = unknown, TContext extends Record<any, any> | void | null = void> {
     /**
-     * The state of the query. Contains the data, error and status.
+     * The state of the mutation. Contains the data, error and status.
      */
     status: Ref<'pending' | 'success' | 'error'>
     // NOTE: replace with `state`?
     // /**
-    //  * The state of the query. Contains the data, error and status.
+    //  * The state of the mutation. Contains the data, error and status.
     //  */
     // state: ShallowRef<DataState<TResult, TError>>
 
     /**
-     * The status of the query.
+     * The status of the mutation.
      */
     asyncStatus: Ref<AsyncStatus>
 
-    // TODO?
-    // /**
-    //  * When was this data fetched the last time in ms
-    //  */
-    // when: number
-
     /**
-     * The serialized key associated with this query entry.
+     * The serialized key associated with this mutation entry.
      */
     key: EntryNodeKey[]
 
-    // TODO?
-    // /**
-    //  * Components and effects scopes that use this query entry.
-    //  */
-    // deps: Set<EffectScope | ComponentInternalInstance>
-
-    // TODO?
-    // /**
-    //  * Timeout id that scheduled a garbage collection. It is set here to clear it when the entry is used by a different component
-    //  */
-    // gcTimeout: ReturnType<typeof setTimeout> | undefined
+    /**
+     * Components and effects scopes that use this mutation entry.
+     */
+    deps: Set<EffectScope | ComponentInternalInstance>
 
     pendingCall?: symbol
     // TODO?
@@ -58,8 +46,8 @@ export interface UseMutationEntry<TResult = unknown, TVars = unknown, TError = u
     // }
 
     /**
-     * Options used to create the query. They can be undefined during hydration but are needed for fetching. This is why
-     * `store.ensure()` sets this property. Note these options might be shared by multiple query entries when the key is
+     * Options used to create the mutation. They can be undefined during hydration but are needed for fetching. This is why
+     * `store.ensure()` sets this property. Note these options might be shared by multiple mutation entries when the key is
      * dynamic.
      */
     options: UseMutationOptions<TResult, TVars, TError, TContext> | null
@@ -71,13 +59,7 @@ export interface UseMutationEntry<TResult = unknown, TVars = unknown, TError = u
 
     // TODO?
     // /**
-    //  * Whether the data is stale or not, requires `options.staleTime` to be set.
-    //  */
-    // readonly stale: boolean
-
-    // TODO?
-    // /**
-    //  * Whether the query is currently being used by a Component or EffectScope (e.g. a store).
+    //  * Whether the mutation is currently being used by a Component or EffectScope (e.g. a store).
     //  */
     // readonly active: boolean
 
@@ -93,8 +75,30 @@ export interface UseMutationEntry<TResult = unknown, TVars = unknown, TError = u
     // }
 }
 
-export interface UseMutationOptionsWithKey<TResult, TError> extends UseMutationOptions<TResult, TError> {
-    key: EntryNodeKey[]
+export interface UseMutationOptionsWithKey<
+  TResult = unknown,
+  TVars = void,
+  TError = ErrorDefault,
+> extends UseMutationOptions<TResult, TVars, TError> {
+    key: _MutationKey<TVars>
+}
+
+export function mutationEntry_addDep(
+  entry: UseMutationEntry,
+  effect: EffectScope | ComponentInternalInstance | null | undefined,
+) {
+  if (!effect) return
+  entry.deps.add(effect)
+}
+
+export function mutationEntry_removeDep(
+  entry: UseMutationEntry,
+  effect: EffectScope | ComponentInternalInstance | null | undefined,
+  store: ReturnType<typeof useMutationCache>,
+) {
+  if (!effect) return
+  entry.deps.delete(effect)
+  if (entry.deps.size === 0) store.remove(entry)
 }
 
 /**
@@ -103,16 +107,18 @@ export interface UseMutationOptionsWithKey<TResult, TError> extends UseMutationO
  * @internal
  * @param key - key of the entry
  */
+// TODO: options?
 export function createMutationEntry<TResult = unknown, TError = ErrorDefault>(
     key?: EntryNodeKey[],
   ): UseMutationEntry<TResult, TError> {
     return {
-      key: key!,
+      key: key ?? [],
       status: shallowRef('pending'),
       asyncStatus: shallowRef<AsyncStatus>('idle'),
       options: null,
       error: shallowRef(null),
       data: shallowRef(),
+      deps: markRaw(new Set()),
     }
   }
 
@@ -123,10 +129,11 @@ export function createMutationEntry<TResult = unknown, TError = ErrorDefault>(
 export const MUTATION_STORE_ID = '_pc_mutation'
 
 /**
- * A query entry that is defined with {@link defineQuery}.
+ * TODO: add link
+ * A mutation entry that is defined with {@link defineMutation}.
  * @internal
  */
-type DefineMutationEntry = unknown
+export type DefineMutationEntry = [entries: UseMutationEntry[], returnValue: unknown]
 
 export const useMutationCache = defineStore(MUTATION_STORE_ID, ({ action }) => {
   // We have two versions of the cache, one that track changes and another that doesn't so the actions can be used
@@ -139,31 +146,34 @@ export const useMutationCache = defineStore(MUTATION_STORE_ID, ({ action }) => {
   const scope = getCurrentScope()!
 
   // keep track of the entry being defined so we can add the queries in ensure
-  // this allows us to refresh the entry when a defined query is used again
+  // this allows us to refresh the entry when a defined mutation is used again
   // and refetchOnMount is true
-  // let currentDefineMutationEntry: DefineMutationEntry | undefined | null
-  const defineQueryMap = new WeakMap<() => unknown, DefineMutationEntry>()
+  let currentDefineMutationEntry: DefineMutationEntry | undefined | null = [[], null]
+  const defineMutationMap = new WeakMap<() => unknown, DefineMutationEntry>()
 
   /**
-   * Ensures a query created with {@link defineQuery} is present in the cache. If it's not, it creates a new one.
-   * @param fn - function that defines the query
+   * Ensures a mutation created with {@link defineQuery} is present in the cache. If it's not, it creates a new one.
+   * @param fn - function that defines the mutation
    */
   const ensureDefinedMutation = action(<T>(fn: () => T) => {
-    let defineMutationEntry = defineQueryMap.get(fn)
+    let defineMutationEntry = defineMutationMap.get(fn)
     if (!defineMutationEntry) {
       // create the entry first
-      defineMutationEntry = scope.run(fn)
-      defineQueryMap.set(fn, defineMutationEntry)
+      currentDefineMutationEntry = defineMutationEntry = [[], null]
+      // then run it so it can add the mutations to the entry
+      defineMutationEntry[1] = scope.run(fn)
+      currentDefineMutationEntry = null
+      defineMutationMap.set(fn, defineMutationEntry)
     }
 
     return defineMutationEntry
   })
 
   /**
-   * Ensures a query entry is present in the cache. If it's not, it creates a new one. The resulting entry is required
+   * Ensures a mutation entry is present in the cache. If it's not, it creates a new one. The resulting entry is required
    * to call other methods like {@link fetch}, {@link refresh}, or {@link invalidate}.
    *
-   * @param key - the key of the query
+   * @param key - the key of the mutation
    */
   const ensure = action(
     <TResult = unknown, TError = ErrorDefault>(
@@ -174,6 +184,7 @@ export const useMutationCache = defineStore(MUTATION_STORE_ID, ({ action }) => {
       // ensure the state
       // console.log('⚙️ Ensuring entry', key)
       let entry = cachesRaw.get(key)
+
       if (!entry) {
         cachesRaw.set(
           key,
@@ -190,6 +201,9 @@ export const useMutationCache = defineStore(MUTATION_STORE_ID, ({ action }) => {
       // @ts-expect-error: options generics
       entry.options = options
 
+      // if this query was defined within a defineQuery call, add it to the list
+      currentDefineMutationEntry?.[0].push(entry)
+
       return entry as UseMutationEntry<TResult, TError>
     },
   )
@@ -197,13 +211,12 @@ export const useMutationCache = defineStore(MUTATION_STORE_ID, ({ action }) => {
   const mutateAsync = action(
     async <TResult, TVars, TError, TContext extends Record<any, any> | void | null = void>(entry: UseMutationEntry<TResult, TVars, TError, TContext>, vars: TVars) => {
         entry.asyncStatus.value = 'loading'
-
         // TODO: AbortSignal that is aborted when the mutation is called again so we can throw in pending
         let currentData: TResult | undefined
         let currentError: TError | undefined
         let context!: _ReduceContext<TContext>
 
-        // TODO: a closer implementation to the one of the query store
+        // TODO: a closer implementation to the one of the mutation store
         const currentCall = (entry.pendingCall = Symbol())
         try {
           // NOTE: the cast makes it easier to write without extra code. It's safe because { ...null, ...undefined } works and TContext must be a Record<any, any>
@@ -261,10 +274,27 @@ export const useMutationCache = defineStore(MUTATION_STORE_ID, ({ action }) => {
       },
   )
 
+  const getMutationData = action(
+    <TResult = unknown>(key: EntryKey): TResult | undefined => {
+      const entry = caches.get(key.map(stringifyFlatObject)) as
+        | UseMutationEntry<TResult>
+        | undefined
+      return entry?.data.value
+    },
+  )
+
+  /**
+   * Removes a query entry from the cache.
+   */
+  const remove = action((entry: UseMutationEntry) => caches.delete(entry.key))
+
   return {
     caches,
     ensure,
     ensureDefinedMutation,
+    getMutationData,
     mutateAsync,
+    remove,
+    currentDefineMutationEntry,
   }
 })

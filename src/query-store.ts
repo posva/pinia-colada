@@ -263,7 +263,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
     if (!defineQueryEntry) {
       // create the entry first
       currentDefineQueryEntry = defineQueryEntry = [[], null]
-      // then run it s oit can add the queries to the entry
+      // then run it so it can add the queries to the entry
       defineQueryEntry[1] = scope.run(fn)
       currentDefineQueryEntry = null
       defineQueryMap.set(fn, defineQueryEntry)
