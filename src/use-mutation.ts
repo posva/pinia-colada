@@ -6,6 +6,7 @@ import { type UseMutationEntry, createMutationEntry, mutationEntry_addDep, mutat
 import { useQueryCache } from './query-store'
 import type { ErrorDefault } from './types-extension'
 import { type _Awaitable, type _EmptyObject, noop } from './utils'
+import { getCurrentDefineMutationEffect } from './define-mutation'
 
 export type _MutationKey<TVars> =
   | EntryKey
@@ -210,7 +211,7 @@ export function useMutation<
     ? cacheEntries.ensure<TResult, TError>(options)
     : createMutationEntry<TResult, TError>()
   const hasCurrentInstance = getCurrentInstance()
-  const currentEffect = getCurrentScope()
+  const currentEffect = getCurrentDefineMutationEffect() || getCurrentScope()
 
   if (hasCurrentInstance) {
     onMounted(() => {

@@ -1,10 +1,10 @@
+import type { ErrorDefault } from './types-extension'
 import { type EffectScope, getCurrentInstance, getCurrentScope, onScopeDispose } from 'vue'
 import { mutationEntry_addDep, mutationEntry_removeDep, useMutationCache } from './mutation-store'
-import type { ErrorDefault } from './types-extension'
 import {
+  useMutation,
   type UseMutationOptions,
   type UseMutationReturn,
-  useMutation,
 } from './use-mutation'
 
 /**
@@ -91,11 +91,6 @@ export function defineMutation(
     if (currentScope) {
       entries.forEach((entry) => {
         mutationEntry_addDep(entry, currentScope)
-        // TODO?
-        // if (process.env.NODE_ENV !== 'production') {
-        //   entry.__hmr ??= {}
-        //   entry.__hmr.skip = true
-        // }
       })
       onScopeDispose(() => {
         entries.forEach((entry) => {

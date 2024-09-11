@@ -1,14 +1,14 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { App } from 'vue'
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
-import type { App } from 'vue'
-import { createApp, defineComponent, nextTick, ref } from 'vue'
-import { PiniaColada } from './pinia-colada'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createApp, defineComponent, effectScope, nextTick, ref } from 'vue'
 import { mockWarn } from '../test/mock-warn'
-import { defineMutation } from './define-mutation'
-import { type UseMutationOptions, useMutation } from './use-mutation'
-import { useMutationCache } from './mutation-store'
 import { type GlobalMountOptions, isSpy } from '../test/utils'
+import { defineMutation } from './define-mutation'
+import { useMutationCache } from './mutation-store'
+import { PiniaColada } from './pinia-colada'
+import { useMutation, type UseMutationOptions } from './use-mutation'
 
 describe('defineMutation', () => {
   beforeEach(() => {
@@ -184,7 +184,7 @@ describe('defineMutation', () => {
         expect(cache.caches.get(['create-todos'])?.data.value).toBeUndefined()
       })
 
-      it.only('keeps the cache if the query is reused by a new component before unmount', async () => {
+      it('keeps the cache if the mutation is reused by a new component before unmount', async () => {
         const pinia = createPinia()
 
         const useCreateTodo = defineMutation(() => {
@@ -244,6 +244,63 @@ describe('defineMutation', () => {
       })
     })
 
-    // TODO: with effect scope
+    describe('with effect scope', () => {
+      let app: App
+      function createTodoDefineMutation() {
+        return defineMutation(() => {
+          const mutation = useMutation({
+            key: ['create-todos'],
+            mutation: vi.fn(async () => 'new-todo'),
+          })
+          return { ...mutation }
+        })
+      }
+      beforeEach(() => {
+        const pinia = createPinia()
+        app = createApp({ render: () => null })
+          .use(pinia)
+          .use(PiniaColada)
+        app.mount(document.createElement('div'))
+      })
+      afterEach(() => {
+        app?.unmount()
+      })
+
+      it('deletes the cache once the scope is stoped', async () => {
+        await app.runWithContext(async () => {
+          const useCreateTodo = createTodoDefineMutation()
+          const scope = effectScope()
+          const mutation = scope.run(useCreateTodo)
+          mutation?.mutate()
+          await flushPromises()
+          const cache = useMutationCache()
+
+          expect(cache.getMutationData(['create-todos'])).toBe('new-todo')
+          scope.stop()
+          expect(cache.getMutationData(['create-todos'])).toBeUndefined()
+        })
+      })
+
+      it('keeps the cache if the mutation is reused by a new component before unmount', async () => {
+        await app.runWithContext(async () => {
+          const useCreateTodo = createTodoDefineMutation()
+          const s1 = effectScope()
+          const mutation = s1.run(useCreateTodo)
+          mutation?.mutate()
+          await flushPromises()
+          const cache = useMutationCache()
+
+          expect(cache.getMutationData(['create-todos'])).toBe('new-todo')
+          const s2 = effectScope()
+          s2.run(useCreateTodo)
+          s1.stop()
+          // still there
+          expect(cache.getMutationData(['create-todos'])).toBe('new-todo')
+          s2.stop()
+          // removed
+          expect(cache.getMutationData(['create-todos'])).toBeUndefined()
+        })
+      })
+    })
   })
 })
