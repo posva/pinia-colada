@@ -6,6 +6,7 @@ export default antfu(
     ignores: [
       //
       '**/*.ts.timestamp*',
+      'nuxt',
     ],
     rules: {
       'symbol-description': 'off',
