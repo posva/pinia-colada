@@ -1,14 +1,16 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { App } from 'vue'
+import type { GlobalMountOptions } from '../test/utils'
+import type { UseQueryOptions } from './query-options'
+import type { UseMutationOptions } from './use-mutation'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
-import { defineComponent, nextTick } from 'vue'
-import type { GlobalMountOptions } from '../test/utils'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createApp, defineComponent, effectScope, nextTick } from 'vue'
 import { delay } from '../test/utils'
-import type { UseMutationOptions } from './use-mutation'
-import { useMutation } from './use-mutation'
+import { useMutationCache } from './mutation-store'
 import { PiniaColada } from './pinia-colada'
+import { useMutation } from './use-mutation'
 import { useQuery } from './use-query'
-import type { UseQueryOptions } from './query-options'
 
 describe('useMutation', () => {
   beforeEach(() => {
@@ -617,6 +619,89 @@ describe('useMutation', () => {
       mutationWrapper.vm.mutate()
       await flushPromises()
       expect(query).toHaveBeenCalledTimes(0)
+    })
+
+    describe('cache', () => {
+      describe('with component', () => {
+        it('deletes the cache once the component is unmounted', async () => {
+          const { wrapper } = mountSimple({ key: ['mutation-key'] })
+          const cache = useMutationCache()
+          wrapper.vm.mutate()
+          await flushPromises()
+          expect(cache.caches.get(['mutation-key'])?.data.value).toBe(42)
+          wrapper.unmount()
+          await nextTick()
+          expect(cache.caches.get(['mutation-key'])?.data.value).toBeUndefined()
+        })
+
+        it('keeps the cache if the mutation is reused by a new component before unmount', async () => {
+          const plugins = [createPinia(), PiniaColada]
+          const { wrapper: w1 } = mountSimple({ key: ['mutation-key'] }, { plugins })
+          const cache = useMutationCache()
+          w1.vm.mutate()
+          await flushPromises()
+          expect(cache.getMutationData(['mutation-key'])).toBe(42)
+          const { wrapper: w2 } = mountSimple({ key: ['mutation-key'] }, { plugins })
+          w1.unmount()
+          // still there
+          expect(cache.getMutationData(['mutation-key'])).toBe(42)
+          w2.unmount()
+          // removed
+          expect(cache.getMutationData(['mutation-key'])).toBeUndefined()
+        })
+      })
+
+      describe('with effect scope', () => {
+        let app: App
+        function todoMutation() {
+          return useMutation({
+            key: ['mutation-key'],
+            mutation: vi.fn(async () => 42),
+          })
+        }
+        beforeEach(() => {
+          const pinia = createPinia()
+          app = createApp({ render: () => null })
+            .use(pinia)
+            .use(PiniaColada)
+          app.mount(document.createElement('div'))
+        })
+        afterEach(() => {
+          app?.unmount()
+        })
+
+        it('deletes the cache once the scope is stoped', async () => {
+          await app.runWithContext(async () => {
+            const scope = effectScope()
+            const mutation = scope.run(todoMutation)
+            mutation?.mutate()
+            await flushPromises()
+            const cache = useMutationCache()
+            expect(cache.getMutationData(['mutation-key'])).toBe(42)
+            scope.stop()
+            expect(cache.getMutationData(['mutation-key'])).toBeUndefined()
+          })
+        })
+
+        it('keeps the cache if the mutation is reused by a new component before unmount', async () => {
+          await app.runWithContext(async () => {
+            const s1 = effectScope()
+            const mutation = s1.run(todoMutation)
+            mutation?.mutate()
+            await flushPromises()
+            const cache = useMutationCache()
+            expect(cache.getMutationData(['mutation-key'])).toBe(42)
+            const s2 = effectScope()
+            s2.run(todoMutation)
+            s1.stop()
+            // still there
+            expect(cache.getMutationData(['mutation-key'])).toBe(42)
+            s2.stop()
+            // removed
+            expect(cache.getMutationData(['mutation-key'])).toBeUndefined()
+          })
+        })
+      })
     })
   })
 })
