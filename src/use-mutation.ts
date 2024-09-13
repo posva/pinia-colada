@@ -1,16 +1,12 @@
 import type { ComputedRef, ShallowRef } from 'vue'
-import { computed, getCurrentInstance, getCurrentScope, onMounted, onScopeDispose, onUnmounted, shallowRef } from 'vue'
 import type { AsyncStatus, DataStateStatus } from './data-state'
 import type { EntryKey } from './entry-options'
-import { type UseMutationEntry, createMutationEntry, mutationEntry_addDep, mutationEntry_removeDep, useMutationCache } from './mutation-store'
-import { useQueryCache } from './query-store'
 import type { ErrorDefault } from './types-extension'
-import { type _Awaitable, type _EmptyObject, noop } from './utils'
+import { computed, getCurrentInstance, getCurrentScope, onMounted, onScopeDispose, onUnmounted, shallowRef } from 'vue'
 import { getCurrentDefineMutationEffect } from './define-mutation'
-
-export type _MutationKey<TVars> =
-  | EntryKey
-  | ((vars: TVars) => EntryKey)
+import { createMutationEntry, mutationEntry_addDep, mutationEntry_removeDep, useMutationCache, type UseMutationEntry } from './mutation-store'
+import { useQueryCache } from './query-store'
+import { type _Awaitable, type _EmptyObject, noop } from './utils'
 
 // TODO: move to a plugin
 /**
@@ -61,7 +57,7 @@ export interface UseMutationOptions<
    */
   mutation: (vars: TVars, context: NoInfer<TContext>) => Promise<TResult>
 
-  key?: _MutationKey<TVars>
+  key?: EntryKey
 
   // TODO: move this to a plugin that calls invalidateEntry()
   /**

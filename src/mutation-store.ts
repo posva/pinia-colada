@@ -1,12 +1,12 @@
-import { type ComponentInternalInstance, type EffectScope, type Ref, type ShallowRef, getCurrentScope, markRaw, shallowReactive, shallowRef, toValue } from 'vue'
 import type { AsyncStatus } from './data-state'
-import { type EntryNodeKey, TreeMapNode } from './tree-map'
-import type { UseMutationOptions, _MutationKey, _ReduceContext } from './use-mutation'
-import { defineStore } from 'pinia'
-import type { ErrorDefault } from './types-extension'
-import { useQueryCache } from './query-store'
-import { stringifyFlatObject } from './utils'
 import type { EntryKey } from './entry-options'
+import type { ErrorDefault } from './types-extension'
+import type { _ReduceContext, UseMutationOptions } from './use-mutation'
+import { defineStore } from 'pinia'
+import { type ComponentInternalInstance, type EffectScope, getCurrentScope, markRaw, type Ref, shallowReactive, type ShallowRef, shallowRef, toValue } from 'vue'
+import { useQueryCache } from './query-store'
+import { type EntryNodeKey, TreeMapNode } from './tree-map'
+import { stringifyFlatObject } from './utils'
 
 /**
  * A mutation entry in the cache.
@@ -73,14 +73,6 @@ export interface UseMutationEntry<TResult = unknown, TVars = unknown, TError = u
     //   deps?: Set<EffectScope | ComponentInternalInstance>
     //   skip?: boolean
     // }
-}
-
-export interface UseMutationOptionsWithKey<
-  TResult = unknown,
-  TVars = void,
-  TError = ErrorDefault,
-> extends UseMutationOptions<TResult, TVars, TError> {
-    key: _MutationKey<TVars>
 }
 
 export function mutationEntry_addDep(
@@ -177,7 +169,7 @@ export const useMutationCache = defineStore(MUTATION_STORE_ID, ({ action }) => {
    */
   const ensure = action(
     <TResult = unknown, TError = ErrorDefault>(
-      options: UseMutationOptionsWithKey<TResult, TError>,
+      options: UseMutationOptions<TResult, TError>,
     ): UseMutationEntry<TResult, TError> => {
       const key = toValue(options.key).map(stringifyFlatObject)
 

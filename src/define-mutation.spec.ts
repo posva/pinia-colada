@@ -142,7 +142,7 @@ describe('defineMutation', () => {
           : vi.fn(async () => 'new-todo')
         const useCreateTodo = defineMutation(() => {
           const mutation = useMutation({
-            key: () => ['create-todos'],
+            key: ['create-todos'],
             ...options,
             // @ts-expect-error: generic unmatched but types work
             mutation: mutationFunction,
