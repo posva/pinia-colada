@@ -100,9 +100,9 @@ export function mutationEntry_removeDep(
  * @param key - key of the entry
  */
 // TODO: options?
-export function createMutationEntry<TResult = unknown, TError = ErrorDefault>(
+export function createMutationEntry<TResult, TVars, TError, TContext extends Record<any, any> | void | null = void>(
     key?: EntryNodeKey[],
-  ): UseMutationEntry<TResult, TError> {
+  ): UseMutationEntry<TResult, TVars, TError, TContext> {
     return {
       key: key ?? [],
       status: shallowRef('pending'),
@@ -168,35 +168,36 @@ export const useMutationCache = defineStore(MUTATION_STORE_ID, ({ action }) => {
    * @param key - the key of the mutation
    */
   const ensure = action(
-    <TResult = unknown, TError = ErrorDefault>(
-      options: UseMutationOptions<TResult, TError>,
-    ): UseMutationEntry<TResult, TError> => {
-      const key = toValue(options.key).map(stringifyFlatObject)
+    <TResult = unknown, TVars = unknown, TError = ErrorDefault, TContext extends Record<any, any> | void | null = void>(
+      options: UseMutationOptions<TResult, TVars, TError, TContext>,
+    ): UseMutationEntry<TResult, TVars, TError, TContext> => {
+      const key = toValue(options.key!).map(stringifyFlatObject)
 
       // ensure the state
       // console.log('⚙️ Ensuring entry', key)
-      let entry = cachesRaw.get(key)
+      let entry: UseMutationEntry<TResult, TVars, TError, TContext> | undefined = cachesRaw.get(key) as UseMutationEntry<TResult, TVars, TError, TContext> | undefined
 
       if (!entry) {
         cachesRaw.set(
           key,
+          // @ts-expect-error: `UseMutationEntry` generics
           (entry = scope.run(() =>
-            createMutationEntry(key),
+            createMutationEntry<TResult, TVars, TError, TContext>(key),
           )!),
         )
-        entry = cachesRaw.get(key)
+        entry = cachesRaw.get(key) as unknown as UseMutationEntry<TResult, TVars, TError, TContext>
       }
 
       // TODO: add `entry.__hmr` updates (cf. query store)
 
       // during HMR, the options might change, so it's better to always update them
-      // @ts-expect-error: options generics
-      entry.options = options
+      entry!.options = options
 
       // if this query was defined within a defineQuery call, add it to the list
-      currentDefineMutationEntry?.[0].push(entry)
+      // @ts-expect-error: `UseMutationEntry` generics
+      currentDefineMutationEntry?.[0].push(entry!)
 
-      return entry as UseMutationEntry<TResult, TError>
+      return entry
     },
   )
 

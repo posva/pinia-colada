@@ -204,23 +204,27 @@ export function useMutation<
   const cacheEntries = useMutationCache()
   const variables = shallowRef<TVars>()
   const entry = options.key
-    ? cacheEntries.ensure<TResult, TError>(options)
-    : createMutationEntry<TResult, TError>()
+    ? cacheEntries.ensure<TResult, TVars, TError, TContext>(options)
+    : createMutationEntry<TResult, TVars, TError, TContext>()
   const hasCurrentInstance = getCurrentInstance()
   const currentEffect = getCurrentDefineMutationEffect() || getCurrentScope()
 
   if (hasCurrentInstance) {
     onMounted(() => {
+      // @ts-expect-error: `UseMutationEntry` generics
       mutationEntry_addDep(entry, hasCurrentInstance)
     })
     onUnmounted(() => {
       // remove instance from Set of refs
+      // @ts-expect-error: `UseMutationEntry` generics
       mutationEntry_removeDep(entry, hasCurrentInstance, cacheEntries)
     })
   } else {
     if (currentEffect) {
+      // @ts-expect-error: `UseMutationEntry` generics
       mutationEntry_addDep(entry, currentEffect)
       onScopeDispose(() => {
+        // @ts-expect-error: `UseMutationEntry` generics
         mutationEntry_removeDep(entry, currentEffect, cacheEntries)
       })
     }
