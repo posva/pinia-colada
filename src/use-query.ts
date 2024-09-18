@@ -1,4 +1,12 @@
 import type { ComputedRef, MaybeRefOrGetter, ShallowRef } from 'vue'
+import type { AsyncStatus, DataState, DataStateStatus } from './data-state'
+import type { EntryKey } from './entry-options'
+import type {
+  UseQueryOptions,
+  UseQueryOptionsWithDefaults,
+} from './query-options'
+import type { UseQueryEntry } from './query-store'
+import type { ErrorDefault } from './types-extension'
 import {
   computed,
   getCurrentInstance,
@@ -10,22 +18,14 @@ import {
   toValue,
   watch,
 } from 'vue'
-import { IS_CLIENT, useEventListener } from './utils'
-import type { UseQueryEntry } from './query-store'
+import { getCurrentDefineQueryEffect } from './define-query'
+import { useQueryOptions } from './query-options'
 import {
   queryEntry_addDep,
   queryEntry_removeDep,
   useQueryCache,
 } from './query-store'
-import { useQueryOptions } from './query-options'
-import type { EntryKey } from './entry-options'
-import type {
-  UseQueryOptions,
-  UseQueryOptionsWithDefaults,
-} from './query-options'
-import type { ErrorDefault } from './types-extension'
-import { getCurrentDefineQueryEffect } from './define-query'
-import type { AsyncStatus, DataState, DataStateStatus } from './data-state'
+import { IS_CLIENT, useEventListener } from './utils'
 
 /**
  * Return type of `useQuery()`.
@@ -200,6 +200,15 @@ export function useQuery<TResult, TError = ErrorDefault>(
     entry,
     (entry, previousEntry) => {
       if (!isActive) return
+      if (entry.stale && entry.options?.placeholderData && previousEntry?.state.value.status === 'success') {
+        cacheEntries.setEntryState(entry, {
+          // TODO: pending?
+          status: 'success',
+          // @ts-expect-error: TODO: fix this
+          data: (typeof entry.options.placeholderData === 'function') ? entry.options.placeholderData(previousEntry.state.value.data) : previousEntry.state.value.data,
+          error: null,
+        }, false)
+      }
       if (previousEntry) {
         queryEntry_removeDep(previousEntry, hasCurrentInstance, cacheEntries)
         queryEntry_removeDep(previousEntry, currentEffect, cacheEntries)

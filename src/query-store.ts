@@ -1,27 +1,27 @@
+import type {
+  AsyncStatus,
+  DataState,
+  DataState_Success,
+  DataStateStatus,
+} from './data-state'
+import type { defineQuery } from './define-query'
+import type { EntryKey } from './entry-options'
+import type { UseQueryOptionsWithDefaults } from './query-options'
+import type { ErrorDefault } from './types-extension'
 import { defineStore } from 'pinia'
 import {
   type ComponentInternalInstance,
   type EffectScope,
-  type ShallowRef,
   getCurrentInstance,
   getCurrentScope,
   markRaw,
   shallowReactive,
+  type ShallowRef,
   shallowRef,
   toValue,
 } from 'vue'
-import { stringifyFlatObject, toValueWithArgs } from './utils'
 import { type EntryNodeKey, TreeMapNode } from './tree-map'
-import type { EntryKey } from './entry-options'
-import type { UseQueryOptionsWithDefaults } from './query-options'
-import type { ErrorDefault } from './types-extension'
-import type { defineQuery } from './define-query'
-import type {
-  AsyncStatus,
-  DataState,
-  DataStateStatus,
-  DataState_Success,
-} from './data-state'
+import { stringifyFlatObject, toValueWithArgs } from './utils'
 
 /**
  * NOTE: Entries could be classes but the point of having all functions within the store is to allow plugins to hook
@@ -501,9 +501,10 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
     <TResult, TError>(
       entry: UseQueryEntry<TResult, TError>,
       state: DataState<TResult, TError>,
+      resetWhen?: boolean,
     ) => {
       entry.state.value = state
-      entry.when = Date.now()
+      if (resetWhen) entry.when = Date.now()
     },
   )
 

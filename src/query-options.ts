@@ -1,7 +1,7 @@
-import { type InjectionKey, type MaybeRefOrGetter, inject } from 'vue'
 import type { EntryKey } from './entry-options'
-import type { ErrorDefault } from './types-extension'
 import type { PiniaColadaOptions } from './pinia-colada'
+import type { ErrorDefault } from './types-extension'
+import { inject, type InjectionKey, type MaybeRefOrGetter } from 'vue'
 
 /**
  * `true` refetch if data is stale (refresh()), `false` never refetch, 'always' always refetch.
@@ -78,6 +78,8 @@ export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
 
   // TODO: this might be just sugar syntax to do `setQueryData()` on creation
   initialData?: () => TResult
+
+  placeholderData?: TResult | ((previousData: TResult) => TResult)
 
   /**
    * Function to type and ensure the `error` property is always an instance of `TError`.
