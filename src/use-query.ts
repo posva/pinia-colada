@@ -152,7 +152,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
     state: computed(() => entry.value.state.value),
 
     status: computed(() => entry.value.state.value.status),
-    data: computed(() => entry.value.state.value.data),
+    data: computed(() => entry.value.state.value.data || entry.value.placeholderData),
     error: computed(() => entry.value.state.value.error),
     asyncStatus: computed(() => entry.value.asyncStatus.value),
 
@@ -200,14 +200,10 @@ export function useQuery<TResult, TError = ErrorDefault>(
     entry,
     (entry, previousEntry) => {
       if (!isActive) return
-      if (entry.stale && entry.options?.placeholderData && previousEntry?.state.value.status === 'success') {
-        cacheEntries.setEntryState(entry, {
-          // TODO: pending?
-          status: 'success',
-          // @ts-expect-error: TODO: fix this
-          data: (typeof entry.options.placeholderData === 'function') ? entry.options.placeholderData(previousEntry.state.value.data) : previousEntry.state.value.data,
-          error: null,
-        }, false)
+      // TODO: handle HMR in case where the placeholder is removed from the options?
+      if (entry.options?.placeholderData && previousEntry?.state.value.status === 'success') {
+        // @ts-expect-error: TODO: fix this
+        entry.placeholderData = (typeof entry.options.placeholderData === 'function') ? entry.options.placeholderData(previousEntry.state.value.data) : previousEntry.state.value.data
       }
       if (previousEntry) {
         queryEntry_removeDep(previousEntry, hasCurrentInstance, cacheEntries)

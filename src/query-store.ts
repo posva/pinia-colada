@@ -76,6 +76,9 @@ export interface UseQueryEntry<TResult = unknown, TError = unknown> {
   options: UseQueryOptionsWithDefaults<TResult, TError> | null
   // TODO: ideally shouldn't be null, there should be different kind of types
 
+  // TODO: remove optional type (`undefined` only)?
+  placeholderData?: TResult | undefined
+
   /**
    * Whether the data is stale or not, requires `options.staleTime` to be set.
    */
@@ -160,6 +163,7 @@ export function queryEntry_removeDep(
  * @param error - initial error to set
  * @param when - when the data was fetched the last time. defaults to 0, meaning it's stale
  */
+// TODO: init placeholder if it is not a function?
 export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
   key: EntryNodeKey[],
   initialData?: TResult,
@@ -501,10 +505,8 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
     <TResult, TError>(
       entry: UseQueryEntry<TResult, TError>,
       state: DataState<TResult, TError>,
-      resetWhen?: boolean,
     ) => {
       entry.state.value = state
-      if (resetWhen) entry.when = Date.now()
     },
   )
 

@@ -456,7 +456,7 @@ describe('useQuery', () => {
       expect(query).toHaveBeenCalledTimes(1)
     })
 
-    it('uses the placeholder data if configured while refetching', async () => {
+    it('uses the placeholder data (if configured) as fallback while fetching', async () => {
       const { wrapper, query } = mountDynamicKey({
         query: async () => {
           await new Promise((res) => setTimeout(res, 100))
@@ -482,21 +482,22 @@ describe('useQuery', () => {
       expect(dataId1).not.toBe(dataId0)
 
       await wrapper.vm.setId(0)
-      // Data is not stale: placeholder data is not used, catched data is used
+      // There is fresh cached data: placeholder data is not used
       expect(wrapper.vm.data).toBe(dataId0)
 
       vi.advanceTimersByTime(1001)
-
       await wrapper.vm.setId(1)
-      // Data is stale: placeholder data is used
-      expect(wrapper.vm.data).toBe(dataId0)
+      // There is stale cached data: placeholder data is not used either (stale data is used, as usual)
+      expect(wrapper.vm.data).toBe(dataId1)
 
       vi.advanceTimersByTime(100)
       await flushPromises()
       // Refetch data is used
-      expect(dataId1).not.toBe(dataId0)
+      expect(wrapper.vm.data).not.toBe(dataId1)
       expect(query).toHaveBeenCalledTimes(3)
     })
+
+    it.todo('uses the placeholder data (if configured) as fallback in case of error')
 
     it('refreshes the data if mounted and the key changes', async () => {
       const { wrapper, query } = mountDynamicKey({
