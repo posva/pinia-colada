@@ -497,7 +497,31 @@ describe('useQuery', () => {
       expect(query).toHaveBeenCalledTimes(3)
     })
 
-    it.todo('uses the placeholder data (if configured) as fallback in case of error')
+    it('uses the placeholder data (if configured) as fallback in case of error', async () => {
+      const mockFunction = vi.fn(async () => ({ value: 42 }))
+      const { wrapper, query } = mountDynamicKey({
+        query: mockFunction,
+        staleTime: 1000,
+        placeholderData: (data) => data,
+      })
+
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+      const dataId0 = wrapper.vm.data
+
+      mockFunction.mockRejectedValueOnce(new Error('fail'))
+      await wrapper.vm.setId(1)
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(2)
+      // Placeholder data is used as fallback in case of error
+      expect(wrapper.vm.data).toBe(dataId0)
+
+      vi.advanceTimersByTime(1)
+      wrapper.vm.refetch()
+      await flushPromises()
+      // If refetch is successful, fetched data is used
+      expect(wrapper.vm.data).not.toBe(dataId0)
+    })
 
     it('refreshes the data if mounted and the key changes', async () => {
       const { wrapper, query } = mountDynamicKey({
