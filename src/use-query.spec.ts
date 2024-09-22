@@ -9,8 +9,8 @@ import { defineComponent, nextTick, ref, shallowReactive } from 'vue'
 import { mockWarn } from '../test/mock-warn'
 import { isSpy } from '../test/utils'
 import { PiniaColada } from './pinia-colada'
-import { createQueryEntry, QUERY_STORE_ID, useQueryCache } from './query-store'
-import { entryNodeSize, TreeMapNode } from './tree-map'
+import { QUERY_STORE_ID, createQueryEntry, useQueryCache } from './query-store'
+import { TreeMapNode, entryNodeSize } from './tree-map'
 import { useQuery } from './use-query'
 
 describe('useQuery', () => {
