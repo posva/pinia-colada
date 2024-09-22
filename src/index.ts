@@ -1,57 +1,57 @@
-/**
- * @module @pinia/colada
- */
-export {
-  useMutation,
-  type UseMutationReturn,
-  type UseMutationOptions,
-  type _ReduceContext,
-} from './use-mutation'
+export type {
+  _DataState_Base,
+  AsyncStatus,
+  DataState,
+  DataState_Error,
+  DataState_Pending,
+  DataState_Success,
+  DataStateStatus,
+} from './data-state'
 export { defineMutation } from './define-mutation'
 
-export { useQuery, type UseQueryReturn } from './use-query'
 export { defineQuery } from './define-query'
+export { delayLoadingRef } from './delay-loading'
 
 // export { type UseQueryKeyList } from './query-keys'
 
 export { type EntryKey } from './entry-options'
-export type {
-  DataState,
-  DataStateStatus,
-  DataState_Error,
-  DataState_Pending,
-  DataState_Success,
-  _DataState_Base,
-  AsyncStatus,
-} from './data-state'
-export {
-  type UseQueryOptions,
-  type UseQueryOptionsWithDefaults,
-} from './query-options'
-
 export { PiniaColada } from './pinia-colada'
 export type { PiniaColadaOptions } from './pinia-colada'
 
+// TODO: idea of plugin that persists the cached values
+export type { PiniaColadaPlugin, PiniaColadaPluginContext } from './plugins'
 export {
   PiniaColadaQueryHooksPlugin,
   type PiniaColadaQueryHooksPluginOptions,
 } from './plugins/query-hooks'
 
 export {
-  useQueryCache,
-  serializeTreeMap,
-  serialize,
+  type UseQueryOptions,
+  type UseQueryOptionsWithDefaults,
+} from './query-options'
+
+export {
   reviveTreeMap,
+  serialize,
+  serializeTreeMap,
+  useQueryCache,
   type UseQueryEntry,
 } from './query-store'
 
-export { TreeMapNode, type EntryNodeKey } from './tree-map'
-
-export { type _MaybeArray, type _Awaitable, type _EmptyObject } from './utils'
-
-export { delayLoadingRef } from './delay-loading'
+export { type EntryNodeKey, TreeMapNode } from './tree-map'
 
 export type { TypesConfig } from './types-extension'
 
-// TODO: idea of plugin that persists the cached values
-export type { PiniaColadaPlugin, PiniaColadaPluginContext } from './plugins'
+/**
+ * @module @pinia/colada
+ */
+export {
+  type _ReduceContext,
+  useMutation,
+  type UseMutationOptions,
+  type UseMutationReturn,
+} from './use-mutation'
+
+export { useQuery, type UseQueryReturn } from './use-query'
+
+export { type _Awaitable, type _EmptyObject, type _MaybeArray } from './utils'

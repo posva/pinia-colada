@@ -1,6 +1,6 @@
+import { defineMutation, useMutation } from '@pinia/colada'
 // NOTE: to sync with mutations.md
 import { ref } from 'vue'
-import { defineMutation, useMutation } from '@pinia/colada'
 
 export const useCreateTodo = defineMutation(() => {
   const todoText = ref('')

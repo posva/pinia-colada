@@ -9,10 +9,10 @@ npm i @pinia/colada
 Then, install the plugin in your application:
 
 ```ts twoslash
+import { PiniaColada } from '@pinia/colada'
+import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import App from './App.vue'
-import { createPinia } from 'pinia'
-import { PiniaColada } from '@pinia/colada'
 
 const app = createApp(App)
 const pinia = createPinia()
@@ -25,8 +25,8 @@ app.use(PiniaColada)
 Pinia Colada comes with a few plugins that you can use to enhance Pinia Colada's functionality:
 
 ```ts twoslash
-import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+import { createApp } from 'vue'
 import App from './App.vue'
 // ---cut-before---
 import { PiniaColada, PiniaColadaQueryHooksPlugin } from '@pinia/colada'

@@ -1,14 +1,14 @@
+import { PiniaColada, PiniaColadaQueryHooksPlugin } from '@pinia/colada'
+import { PiniaColadaDebugPlugin } from '@pinia/colada-plugin-debug'
+import { PiniaColadaRetry } from '@pinia/colada-plugin-retry'
+import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router/auto'
 import { routes } from 'vue-router/auto-routes'
-import { createPinia } from 'pinia'
-import { PiniaColada, PiniaColadaQueryHooksPlugin } from '@pinia/colada'
+import App from './App.vue'
+
 import './style.css'
 import 'water.css'
-import { PiniaColadaRetry } from '@pinia/colada-plugin-retry'
-
-import App from './App.vue'
-import { PiniaColadaDebugPlugin } from '@pinia/colada-plugin-debug'
 
 const app = createApp(App)
 const router = createRouter({

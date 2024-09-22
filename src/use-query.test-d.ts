@@ -1,5 +1,5 @@
-import { assertType, describe, expectTypeOf, it } from 'vitest'
 import type { Ref } from 'vue'
+import { assertType, describe, expectTypeOf, it } from 'vitest'
 import { useQuery } from './use-query'
 
 describe('useQuery type inference', () => {

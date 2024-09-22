@@ -1,15 +1,15 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { App } from 'vue'
+import type { UseQueryOptions } from './query-options'
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
-import type { App } from 'vue'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createApp, defineComponent, effectScope, ref } from 'vue'
-import { defineQuery } from './define-query'
-import { useQuery } from './use-query'
-import type { UseQueryOptions } from './query-options'
-import { type GlobalMountOptions, isSpy } from '../test/utils'
-import { useQueryCache } from './query-store'
-import { PiniaColada } from './pinia-colada'
 import { mockWarn } from '../test/mock-warn'
+import { type GlobalMountOptions, isSpy } from '../test/utils'
+import { defineQuery } from './define-query'
+import { PiniaColada } from './pinia-colada'
+import { useQueryCache } from './query-store'
+import { useQuery } from './use-query'
 
 describe('defineQuery', () => {
   beforeEach(() => {

@@ -1,12 +1,12 @@
 <script lang="ts" setup>
-import { useRoute } from 'vue-router/auto'
-import { useMutation, useQuery } from '@pinia/colada'
-import ContactCard from '@/components/ContactCard.vue'
 import {
-  type Contact,
   updateContact as _updateContact,
+  type Contact,
   getContactById,
 } from '@/api/contacts'
+import ContactCard from '@/components/ContactCard.vue'
+import { useMutation, useQuery } from '@pinia/colada'
+import { useRoute } from 'vue-router/auto'
 
 const route = useRoute('/warnings/usage-two-[contactId]')
 

@@ -1,10 +1,10 @@
-import { computed, shallowRef } from 'vue'
 import type { ComputedRef, ShallowRef } from 'vue'
-import { useQueryCache } from './query-store'
+import type { AsyncStatus, DataState, DataStateStatus } from './data-state'
 import type { EntryKey } from './entry-options'
 import type { ErrorDefault } from './types-extension'
+import { computed, shallowRef } from 'vue'
+import { useQueryCache } from './query-store'
 import { type _Awaitable, type _EmptyObject, noop } from './utils'
-import type { AsyncStatus, DataState, DataStateStatus } from './data-state'
 
 type _MutationKey<TVars> =
   | EntryKey

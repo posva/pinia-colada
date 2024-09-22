@@ -2,12 +2,12 @@
 import fs from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import minimist from 'minimist'
 import chalk from 'chalk'
-import semver from 'semver'
 import enquirer from 'enquirer'
 import { execa } from 'execa'
+import minimist from 'minimist'
 import pSeries from 'p-series'
+import semver from 'semver'
 
 const { prompt } = enquirer
 

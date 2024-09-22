@@ -1,5 +1,5 @@
-import { effectScope, ref } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { effectScope, ref } from 'vue'
 import { delayLoadingRef } from './delay-loading'
 
 describe('delayedLoadingRef', () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { TreeMapNode, entryNodeSize } from './tree-map'
+import { entryNodeSize, TreeMapNode } from './tree-map'
 
 describe('tree-map', () => {
   it('.set and .get', () => {

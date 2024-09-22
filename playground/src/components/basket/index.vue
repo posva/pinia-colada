@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useQuery } from '@pinia/colada'
-import BasketDetails from './Details.vue'
-import { useBasket } from '@/composables/basket'
 import { getAllProducts } from '@/api/products'
+import { useBasket } from '@/composables/basket'
+import { useQuery } from '@pinia/colada'
+import { computed, ref } from 'vue'
+import BasketDetails from './Details.vue'
 
 const cart = useBasket()
 const { data: items } = useQuery({

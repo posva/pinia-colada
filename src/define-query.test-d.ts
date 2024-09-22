@@ -1,7 +1,7 @@
+import type { DataState } from './data-state'
 import { describe, expectTypeOf, it } from 'vitest'
 import { defineQuery } from './define-query'
 import { useQuery } from './use-query'
-import type { DataState } from './data-state'
 
 describe('defineQuery types', () => {
   it('can define a query with an options object', () => {

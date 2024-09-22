@@ -6,8 +6,8 @@ Similarly to queries, mutations are defined with the `useMutation()` composable:
 
 ```vue twoslash
 <script setup lang="ts">
-import { ref } from 'vue'
 import { useMutation } from '@pinia/colada'
+import { ref } from 'vue'
 
 const { mutate, status, asyncStatus } = useMutation({
   mutation: (todoText: string) =>
@@ -38,11 +38,11 @@ Alternatively, they can be defined with the `defineMutation()` function, which a
 ::: code-group
 
 ```ts [mutations/todos.ts] twoslash
+import { defineMutation, useMutation } from '@pinia/colada'
 // @filename: mutations/todos.ts
 // ---cut-before---
 // NOTE: to sync with mutations.md
 import { ref } from 'vue'
-import { defineMutation, useMutation } from '@pinia/colada'
 
 export const useCreateTodo = defineMutation(() => {
   const todoText = ref('')

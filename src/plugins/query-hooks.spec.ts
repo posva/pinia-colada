@@ -1,12 +1,12 @@
+import type { PiniaColadaOptions } from '../pinia-colada'
+import type { UseQueryOptions } from '../query-options'
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
+import { createPinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent } from 'vue'
-import { createPinia } from 'pinia'
-import { useQuery } from '../use-query'
-import type { PiniaColadaOptions } from '../pinia-colada'
 import { PiniaColada } from '../pinia-colada'
+import { useQuery } from '../use-query'
 import { PiniaColadaQueryHooksPlugin } from './query-hooks'
-import type { UseQueryOptions } from '../query-options'
 
 describe('Query Hooks plugin', () => {
   beforeEach(() => {

@@ -1,4 +1,4 @@
-import { type Options, mande } from 'mande'
+import { mande, type Options } from 'mande'
 
 export const products = mande('http://localhost:7777/products', {})
 

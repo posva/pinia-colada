@@ -1,17 +1,17 @@
+import type { UseQueryOptions } from './query-options'
+import type { ErrorDefault } from './types-extension'
+import type { UseQueryReturn } from './use-query'
 import {
   type EffectScope,
   getCurrentInstance,
   getCurrentScope,
   onScopeDispose,
 } from 'vue'
-import type { UseQueryOptions } from './query-options'
 import {
   queryEntry_addDep,
   queryEntry_removeDep,
   useQueryCache,
 } from './query-store'
-import type { ErrorDefault } from './types-extension'
-import type { UseQueryReturn } from './use-query'
 import { useQuery } from './use-query'
 
 /**

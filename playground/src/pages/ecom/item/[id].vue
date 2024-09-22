@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import {
+  changeProductAvailability,
+  getProductById,
+  type ProductListItem,
+} from '@/api/products'
+import { delay } from '@/api/utils'
 import { StarIcon } from '@heroicons/vue/20/solid'
 import { HeartIcon } from '@heroicons/vue/24/outline'
 import { useMutation, useQuery } from '@pinia/colada'
+import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router/auto'
-import {
-  type ProductListItem,
-  changeProductAvailability,
-  getProductById,
-} from '@/api/products'
-import { delay } from '@/api/utils'
 
 const route = useRoute('/ecom/item/[id]')
 

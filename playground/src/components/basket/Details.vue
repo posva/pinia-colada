@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useBasket } from '@/composables/basket'
 import type { ProductListItem } from '@/api/products'
+import { useBasket } from '@/composables/basket'
 
 defineProps<{ product: ProductListItem }>()
 

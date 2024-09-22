@@ -1,5 +1,5 @@
-import type { UseQueryEntry } from '../query-store'
 import type { PiniaColadaPlugin } from '.'
+import type { UseQueryEntry } from '../query-store'
 
 /**
  * Options for {@link PiniaColadaQueryHooksPlugin}.

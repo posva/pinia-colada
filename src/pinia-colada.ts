@@ -1,5 +1,8 @@
-import type { App } from 'vue'
 import type { Pinia } from 'pinia'
+import type { App } from 'vue'
+import type { PiniaColadaPlugin } from './plugins'
+import type { ErrorDefault } from './types-extension'
+import type { UseQueryReturn } from './use-query'
 import {
   USE_QUERY_DEFAULTS,
   USE_QUERY_OPTIONS_KEY,
@@ -7,9 +10,6 @@ import {
   type UseQueryOptionsWithDefaults,
 } from './query-options'
 import { useQueryCache } from './query-store'
-import type { ErrorDefault } from './types-extension'
-import type { PiniaColadaPlugin } from './plugins'
-import type { UseQueryReturn } from './use-query'
 
 /**
  * Options for the Pinia Colada plugin.

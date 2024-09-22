@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useQuery } from '@pinia/colada'
 import { getAllProducts } from '@/api/products'
 import ProductItem from '@/components/ProductItem.vue'
+import { useQuery } from '@pinia/colada'
 
 const { data, error } = useQuery({
   key: ['items'],

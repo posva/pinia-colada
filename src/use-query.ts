@@ -1,4 +1,12 @@
 import type { ComputedRef, MaybeRefOrGetter, ShallowRef } from 'vue'
+import type { AsyncStatus, DataState, DataStateStatus } from './data-state'
+import type { EntryKey } from './entry-options'
+import type {
+  UseQueryOptions,
+  UseQueryOptionsWithDefaults,
+} from './query-options'
+import type { UseQueryEntry } from './query-store'
+import type { ErrorDefault } from './types-extension'
 import {
   computed,
   getCurrentInstance,
@@ -10,22 +18,14 @@ import {
   toValue,
   watch,
 } from 'vue'
-import { IS_CLIENT, useEventListener } from './utils'
-import type { UseQueryEntry } from './query-store'
+import { getCurrentDefineQueryEffect } from './define-query'
+import { useQueryOptions } from './query-options'
 import {
   queryEntry_addDep,
   queryEntry_removeDep,
   useQueryCache,
 } from './query-store'
-import { useQueryOptions } from './query-options'
-import type { EntryKey } from './entry-options'
-import type {
-  UseQueryOptions,
-  UseQueryOptionsWithDefaults,
-} from './query-options'
-import type { ErrorDefault } from './types-extension'
-import { getCurrentDefineQueryEffect } from './define-query'
-import type { AsyncStatus, DataState, DataStateStatus } from './data-state'
+import { IS_CLIENT, useEventListener } from './utils'
 
 /**
  * Return type of `useQuery()`.

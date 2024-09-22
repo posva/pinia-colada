@@ -1,6 +1,6 @@
+import { searchContacts } from '@/api/contacts'
 import { defineQuery, useQuery } from '@pinia/colada'
 import { useRouteQuery } from '@vueuse/router'
-import { searchContacts } from '@/api/contacts'
 
 export const useContactSearch = defineQuery(() => {
   const searchText = useRouteQuery('search', '', { mode: 'push' })
