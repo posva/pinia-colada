@@ -1,7 +1,7 @@
-import { type InjectionKey, type MaybeRefOrGetter, inject } from 'vue'
 import type { EntryKey } from './entry-options'
-import type { ErrorDefault } from './types-extension'
 import type { PiniaColadaOptions } from './pinia-colada'
+import type { ErrorDefault } from './types-extension'
+import { inject, type InjectionKey, type MaybeRefOrGetter } from 'vue'
 
 /**
  * `true` refetch if data is stale (refresh()), `false` never refetch, 'always' always refetch.
@@ -67,7 +67,7 @@ export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
   enabled?: MaybeRefOrGetter<boolean>
 
   /**
-   * Time in ms after which the data is considered stale and will be refreshed on next read
+   * Time in ms after which the data is considered stale and will be refreshed on next read.
    */
   staleTime?: number
 
@@ -77,8 +77,16 @@ export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
   gcTime?: number
 
   // TODO: this might be just sugar syntax to do `setQueryData()` on creation
+  /**
+   * The data which is initially set to the query while the query is loading for the first time.
+   * Note: unlike with `placeholderData`, setting the initial data changes the state of the query (it will be set to `success`).
+   */
   initialData?: () => NoInfer<TResult>
 
+  /**
+   * A placeholder data that is initially shown while the query is loading for the first time.
+   * Note: unlike with `initialData`, the placeholder does not change the state of the query (`pending` or `error`).
+   */
   placeholderData?:
     | NoInfer<TResult>
     | (<T extends TResult>(previousData: T | undefined) => NoInfer<TResult>)
