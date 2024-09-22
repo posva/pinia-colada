@@ -18,6 +18,10 @@ if (!commitRE.test(msg)) {
   console.error(
     `\n`
       + `  ${bgRedWhite} ERROR ${reset} ${red}invalid commit message format.${reset}\n\n`
+      + `${msg
+        .split('\n')
+        .map((line) => `    ${line}`)
+        .join('\n')}\n\n`
       + `${red}  Proper commit message format is required for automated changelog generation. Examples:\n\n`
       + `    ${green}feat: add disableRoot option${reset}\n`
       + `    ${green}fix(view): handle keep-alive with aborted navigations (close #28)${reset}\n\n`
