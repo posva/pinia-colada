@@ -124,6 +124,24 @@ describe('useQuery type inference', () => {
       expectTypeOf<'pending'>(state.value.status)
     }
   })
+
+  it('types the placeholder data', () => {
+    useQuery({
+      query: async () => 42,
+      key: ['foo'],
+      // @ts-expect-error: wrong type
+      placeholderData: 'e',
+    })
+
+    useQuery({
+      query: async () => 42,
+      key: ['foo'],
+      placeholderData: (n) => {
+        expectTypeOf<number | undefined>(n)
+        return n ?? 42
+      },
+    })
+  })
 })
 
 class MyCustomError extends Error {

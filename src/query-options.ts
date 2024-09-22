@@ -77,7 +77,11 @@ export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
   gcTime?: number
 
   // TODO: this might be just sugar syntax to do `setQueryData()` on creation
-  initialData?: () => TResult
+  initialData?: () => NoInfer<TResult>
+
+  placeholderData?:
+    | NoInfer<TResult>
+    | (<T extends TResult>(previousData: T | undefined) => NoInfer<TResult>)
 
   /**
    * Function to type and ensure the `error` property is always an instance of `TError`.
@@ -125,10 +129,12 @@ export type UseQueryOptionsWithDefaults<
 
 export const USE_QUERY_OPTIONS_KEY: InjectionKey<
   typeof USE_QUERY_DEFAULTS &
-  Omit<UseQueryOptions, 'key' | 'query' | 'initialData'> &
-  {
-    setup?: PiniaColadaOptions['setup']
-  }
+    Omit<
+      UseQueryOptions,
+      'key' | 'query' | 'initialData' | 'placeholderData'
+    > & {
+      setup?: PiniaColadaOptions['setup']
+    }
 > = process.env.NODE_ENV !== 'production' ? Symbol('useQueryOptions') : Symbol()
 
 /**

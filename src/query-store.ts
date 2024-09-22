@@ -38,6 +38,11 @@ export interface UseQueryEntry<TResult = unknown, TError = unknown> {
   state: ShallowRef<DataState<TResult, TError>>
 
   /**
+   * A placeholder data that is initially shown while the query is loading for the first time.
+   */
+  placeholderData: TResult | null
+
+  /**
    * The status of the query.
    */
   asyncStatus: ShallowRef<AsyncStatus>
@@ -183,6 +188,7 @@ export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
   return markRaw<UseQueryEntry<TResult, TError>>({
     key,
     state,
+    placeholderData: null,
     when,
     asyncStatus,
     pending: null,
@@ -461,9 +467,9 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
               && (error.name !== 'AbortError' || error === signal.reason)
             ) {
               setEntryState(entry, {
+                status: 'error',
                 data: entry.state.value.data,
                 error,
-                status: 'error',
               })
               throw error
             }
@@ -500,7 +506,8 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
   const setEntryState = action(
     <TResult, TError>(
       entry: UseQueryEntry<TResult, TError>,
-      state: DataState<TResult, TError>,
+      // NOTE: NoInfer ensures correct inference of TResult and TError
+      state: DataState<NoInfer<TResult>, NoInfer<TError>>,
     ) => {
       entry.state.value = state
       entry.when = Date.now()

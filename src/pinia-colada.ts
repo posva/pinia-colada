@@ -17,7 +17,8 @@ import type { UseQueryReturn } from './use-query'
 export interface PiniaColadaOptions
   extends Omit<
     UseQueryOptions,
-    'key' | 'query' | 'initialData' | 'transformError'
+    // TODO: refactor options into global options, and query options
+    'key' | 'query' | 'initialData' | 'transformError' | 'placeholderData'
   > {
   /**
    * Pinia instance to use. This is only needed if installing before the Pinia plugin.

@@ -10,7 +10,7 @@ import {
   toValue,
   watch,
 } from 'vue'
-import { IS_CLIENT, useEventListener } from './utils'
+import { IS_CLIENT, toValueWithArgs, useEventListener } from './utils'
 import type { UseQueryEntry } from './query-store'
 import {
   queryEntry_addDep,
@@ -61,6 +61,9 @@ export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault> {
    * Returns whether the request is still pending its first call. Alias for `status.value === 'pending'`
    */
   isPending: ComputedRef<boolean>
+
+  // TODO: jsdoc
+  isPlaceholderData: ComputedRef<boolean>
 
   /**
    * Returns whether the request is currently fetching data.
@@ -147,6 +150,14 @@ export function useQuery<TResult, TError = ErrorDefault>(
   const errorCatcher = () => entry.value.state.value
   const refresh = () => cacheEntries.refresh(entry.value).catch(errorCatcher)
   const refetch = () => cacheEntries.fetch(entry.value).catch(errorCatcher)
+  const isPlaceholderData = computed(
+    () =>
+      entry.value.placeholderData != null
+      && entry.value.state.value.status === 'pending',
+  )
+
+  // TODO: adapt to use the placeholderData in data and state
+  // and to change the status to success
 
   const queryReturn = {
     state: computed(() => entry.value.state.value),
@@ -156,6 +167,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
     error: computed(() => entry.value.state.value.error),
     asyncStatus: computed(() => entry.value.asyncStatus.value),
 
+    isPlaceholderData,
     isPending: computed(() => entry.value.state.value.status === 'pending'),
     isLoading: computed(() => entry.value.asyncStatus.value === 'loading'),
 
@@ -209,6 +221,14 @@ export function useQuery<TResult, TError = ErrorDefault>(
       queryEntry_addDep(entry, currentEffect)
 
       if (toValue(options.enabled)) refresh()
+
+      // the placeholderData is only used if the entry is initially loading
+      if (options.placeholderData && entry.state.value.status === 'pending') {
+        entry.placeholderData = toValueWithArgs(
+          options.placeholderData,
+          previousEntry?.state.value.data,
+        )
+      }
     },
     { immediate: true },
   )
