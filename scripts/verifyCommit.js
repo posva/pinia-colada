@@ -20,7 +20,7 @@ if (!commitRE.test(msg)) {
       + `  ${bgRedWhite} ERROR ${reset} ${red}invalid commit message format.${reset}\n\n`
       + `${msg
         .split('\n')
-        .map((line) => `  ${line}`)
+        .map((line) => `    ${line}`)
         .join('\n')}\n\n`
       + `${red}  Proper commit message format is required for automated changelog generation. Examples:\n\n`
       + `    ${green}feat: add disableRoot option${reset}\n`
