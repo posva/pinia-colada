@@ -17,9 +17,9 @@ npm i @pinia/colada
 Install the `PiniaColada` plugin **after Pinia** (so it picks it up automatically ✨):
 
 ```ts twoslash
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
 import { PiniaColada } from '@pinia/colada'
+import { createPinia } from 'pinia'
+import { createApp } from 'vue'
 
 const app = createApp({})
 app.use(createPinia())
@@ -40,15 +40,15 @@ Query data with `useQuery()` in any component. Always provide a `key` and an _as
 
 ```vue [pages/products.vue] twoslash
 <script setup lang="ts">
-// ---cut-start---
-import './shims-vue.d'
+import { getAllProducts } from '@/api/products'
 import ErrorMessage from '@/components/ErrorMessage.vue'
 import LoadingIndicator from '@/components/LoadingIndicator.vue'
+import ProductItem from '@/components/ProductItem.vue'
+// ---cut-start---
+import './shims-vue.d'
 // ---cut-end---
 // @moduleResolution: bundler
 import { useQuery } from '@pinia/colada'
-import { getAllProducts } from '@/api/products'
-import ProductItem from '@/components/ProductItem.vue'
 
 const {
   // when using multiple queries in the same component,
@@ -81,16 +81,16 @@ const {
 
 ```vue [pages/products/[id].vue] twoslash
 <script setup lang="ts">
-// ---cut-start---
-import './shims-vue.d'
+import { getProductById } from '@/api/products'
 import ErrorMessage from '@/components/ErrorMessage.vue'
 import LoadingIndicator from '@/components/LoadingIndicator.vue'
+import ProductItemDetail from '@/components/ProductItemDetail.vue'
+// ---cut-start---
+import './shims-vue.d'
 // ---cut-end---
 // @moduleResolution: bundler
 import { useQuery } from '@pinia/colada'
 import { useRoute } from 'vue-router'
-import { getProductById } from '@/api/products'
-import ProductItemDetail from '@/components/ProductItemDetail.vue'
 
 // in this example we use the url params in the query to fetch
 // a specific product
@@ -128,15 +128,15 @@ Mutate data with `useMutation()` in any component. Unlinke _queries_, mutations 
 
 ```vue twoslash
 <script setup lang="ts">
-// ---cut-start---
-import './shims-vue.d'
+import { type Contact, updateContact } from '@/api/contacts'
+import ContactDetail from '@/components/ContactDetail.vue'
 import ErrorMessage from '@/components/ErrorMessage.vue'
 import LoadingIndicator from '@/components/LoadingIndicator.vue'
+// ---cut-start---
+import './shims-vue.d'
 // ---cut-end---
 // @moduleResolution: bundler
 import { useMutation } from '@pinia/colada'
-import { type Contact, updateContact } from '@/api/contacts'
-import ContactDetail from '@/components/ContactDetail.vue'
 
 const props = defineProps<{ contact: Contact }>()
 

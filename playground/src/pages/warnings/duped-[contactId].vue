@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-import { useRoute } from 'vue-router/auto'
-import { useQuery } from '@pinia/colada'
 import {
   getContactById,
 } from '@/api/contacts'
+import { useQuery } from '@pinia/colada'
+import { useRoute } from 'vue-router/auto'
 
 const route = useRoute('/warnings/duped-[contactId]')
 

@@ -52,8 +52,8 @@ Since queries are triggered automatically by Pinia Colada, they cannot receive a
 
 ```vue twoslash
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
 import { useQuery } from '@pinia/colada'
+import { useRoute } from 'vue-router'
 
 const route = useRoute()
 const { data, status } = useQuery({

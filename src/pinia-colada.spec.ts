@@ -1,11 +1,11 @@
+import type { PiniaColadaOptions } from './pinia-colada'
 import { enableAutoUnmount, mount } from '@vue/test-utils'
+import { createPinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent } from 'vue'
-import { createPinia } from 'pinia'
-import { useQuery } from './use-query'
-import type { PiniaColadaOptions } from './pinia-colada'
 import { PiniaColada } from './pinia-colada'
 import { useQueryCache } from './query-store'
+import { useQuery } from './use-query'
 
 describe('PiniaColada', () => {
   const MyComponent = defineComponent({

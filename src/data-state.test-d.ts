@@ -1,6 +1,6 @@
+import type { DataState } from './data-state'
 import { describe, expectTypeOf, it } from 'vitest'
 import { computed, shallowReactive, shallowRef } from 'vue'
-import type { DataState } from './data-state'
 
 describe('DataState type narrowing', () => {
   it('narrowing with shallowReactive', () => {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useData } from 'vitepress'
+import { computed } from 'vue'
 import sponsors from './sponsors.json'
 
 const props = withDefaults(

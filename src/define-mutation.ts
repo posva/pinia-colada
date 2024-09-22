@@ -1,8 +1,8 @@
 import type { ErrorDefault } from './types-extension'
 import {
+  useMutation,
   type UseMutationOptions,
   type UseMutationReturn,
-  useMutation,
 } from './use-mutation'
 
 /**

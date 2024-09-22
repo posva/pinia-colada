@@ -1,14 +1,14 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { GlobalMountOptions } from '../test/utils'
+import type { UseQueryOptions } from './query-options'
+import type { UseMutationOptions } from './use-mutation'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, nextTick } from 'vue'
-import type { GlobalMountOptions } from '../test/utils'
 import { delay } from '../test/utils'
-import type { UseMutationOptions } from './use-mutation'
-import { useMutation } from './use-mutation'
 import { PiniaColada } from './pinia-colada'
+import { useMutation } from './use-mutation'
 import { useQuery } from './use-query'
-import type { UseQueryOptions } from './query-options'
 
 describe('useMutation', () => {
   beforeEach(() => {

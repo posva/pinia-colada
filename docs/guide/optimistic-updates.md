@@ -101,7 +101,7 @@ We can achieve this by only touching the `useMutation()` code:
 
 ```ts twoslash
 import { useMutation, useQueryCache } from '@pinia/colada'
-import { type TodoItem, createTodo } from './api/todos'
+import { createTodo, type TodoItem } from './api/todos'
 
 const queryCache = useQueryCache()
 const { mutate } = useMutation({

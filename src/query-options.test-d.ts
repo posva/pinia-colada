@@ -1,5 +1,5 @@
-import { describe, it } from 'vitest'
 import type { App } from 'vue'
+import { describe, it } from 'vitest'
 import { PiniaColada } from './pinia-colada'
 
 declare const app: App

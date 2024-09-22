@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { computed, ref } from 'vue'
 import type { Contact } from '@/api/contacts'
+import { computed, ref } from 'vue'
 
 const props = defineProps<{ contact: Contact }>()
 const emit = defineEmits<{

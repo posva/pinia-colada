@@ -1,6 +1,6 @@
+import type { PiniaColadaPluginContext, UseQueryEntry } from '@pinia/colada'
 import { defineStore } from 'pinia'
 import { ref, shallowReactive } from 'vue'
-import type { PiniaColadaPluginContext, UseQueryEntry } from '@pinia/colada'
 
 const tick = () => new Promise((r) => setTimeout(r, 0))
 

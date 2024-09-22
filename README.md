@@ -49,8 +49,8 @@ npm install pinia @pinia/colada
 Install the plugins for the features you need:
 
 ```js
-import { createPinia } from 'pinia'
 import { PiniaColada } from '@pinia/colada'
+import { createPinia } from 'pinia'
 
 app.use(createPinia())
 // install after pinia
@@ -63,8 +63,8 @@ app.use(PiniaColada, {
 
 ```vue
 <script lang="ts" setup>
-import { useRoute } from 'vue-router'
 import { useMutation, useQuery } from '@pinia/colada'
+import { useRoute } from 'vue-router'
 import { updateContact as _updateContact, getContactById } from '~/api/contacts'
 
 const route = useRoute()
