@@ -1,5 +1,6 @@
 import type { ComputedRef, MaybeRefOrGetter, ShallowRef } from 'vue'
 import {
+  App,
   computed,
   getCurrentInstance,
   getCurrentScope,
