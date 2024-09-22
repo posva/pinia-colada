@@ -1,17 +1,17 @@
 import type { MockInstance } from 'vitest'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { GlobalMountOptions } from '../test/utils'
+import type { UseQueryOptions } from './query-options'
+import type { UseQueryEntry } from './query-store'
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, nextTick, ref, shallowReactive } from 'vue'
 import { mockWarn } from '../test/mock-warn'
-import type { GlobalMountOptions } from '../test/utils'
 import { isSpy } from '../test/utils'
-import { useQuery } from './use-query'
-import type { UseQueryEntry } from './query-store'
-import { QUERY_STORE_ID, createQueryEntry, useQueryCache } from './query-store'
-import { TreeMapNode, entryNodeSize } from './tree-map'
-import type { UseQueryOptions } from './query-options'
 import { PiniaColada } from './pinia-colada'
+import { createQueryEntry, QUERY_STORE_ID, useQueryCache } from './query-store'
+import { entryNodeSize, TreeMapNode } from './tree-map'
+import { useQuery } from './use-query'
 
 describe('useQuery', () => {
   beforeEach(() => {
@@ -454,6 +454,140 @@ describe('useQuery', () => {
       await flushPromises()
       expect(wrapper.vm.data).toBe(42)
       expect(query).toHaveBeenCalledTimes(1)
+    })
+
+    describe('placeholderData', () => {
+      it('uses the placeholder data (if configured) as fallback while loading (constant placeholder)', async () => {
+        const { wrapper, query } = mountDynamicKey({
+          query: async () => {
+            await new Promise((res) => setTimeout(res, 100))
+            return { when: Date.now() }
+          },
+          staleTime: 1000,
+          placeholderData: { when: 0 },
+        })
+
+        vi.advanceTimersByTime(100)
+        await flushPromises()
+        expect(query).toHaveBeenCalledTimes(1)
+        const dataId0 = wrapper.vm.data
+
+        await wrapper.vm.setId(1)
+        // Placeholder data is used
+        expect(wrapper.vm.data).toBe(dataId0)
+
+        vi.advanceTimersByTime(100)
+        await flushPromises()
+        const dataId1 = wrapper.vm.data
+        // Refetch data is used
+        expect(dataId1).not.toBe(dataId0)
+
+        await wrapper.vm.setId(0)
+        // There is fresh cached data: placeholder data is not used
+        expect(wrapper.vm.data).toBe(dataId0)
+
+        vi.advanceTimersByTime(1001)
+        await wrapper.vm.setId(1)
+        // There is stale cached data: placeholder data is not used either (stale data is used, as usual)
+        expect(wrapper.vm.data).toBe(dataId1)
+
+        vi.advanceTimersByTime(100)
+        await flushPromises()
+        // Refetch data is used
+        expect(wrapper.vm.data).not.toBe(dataId1)
+        expect(query).toHaveBeenCalledTimes(3)
+      })
+
+      it('uses the placeholder data (if configured) as fallback while loading (function placeholder)', async () => {
+        const { wrapper, query } = mountDynamicKey({
+          query: async () => {
+            await new Promise((res) => setTimeout(res, 100))
+            return { when: Date.now() }
+          },
+          staleTime: 1000,
+          placeholderData: (data) => data || { when: 0 },
+        })
+
+        vi.advanceTimersByTime(100)
+        await flushPromises()
+        expect(query).toHaveBeenCalledTimes(1)
+        const dataId0 = wrapper.vm.data
+
+        await wrapper.vm.setId(1)
+        // Placeholder data is used
+        expect(wrapper.vm.data).toBe(dataId0)
+
+        vi.advanceTimersByTime(100)
+        await flushPromises()
+        const dataId1 = wrapper.vm.data
+        // Refetch data is used
+        expect(dataId1).not.toBe(dataId0)
+
+        await wrapper.vm.setId(0)
+        // There is fresh cached data: placeholder data is not used
+        expect(wrapper.vm.data).toBe(dataId0)
+
+        vi.advanceTimersByTime(1001)
+        await wrapper.vm.setId(1)
+        // There is stale cached data: placeholder data is not used either (stale data is used, as usual)
+        expect(wrapper.vm.data).toBe(dataId1)
+
+        vi.advanceTimersByTime(100)
+        await flushPromises()
+        // Refetch data is used
+        expect(wrapper.vm.data).not.toBe(dataId1)
+        expect(query).toHaveBeenCalledTimes(3)
+      })
+
+      it('uses the placeholder data (if configured) as fallback in case of error (constant placeholder)', async () => {
+        const mockFunction = vi.fn(async () => ({ value: 42 }))
+        const { wrapper, query } = mountDynamicKey({
+          query: mockFunction,
+          staleTime: 1000,
+          placeholderData: { value: 42 },
+        })
+
+        await flushPromises()
+        expect(query).toHaveBeenCalledTimes(1)
+        const dataId0 = wrapper.vm.data
+
+        mockFunction.mockRejectedValueOnce(new Error('fail'))
+        await wrapper.vm.setId(1)
+        await flushPromises()
+        expect(query).toHaveBeenCalledTimes(2)
+        // Placeholder data is used as fallback in case of error
+        expect(wrapper.vm.data).toBe(dataId0)
+
+        wrapper.vm.refetch()
+        await flushPromises()
+        // If refetch is successful, fetched data is used
+        expect(wrapper.vm.data).not.toBe(dataId0)
+      })
+
+      it('uses the placeholder data (if configured) as fallback in case of error (function placeholder)', async () => {
+        const mockFunction = vi.fn(async () => ({ value: 42 }))
+        const { wrapper, query } = mountDynamicKey({
+          query: mockFunction,
+          staleTime: 1000,
+          placeholderData: (data) => data || { value: 42 },
+        })
+
+        await flushPromises()
+        expect(query).toHaveBeenCalledTimes(1)
+        const dataId0 = wrapper.vm.data
+
+        mockFunction.mockRejectedValueOnce(new Error('fail'))
+        await wrapper.vm.setId(1)
+        await flushPromises()
+        expect(query).toHaveBeenCalledTimes(2)
+        // Placeholder data is used as fallback in case of error
+        expect(wrapper.vm.data).toBe(dataId0)
+
+        wrapper.vm.refetch()
+        await flushPromises()
+        // If refetch is successful, fetched data is used
+        expect(wrapper.vm.data).not.toBe(dataId0)
+      })
     })
 
     it('refreshes the data if mounted and the key changes', async () => {
