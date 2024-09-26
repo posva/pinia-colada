@@ -1,7 +1,7 @@
-import type { EntryKey } from './entry-options'
-import type { PiniaColadaOptions } from './pinia-colada'
-import type { ErrorDefault } from './types-extension'
 import { type InjectionKey, type MaybeRefOrGetter, inject } from 'vue'
+import type { EntryKey } from './entry-options'
+import type { ErrorDefault } from './types-extension'
+import type { PiniaColadaOptions } from './pinia-colada'
 
 /**
  * `true` refetch if data is stale (refresh()), `false` never refetch, 'always' always refetch.
