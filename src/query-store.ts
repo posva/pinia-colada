@@ -547,10 +547,12 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
     },
   )
 
-  /**
-   * Removes a query entry from the cache.
-   */
-  const remove = action((entry: UseQueryEntry) => caches.delete(entry.key))
+  const remove = action(
+    /**
+     * Removes a query entry from the cache.
+     */
+    (entry: UseQueryEntry) => caches.delete(entry.key),
+  )
 
   // TODO: find a way to make it possible to prefetch. Right now we need the actual options of the query
   const _preload = action((_useQueryFn: ReturnType<typeof defineQuery>) => {})
