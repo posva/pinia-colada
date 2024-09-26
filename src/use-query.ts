@@ -157,20 +157,29 @@ export function useQuery<TResult, TError = ErrorDefault>(
       entry.value.placeholderData != null
       && entry.value.state.value.status === 'pending',
   )
+  const state = computed<DataState<TResult, TError>>(() =>
+    isPlaceholderData.value
+      ? {
+          status: 'success',
+          data: entry.value.placeholderData!,
+          error: null,
+        }
+      : entry.value.state.value,
+  )
 
   // TODO: adapt to use the placeholderData in data and state
   // and to change the status to success
 
   const queryReturn = {
-    state: computed(() => entry.value.state.value),
+    state,
 
-    status: computed(() => entry.value.state.value.status),
-    data: computed(() => entry.value.state.value.data),
+    status: computed(() => state.value.status),
+    data: computed(() => state.value.data),
     error: computed(() => entry.value.state.value.error),
     asyncStatus: computed(() => entry.value.asyncStatus.value),
 
     isPlaceholderData,
-    isPending: computed(() => entry.value.state.value.status === 'pending'),
+    isPending: computed(() => state.value.status === 'pending'),
     isLoading: computed(() => entry.value.asyncStatus.value === 'loading'),
 
     refresh,
@@ -213,6 +222,13 @@ export function useQuery<TResult, TError = ErrorDefault>(
   watch(
     entry,
     (entry, previousEntry) => {
+      // the placeholderData is only used if the entry is initially loading
+      if (options.placeholderData && entry.state.value.status === 'pending') {
+        entry.placeholderData = toValueWithArgs(
+          options.placeholderData,
+          previousEntry?.state.value.data,
+        )
+      }
       if (!isActive) return
       if (previousEntry) {
         queryEntry_removeDep(previousEntry, hasCurrentInstance, cacheEntries)
@@ -223,14 +239,6 @@ export function useQuery<TResult, TError = ErrorDefault>(
       queryEntry_addDep(entry, currentEffect)
 
       if (toValue(options.enabled)) refresh()
-
-      // the placeholderData is only used if the entry is initially loading
-      if (options.placeholderData && entry.state.value.status === 'pending') {
-        entry.placeholderData = toValueWithArgs(
-          options.placeholderData,
-          previousEntry?.state.value.data,
-        )
-      }
     },
     { immediate: true },
   )

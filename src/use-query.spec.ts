@@ -372,22 +372,44 @@ describe('useQuery', () => {
   describe('placeholderData', () => {
     it('affects useQuery data, state, status', async () => {
       const { wrapper } = mountSimple({
-        query: async () => {
-          await new Promise((r) => setTimeout(r, 100))
-          return 42
-        },
+        query: async () => 42,
         placeholderData: 24,
       })
 
+      expect(wrapper.vm.isPlaceholderData).toBe(true)
+      expect(wrapper.vm.state).toEqual({
+        data: 24,
+        error: null,
+        status: 'success',
+      })
       expect(wrapper.vm.data).toBe(24)
       expect(wrapper.vm.isLoading).toBe(true)
       expect(wrapper.vm.isPending).toBe(false)
       expect(wrapper.vm.status).toBe('success')
       expect(wrapper.vm.error).toBeNull()
       expect(wrapper.vm.asyncStatus).toBe('loading')
+
+      await flushPromises()
+      expect(wrapper.vm.isPlaceholderData).toBe(false)
+      expect(wrapper.vm.data).toBe(42)
+    })
+
+    it('works with a function', async () => {
+      const { wrapper } = mountSimple({
+        query: async () => 42,
+        placeholderData: () => 24,
+      })
+
+      expect(wrapper.vm.data).toBe(24)
       await flushPromises()
       expect(wrapper.vm.data).toBe(42)
     })
+
+    it.todo('ignores the placeholderData if there is already data in the cache')
+    it.todo('ignores the placeholderData if there is already an error in the cache')
+    it.todo('ignores the placeholderData if it returns a nullish value')
+
+    it.todo('calls the placeholderData function with the previous data if the entry key changes')
   })
 
   describe('refresh data', () => {

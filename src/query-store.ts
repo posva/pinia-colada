@@ -481,6 +481,8 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
             entry.asyncStatus.value = 'idle'
             if (pendingCall === entry.pending) {
               entry.pending = null
+              // reset the placeholder data to free up memory
+              entry.placeholderData = null
               entry.when = Date.now()
             }
           }),
