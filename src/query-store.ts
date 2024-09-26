@@ -38,7 +38,8 @@ export interface UseQueryEntry<TResult = unknown, TError = unknown> {
   state: ShallowRef<DataState<TResult, TError>>
 
   /**
-   * A placeholder data that is initially shown while the query is loading for the first time.
+   * A placeholder `data` that is initially shown while the query is loading for the first time. This will also show the
+   * `status` as `success` until the query finishes loading (no matter the outcome).
    */
   placeholderData: TResult | null
 

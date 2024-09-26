@@ -84,8 +84,9 @@ export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
   initialData?: () => NoInfer<TResult>
 
   /**
-   * A placeholder data that is initially shown while the query is loading for the first time.
-   * Note: unlike with `initialData`, the placeholder does not change the state of the query (`pending` or `error`).
+   * A placeholder data that is initially shown while the query is loading for the first time. This will also show the
+   * `status` as `success` until the query finishes loading (no matter the outcome of the query). Note: unlike with
+   * `initialData`, the placeholder does not change the cache state.
    */
   placeholderData?:
     | NoInfer<TResult>

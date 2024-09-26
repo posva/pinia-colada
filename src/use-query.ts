@@ -62,7 +62,9 @@ export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault> {
    */
   isPending: ComputedRef<boolean>
 
-  // TODO: jsdoc
+  /**
+   * Returns whether the `data` is the `placeholderData`.
+   */
   isPlaceholderData: ComputedRef<boolean>
 
   /**
