@@ -142,6 +142,24 @@ describe('useQuery type inference', () => {
       },
     })
   })
+
+  it('allows nullish and void returns in placeholderData', () => {
+    useQuery({
+      query: async () => 42,
+      key: ['foo'],
+      placeholderData: () => {
+        return null
+      },
+    })
+
+    useQuery({
+      query: async () => 42,
+      key: ['foo'],
+      placeholderData: () => {
+        // no return
+      },
+    })
+  })
 })
 
 class MyCustomError extends Error {
