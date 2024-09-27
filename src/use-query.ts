@@ -1,4 +1,4 @@
-import type { ComputedRef, MaybeRefOrGetter, ShallowRef } from 'vue'
+import type { ComputedRef, ShallowRef } from 'vue'
 import {
   computed,
   getCurrentInstance,
@@ -18,7 +18,6 @@ import {
   useQueryCache,
 } from './query-store'
 import { useQueryOptions } from './query-options'
-import type { EntryKey } from './entry-options'
 import type {
   UseQueryOptions,
   UseQueryOptionsWithDefaults,
@@ -308,42 +307,4 @@ export function useQuery<TResult, TError = ErrorDefault>(
   }
 
   return options.setup?.(queryReturn, options) || queryReturn
-}
-
-/**
- * Unwraps a key from `options.key` while checking for properties any problematic dependencies. Should be used in DEV
- * only.
- * @param key - key to compute
- * @returns - the computed key
- */
-function _computedKeyWithWarnings(
-  key: MaybeRefOrGetter<EntryKey>,
-  warnChecksMap: WeakMap<object, boolean>,
-): () => EntryKey {
-  const componentInstance = getCurrentInstance()
-  // probably correct scope, no need to warn
-  if (!componentInstance) return () => toValue(key)
-
-  const comp = computed(() => toValue(key))
-
-  // remove the component from the map
-  onUnmounted(() => {
-    warnChecksMap.delete(comp)
-  })
-
-  return () => {
-    const val = comp.value
-
-    const invalidDeps = comp.effect.deps.filter((dep) => {
-      return !!dep
-    })
-    if (invalidDeps.length > 0) {
-      console.warn(
-        `"useQuery()" with a key "${val}" depends on a local reactive property. This might lead to unexpected behavior. See https://pinia-colada.esm.dev/cookbook/unscoped-reactivity.html.\nFound these reactive effects:`,
-        ...invalidDeps.map((dep) => dep.keys()),
-      )
-    }
-
-    return val
-  }
 }
