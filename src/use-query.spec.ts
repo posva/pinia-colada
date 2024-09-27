@@ -439,7 +439,8 @@ describe('useQuery', () => {
       const pinia = createPinia()
       const options = {
         key: ['id'],
-        query: async () => 42,
+        // spy to avoid warns because of mountSimple
+        query: vi.fn(async () => 42),
         placeholderData: 24,
       } satisfies UseQueryOptions
       const [w1] = mountSimple(options, { plugins: [pinia] })
@@ -458,9 +459,10 @@ describe('useQuery', () => {
       const pinia = createPinia()
       const options: UseQueryOptions<number> = {
         key: ['id'],
-        query: async () => {
+        // spy to avoid warns because of mountSimple
+        query: vi.fn(async () => {
           throw new Error('fail')
-        },
+        }),
         placeholderData: 24,
       }
       const [w1] = mountSimple(options, { plugins: [pinia] })
