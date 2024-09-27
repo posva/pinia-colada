@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.9.1](https://github.com/posva/pinia-colada/compare/v0.9.0...v0.9.1) (2024-09-27)
+
+
+### Features
+
+* allow nullish return in placeholderData ([1fae179](https://github.com/posva/pinia-colada/commit/1fae179682e0d4880a8e814e0399692d76d9019a))
+* wip nuxt module ([66eca6e](https://github.com/posva/pinia-colada/commit/66eca6ea310ca5bf61b790de709068453909d08a))
+* wip placeholderData ([307e366](https://github.com/posva/pinia-colada/commit/307e366d4be3b643c433410c81f98ae10e177547))
+
+
+### Bug Fixes
+
+* **query:** handle sync errors ([cfcdcb1](https://github.com/posva/pinia-colada/commit/cfcdcb192800fb511dd2aa1acca5dc67d8874ff4)), closes [#70](https://github.com/posva/pinia-colada/issues/70) [#69](https://github.com/posva/pinia-colada/issues/69)
+
 ## [0.9.0](https://github.com/posva/pinia-colada/compare/v0.8.2...v0.9.0) (2024-08-26)
 
 ### ⚠ BREAKING CHANGES
