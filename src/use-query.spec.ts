@@ -392,6 +392,8 @@ describe('useQuery', () => {
       await flushPromises()
       expect(wrapper.vm.isPlaceholderData).toBe(false)
       expect(wrapper.vm.data).toBe(42)
+      expect(wrapper.vm.status).toBe('success')
+      expect(wrapper.vm.asyncStatus).toBe('idle')
     })
 
     it('works with a function', async () => {
@@ -401,15 +403,96 @@ describe('useQuery', () => {
       })
 
       expect(wrapper.vm.data).toBe(24)
+      expect(wrapper.vm.isPlaceholderData).toBe(true)
+      await flushPromises()
+      expect(wrapper.vm.data).toBe(42)
+      expect(wrapper.vm.isPlaceholderData).toBe(false)
+    })
+
+    it('ignores the placeholderData if it returns a nullish value', async () => {
+      const { wrapper } = mountSimple({
+        query: async () => 42,
+        placeholderData: () => null,
+      })
+
+      expect(wrapper.vm.data).toBe(undefined)
+      expect(wrapper.vm.isPlaceholderData).toBe(false)
       await flushPromises()
       expect(wrapper.vm.data).toBe(42)
     })
 
-    it.todo('ignores the placeholderData if there is already data in the cache')
-    it.todo('ignores the placeholderData if there is already an error in the cache')
-    it.todo('ignores the placeholderData if it returns a nullish value')
+    it('shows even when not enabled', async () => {
+      const { wrapper } = mountSimple({
+        query: async () => 42,
+        placeholderData: 24,
+        enabled: false,
+      })
 
-    it.todo('calls the placeholderData function with the previous data if the entry key changes')
+      expect(wrapper.vm.data).toBe(24)
+      expect(wrapper.vm.isPlaceholderData).toBe(true)
+      await flushPromises()
+      expect(wrapper.vm.data).toBe(24)
+      expect(wrapper.vm.isPlaceholderData).toBe(true)
+    })
+
+    it('ignores the placeholderData if there is already data in the cache', async () => {
+      const pinia = createPinia()
+      const options = {
+        key: ['id'],
+        query: async () => 42,
+        placeholderData: 24,
+      } satisfies UseQueryOptions
+      const [w1] = mountSimple(options, { plugins: [pinia] })
+
+      await flushPromises()
+      // ensure data is there
+      expect(w1.vm.data).toBe(42)
+
+      const [w2] = mountSimple(options, { plugins: [pinia] })
+      // placeholder is not used
+      expect(w2.vm.data).toBe(42)
+      expect(w2.vm.isPlaceholderData).toBe(false)
+    })
+
+    it('ignores the placeholderData if there is already an error in the cache', async () => {
+      const pinia = createPinia()
+      const options: UseQueryOptions<number> = {
+        key: ['id'],
+        query: async () => {
+          throw new Error('fail')
+        },
+        placeholderData: 24,
+      }
+      const [w1] = mountSimple(options, { plugins: [pinia] })
+
+      await flushPromises()
+      // ensure the error
+      expect(w1.vm.error).toEqual(new Error('fail'))
+
+      const [w2] = mountSimple(options, { plugins: [pinia] })
+      // placeholder is not used
+      expect(w2.vm.data).toBe(undefined)
+      expect(w2.vm.isPlaceholderData).toBe(false)
+      expect(w2.vm.error).toEqual(new Error('fail'))
+    })
+
+    it('calls the placeholderData function with the previous data if the entry key changes', async () => {
+      const key = ref(1)
+      const placeholderData = vi.fn(() => 24)
+      const { wrapper } = mountSimple({
+        key: () => [key.value],
+        query: async () => 42,
+        placeholderData,
+      })
+
+      await flushPromises()
+
+      key.value = 2
+      await nextTick()
+      expect(placeholderData).toHaveBeenCalledTimes(2)
+      expect(placeholderData).toHaveBeenCalledWith(42)
+      expect(wrapper.vm.data).toBe(24)
+    })
   })
 
   describe('refresh data', () => {

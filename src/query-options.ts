@@ -90,7 +90,9 @@ export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
    */
   placeholderData?:
     | NoInfer<TResult>
-    | (<T extends TResult>(previousData: T | undefined) => NoInfer<TResult>)
+    | (<T extends TResult>(
+        previousData: T | undefined,
+      ) => NoInfer<TResult> | null | void | undefined)
 
   /**
    * Function to type and ensure the `error` property is always an instance of `TError`.
