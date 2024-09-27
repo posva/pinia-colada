@@ -2,10 +2,10 @@
  * @module @pinia/colada
  */
 export {
-  useMutation,
-  type UseMutationReturn,
-  type UseMutationOptions,
   type _ReduceContext,
+  useMutation,
+  type UseMutationOptions,
+  type UseMutationReturn,
 } from './use-mutation'
 export { defineMutation } from './define-mutation'
 
@@ -16,13 +16,13 @@ export { defineQuery } from './define-query'
 
 export { type EntryKey } from './entry-options'
 export type {
+  _DataState_Base,
+  AsyncStatus,
   DataState,
-  DataStateStatus,
   DataState_Error,
   DataState_Pending,
   DataState_Success,
-  _DataState_Base,
-  AsyncStatus,
+  DataStateStatus,
 } from './data-state'
 export {
   type UseQueryOptions,
@@ -38,16 +38,16 @@ export {
 } from './plugins/query-hooks'
 
 export {
-  useQueryCache,
-  serializeTreeMap,
-  serialize,
   reviveTreeMap,
+  serialize,
+  serializeTreeMap,
+  useQueryCache,
   type UseQueryEntry,
 } from './query-store'
 
-export { TreeMapNode, type EntryNodeKey } from './tree-map'
+export { type EntryNodeKey, TreeMapNode } from './tree-map'
 
-export { type _MaybeArray, type _Awaitable, type _EmptyObject } from './utils'
+export { type _Awaitable, type _EmptyObject, type _MaybeArray } from './utils'
 
 export { delayLoadingRef } from './delay-loading'
 
