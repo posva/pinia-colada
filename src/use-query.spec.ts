@@ -493,6 +493,38 @@ describe('useQuery', () => {
       expect(placeholderData).toHaveBeenCalledWith(42)
       expect(wrapper.vm.data).toBe(24)
     })
+
+    it('does not change the cache state', async () => {
+      const pinia = createPinia()
+      const options = {
+        key: ['id'],
+        query: async () => 42,
+        placeholderData: 24,
+      } satisfies UseQueryOptions
+      const [w1] = mountSimple(options, { plugins: [pinia] })
+
+      // ensure data is there
+      expect(w1.vm.data).toBe(24)
+
+      const cache = useQueryCache(pinia)
+      expect(cache.getEntries({
+        key: ['id'],
+      }).at(0)?.state.value).toEqual({
+        status: 'pending',
+        data: undefined,
+        error: null,
+      })
+      expect(cache.getQueryData(['id'])).toBe(undefined)
+      await flushPromises()
+      expect(cache.getEntries({
+        key: ['id'],
+      }).at(0)?.state.value).toEqual({
+        status: 'success',
+        data: 42,
+        error: null,
+      })
+      expect(cache.getQueryData(['id'])).toBe(42)
+    })
   })
 
   describe('refresh data', () => {
