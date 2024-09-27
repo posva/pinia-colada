@@ -25,7 +25,12 @@ import type {
 } from './query-options'
 import type { ErrorDefault } from './types-extension'
 import { getCurrentDefineQueryEffect } from './define-query'
-import type { AsyncStatus, DataState, DataStateStatus } from './data-state'
+import type {
+  AsyncStatus,
+  DataState,
+  DataStateStatus,
+  DataState_Success,
+} from './data-state'
 
 /**
  * Return type of `useQuery()`.
@@ -159,11 +164,11 @@ export function useQuery<TResult, TError = ErrorDefault>(
   )
   const state = computed<DataState<TResult, TError>>(() =>
     isPlaceholderData.value
-      ? {
+      ? ({
           status: 'success',
           data: entry.value.placeholderData!,
           error: null,
-        }
+        } satisfies DataState_Success<TResult>)
       : entry.value.state.value,
   )
 
@@ -227,7 +232,8 @@ export function useQuery<TResult, TError = ErrorDefault>(
         entry.placeholderData = toValueWithArgs(
           options.placeholderData,
           previousEntry?.state.value.data,
-        )
+          // remove the void from possible values
+        ) as TResult | null | undefined
       }
       if (!isActive) return
       if (previousEntry) {
