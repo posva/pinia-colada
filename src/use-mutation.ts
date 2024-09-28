@@ -1,14 +1,12 @@
-import { computed, shallowRef } from 'vue'
 import type { ComputedRef, ShallowRef } from 'vue'
-import { useQueryCache } from './query-store'
+import type { AsyncStatus, DataStateStatus } from './data-state'
 import type { EntryKey } from './entry-options'
 import type { ErrorDefault } from './types-extension'
+import { computed, getCurrentInstance, getCurrentScope, onMounted, onScopeDispose, onUnmounted, shallowRef } from 'vue'
+import { getCurrentDefineMutationEffect } from './define-mutation'
+import { createMutationEntry, mutationEntry_addDep, mutationEntry_removeDep, useMutationCache, type UseMutationEntry } from './mutation-store'
+import { useQueryCache } from './query-store'
 import { type _Awaitable, type _EmptyObject, noop } from './utils'
-import type { AsyncStatus, DataState, DataStateStatus } from './data-state'
-
-type _MutationKey<TVars> =
-  | EntryKey
-  | ((vars: TVars) => EntryKey)
 
 // TODO: move to a plugin
 /**
@@ -55,11 +53,11 @@ export interface UseMutationOptions<
   TContext extends Record<any, any> | void | null = void,
 > {
   /**
-   * The key of the mutation. If the mutation is successful, it will invalidate the query with the same key and refetch it
+   * The key of the mutation.
    */
   mutation: (vars: TVars, context: NoInfer<TContext>) => Promise<TResult>
 
-  key?: _MutationKey<TVars>
+  key?: EntryKey
 
   // TODO: move this to a plugin that calls invalidateEntry()
   /**
@@ -126,10 +124,6 @@ export interface UseMutationOptions<
 // export const USE_MUTATIONS_DEFAULTS = {} satisfies Partial<UseMutationsOptions>
 
 export interface UseMutationReturn<TResult, TVars, TError> {
-  /**
-   * The combined state of the mutation. Contains its data, error, and status. It enables type narrowing based on the {@link UseMutationReturn.status}.
-   */
-  state: ComputedRef<DataState<TResult, TError>>
 
   /**
    * The status of the mutation.
@@ -206,21 +200,60 @@ export function useMutation<
 >(
   options: UseMutationOptions<TResult, TVars, TError, TContext>,
 ): UseMutationReturn<TResult, TVars, TError> {
-  const store = useQueryCache()
-
-  // TODO: there could be a mutation store that stores the state based on an optional key (if passed). This would allow to retrieve the state of a mutation with useMutationState(key)
-  const status = shallowRef<DataStateStatus>('pending')
-  const asyncStatus = shallowRef<AsyncStatus>('idle')
-  const data = shallowRef<TResult>()
-  const error = shallowRef<TError | null>(null)
+  const queryStore = useQueryCache()
+  const cacheEntries = useMutationCache()
   const variables = shallowRef<TVars>()
+  const entry = options.key
+    ? cacheEntries.ensure<TResult, TVars, TError, TContext>(options)
+    : createMutationEntry<TResult, TVars, TError, TContext>()
+  const hasCurrentInstance = getCurrentInstance()
+  const currentEffect = getCurrentDefineMutationEffect() || getCurrentScope()
+
+  if (hasCurrentInstance) {
+    onMounted(() => {
+      // @ts-expect-error: `UseMutationEntry` generics
+      mutationEntry_addDep(entry, hasCurrentInstance)
+    })
+    onUnmounted(() => {
+      // remove instance from Set of refs
+      // @ts-expect-error: `UseMutationEntry` generics
+      mutationEntry_removeDep(entry, hasCurrentInstance, cacheEntries)
+    })
+  } else {
+    if (currentEffect) {
+      // @ts-expect-error: `UseMutationEntry` generics
+      mutationEntry_addDep(entry, currentEffect)
+      onScopeDispose(() => {
+        // @ts-expect-error: `UseMutationEntry` generics
+        mutationEntry_removeDep(entry, currentEffect, cacheEntries)
+      })
+    }
+  }
+
+  const mutationReturn: UseMutationReturn<TResult, TVars, TError> = {
+    status: computed(() => entry.status.value),
+    data: computed(() => entry.data.value),
+    isLoading: computed(() => entry.asyncStatus.value === 'loading'),
+    error: computed(() => entry.error.value as TError | null),
+    asyncStatus: computed(() => entry.asyncStatus.value),
+    variables,
+    // @ts-expect-error: `mutate` arguments conditional typing
+    mutate,
+    // @ts-expect-error: `mutate` arguments conditional typing
+    mutateAsync,
+    reset,
+  }
 
   // a pending promise allows us to discard previous ongoing requests
   // let pendingPromise: Promise<TResult> | null = null
 
   let pendingCall: symbol | undefined
   async function mutateAsync(vars: TVars): Promise<TResult> {
-    asyncStatus.value = 'loading'
+    if (options.key) {
+      const r = await cacheEntries.mutateAsync<TResult, TVars, TError, TContext>(entry as unknown as UseMutationEntry<TResult, TVars, TError, TContext>, vars)
+      return r
+    }
+    entry.asyncStatus.value = 'loading'
     variables.value = vars
 
     // TODO: AbortSignal that is aborted when the mutation is called again so we can throw in pending
@@ -241,24 +274,24 @@ export function useMutation<
       await options.onSuccess?.({ data: newData, vars, ...context })
 
       if (pendingCall === currentCall) {
-        data.value = newData
-        error.value = null
-        status.value = 'success'
+        entry.data.value = newData
+        entry.error.value = null
+        entry.status.value = 'success'
 
         // TODO: move to plugin
         if (options.keys) {
           const keys
             = typeof options.keys === 'function'
-              ? options.keys(newData, vars)
+              ? options.keys(newData, vars as TVars)
               : options.keys
           for (const entry of keys.flatMap((key) =>
-            store.getEntries({ key, exact: true }),
+            queryStore.getEntries({ key, exact: true }),
           )) {
             // TODO: find a way to pass a source of the invalidation, could be a symbol associated with the mutation, the parameters
-            store.invalidate(entry)
+            queryStore.invalidate(entry)
             // auto refresh of the active queries
             if (entry.active) {
-              store.fetch(entry)
+              queryStore.fetch(entry)
             }
           }
         }
@@ -267,12 +300,12 @@ export function useMutation<
       currentError = newError
       await options.onError?.({ error: newError, vars, ...context })
       if (pendingCall === currentCall) {
-        error.value = newError
-        status.value = 'error'
+        entry.error.value = newError
+        entry.status.value = 'error'
       }
       throw newError
     } finally {
-      asyncStatus.value = 'idle'
+      entry.asyncStatus.value = 'idle'
       await options.onSettled?.({
         data: currentData,
         error: currentError,
@@ -288,24 +321,12 @@ export function useMutation<
     mutateAsync(vars).catch(noop)
   }
 
+  // TODO: add tests for define mutation case
   function reset() {
-    data.value = undefined
-    error.value = null
-    status.value = 'pending'
+    entry.data.value = undefined
+    entry.error.value = null
+    entry.status.value = 'pending'
   }
 
-  return {
-    data,
-    isLoading: computed(() => asyncStatus.value === 'loading'),
-    status,
-    variables,
-    asyncStatus,
-    error,
-    // FIXME: remove these and move to the variable
-    // @ts-expect-error: it would be nice to find a type-only refactor that works
-    mutate,
-    // @ts-expect-error: it would be nice to find a type-only refactor that works
-    mutateAsync,
-    reset,
-  }
+  return mutationReturn
 }
