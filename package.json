@@ -68,7 +68,7 @@
     "play": "pnpm -C playground dev",
     "prepublishOnly": "pnpm run build",
     "release": "standard-version",
-    "test": "pnpm run test:cov && pnpm run build && pnpm run build:plugins && pnpm run test:types",
+    "test": "pnpm run build && pnpm run test:cov && pnpm run build:plugins && pnpm run test:types",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "test:types": "tsc --build ./tsconfig.json",
