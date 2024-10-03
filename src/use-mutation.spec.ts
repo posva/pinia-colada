@@ -99,10 +99,16 @@ describe('useMutation', () => {
     expect(onMutate).not.toHaveBeenCalled()
     wrapper.vm.mutate({ a: 24, b: 42 })
     expect(onMutate).toHaveBeenCalledTimes(1)
-    expect(onMutate).toHaveBeenLastCalledWith({ a: 24, b: 42 })
+    expect(onMutate).toHaveBeenLastCalledWith(
+      { a: 24, b: 42 },
+      expect.objectContaining({}),
+    )
     wrapper.vm.mutateAsync({ a: 0, b: 1 })
     expect(onMutate).toHaveBeenCalledTimes(2)
-    expect(onMutate).toHaveBeenLastCalledWith({ a: 0, b: 1 })
+    expect(onMutate).toHaveBeenLastCalledWith(
+      { a: 0, b: 1 },
+      expect.objectContaining({}),
+    )
   })
 
   it('invokes the "onError" hook if mutation throws', async () => {
@@ -118,10 +124,9 @@ describe('useMutation', () => {
     wrapper.vm.mutate(24)
     await flushPromises()
     expect(onError).toHaveBeenCalledWith(
-      expect.objectContaining({
-        error: new Error('24'),
-        vars: 24,
-      }),
+      new Error('24'),
+      24,
+      expect.objectContaining({}),
     )
   })
 
@@ -137,10 +142,9 @@ describe('useMutation', () => {
     wrapper.vm.mutate()
     await flushPromises()
     expect(onError).toHaveBeenCalledWith(
-      expect.objectContaining({
-        error: new Error('onMutate'),
-        vars: undefined,
-      }),
+      new Error('onMutate'),
+      undefined,
+      expect.objectContaining({}),
     )
   })
 
@@ -180,10 +184,9 @@ describe('useMutation', () => {
     wrapper.vm.mutate()
     await flushPromises()
     expect(onSuccess).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: 42,
-        vars: undefined,
-      }),
+      42,
+      undefined,
+      expect.objectContaining({}),
     )
   })
 
@@ -229,11 +232,10 @@ describe('useMutation', () => {
       wrapper.vm.mutate()
       await flushPromises()
       expect(onSettled).toHaveBeenCalledWith(
-        expect.objectContaining({
-          error: undefined,
-          data: 42,
-          vars: undefined,
-        }),
+        42,
+        undefined,
+        undefined,
+        expect.objectContaining({}),
       )
     })
 
@@ -249,11 +251,10 @@ describe('useMutation', () => {
       expect(wrapper.vm.mutateAsync()).rejects.toThrow()
       await flushPromises()
       expect(onSettled).toHaveBeenCalledWith(
-        expect.objectContaining({
-          error: new Error('foobar'),
-          data: undefined,
-          vars: undefined,
-        }),
+        undefined,
+        new Error('foobar'),
+        undefined,
+        expect.objectContaining({}),
       )
     })
   })

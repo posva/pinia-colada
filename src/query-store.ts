@@ -592,6 +592,11 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
 })
 
 /**
+ * The cache of the queries. It's the store returned by {@link useQueryCache}.
+ */
+export type QueryCache = ReturnType<typeof useQueryCache>
+
+/**
  * Raw data of a query entry. Can be serialized from the server and used to hydrate the store.
  * @internal
  */

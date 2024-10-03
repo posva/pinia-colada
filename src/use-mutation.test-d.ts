@@ -1,5 +1,6 @@
 import { describe, expectTypeOf, it } from 'vitest'
 import { useMutation } from './use-mutation'
+import type { QueryCache } from './query-store'
 
 describe('useMutation type inference', () => {
   it('types the parameters for the key', () => {
@@ -15,13 +16,13 @@ describe('useMutation type inference', () => {
   it('can infer the arguments from the mutation', () => {
     useMutation({
       mutation: (_one: string) => Promise.resolve({ name: 'foo' }),
-      onSuccess({ vars }) {
+      onSuccess(_data, vars) {
         expectTypeOf(vars).toEqualTypeOf<string>()
       },
-      onError({ vars }) {
+      onError(_err, vars) {
         expectTypeOf(vars).toEqualTypeOf<string>()
       },
-      onSettled({ vars }) {
+      onSettled(_data, _err, vars) {
         expectTypeOf(vars).toEqualTypeOf<string>()
       },
     })
@@ -30,10 +31,10 @@ describe('useMutation type inference', () => {
   it('can infer the data from the mutation', () => {
     useMutation({
       mutation: () => Promise.resolve(42),
-      onSuccess({ data }) {
+      onSuccess(data) {
         expectTypeOf(data).toEqualTypeOf<number>()
       },
-      onSettled({ data }) {
+      onSettled(data) {
         expectTypeOf(data).toEqualTypeOf<number | undefined>()
       },
     })
@@ -50,17 +51,17 @@ describe('useMutation type inference', () => {
         expectTypeOf(context).toEqualTypeOf<{ foo: string }>()
         return 42
       },
-      onSuccess(context) {
+      onSuccess(_d, _v, context) {
         expectTypeOf(context).not.toBeAny()
         expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
       },
-      onError(context) {
+      onError(_e, _v, context) {
         expectTypeOf(context).not.toBeAny()
-        expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
+        expectTypeOf(context.foo).toMatchTypeOf<string | undefined>()
       },
-      onSettled(context) {
+      onSettled(_d, _e, _v, context) {
         expectTypeOf(context).not.toBeAny()
-        expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
+        expectTypeOf(context.foo).toMatchTypeOf<string | undefined>()
       },
     })
   })
@@ -81,11 +82,9 @@ describe('useMutation type inference', () => {
       onMutate() {
         return undefined
       },
-      onSuccess(context) {
+      onSuccess(_d, _v, context) {
         expectTypeOf(context).not.toBeAny()
-        expectTypeOf(context).toMatchTypeOf<{
-          data: number
-        }>()
+        expectTypeOf<QueryCache>(context.caches)
       },
     })
   })
@@ -105,17 +104,56 @@ describe('useMutation type inference', () => {
       async onMutate() {
         return { foo: 'bar' }
       },
-      onSuccess(context) {
+      onSuccess(_d, _v, context) {
         expectTypeOf(context).not.toBeAny()
         expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
       },
-      onError(context) {
+      onError(_e, _v, context) {
         expectTypeOf(context).not.toBeAny()
-        expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
+        expectTypeOf(context).toMatchTypeOf<{ foo?: string }>()
       },
-      onSettled(context) {
+      onSettled(_d, _e, _v, context) {
         expectTypeOf(context).not.toBeAny()
-        expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
+        expectTypeOf(context).toMatchTypeOf<{ foo?: string }>()
+      },
+    })
+  })
+
+  it('allows type narrowing based on context properties', () => {
+    useMutation({
+      mutation: () => Promise.resolve(42),
+      async onMutate() {
+        return { foo: 'bar', bar: 'baz' }
+      },
+      onSuccess(_d, _v, context) {
+        expectTypeOf(context).not.toBeAny()
+        if (context.foo != null) {
+          expectTypeOf(context).toMatchTypeOf<{ foo: string, bar: string }>()
+        } else {
+          expectTypeOf<QueryCache>(context.caches)
+          expectTypeOf<never>(context.foo)
+          expectTypeOf<never | undefined | string>(context.bar)
+        }
+      },
+      onError(_e, _v, context) {
+        expectTypeOf(context).not.toBeAny()
+        if (context.foo != null) {
+          expectTypeOf(context).toMatchTypeOf<{ foo: string, bar: string }>()
+        } else {
+          expectTypeOf<QueryCache>(context.caches)
+          expectTypeOf<never | undefined>(context.foo)
+          expectTypeOf<never | undefined >(context.bar)
+        }
+      },
+      onSettled(_d, _e, _v, context) {
+        expectTypeOf(context).not.toBeAny()
+        if (context.foo != null) {
+          expectTypeOf(context).toMatchTypeOf<{ foo: string, bar: string }>()
+        } else {
+          expectTypeOf<QueryCache>(context.caches)
+          expectTypeOf<never | undefined>(context.foo)
+          expectTypeOf<never | undefined >(context.bar)
+        }
       },
     })
   })
@@ -127,28 +165,69 @@ describe('useMutation type inference', () => {
         // no return
       },
 
-      onSuccess(context) {
+      onSuccess(_d, _v, context) {
         expectTypeOf(context).not.toBeAny()
         expectTypeOf(context).toMatchTypeOf<{
-          data: number
-          vars: undefined | void
+          caches: QueryCache
         }>()
       },
-      onError(context) {
+      onError(_e, _v, context) {
         expectTypeOf(context).not.toBeAny()
         expectTypeOf(context).toMatchTypeOf<{
-          error: unknown
-          vars: undefined | void
+          caches: QueryCache
         }>()
       },
-      onSettled(context) {
+      onSettled(_d, _e, _v, context) {
         expectTypeOf(context).not.toBeAny()
         expectTypeOf(context).toMatchTypeOf<{
-          data: number | undefined
-          error: unknown | null
-          vars: undefined | void
+          caches: QueryCache
         }>()
       },
+    })
+
+    it('keeps empty context types when no return type onMutate', () => {
+      useMutation({
+        mutation: () => Promise.resolve(42),
+        onMutate() {
+          // no return
+          // return { o: true }
+        },
+        onSuccess(
+          _d,
+          _v,
+          {
+            // NOTE: the caches allows to ensure the type is correctly checking what it should
+            caches,
+            // @ts-expect-error: foo deosn't exist
+            foo: _foo,
+          },
+        ) {
+          expectTypeOf<QueryCache>(caches)
+        },
+        onError(
+          _d,
+          _v,
+          {
+            caches,
+            // @ts-expect-error: foo deosn't exist
+            foo: _foo,
+          },
+        ) {
+          expectTypeOf<QueryCache>(caches)
+        },
+        onSettled(
+          _d,
+          _e,
+          _v,
+          {
+            caches,
+            // @ts-expect-error: foo deosn't exist
+            foo: _foo,
+          },
+        ) {
+          expectTypeOf<QueryCache>(caches)
+        },
+      })
     })
   })
 })

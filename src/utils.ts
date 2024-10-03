@@ -118,7 +118,7 @@ export function stringifyFlatObject(obj: _ObjectFlat | _JSONPrimitive): string {
  * ...undefined, ...null }
  * @internal
  */
-export type _MergeObjects<Obj, MaybeNull> = MaybeNull extends undefined | null
+export type _MergeObjects<Obj, MaybeNull> = MaybeNull extends undefined | null | void
   ? Obj
   : _Simplify<Obj & MaybeNull>
 

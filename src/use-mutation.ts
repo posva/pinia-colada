@@ -1,22 +1,17 @@
 import { computed, shallowRef } from 'vue'
 import type { ComputedRef, ShallowRef } from 'vue'
+import { useQueryCache, type QueryCache } from './query-store'
 import type { EntryKey } from './entry-options'
 import type { ErrorDefault } from './types-extension'
 import { type _Awaitable, type _EmptyObject, noop } from './utils'
 import type { AsyncStatus, DataState, DataStateStatus } from './data-state'
 
-type _MutationKey<TVars> =
-  | EntryKey
-  | ((vars: TVars) => EntryKey)
-
-// TODO: move to a plugin
 /**
- * The keys to invalidate when a mutation succeeds.
+ * Valid keys for a mutation. Similar to query keys.
+ * @see {@link EntryKey}
  * @internal
  */
-type _MutationKeys<TVars, TResult> =
-  | EntryKey[]
-  | ((data: TResult, vars: TVars) => EntryKey[])
+type _MutationKey<TVars> = EntryKey | ((vars: TVars) => EntryKey)
 
 /**
  * Removes the nullish types from the context type to make `A & TContext` work instead of yield `never`.
@@ -24,7 +19,9 @@ type _MutationKeys<TVars, TResult> =
  */
 export type _ReduceContext<TContext> = TContext extends void | null | undefined
   ? _EmptyObject
-  : TContext
+  : Record<any, any> extends TContext
+    ? _EmptyObject
+    : TContext
 
 /**
  * Context object returned by a global `onMutate` function that is merged with the context returned by a local
@@ -47,24 +44,37 @@ export type _ReduceContext<TContext> = TContext extends void | null | undefined
  */
 export interface UseMutationGlobalContext {}
 
+/**
+ * Context object passed to the different hooks of a mutation like `onMutate`, `onSuccess`, `onError` and `onSettled`.
+ */
+export interface UseMutationHooksContext {
+  /**
+   * The global query cache store.
+   */
+  caches: QueryCache
+}
+
+/**
+ * Options to create a mutation.
+ */
 export interface UseMutationOptions<
   TResult = unknown,
   TVars = void,
   TError = ErrorDefault,
-  TContext extends Record<any, any> | void | null = void,
+  TContext extends Record<any, any> = _EmptyObject,
 > {
   /**
    * The key of the mutation. If the mutation is successful, it will invalidate the query with the same key and refetch it
    */
-  mutation: (vars: TVars, context: NoInfer<TContext>) => Promise<TResult>
+  mutation: (
+    vars: TVars,
+    context: _ReduceContext<NoInfer<TContext>>,
+  ) => Promise<TResult>
 
-  key?: _MutationKey<TVars>
-
-  // TODO: move this to a plugin that calls invalidateEntry()
   /**
-   * Keys to invalidate if the mutation succeeds so that `useQuery()` refetch if used.
+   * Optional key to identify the mutation globally and access it through other helpers like `useMutationState()`.
    */
-  keys?: _MutationKeys<TVars, TResult>
+  key?: _MutationKey<NoInfer<TVars>>
 
   /**
    * Runs before the mutation is executed. **It should be placed before `mutation()` for `context` to be inferred**. It
@@ -89,37 +99,96 @@ export interface UseMutationOptions<
    * })
    * ```
    */
-  onMutate?: (vars: TVars) => _Awaitable<TContext>
-
-  /**
-   * Runs if the mutation encounters an error.
-   */
-  onError?: (
-    context: { error: TError, vars: TVars } & UseMutationGlobalContext &
-      _ReduceContext<TContext>,
-  ) => unknown
+  onMutate?: (
+    /**
+     * The variables passed to the mutation.
+     */
+    vars: NoInfer<TVars>,
+    context: // always defined
+    UseMutationHooksContext &
+      // undefined if global onMutate throws
+      UseMutationGlobalContext,
+  ) => _Awaitable<TContext | undefined | void | null>
 
   /**
    * Runs if the mutation is successful.
    */
   onSuccess?: (
-    context: { data: TResult, vars: TVars } & UseMutationGlobalContext &
-      _ReduceContext<TContext>,
+    /**
+     * The result of the mutation.
+     */
+    data: NoInfer<TResult>,
+    /**
+     * The variables passed to the mutation.
+     */
+    vars: NoInfer<TVars>,
+    /**
+     * The merged context from `onMutate` and the global context.
+     */
+    context: UseMutationGlobalContext &
+      UseMutationHooksContext &
+      _ReduceContext<NoInfer<TContext>>,
+  ) => unknown
+
+  /**
+   * Runs if the mutation encounters an error.
+   */
+  onError?: (
+    /**
+     * The error thrown by the mutation.
+     */
+    error: NoInfer<TError>,
+    /**
+     * The variables passed to the mutation.
+     */
+    vars: NoInfer<TVars>,
+    /**
+     * The merged context from `onMutate` and the global context. Properties returned by `onMutate` can be `undefined`
+     * if `onMutate` throws.
+     */
+    context:
+      | (UseMutationHooksContext &
+          // undefined if global onMutate throws, makes type narrowing easier for the user
+          Partial<Record<keyof UseMutationGlobalContext, never>> &
+          Partial<Record<keyof _ReduceContext<NoInfer<TContext>>, never>>)
+      // this is the success case where everything is defined
+      | (UseMutationHooksContext &
+          // undefined if global onMutate throws
+          UseMutationGlobalContext &
+          _ReduceContext<NoInfer<TContext>>),
   ) => unknown
 
   /**
    * Runs after the mutation is settled, regardless of the result.
    */
   onSettled?: (
-    context: {
-      data: TResult | undefined
-      error: TError | undefined
-      vars: TVars
-    } & UseMutationGlobalContext &
-      _ReduceContext<TContext>,
+    /**
+     * The result of the mutation. `undefined` if the mutation failed.
+     */
+    data: NoInfer<TResult> | undefined,
+    /**
+     * The error thrown by the mutation. `undefined` if the mutation was successful.
+     */
+    error: NoInfer<TError> | undefined,
+    /**
+     * The variables passed to the mutation.
+     */
+    vars: NoInfer<TVars>,
+    /**
+     * The merged context from `onMutate` and the global context. Properties returned by `onMutate` can be `undefined`
+     * if `onMutate` throws.
+     */
+    context:
+      | (UseMutationHooksContext &
+          // undefined if global onMutate throws, makes type narrowing easier for the user
+          Partial<Record<keyof UseMutationGlobalContext, never>> &
+          Partial<Record<keyof _ReduceContext<NoInfer<TContext>>, never>>)
+      // this is the success case where everything is defined
+      | (UseMutationHooksContext &
+          // undefined if global onMutate throws
+          UseMutationGlobalContext &
+          _ReduceContext<NoInfer<TContext>>),
   ) => unknown
-
-  // TODO: invalidate options exact, refetch, etc
 }
 
 // export const USE_MUTATIONS_DEFAULTS = {} satisfies Partial<UseMutationsOptions>
@@ -201,10 +270,11 @@ export function useMutation<
   TResult,
   TVars = void,
   TError = ErrorDefault,
-  TContext extends Record<any, any> | void | null = void,
+  TContext extends Record<any, any> = _EmptyObject,
 >(
   options: UseMutationOptions<TResult, TVars, TError, TContext>,
 ): UseMutationReturn<TResult, TVars, TError> {
+  const caches = useQueryCache()
   // TODO: there could be a mutation store that stores the state based on an optional key (if passed). This would allow to retrieve the state of a mutation with useMutationState(key)
   const status = shallowRef<DataStateStatus>('pending')
   const asyncStatus = shallowRef<AsyncStatus>('idle')
@@ -223,19 +293,59 @@ export function useMutation<
     // TODO: AbortSignal that is aborted when the mutation is called again so we can throw in pending
     let currentData: TResult | undefined
     let currentError: TError | undefined
-    let context!: _ReduceContext<TContext>
+    type OnMutateContext = Parameters<
+      Required<UseMutationOptions<TResult, TVars, TError, TContext>>['onMutate']
+    >['1']
+    type OnSuccessContext = Parameters<
+      Required<
+        UseMutationOptions<TResult, TVars, TError, TContext>
+      >['onSuccess']
+    >['2']
+    type OnErrorContext = Parameters<
+      Required<UseMutationOptions<TResult, TVars, TError, TContext>>['onError']
+    >['2']
+
+    let context: OnMutateContext | OnErrorContext | OnSuccessContext = {
+      caches,
+    }
 
     const currentCall = (pendingCall = Symbol())
     try {
-      // NOTE: the cast makes it easier to write without extra code. It's safe because { ...null, ...undefined } works and TContext must be a Record<any, any>
-      context = (await options.onMutate?.(vars)) as _ReduceContext<TContext>
+      // TODO:
+      let globalOnMutateContext: UseMutationGlobalContext | undefined
+      // globalOnMutateContext = await globalOptions.onMutate?.(vars)
+
+      const onMutateContext = (await options.onMutate?.(
+        vars,
+        context,
+        // NOTE: the cast makes it easier to write without extra code. It's safe because { ...null, ...undefined } works and TContext must be a Record<any, any>
+      )) as _ReduceContext<TContext>
 
       const newData = (currentData = await options.mutation(
         vars,
-        context as TContext,
+        onMutateContext,
       ))
 
-      await options.onSuccess?.({ data: newData, vars, ...context })
+      // we set the context here so it can be used by other hooks
+      context = {
+        ...globalOnMutateContext!,
+        caches,
+        ...onMutateContext,
+        // NOTE: needed for onSuccess cast
+      } satisfies OnSuccessContext
+
+      await options.onSuccess?.(
+        newData,
+        vars,
+        // NOTE: cast is safe because of the satisfies above
+        // using a spread also works
+        context as OnSuccessContext,
+        // {
+        // ...globalOnMutateContext!,
+        // caches,
+        // ...onMutateContext,
+        // i
+      )
 
       if (pendingCall === currentCall) {
         data.value = newData
@@ -244,7 +354,7 @@ export function useMutation<
       }
     } catch (newError: any) {
       currentError = newError
-      await options.onError?.({ error: newError, vars, ...context })
+      await options.onError?.(newError, vars, context)
       if (pendingCall === currentCall) {
         error.value = newError
         status.value = 'error'
@@ -252,18 +362,12 @@ export function useMutation<
       throw newError
     } finally {
       asyncStatus.value = 'idle'
-      await options.onSettled?.({
-        data: currentData,
-        error: currentError,
-        vars,
-        ...context,
-      })
+      await options.onSettled?.(currentData, currentError, vars, context)
     }
 
     return currentData
   }
-
-  function mutate(vars: TVars) {
+  function mutate(vars: NoInfer<TVars>) {
     mutateAsync(vars).catch(noop)
   }
 
@@ -280,10 +384,10 @@ export function useMutation<
     variables,
     asyncStatus,
     error,
-    // FIXME: remove these and move to the variable
-    // @ts-expect-error: it would be nice to find a type-only refactor that works
+    // @ts-expect-error: because of the conditional type in UseMutationReturn
+    // it would be nice to find a type-only refactor that works
     mutate,
-    // @ts-expect-error: it would be nice to find a type-only refactor that works
+    // @ts-expect-error: same as above
     mutateAsync,
     reset,
   }
