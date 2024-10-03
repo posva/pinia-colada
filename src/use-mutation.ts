@@ -1,6 +1,5 @@
 import { computed, shallowRef } from 'vue'
 import type { ComputedRef, ShallowRef } from 'vue'
-import { useQueryCache } from './query-store'
 import type { EntryKey } from './entry-options'
 import type { ErrorDefault } from './types-extension'
 import { type _Awaitable, type _EmptyObject, noop } from './utils'
@@ -206,8 +205,6 @@ export function useMutation<
 >(
   options: UseMutationOptions<TResult, TVars, TError, TContext>,
 ): UseMutationReturn<TResult, TVars, TError> {
-  const store = useQueryCache()
-
   // TODO: there could be a mutation store that stores the state based on an optional key (if passed). This would allow to retrieve the state of a mutation with useMutationState(key)
   const status = shallowRef<DataStateStatus>('pending')
   const asyncStatus = shallowRef<AsyncStatus>('idle')
@@ -244,24 +241,6 @@ export function useMutation<
         data.value = newData
         error.value = null
         status.value = 'success'
-
-        // TODO: move to plugin
-        if (options.keys) {
-          const keys
-            = typeof options.keys === 'function'
-              ? options.keys(newData, vars)
-              : options.keys
-          for (const entry of keys.flatMap((key) =>
-            store.getEntries({ key, exact: true }),
-          )) {
-            // TODO: find a way to pass a source of the invalidation, could be a symbol associated with the mutation, the parameters
-            store.invalidate(entry)
-            // auto refresh of the active queries
-            if (entry.active) {
-              store.fetch(entry)
-            }
-          }
-        }
       }
     } catch (newError: any) {
       currentError = newError

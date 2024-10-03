@@ -12,50 +12,6 @@ describe('useMutation type inference', () => {
     })
   })
 
-  it('types the parameters for the keys', () => {
-    const { mutate, mutateAsync } = useMutation({
-      mutation: (_one: string) => Promise.resolve({ name: 'foo' }),
-      keys(result, one) {
-        expectTypeOf(one).toBeString()
-        expectTypeOf(result).toEqualTypeOf<{ name: string }>()
-        return [['foo']]
-      },
-    })
-
-    mutate('one')
-    mutateAsync('one')
-    // @ts-expect-error: missing arg
-    mutate()
-    // @ts-expect-error: missing arg
-    mutateAsync()
-  })
-
-  it('allows no arguments to mutation', () => {
-    const { mutate, mutateAsync } = useMutation({
-      mutation: () => Promise.resolve({ name: 'foo' }),
-      keys(result) {
-        expectTypeOf(result).toEqualTypeOf<{ name: string }>()
-        return [['foo']]
-      },
-    })
-
-    mutate()
-    mutateAsync()
-    // @ts-expect-error: no extra arg
-    mutate(25)
-    // @ts-expect-error: no extra arg
-    mutateAsync(25)
-  })
-
-  it('can return an array of keys', () => {
-    useMutation({
-      mutation: () => Promise.resolve(42),
-      keys() {
-        return [['one']]
-      },
-    })
-  })
-
   it('can infer the arguments from the mutation', () => {
     useMutation({
       mutation: (_one: string) => Promise.resolve({ name: 'foo' }),
