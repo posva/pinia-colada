@@ -33,7 +33,8 @@ watch(
 
 const { mutate: bookProduct } = useMutation({
   key: (product) => ['book-item', product.id],
-  keys: (product) => [['items'], ['items', product.id]],
+  // TODO: migrate to onSettled
+  // invalidateKeys: (product) => [['items'], ['items', product.id]],
   mutation: async (product: ProductListItem) => {
     await delay(Math.random() * 1000 + 200)
     return changeProductAvailability(product, undefined)

@@ -10,14 +10,20 @@ import {
 
 const route = useRoute('/contacts/[id]')
 
-const { data: contact, error, asyncStatus } = useQuery({
+const {
+  data: contact,
+  error,
+  asyncStatus,
+} = useQuery({
   key: () => ['contacts', route.params.id],
   query: ({ signal }) => getContactById(route.params.id, { signal }),
 })
 
 const { mutate: updateContact } = useMutation({
-  // TODO: adapt with plugin
-  keys: ({ id }) => [['contacts-search'], ['contacts', id]],
+  onSettled({ caches, vars: { id } }) {
+    caches.invalidateQueries({ key: ['contacts-search'] })
+    caches.invalidateQueries({ key: ['contacts', id] })
+  },
   mutation: (contact: Partial<Contact> & { id: number }) =>
     _updateContact(contact),
 })

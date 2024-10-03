@@ -17,7 +17,7 @@ const { data: contact, error, asyncStatus } = useQuery({
 
 const { mutate: updateContact } = useMutation({
   // TODO: adapt with plugin
-  keys: ({ id }) => [['contacts-search'], ['contacts', id]],
+  invalidateKeys: ({ id }) => [['contacts-search'], ['contacts', id]],
   mutation: (contact: Partial<Contact> & { id: number }) =>
     _updateContact(contact),
 })
