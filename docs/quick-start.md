@@ -124,7 +124,7 @@ const {
 
 ### Mutating data
 
-Mutate data with `useMutation()` in any component. Unlinke _queries_, mutations only require a `mutation` function. Providing a `key` is optional and, by default, it allows the mutation to automatically invalidate _queries_ with a matching key **once it settles**:
+Mutate data with `useMutation()` in any component. Unlike _queries_, mutations only require a `mutation` function, the `key` is optional:
 
 ```vue twoslash
 <script setup lang="ts">
@@ -147,7 +147,6 @@ const {
   asyncStatus,
   error,
 } = useMutation({
-  key: (contact) => ['contacts', contact.id],
   mutation: (contact: Contact) => updateContact(contact),
 })
 </script>
