@@ -20,12 +20,27 @@ const {
 })
 
 const { mutate: updateContact } = useMutation({
-  onSettled({ caches, vars: { id } }) {
+  mutation: (contact: Partial<Contact> & { id: number }) =>
+    _updateContact(contact),
+
+  onMutate() {
+    return { a: 2, b: 5 }
+  },
+
+  onError(_e, { id }, { caches, a, b }) {
+    caches.invalidateQueries({ key: ['contacts-search'] })
+    caches.invalidateQueries({ key: ['contacts', id] })
+    if (a == null) return
+    console.log(a.toFixed(2))
+    console.log(b.toFixed(2))
+  },
+
+  onSettled(_d, _e, { id }, { caches, a }) {
+    console.log(a?.toFixed(2))
     caches.invalidateQueries({ key: ['contacts-search'] })
     caches.invalidateQueries({ key: ['contacts', id] })
   },
-  mutation: (contact: Partial<Contact> & { id: number }) =>
-    _updateContact(contact),
+
 })
 </script>
 
