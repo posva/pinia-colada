@@ -114,7 +114,8 @@ const { mutate } = useMutation({
     // return the current todo list to be used in case of errors
     return { todoList }
   },
-  onError: ({ todoList }) => {
+  onError: (error, text, { todoList }) => {
+    console.error('Error creating todo with text', text, error)
     // rollback to the previous state
     queryCache.setQueryData(['todos'], todoList)
   },
