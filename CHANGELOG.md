@@ -4,17 +4,15 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [0.10.0](https://github.com/posva/pinia-colada/compare/v0.9.1...v0.10.0) (2024-10-04)
 
-
 ### ⚠ BREAKING CHANGES
 
-* This change is mainly to simplify migration from
-TanStack Query.
-* caches.invalidateQueries only fetches active queries
-* The `keys` option that automatically invalidate keys
-has been renamed to `invalidateKeys` and moved to a plugin. This is in
-practice not needed. It's just an opinionated convenience that can be
-replaced by directly invalidating queries in the cache with the
-`onSettled()` hook in `useMutation()`:
+- `useMutation()` hooks now uses positional arguments. This change is mainly to simplify migration from TanStack Query.
+- `caches.invalidateQueries()` only fetches active queries
+- The `keys` option that automatically invalidate keys
+  has been renamed to `invalidateKeys` and moved to a plugin. This is in
+  practice not needed. It's just an opinionated convenience that can be
+  replaced by directly invalidating queries in the cache with the
+  `onSettled()` hook in `useMutation()`:
 
 ```ts
 const { mutate } = useMutation({
@@ -28,25 +26,22 @@ const { mutate } = useMutation({
 
 ### Features
 
-* caches.invalidateQueries only fetches active queries ([e8d9088](https://github.com/posva/pinia-colada/commit/e8d9088b78df97665f5b9cb15e429183505d171d))
+- caches.invalidateQueries only fetches active queries ([e8d9088](https://github.com/posva/pinia-colada/commit/e8d9088b78df97665f5b9cb15e429183505d171d))
 
-
-* rename `keys` to `invalidateKeys` and move to plugin ([f709928](https://github.com/posva/pinia-colada/commit/f70992807b5857e17b56c3ca2b90df3fb665eb04))
-* useMutation hooks now use positional arguments ([dce00b4](https://github.com/posva/pinia-colada/commit/dce00b4629c19774367bedfa40b53ad2e9f517ea))
+- rename `keys` to `invalidateKeys` and move to plugin ([f709928](https://github.com/posva/pinia-colada/commit/f70992807b5857e17b56c3ca2b90df3fb665eb04))
+- useMutation hooks now use positional arguments ([dce00b4](https://github.com/posva/pinia-colada/commit/dce00b4629c19774367bedfa40b53ad2e9f517ea))
 
 ### [0.9.1](https://github.com/posva/pinia-colada/compare/v0.9.0...v0.9.1) (2024-09-27)
 
-
 ### Features
 
-* allow nullish return in placeholderData ([1fae179](https://github.com/posva/pinia-colada/commit/1fae179682e0d4880a8e814e0399692d76d9019a))
-* wip nuxt module ([66eca6e](https://github.com/posva/pinia-colada/commit/66eca6ea310ca5bf61b790de709068453909d08a))
-* wip placeholderData ([307e366](https://github.com/posva/pinia-colada/commit/307e366d4be3b643c433410c81f98ae10e177547))
-
+- allow nullish return in placeholderData ([1fae179](https://github.com/posva/pinia-colada/commit/1fae179682e0d4880a8e814e0399692d76d9019a))
+- wip nuxt module ([66eca6e](https://github.com/posva/pinia-colada/commit/66eca6ea310ca5bf61b790de709068453909d08a))
+- wip placeholderData ([307e366](https://github.com/posva/pinia-colada/commit/307e366d4be3b643c433410c81f98ae10e177547))
 
 ### Bug Fixes
 
-* **query:** handle sync errors ([cfcdcb1](https://github.com/posva/pinia-colada/commit/cfcdcb192800fb511dd2aa1acca5dc67d8874ff4)), closes [#70](https://github.com/posva/pinia-colada/issues/70) [#69](https://github.com/posva/pinia-colada/issues/69)
+- **query:** handle sync errors ([cfcdcb1](https://github.com/posva/pinia-colada/commit/cfcdcb192800fb511dd2aa1acca5dc67d8874ff4)), closes [#70](https://github.com/posva/pinia-colada/issues/70) [#69](https://github.com/posva/pinia-colada/issues/69)
 
 ## [0.9.0](https://github.com/posva/pinia-colada/compare/v0.8.2...v0.9.0) (2024-08-26)
 
