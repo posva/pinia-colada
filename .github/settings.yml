@@ -46,6 +46,9 @@ labels:
     color: ffffff
     description: this issue won't be fixed
     oldname: wontfix
+  - name: meta
+    color: 5319e7
+    description: related to the project itself
   - name: 🔌 plugins
     color: baffc9
     description: related to plugins
