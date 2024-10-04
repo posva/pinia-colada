@@ -15,7 +15,7 @@
 </p>
 <br/>
 
-# Pinia Colada (WIP)
+# Pinia Colada
 
 > The missing data fetching library for [Pinia](https://pinia.vuejs.org)
 
@@ -25,8 +25,8 @@ This is a more complete and production-ready (not yet!) version of the exercises
   <img src="https://github.com/posva/pinia-colada/assets/664177/2f7081a5-90fe-467a-b021-7e709f71603e" width="320" alt="Mastering Pinia banner">
 </a>
 
-> [!WARNING]
-> Pinia Colada is still experimental and not ready for production. New versions might introduce breaking changes.
+> [!NOTE]
+> Pinia Colada is in active development not ready for production. New versions might introduce breaking changes.
 > Feedback regarding new and existing options and features is welcome!
 
 Pinia Colada is an opinionated yet flexible data fetching layer on top of Pinia. It's built as a set of **pinia plugins**, **stores** and **composables** to benefit from Pinia's features and ecosystem. Pinia Colada has:
@@ -39,6 +39,7 @@ Pinia Colada is an opinionated yet flexible data fetching layer on top of Pinia.
 - 💨 **Bundle Size**: Small bundle size (<2kb) and fully tree-shakeable
 - 📦 **Zero Dependencies**: No dependencies other than Pinia
 - ⚙️ **SSR**: Server-side rendering support
+- 🔌 **Plugins**: Powerful plugin system
 
 ## Installation
 
@@ -64,10 +65,11 @@ app.use(PiniaColada, {
 ```vue
 <script lang="ts" setup>
 import { useRoute } from 'vue-router'
-import { useMutation, useQuery } from '@pinia/colada'
+import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import { updateContact as _updateContact, getContactById } from '~/api/contacts'
 
 const route = useRoute()
+const caches = useQueryCache()
 
 const { data: contact, isLoading } = useQuery({
   // recognizes this query as ['contacts', id]
@@ -76,9 +78,10 @@ const { data: contact, isLoading } = useQuery({
 })
 
 const { mutate: updateContact } = useMutation({
-  // automatically invalidates the cache for ['contacts'] and ['contacts', id]
-  keys: ({ id }) => [['contacts'], ['contacts', id]],
   mutation: _updateContact,
+  onSettled({ id }) {
+    caches.invalidateQueries({ key: ['contacts', id], exact: true })
+  },
 })
 </script>
 
