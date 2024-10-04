@@ -68,11 +68,13 @@ export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
 
   /**
    * Time in ms after which the data is considered stale and will be refreshed on next read.
+   * @default 5000 (5 seconds)
    */
   staleTime?: number
 
   /**
    * Time in ms after which, once the data is no longer being used, it will be garbage collected to free resources.
+   * @default 300000 (5 minutes)
    */
   gcTime?: number
 
@@ -113,7 +115,7 @@ export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
    */
   transformError?: (error: unknown) => TError
 
-  // TODO: move to a plugin
+  // TODO: move to a plugin? Included in Pinia Colada
   // TODO: rename to refresh since that's the default? and change 'always' to 'force'?
   refetchOnMount?: _RefetchOnControl
   refetchOnWindowFocus?: _RefetchOnControl

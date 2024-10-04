@@ -1,4 +1,7 @@
 import type { PiniaColadaPluginContext } from '@pinia/colada'
+/**
+ * @module @pinia/colada-plugin-retry
+ */
 
 /**
  * Options for the Pinia Colada Retry plugin.
