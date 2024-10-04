@@ -28,6 +28,7 @@ This is a more complete and production-ready (not yet!) version of the exercises
 > [!NOTE]
 > Pinia Colada is in active development not ready for production. New versions might introduce breaking changes.
 > Feedback regarding new and existing options and features is welcome!
+> Documentation is a work in progress and **contributions are welcome**.
 
 Pinia Colada is an opinionated yet flexible data fetching layer on top of Pinia. It's built as a set of **pinia plugins**, **stores** and **composables** to benefit from Pinia's features and ecosystem. Pinia Colada has:
 
