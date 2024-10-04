@@ -38,6 +38,7 @@ export default antfu(
     files: ['docs/**/*', '!docs/.vitepress/**/*'],
     rules: {
       'import/order': ['off'],
+      'node/handle-callback-err': 'off',
     },
   },
   {

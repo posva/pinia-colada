@@ -45,6 +45,23 @@ export interface PiniaColadaQueryHooksPluginOptions {
  * - `onError`: called when a query throws an error
  * - `onSettled`: called when a query is settled (either successfully or with an error)
  * @param options - Pinia Colada Query Hooks plugin options
+ *
+ * @example
+ * ```ts
+ * import { PiniaColada, PiniaColadaQueryHooksPlugin } from '@pinia/colada'
+ *
+ * const app = createApp(App)
+ * // app setup with other plugins
+ * app.use(PiniaColada, {
+ *   plugins: [
+ *     PiniaColadaQueryHooksPlugin({
+ *       onError(error, entry) {
+ *         // ...
+ *       },
+ *     }),
+ *   ],
+ * })
+ * ```
  */
 export function PiniaColadaQueryHooksPlugin(
   options: PiniaColadaQueryHooksPluginOptions,

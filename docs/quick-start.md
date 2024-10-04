@@ -1,8 +1,8 @@
 # Quick Start
 
-Get a quick overview of how to use Pinia Colada in your project.
+Pinia Colada is the perfect companion to [Pinia](https://pinia.vuejs.org) to handle **async** state management in your Vue applications. It wil remove the need to write boilerplate code for data fetching and transparently bring caching, deduplication, invalidation, and much more. Allowing you to focus on building the best user experience for your users.
 
-If you prefer to directly play with the code you can play with Pinia Colada in this [Stackblitz](https://stackblitz.com/github/posva/pinia-colada-example) project.
+Get a quick overview of how to use Pinia Colada in your project or if you prefer to directly play with the code you can play with Pinia Colada in this [Stackblitz](https://stackblitz.com/github/posva/pinia-colada-example) project.
 
 ## Installation
 
@@ -29,6 +29,8 @@ app.mount('#app')
 ```
 
 ## Usage
+
+Let's see a quick example that covers the basics of [queries](./guide/queries.md), [mutations](./guide/mutations.md) and [query invalidation](./guide/query-invalidation.md).
 
 ### Querying
 
@@ -172,5 +174,5 @@ Invalidated queries will be refetched automatically if they are actively being u
 Pinia Colada has much more to offer! It can greatly improves your application's performance and user experience. Check out the following guides to learn more:
 
 - [Why use Pinia Colada?](./why.md)
-- [Cache Invalidation](./cache-invalidation.md)
-- [Optimistic updates](./optimistic-updates.md)
+- [Cache Invalidation](./guide/query-invalidation.md)
+- [Optimistic updates](./guide/optimistic-updates.md)

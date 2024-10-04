@@ -21,8 +21,6 @@ const mutations_todos = fs.readFileSync(
   'utf-8',
 )
 
-const IS_DEV = process.env.NODE_ENV === 'development'
-
 /**
  * Default slugification function
  */
@@ -143,9 +141,7 @@ export default defineConfig({
       },
     },
 
-    carbonAds: IS_DEV
-      ? undefined
-      : {
+    carbonAds: {
           code: 'CEBICK3I',
           placement: 'routervuejsorg',
         },
