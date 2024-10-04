@@ -167,18 +167,10 @@ const {
 
 Invalidated queries will be refetched automatically if they are actively being used ✨.
 
-### Optimistic updates
+### Going further
 
-Optimistic updates are all about displaying _the upcoming state_ before the mutation settles. This is useful **to provide instant feedback** to the user. There are mainly two ways to achieve this: via the UI or via the cache:
+Pinia Colada has much more to offer! It can greatly improves your application's performance and user experience. Check out the following guides to learn more:
 
-#### Via the UI
-
-```vue twoslash
-<!--  -->
-```
-
-#### Via the cache
-
-```vue twoslash
-<!--  -->
-```
+- [Why use Pinia Colada?](./why.md)
+- [Cache Invalidation](./cache-invalidation.md)
+- [Optimistic updates](./optimistic-updates.md)
