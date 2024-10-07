@@ -183,7 +183,6 @@ export default defineConfig({
             { text: 'Installation', link: '/guide/installation.html' },
             { text: 'Queries', link: '/guide/queries.html' },
             { text: 'Query Keys', link: '/guide/query-keys.html' },
-            { text: 'Query Cache', link: '/guide/query-cache.html' },
             { text: 'Mutations', link: '/guide/mutations.html' },
             {
               text: 'Query Invalidation',
@@ -193,6 +192,12 @@ export default defineConfig({
               text: 'Optimistic Updates',
               link: '/guide/optimistic-updates.html',
             },
+          ],
+        },
+        {
+          text: 'Advanced',
+          items: [
+            { text: 'Query Cache', link: '/advanced/query-cache.html' },
           ],
         },
         {
