@@ -4,7 +4,7 @@ Queries handle async state declaratively. They let you focus on the state, its a
 
 Queries are meant to **read** data. In terms of REST, for example, queries would handle `GET` requests. If you need to **write** (or mutate) data, use [mutations](./mutations.md).
 
-Queries can be created with `useQuery()` or [`defineQuery()`](#reusable-queries).
+Queries can be created with `useQuery()` or [`defineQuery()`](#Reusable-Queries).
 
 ```vue twoslash
 <script setup lang="ts">
