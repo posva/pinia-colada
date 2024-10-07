@@ -109,11 +109,11 @@ const { todoList, search } = useFilteredTodos()
 
 :::
 
-Think of `useFilteredTodos()` as a global shared composable that is only instantiated once. This way, the `search` ref is shared among all components using this query, and changes to it will be reflected in all components.
+Consider `useFilteredTodos()` as a globally shared composable, instantiated only once. This ensures the `search` ref is shared across all components using this query, reflecting changes universally across components.
 
-## Best practices
+## Using External Properties in Queries
 
-Since queries are triggered automatically by Pinia Colada, the `query` function cannot receive any parameter. Often, it's needed to use an external property like the route params or a search query. In those cases, **you can directly use the property within `query`**, and you also need to add the properties to the `key` **as a function** to ensure proper caching. The most common example is using the `route` within the `query` function:
+Since queries are automatically triggered by Pinia Colada, the `query` function cannot accept parameters. However, you can directly use external properties like route params or search queries within the `query` function. To ensure proper caching, add these properties to the `key` as a function. A common example is using the `route` within the `query` function:
 
 ```vue{7-9} twoslash
 <script setup lang="ts">
@@ -129,13 +129,52 @@ const { data, status } = useQuery({
 </script>
 ```
 
-Behind the scenes, each different `key` will create a new query entry in the cache. Switching back to a previous key will often avoid triggering a new request by reusing the cached data. This makes your Application feel faster and more responsive by avoiding unnecessary network requests and making navigations instant ✨.
+Each unique `key` generates a new query entry in the cache. When you switch back to a previously cached entry, it reuses the cached data, avoiding unnecessary network requests. This enhances your application's performance and responsiveness, making navigations feel instant ✨.
 
-### TypeScript
+## TypeScript: Narrowing `data` and `error`'s type with `status`
 
-#### Narrowing the type of `data`
+When using `status` to conditionally render different UI states, you can use the `state` property returned by `useQuery()` which groups the `status`, `data`, and `error` properties into a single object. This way, TypeScript can narrow down the type of `data` and `error` correctly:
 
-When using `status` to conditionally render different UI states, you will notice that TypeScript is unable to narrow down the type of `data` _not being `undefined`_ when `status` is `'pending'` or `'error'`. This is because in Vue we have to use `Ref` wrappers for variables and TS is not able to narrow down the type with `v-if`:
+```vue{19-20,24-25} twoslash
+<script setup lang="ts">
+import { useQuery } from '@pinia/colada'
+
+const {
+  data, // [!code --]
+  status, // [!code --]
+  error, // [!code --]
+  state, // [!code ++]
+} = useQuery({
+  // ...
+// ---cut-start---
+  key: ['user-info'],
+  query: () =>
+    fetch('/api/user-info').then(
+      (res) => res.json() as Promise<{ name: string }>,
+    ),
+// ---cut-end---
+})
+</script>
+
+<template>
+  <div v-if="state.status === 'pending'">
+    Loading...
+  </div>
+  <div v-else-if="state.status === 'error'">
+    <!-- ✅ error type excludes `null` -->
+    Error fetching user info: {{ state.error.message }}
+  </div>
+  <!-- no need to check for the last possible status: 'success' -->
+  <div v-else>
+    <!-- ✅ data type excludes `undefined` -->
+    {{ state.data.name }}
+  </div>
+</template>
+```
+
+::: details Why is this necessary?
+
+This approach is necessary because in Vue we have to use `Ref` wrappers for variables, and TypeScript is not able to narrow down the type like it does with a plain object. When using `status` to conditionally render different UI states, you will notice that TypeScript is unable to narrow down the type of `data` _not being `undefined`_ when `status` is `'pending'` or `'error'`.
 
 ```vue twoslash
 <script setup lang="ts">
@@ -165,55 +204,55 @@ const {
   <div v-else-if="status === 'error'">
     Error fetching user info: {{ error.message }}
   </div>
-  <div v-else-if="status === 'success'">
+  <!-- no need to check for the last possible status: 'success' -->
+  <div v-else>
     {{ data.name }}
   </div>
 </template>
 ```
 
-While using a `v-if` or the `!` operator both work and are perfectly fine, you can also use the `state` property returned by `useQuery()` which groups the `status`, `data`, and `error` properties into a single object. This way, TypeScript can narrow down the type of `data` and `error` correctly:
+While using a `v-if="data"` or `data!` both work and are perfectly fine, using the `state` property provides a more elegant and type-safe solution.
 
-```vue{19-20,23-24} twoslash
+```vue{10-11,13-14} twoslash
 <script setup lang="ts">
+// ...
+// ---cut-start---
 import { useQuery } from '@pinia/colada'
+// @errors: 18047 18048
 
 const {
-  data, // [!code --]
-  status, // [!code --]
-  error, // [!code --]
-  state, // [!code ++]
+  data,
+  status,
+  error,
 } = useQuery({
   // ...
-// ---cut-start---
   key: ['user-info'],
   query: () =>
     fetch('/api/user-info').then(
       (res) => res.json() as Promise<{ name: string }>,
     ),
-// ---cut-end---
 })
+// ---cut-end---
 </script>
 
 <template>
-  <div v-if="state.status === 'pending'">
+  <div v-if="status === 'pending'">
     Loading...
   </div>
-  <div v-else-if="state.status === 'error'">
-    <!-- ✅ error type excludes `null` -->
-    Error fetching user info: {{ state.error.message }}
+  <div v-else-if="status === 'error'">
+    <!-- Not type safe but valid at runtime -->
+    Error fetching user info: {{ error!.message }}
   </div>
-  <div v-else>
-    <!-- ✅ data type excludes `undefined` -->
-    {{ state.data.name }}
+  <!-- Unnecessary check for `undefined` -->
+  <div v-else-if="data">
+    {{ data.name }}
   </div>
 </template>
-```
+:::
 
-### Server-side rendering (SSR)
+## Caveat: SSR and `defineQuery()`
 
-Most of the time, you won't need to worry much about it since Pinia handles it for you. But if you find yourself with rendering mismatches when using `defineQuery()` in SSR, this section is for you.
-
-While `defineQuery()` look like Setup Stores in pinia, they are not stores, **their state is not serialized to the page**. This means that you are fully responsible for ensuring consistent values across the server and client for anything that is not returned by `useQuery()`. In short, this means that you cannot have code like this:
+While `defineQuery()` looks like a [setup store](https://pinia.vuejs.org/core-concepts/#Setup-Stores) in pinia, it doesn't define a store, **the state returned is not serialized to the page**. This means that you are fully responsible for ensuring consistent values across the server and client for anything that is not returned by `useQuery()`. In short, this means that you cannot have code like this:
 
 ```ts
 defineQuery(() => {
@@ -230,10 +269,19 @@ defineQuery(() => {
 })
 ```
 
-If you are using Nuxt, you can use [Nuxt's `useState()`](https://nuxt.com/docs/api/composables/use-state). Otherwise, you can simply move the `search` property into a store:
+Instead, you will need to ensure the `search` state is serialized from the server to the client. The simplest way is to move it to a store:
 
-```ts
+```ts twoslash
 import { defineStore, storeToRefs } from 'pinia'
+// ---cut-start---
+import 'vite/client'
+import { defineQuery } from '@pinia/colada'
+import { ref } from 'vue'
+function getInitialValue() {
+  return 'initial value'
+}
+// ---cut-end---
+// @moduleResolution: bundler
 
 const useLocalStore = defineStore('query-search-store', () => {
   const search = ref('')
@@ -243,7 +291,7 @@ const useLocalStore = defineStore('query-search-store', () => {
 defineQuery(() => {
   const { search } = storeToRefs(useLocalStore())
   if (import.meta.env.SSR) {
-    search.value = fetchSomeInitialValue()
+    search.value = getInitialValue()
   }
   return {
     search,
@@ -252,3 +300,9 @@ defineQuery(() => {
   }
 })
 ```
+
+::: tip
+
+If you are using Nuxt, you can simply replace the `ref()` with [Nuxt's `useState()`](https://nuxt.com/docs/api/composables/use-state).
+
+:::
