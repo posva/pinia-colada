@@ -113,7 +113,15 @@ export interface UseQueryEntryFilter {
   key?: EntryKey
 
   /**
-   * If true, it will only return the exact key, not the children.
+   * If true, it will only match the exact key, not the children.
+   *
+   * @example
+   * ```ts
+   * { key: ['a'], exact: true }
+   *  // will match ['a'] but not ['a', 'b'], while
+   * { key: ['a'] }
+   * // will match both
+   * ```
    */
   exact?: boolean
 
@@ -131,6 +139,12 @@ export interface UseQueryEntryFilter {
    * If defined, it will only return the entries with the given status.
    */
   status?: DataStateStatus
+
+  /**
+   * Pass a predicate to filter the entries. This will be executed for each entry matching the other filters.
+   * @param entry - entry to filter
+   */
+  predicate?: (entry: UseQueryEntry) => boolean
 }
 
 export function queryEntry_addDep(
@@ -296,14 +310,16 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
   /**
    * Invalidates and refetches (in parallel) all active queries in the cache that match the filters.
    */
-  const invalidateQueries = action((filters?: UseQueryEntryFilter): Promise<unknown> => {
-    return Promise.all(
-      getEntries(filters).map((entry) => {
-        invalidate(entry)
-        return entry.active && fetch(entry)
-      }),
-    )
-  })
+  const invalidateQueries = action(
+    (filters?: UseQueryEntryFilter): Promise<unknown> => {
+      return Promise.all(
+        getEntries(filters).map((entry) => {
+          invalidate(entry)
+          return entry.active && fetch(entry)
+        }),
+      )
+    },
+  )
 
   /**
    * Returns all the entries in the cache that match the filters.
@@ -317,16 +333,15 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
 
       if (!node) return []
 
-      if (filters.exact) {
-        return node.value ? [node.value] : []
-      }
-
-      return [...node].filter((entry) => {
+      return (
+        filters.exact ? (node.value ? [node.value] : []) : [...node]
+      ).filter((entry) => {
         if (filters.stale != null) return entry.stale === filters.stale
         if (filters.active != null) return entry.active === filters.active
         if (filters.status) {
           return entry.state.value.status === filters.status
         }
+        if (filters.predicate) return filters.predicate(entry)
 
         return true
       })
