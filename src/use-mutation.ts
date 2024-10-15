@@ -226,7 +226,7 @@ export interface UseMutationReturn<TResult, TVars, TError> {
   isLoading: ComputedRef<boolean>
 
   /**
-   * The variables passed to the mutation.
+   * The variables passed to the mutation. They are initially `undefined` and change every time the mutation is called.
    */
   variables: ShallowRef<TVars | undefined>
 
