@@ -106,7 +106,7 @@ import { type TodoItem, createTodo } from './api/todos'
 const queryCache = useQueryCache()
 const { mutate } = useMutation({
   mutation: (text: string) => createTodo(text),
-  onMutate: (text: string) => {
+  onMutate: (text) => {
     // save the current todo list
     const todoList: TodoItem[] | undefined = queryCache.getQueryData(['todos'])
     // optimistic update the cache
