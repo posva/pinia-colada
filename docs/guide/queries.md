@@ -111,6 +111,18 @@ const { todoList, search } = useFilteredTodos()
 
 Consider `useFilteredTodos()` as a globally shared composable, instantiated only once. This ensures the `search` ref is shared across all components using this query, reflecting changes universally across components.
 
+When you just want to organize your queries, you can also pass an object of options to `defineQuery()`:
+
+```ts twoslash
+// src/queries/todos.ts
+import { defineQuery } from '@pinia/colada'
+
+export const useTodos = defineQuery({
+  key: ['todos'],
+  query: () => fetch('/api/todos').then((res) => res.json()),
+})
+```
+
 ## Using External Properties in Queries
 
 Since queries are automatically triggered by Pinia Colada, the `query` function cannot accept parameters. However, you can directly use external properties like route params or search queries within the `query` function. To ensure proper caching, add these properties to the `key` as a function. A common example is using the `route` within the `query` function:
@@ -187,13 +199,13 @@ const {
   error,
 } = useQuery({
   // ...
-// ---cut-start---
+  // ---cut-start---
   key: ['user-info'],
   query: () =>
     fetch('/api/user-info').then(
       (res) => res.json() as Promise<{ name: string }>,
     ),
-// ---cut-end---
+  // ---cut-end---
 })
 </script>
 

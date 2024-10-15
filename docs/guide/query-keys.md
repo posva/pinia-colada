@@ -4,7 +4,7 @@ Query keys are used to identify a query in the cache. Next to the `query` functi
 
 ## Simple static keys
 
-Static keys are the simplest form of keys. They are just an array of strings. For example:
+Static keys are the simplest form of keys. They are just an array of serializable properties. For example:
 
 ```vue
 <script setup lang="ts">
@@ -18,6 +18,13 @@ const { data, error } = useQuery({
 ```
 
 This is common for queries that call a fixed endpoint like `/api/products` (List or Index resources) as well as global resources like the user information.
+
+Anything that is serializable is valid in a key. These are all different keys:
+
+- `['products', 1]`
+- `['products', '1']`
+- `['products', { id: 1 }]`
+- `['products', { id: 1, type: 'book' }]`
 
 ## Dynamic keys with variables
 
@@ -39,6 +46,24 @@ const { data, error } = useQuery({
 ::: tip
 
 When creating query keys, **make your key depend on any variable used in your `query` function**. For example, let's say you use the route params in your query, you should include them in the key. This is crucial to ensure queries are cached independently and invalidated correctly.
+
+```ts
+useQuery({
+  // ✅
+  key: () => ['products', route.params.id],
+  query: () => getProductById(route.params.id),
+})
+useQuery({
+  // ❌ `key` should be a function
+  key: ['products', route.params.id],
+  query: () => getProductById(route.params.id),
+})
+useQuery({
+  // ❌ `key` should depend on `route.params.id`
+  key: () => ['products'],
+  query: () => getProductById(route.params.id),
+})
+```
 
 :::
 
