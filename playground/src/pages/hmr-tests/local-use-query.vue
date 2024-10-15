@@ -30,7 +30,7 @@ queryCache.$onAction(({ name, args }) => {
 
 // the main chunk that should be modified
 const { state, refresh, refetch } = useQuery({
-  key: ['id', '4'],
+  key: ['id', '4', {}, { a: 1 }, { b: [2], c: true, d: null, e: undefined }],
   async query() {
     console.log('change me 3')
     return `id-${Date.now()}`
