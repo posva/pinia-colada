@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, shallowReactive } from 'vue'
-import type { PiniaColadaPluginContext, UseQueryEntry } from '@pinia/colada'
+import type { PiniaColadaPlugin, UseQueryEntry } from '@pinia/colada'
 
 const tick = () => new Promise((r) => setTimeout(r, 0))
 
@@ -29,10 +29,8 @@ export const useDebugData = defineStore('pinia-colada-debug', () => {
   }
 })
 
-export function PiniaColadaDebugPlugin(): (
-  context: PiniaColadaPluginContext,
-) => void {
-  return ({ cache, pinia }) => {
+export function PiniaColadaDebugPlugin(): PiniaColadaPlugin {
+  return ({ queryCache: cache, pinia }) => {
     const debugData = useDebugData(pinia)
 
     cache.$onAction(async ({ name, onError, after, args }) => {

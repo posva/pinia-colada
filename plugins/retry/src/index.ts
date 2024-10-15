@@ -53,7 +53,7 @@ export function PiniaColadaRetry(
 ): (context: PiniaColadaPluginContext) => void {
   const defaults = { ...RETRY_OPTIONS_DEFAULTS, ...globalOptions }
 
-  return ({ cache }) => {
+  return ({ queryCache: cache }) => {
     const retryMap = new Map<string, RetryEntry>()
 
     let isInternalCall = false
