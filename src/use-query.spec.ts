@@ -790,13 +790,13 @@ describe('useQuery', () => {
       mountSimple({ key: ['todos'], query }, { plugins: [pinia] })
       await flushPromises()
 
-      const cacheClient = useQueryCache()
-      expect(entryNodeSize(cacheClient.caches)).toBe(1)
+      const queryCache = useQueryCache()
+      expect(entryNodeSize(queryCache.caches)).toBe(1)
 
       mountSimple({ key: ['todos', 2] }, { plugins: [pinia] })
       await flushPromises()
 
-      expect(entryNodeSize(cacheClient.caches)).toBe(2)
+      expect(entryNodeSize(queryCache.caches)).toBe(2)
     })
 
     it('populates the entry registry', async () => {

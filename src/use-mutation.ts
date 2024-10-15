@@ -51,7 +51,7 @@ export interface UseMutationHooksContext {
   /**
    * The global query cache store.
    */
-  caches: QueryCache
+  queryCache: QueryCache
 }
 
 /**
@@ -274,7 +274,7 @@ export function useMutation<
 >(
   options: UseMutationOptions<TResult, TVars, TError, TContext>,
 ): UseMutationReturn<TResult, TVars, TError> {
-  const caches = useQueryCache()
+  const queryCache = useQueryCache()
   // TODO: there could be a mutation store that stores the state based on an optional key (if passed). This would allow to retrieve the state of a mutation with useMutationState(key)
   const status = shallowRef<DataStateStatus>('pending')
   const asyncStatus = shallowRef<AsyncStatus>('idle')
@@ -306,7 +306,7 @@ export function useMutation<
     >['2']
 
     let context: OnMutateContext | OnErrorContext | OnSuccessContext = {
-      caches,
+      queryCache,
     }
 
     const currentCall = (pendingCall = Symbol())
@@ -329,7 +329,7 @@ export function useMutation<
       // we set the context here so it can be used by other hooks
       context = {
         ...globalOnMutateContext!,
-        caches,
+        queryCache,
         ...onMutateContext,
         // NOTE: needed for onSuccess cast
       } satisfies OnSuccessContext
@@ -342,7 +342,7 @@ export function useMutation<
         context as OnSuccessContext,
         // {
         // ...globalOnMutateContext!,
-        // caches,
+        // queryCache,
         // ...onMutateContext,
         // i
       )
