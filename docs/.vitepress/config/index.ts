@@ -198,6 +198,7 @@ export default defineConfig({
           text: 'Advanced',
           items: [
             { text: 'Query Cache', link: '/advanced/query-cache.html' },
+            { text: 'Plugins', link: '/advanced/plugins.html' },
           ],
         },
         {
