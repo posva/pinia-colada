@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useBasicQuery } from '@/queries/basic'
-import { useQuery, useQueryCache } from '@pinia/colada'
+import { useQueryCache } from '@pinia/colada'
 import { ref, shallowRef } from 'vue'
 
 const queryCache = useQueryCache()
