@@ -30,10 +30,10 @@ export const useDebugData = defineStore('pinia-colada-debug', () => {
 })
 
 export function PiniaColadaDebugPlugin(): PiniaColadaPlugin {
-  return ({ queryCache: cache, pinia }) => {
+  return ({ queryCache, pinia }) => {
     const debugData = useDebugData(pinia)
 
-    cache.$onAction(async ({ name, onError, after, args }) => {
+    queryCache.$onAction(async ({ name, onError, after, args }) => {
       if (name === 'fetch' || name === 'refresh') {
         const [entry] = args
         await tick()

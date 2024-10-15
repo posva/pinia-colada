@@ -53,11 +53,11 @@ export function PiniaColadaRetry(
 ): (context: PiniaColadaPluginContext) => void {
   const defaults = { ...RETRY_OPTIONS_DEFAULTS, ...globalOptions }
 
-  return ({ queryCache: cache }) => {
+  return ({ queryCache }) => {
     const retryMap = new Map<string, RetryEntry>()
 
     let isInternalCall = false
-    cache.$onAction(({ name, args, after, onError }) => {
+    queryCache.$onAction(({ name, args, after, onError }) => {
       // cleanup all pending retries when data is deleted (means the data is not needed anymore)
       if (name === 'remove') {
         const [cacheEntry] = args
@@ -116,7 +116,7 @@ export function PiniaColadaRetry(
             entry.timeoutId = setTimeout(() => {
               // NOTE: we could add some default error handler
               isInternalCall = true
-              Promise.resolve(cache.fetch(queryEntry)).catch(
+              Promise.resolve(queryCache.fetch(queryEntry)).catch(
                 process.env.NODE_ENV !== 'test' ? console.error : () => {},
               )
               isInternalCall = false
