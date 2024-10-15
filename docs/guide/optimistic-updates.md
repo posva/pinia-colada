@@ -20,12 +20,12 @@ const { data: todoList } = useQuery({
 })
 
 const newTodoText = ref('')
-const caches = useQueryCache()
+const queryCache = useQueryCache()
 const { mutate, isLoading, variables: newTodo } = useMutation({
   mutation: (text: string) => createTodo(text),
   async onSettled() {
     // Invalidate the query to refetch the new data
-    await caches.invalidateQueries({ key: ['todos'] })
+    await queryCache.invalidateQueries({ key: ['todos'] })
   },
 })
 </script>
@@ -55,7 +55,7 @@ In this example, while the mutation is loading, the new todo is displayed in the
 <li v-if="isLoading" :style="{ opacity: 0.5 }">{{ newTodo }}</li>
 ```
 
-When doing this, it's important to remember to invalidate the query after the mutation has completed with `await caches.invalidateQueries()`. This will ensure that the query is refetched with the new data. By awaiting the invalidation, the mutation will stay on the loading state until all related queries has been refetched.
+When doing this, it's important to remember to invalidate the query after the mutation has completed with `await queryCache.invalidateQueries()`. This will ensure that the query is refetched with the new data. By awaiting the invalidation, the mutation will stay on the loading state until all related queries has been refetched.
 
 ### When mutation is not collocated with the query
 
@@ -65,7 +65,7 @@ When the mutation is not collocated with the query it updates, you can still use
 import { useMutation, useQueryCache } from '@pinia/colada'
 import { createTodo } from './api/todos'
 
-const caches = useQueryCache()
+const queryCache = useQueryCache()
 const {
   mutate,
   isLoading,
@@ -73,7 +73,7 @@ const {
 } = useMutation({
   key: ['createTodo'],
   mutation: (text: string) => createTodo(text),
-  onSettled: () => caches.invalidateQueries({ key: ['todos'] }),
+  onSettled: () => queryCache.invalidateQueries({ key: ['todos'] }),
 })
 ```
 
@@ -103,25 +103,25 @@ We can achieve this by only touching the `useMutation()` code:
 import { useMutation, useQueryCache } from '@pinia/colada'
 import { type TodoItem, createTodo } from './api/todos'
 
-const caches = useQueryCache()
+const queryCache = useQueryCache()
 const { mutate } = useMutation({
   mutation: (text: string) => createTodo(text),
   onMutate: (text: string) => {
     // save the current todo list
-    const todoList: TodoItem[] | undefined = caches.getQueryData(['todos'])
+    const todoList: TodoItem[] | undefined = queryCache.getQueryData(['todos'])
     // optimistic update the cache
-    caches.setQueryData(['todos'], [...(todoList || []), { text }])
+    queryCache.setQueryData(['todos'], [...(todoList || []), { text }])
     // return the current todo list to be used in case of errors
     return { todoList }
   },
   onError: (error, text, { todoList }) => {
     console.error('Error creating todo with text', text, error)
     // rollback to the previous state
-    caches.setQueryData(['todos'], todoList)
+    queryCache.setQueryData(['todos'], todoList)
   },
   onSettled: () => {
     // invalidate the query to refetch the new data
-    caches.invalidateQueries({ key: ['todos'] })
+    queryCache.invalidateQueries({ key: ['todos'] })
   },
 })
 ```
@@ -130,6 +130,6 @@ Note that depending on the mutation, you might want to update multiple queries, 
 
 ::: tip
 
-The `caches.setQueryData()` action does not modify the `status` of the query nor cancels any ongoing queries. You can do that by manually calling the different query actions.
+The `queryCache.setQueryData()` action does not modify the `status` of the query nor cancels any ongoing queries. You can do that by manually calling the different query actions.
 
 :::

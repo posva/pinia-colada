@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useRoute } from 'vue-router/auto'
-import { useMutation, useQuery } from '@pinia/colada'
+import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import ContactCard from '@/components/ContactCard.vue'
 import {
   type Contact,
@@ -9,6 +9,7 @@ import {
 } from '@/api/contacts'
 
 const route = useRoute('/contacts/[id]')
+const queryCache = useQueryCache()
 
 const {
   data: contact,
@@ -27,18 +28,18 @@ const { mutate: updateContact } = useMutation({
     return { a: 2, b: 5 }
   },
 
-  onError(_e, { id }, { caches, a, b }) {
-    caches.invalidateQueries({ key: ['contacts-search'] })
-    caches.invalidateQueries({ key: ['contacts', id] })
+  onError(_e, { id }, { a, b }) {
+    queryCache.invalidateQueries({ key: ['contacts-search'] })
+    queryCache.invalidateQueries({ key: ['contacts', id] })
     if (a == null) return
     console.log(a.toFixed(2))
     console.log(b.toFixed(2))
   },
 
-  onSettled(_d, _e, { id }, { caches, a }) {
+  onSettled(_d, _e, { id }, { a }) {
     console.log(a?.toFixed(2))
-    caches.invalidateQueries({ key: ['contacts-search'] })
-    caches.invalidateQueries({ key: ['contacts', id] })
+    queryCache.invalidateQueries({ key: ['contacts-search'] })
+    queryCache.invalidateQueries({ key: ['contacts', id] })
   },
 
 })
