@@ -66,7 +66,7 @@ export interface PiniaColadaQueryHooksPluginOptions {
 export function PiniaColadaQueryHooksPlugin(
   options: PiniaColadaQueryHooksPluginOptions,
 ): PiniaColadaPlugin {
-  return ({ cache }) => {
+  return ({ queryCache: cache }) => {
     cache.$onAction(({ name, after, onError, args }) => {
       if (name === 'fetch') {
         const [entry] = args

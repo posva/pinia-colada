@@ -1,5 +1,5 @@
 import type { Pinia } from 'pinia'
-import type { useQueryCache } from '../query-store'
+import type { QueryCache } from '../query-store'
 
 /**
  * Context passed to a Pinia Colada plugin.
@@ -8,7 +8,7 @@ export interface PiniaColadaPluginContext {
   /**
    * The query cache used by the application.
    */
-  cache: ReturnType<typeof useQueryCache>
+  queryCache: QueryCache
 
   /**
    * The Pinia instance used by the application.

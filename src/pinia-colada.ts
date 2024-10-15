@@ -78,5 +78,5 @@ export function PiniaColada(app: App, options: PiniaColadaOptions = {}) {
   }
 
   // install plugins
-  plugins?.forEach((plugin) => plugin({ cache: useQueryCache(pinia), pinia }))
+  plugins?.forEach((plugin) => plugin({ queryCache: useQueryCache(pinia), pinia }))
 }
