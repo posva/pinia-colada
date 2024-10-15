@@ -49,7 +49,7 @@ describe('PiniaColada', () => {
     const { pinia } = factory({ plugins: [plugin] })
     expect(plugin).toHaveBeenCalledTimes(1)
     expect(plugin).toHaveBeenCalledWith({
-      cache: useQueryCache(pinia),
+      queryCache: useQueryCache(pinia),
       pinia,
     })
   })
