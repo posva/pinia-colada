@@ -2,10 +2,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import type { App } from 'vue'
-import { createApp, defineComponent, ref } from 'vue'
-import { QueryPlugin } from './query-plugin'
+import { createApp, defineComponent, effectScope, ref } from 'vue'
 import { defineQuery } from './define-query'
 import { useQuery } from './use-query'
+import type { UseQueryOptions } from './query-options'
+import { type GlobalMountOptions, isSpy } from '../test/utils'
+import { useQueryCache } from './query-store'
+import { PiniaColada } from './pinia-colada'
+import { mockWarn } from '../test/mock-warn'
 
 describe('defineQuery', () => {
   beforeEach(() => {
@@ -16,6 +20,7 @@ describe('defineQuery', () => {
   })
 
   enableAutoUnmount(afterEach)
+  mockWarn()
 
   it('reuses the query in multiple places', async () => {
     const useTodoList = defineQuery({
@@ -30,11 +35,11 @@ describe('defineQuery', () => {
           returnedValues = useTodoList()
           return { ...returnedValues }
         },
-        template: `<div></div>`,
+        render: () => null,
       },
       {
         global: {
-          plugins: [createPinia(), QueryPlugin],
+          plugins: [createPinia(), PiniaColada],
         },
       },
     )
@@ -65,7 +70,7 @@ describe('defineQuery', () => {
       },
       {
         global: {
-          plugins: [createPinia(), QueryPlugin],
+          plugins: [createPinia(), PiniaColada],
         },
       },
     )
@@ -101,19 +106,19 @@ describe('defineQuery', () => {
 
       mount(Component, {
         global: {
-          plugins: [pinia, QueryPlugin],
+          plugins: [pinia, PiniaColada],
         },
       })
       await flushPromises()
 
-      const { data, status } = returnedValues
+      const { data, status, asyncStatus } = returnedValues
       expect(spy).toHaveBeenCalledTimes(1)
       expect(status.value).toBe('success')
       expect(data.value).toEqual('todos')
 
       mount(Component, {
         global: {
-          plugins: [pinia, QueryPlugin],
+          plugins: [pinia, PiniaColada],
         },
       })
       // still called only once
@@ -127,11 +132,11 @@ describe('defineQuery', () => {
       vi.advanceTimersByTime(101)
       mount(Component, {
         global: {
-          plugins: [pinia, QueryPlugin],
+          plugins: [pinia, PiniaColada],
         },
       })
       // it should be loading
-      expect(status.value).toBe('loading')
+      expect(asyncStatus.value).toBe('loading')
       expect(data.value).toEqual('todos')
       await flushPromises()
 
@@ -161,7 +166,7 @@ describe('defineQuery', () => {
 
       mount(Component, {
         global: {
-          plugins: [pinia, QueryPlugin],
+          plugins: [pinia, PiniaColada],
         },
       })
       await flushPromises()
@@ -173,7 +178,7 @@ describe('defineQuery', () => {
 
       mount(Component, {
         global: {
-          plugins: [pinia, QueryPlugin],
+          plugins: [pinia, PiniaColada],
         },
       })
       expect(spy).toHaveBeenCalledTimes(2)
@@ -202,7 +207,7 @@ describe('defineQuery', () => {
 
       mount(Component, {
         global: {
-          plugins: [pinia, QueryPlugin],
+          plugins: [pinia, PiniaColada],
         },
       })
       await flushPromises()
@@ -214,7 +219,7 @@ describe('defineQuery', () => {
 
       mount(Component, {
         global: {
-          plugins: [pinia, QueryPlugin],
+          plugins: [pinia, PiniaColada],
         },
       })
       expect(spy).toHaveBeenCalledTimes(1)
@@ -227,7 +232,7 @@ describe('defineQuery', () => {
       const pinia = createPinia()
       app = createApp({ render: () => null })
         .use(pinia)
-        .use(QueryPlugin)
+        .use(PiniaColada)
       app.mount(document.createElement('div'))
     })
     afterEach(() => {
@@ -293,6 +298,291 @@ describe('defineQuery', () => {
         useTodoList()
         await flushPromises()
         expect(spy).toHaveBeenCalledTimes(2)
+      })
+    })
+  })
+
+  describe('gcTime', () => {
+    describe('with component', () => {
+      function mountSimple<TResult = string>(
+        options: Partial<UseQueryOptions<TResult>> = {},
+        mountOptions?: GlobalMountOptions,
+      ) {
+        const queryFunction = options.query
+          ? isSpy(options.query)
+            ? options.query
+            : vi.fn(options.query)
+          : vi.fn(async () => 'todos')
+        const useTodoList = defineQuery(() => {
+          const query = useQuery({
+            key: ['todos'],
+            gcTime: 1000,
+            ...options,
+            // @ts-expect-error: generic unmatched but types work
+            query: queryFunction,
+          })
+          return { ...query }
+        })
+        let returnedValues: ReturnType<typeof useTodoList>
+
+        const wrapper = mount(
+          defineComponent({
+            render: () => null,
+            setup() {
+              returnedValues = useTodoList()
+              return { ...returnedValues }
+            },
+          }),
+          {
+            global: {
+              plugins: [
+                ...(mountOptions?.plugins || [createPinia()]),
+                PiniaColada,
+              ],
+            },
+          },
+        )
+        return wrapper
+      }
+
+      it('deletes the cache once the component is unmounted after the delay', async () => {
+        const wrapper = mountSimple()
+        await flushPromises()
+
+        const cache = useQueryCache()
+        expect(cache.getQueryData(['todos'])).toBe('todos')
+
+        wrapper.unmount()
+        await vi.advanceTimersByTime(999)
+        // still there
+        expect(cache.getQueryData(['todos'])).toBe('todos')
+        await vi.advanceTimersByTime(1)
+        expect(cache.getQueryData(['todos'])).toBeUndefined()
+      })
+
+      it('keeps the cache if the query is reused by a new component before the delay', async () => {
+        const pinia = createPinia()
+        const query = vi.fn(async () => 'todos')
+        const options = {
+          key: ['todos'],
+          query,
+          gcTime: 1000,
+        } satisfies UseQueryOptions<string>
+        const w1 = mountSimple(options, { plugins: [pinia] })
+        await flushPromises()
+
+        const cache = useQueryCache()
+        expect(cache.getQueryData(['todos'])).toBe('todos')
+
+        w1.unmount()
+        await vi.advanceTimersByTime(999)
+        // still there
+        expect(cache.getQueryData(['todos'])).toBe('todos')
+
+        // create new component
+        const w2 = mountSimple(options, { plugins: [pinia] })
+
+        await vi.advanceTimersByTime(1)
+        // still there
+        expect(cache.getQueryData(['todos'])).toBe('todos')
+        // check that gcTime doesn't impact it
+        await vi.advanceTimersByTime(1000)
+        expect(cache.getQueryData(['todos'])).toBe('todos')
+        w2.unmount()
+        await vi.advanceTimersByTime(999)
+        expect(cache.getQueryData(['todos'])).toBe('todos')
+        await vi.advanceTimersByTime(1)
+        expect(cache.getQueryData(['todos'])).toBeUndefined()
+      })
+
+      it('deletes the cache of an old key while the component is mounted', async () => {
+        const key = ref(1)
+        mountSimple({ key: () => [key.value] })
+        const cache = useQueryCache()
+
+        await flushPromises()
+        expect(cache.getQueryData(['1'])).toBe('todos')
+
+        // trigger a new entry
+        key.value = 2
+
+        // let the query finish
+        await flushPromises()
+
+        expect(cache.getQueryData(['2'])).toBe('todos')
+        // still not deleted
+        expect(cache.getQueryData(['1'])).toBe('todos')
+
+        // trigger cleanup
+        vi.advanceTimersByTime(1000)
+        expect(cache.getQueryData(['1'])).toBeUndefined()
+      })
+
+      it('keeps the cache if the query key changes before the delay', async () => {
+        const key = ref(1)
+        mountSimple({ key: () => [key.value] })
+        const cache = useQueryCache()
+
+        await flushPromises()
+        expect(cache.getQueryData(['1'])).toBe('todos')
+
+        // trigger a new entry
+        key.value = 2
+
+        // let the query finish
+        await flushPromises()
+
+        // check the values are still there
+        expect(cache.getQueryData(['1'])).toBe('todos')
+        expect(cache.getQueryData(['2'])).toBe('todos')
+
+        vi.advanceTimersByTime(999)
+        expect(cache.getQueryData(['1'])).toBe('todos')
+
+        // go back to 1
+        key.value = 1
+        await flushPromises()
+
+        // should not have deleted it
+        expect(cache.getQueryData(['1'])).toBe('todos')
+        expect(cache.getQueryData(['2'])).toBe('todos')
+      })
+    })
+
+    describe('with effect scope', () => {
+      let app: App
+      function todoListDefineQuery(key?: any) {
+        return defineQuery(() => {
+          const query = useQuery({
+            key: key || ['todos'],
+            gcTime: 1000,
+            query: vi.fn(async () => {
+              return 'todos'
+            }),
+          })
+          return { ...query }
+        })
+      }
+      beforeEach(() => {
+        const pinia = createPinia()
+        app = createApp({ render: () => null })
+          .use(pinia)
+          .use(PiniaColada)
+        app.mount(document.createElement('div'))
+      })
+      afterEach(() => {
+        app?.unmount()
+      })
+
+      it('deletes the cache once the scope is stoped after the delay', async () => {
+        await app.runWithContext(async () => {
+          const useTodoList = todoListDefineQuery()
+          const scope = effectScope()
+          scope.run(useTodoList)
+          await flushPromises()
+
+          const cache = useQueryCache()
+          expect(cache.getQueryData(['todos'])).toBe('todos')
+
+          scope.stop()
+          await vi.advanceTimersByTime(999)
+          // still there
+          expect(cache.getQueryData(['todos'])).toBe('todos')
+          await vi.advanceTimersByTime(1)
+          expect(cache.getQueryData(['todos'])).toBeUndefined()
+        })
+      })
+
+      it('keeps the cache if the query is reused by a new scope before the delay', async () => {
+        await app.runWithContext(async () => {
+          const useTodoList = todoListDefineQuery()
+          const scope1 = effectScope()
+          scope1.run(useTodoList)
+          await flushPromises()
+          const cache = useQueryCache()
+          expect(cache.getQueryData(['todos'])).toBe('todos')
+
+          scope1.stop()
+          await vi.advanceTimersByTime(999)
+          // still there
+          expect(cache.getQueryData(['todos'])).toBe('todos')
+
+          const scope2 = effectScope()
+          scope2.run(useTodoList)
+
+          await vi.advanceTimersByTime(1)
+          // still there
+          expect(cache.getQueryData(['todos'])).toBe('todos')
+          // check that gcTime doesn't impact it
+          await vi.advanceTimersByTime(1000)
+          expect(cache.getQueryData(['todos'])).toBe('todos')
+          scope2.stop()
+          await vi.advanceTimersByTime(999)
+          expect(cache.getQueryData(['todos'])).toBe('todos')
+          await vi.advanceTimersByTime(1)
+          expect(cache.getQueryData(['todos'])).toBeUndefined()
+        })
+      })
+
+      it('deletes the cache of an old key while the scope is active', async () => {
+        await app.runWithContext(async () => {
+          const key = ref(1)
+          const useTodoList = todoListDefineQuery(() => [key.value])
+          const scope1 = effectScope()
+          scope1.run(useTodoList)
+          const cache = useQueryCache()
+
+          await flushPromises()
+          expect(cache.getQueryData(['1'])).toBe('todos')
+
+          // trigger a new entry
+          key.value = 2
+
+          // let the query finish
+          await flushPromises()
+
+          expect(cache.getQueryData(['2'])).toBe('todos')
+          // still not deleted
+          expect(cache.getQueryData(['1'])).toBe('todos')
+
+          // trigger cleanup
+          vi.advanceTimersByTime(1000)
+          expect(cache.getQueryData(['1'])).toBeUndefined()
+        })
+      })
+
+      it('keeps the cache if the query key changes before the delay', async () => {
+        await app.runWithContext(async () => {
+          const key = ref(1)
+          const useTodoList = todoListDefineQuery(() => [key.value])
+          const scope1 = effectScope()
+          scope1.run(useTodoList)
+          const cache = useQueryCache()
+
+          await flushPromises()
+          expect(cache.getQueryData(['1'])).toBe('todos')
+
+          // trigger a new entry
+          key.value = 2
+
+          // let the query finish
+          await flushPromises()
+
+          // check the values are still there
+          expect(cache.getQueryData(['1'])).toBe('todos')
+          expect(cache.getQueryData(['2'])).toBe('todos')
+
+          vi.advanceTimersByTime(999)
+          expect(cache.getQueryData(['1'])).toBe('todos')
+
+          // go back to 1
+          key.value = 1
+          await flushPromises()
+
+          // should not have deleted it
+          expect(cache.getQueryData(['1'])).toBe('todos')
+          expect(cache.getQueryData(['2'])).toBe('todos')
+        })
       })
     })
   })

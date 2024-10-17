@@ -31,7 +31,13 @@ export async function getAllContacts(options?: Options<'json'>) {
  *
  * @param id id of the contact
  */
-export function getContactById(id: string | number, options?: Options<'json'>) {
+export async function getContactById(
+  id: string | number,
+  options?: Options<'json'>,
+) {
+  if (Math.random() > 0.75) {
+    throw new Error('Failed to fetch')
+  }
   return contacts.get<Contact>(id, options)
 }
 
@@ -66,8 +72,8 @@ export function createContact(
 export function updateContact(
   contact: Partial<ContactInfo> & { id: number },
   options?: Options<'json'>,
-) {
-  return contacts.patch<Contact>(`/${contact.id}`, contact, options)
+): Promise<Contact> {
+  return contacts.patch<Contact, 'json'>(`/${contact.id}`, contact, options)
 }
 
 /**

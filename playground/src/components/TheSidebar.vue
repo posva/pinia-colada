@@ -39,18 +39,17 @@ const navigation = [
               <a
                 v-if="!item.children"
                 :href="item.href"
-                class="block rounded-md py-2 pr-2 pl-10 text-sm leading-6 font-semibold text-gray-700" :class="[
-                  item.current ? 'bg-gray-50' : 'hover:bg-gray-50',
-                ]"
+                class="block rounded-md py-2 pr-2 pl-10 text-sm leading-6 font-semibold text-gray-700"
+                :class="[item.current ? 'bg-gray-50' : 'hover:bg-gray-50']"
               >{{ item.name }}</a>
               <Disclosure v-else v-slot="{ open }" as="div">
                 <DisclosureButton
-                  class="flex items-center w-full text-left rounded-md p-2 gap-x-3 text-sm leading-6 font-semibold text-gray-700" :class="[
-                    item.current ? 'bg-gray-50' : 'hover:bg-gray-50',
-                  ]"
+                  class="flex items-center w-full text-left rounded-md p-2 gap-x-3 text-sm leading-6 font-semibold text-gray-700"
+                  :class="[item.current ? 'bg-gray-50' : 'hover:bg-gray-50']"
                 >
                   <ChevronRightIcon
-                    class="h-5 w-5 shrink-0" :class="[
+                    class="h-5 w-5 shrink-0"
+                    :class="[
                       open ? 'rotate-90 text-gray-500' : 'text-gray-400',
                     ]"
                     aria-hidden="true"
@@ -62,7 +61,8 @@ const navigation = [
                     <DisclosureButton
                       as="a"
                       :href="subItem.href"
-                      class="block rounded-md py-2 pr-2 pl-9 text-sm leading-6 text-gray-700" :class="[
+                      class="block rounded-md py-2 pr-2 pl-9 text-sm leading-6 text-gray-700"
+                      :class="[
                         subItem.current ? 'bg-gray-50' : 'hover:bg-gray-50',
                       ]"
                     >

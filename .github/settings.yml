@@ -1,37 +1,54 @@
+repository:
+  homepage: https://pinia-colada.esm.dev
+  description: 🍹 The smart data fetching layer for Pinia
 labels:
   - name: 🐞 bug
     color: ee0701
     description: this isn't working as expected
+    oldname: bug
   - name: ✨ feature request
     color: fbca04
     description: a new feature request
   - name: ⚡️ enhancement
     color: a2eeef
     description: improvement over an existing feature
-  - name: need repro
+    oldname: enhancement
+  - name: ♦️ need repro
     color: c9581c
     description: the issue needs a reproduction for further investigation
+    oldname: need repro
   - name: has workaround
     color: 2139c4
     description: has a temporary fix to get around the problem
-  - name: contribution welcome
+  - name: 👍 contribution welcome
     color: 0e8a16
     description: others are welcome to implement/fix this
-  - name: typescript
+    oldname: contribution welcome
+  - name: 🔹 typescript
     color: 3178c6
     description: issue related to types
+    oldname: typescript
   - name: 💬 discussion
     color: 4935ad
     description: topic that requires further discussion
   - name: 📚 docs
     color: 8be281
     description: related to documentation
-  - name: good first issue
+    oldname: documentation
+  - name: 1️⃣ good first issue
     color: 7057ff
     description: this should be manageable for new-comers
-  - name: help wanted
+  - name: 🙏 help wanted
     color: 008672
     description: help in this issue is welcome
+    oldname: help wanted
   - name: wontfix
     color: ffffff
     description: this issue won't be fixed
+    oldname: wontfix
+  - name: meta
+    color: 5319e7
+    description: related to the project itself
+  - name: 🔌 plugins
+    color: baffc9
+    description: related to plugins

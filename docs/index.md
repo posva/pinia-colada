@@ -23,20 +23,24 @@ hero:
       link: https://masteringpinia.com
 
 features:
-  - title: 💡 Intuitive
-    details: Stores are as familiar as components. API designed to let you write well organized stores.
+  - title: ⚡️ Automatic caching
+    details: Smart and configurable client-side caching with automatic cache invalidation and request deduplication.
+  - title: ♾️ Flexible
+    details: Works with any asynchronous state. Data fetching, websockets, Web APIs, etc
   - title: 🔑 Type Safe
-    details: Types are inferred, which means stores provide you with autocompletion even in JavaScript!
-  - title: 🍍 Pinia based
+    details: Designed with TypeScript in mind for an effortless and type-safe experience.
+  - title: 🍍 Extensible
     details: Being built on top of Pinia, it leverages its store pattern and plugins like Devtools!
+  - title: 📦 Extremely light
+    details: With zero dependencies and under 2kb min+gzip, your bundle won't even notice it's there. It is also tree-shakable!
+  - title: ⚙️ SSR Ready
+    details: Full SSR support with cache hydration and revalidation on the client side.
   # - title: ⚙️ Devtools support
   #   details: Pinia hooks into Vue devtools to give you an enhanced development experience in both Vue 2 and Vue 3.
-  - title: 🔌 Extensible
-    details: React to store changes to extend Pinia with transactions, local storage synchronization, etc.
-  - title: 🏗 Modular by design
-    details: Build multiple stores and let your bundler code split them automatically.
-  - title: 📦 Extremely light
-    details: Pinia weighs ~1.5kb, you will forget it's even there!
+  # - title: 🔌 Extensible
+  #   details: React to store changes to extend Pinia with transactions, local storage synchronization, etc.
+  # - title: 🏗 Modular by design
+  #   details: Build multiple stores and let your bundler code split them automatically.
 ---
 
 <script setup>

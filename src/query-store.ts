@@ -1,77 +1,67 @@
 import { defineStore } from 'pinia'
 import {
-  type ComputedRef,
-  type Ref,
+  type ComponentInternalInstance,
+  type EffectScope,
   type ShallowRef,
-  computed,
+  getCurrentInstance,
   getCurrentScope,
+  markRaw,
   shallowReactive,
   shallowRef,
-  triggerRef,
+  toValue,
 } from 'vue'
-import { stringifyFlatObject } from './utils'
+import { stringifyFlatObject, toValueWithArgs } from './utils'
 import { type EntryNodeKey, TreeMapNode } from './tree-map'
 import type { EntryKey } from './entry-options'
 import type { UseQueryOptionsWithDefaults } from './query-options'
 import type { ErrorDefault } from './types-extension'
 import type { defineQuery } from './define-query'
+import type {
+  AsyncStatus,
+  DataState,
+  DataStateStatus,
+  DataState_Success,
+} from './data-state'
 
 /**
- * The status of the request.
- * - `pending`: initial state
- * - `loading`: request is being made
- * - `error`: when the last request failed
- * - `success`: when the last request succeeded
+ * NOTE: Entries could be classes but the point of having all functions within the store is to allow plugins to hook
+ * into actions.
  */
-export type QueryStatus = 'pending' | 'loading' | 'error' | 'success'
 
 /**
- * Properties of a query entry that will be exposed to the user. Split to keep the documented properties in one place.
- * @internal
+ * A query entry in the cache.
  */
-export interface _UseQueryEntry_State<TResult, TError> {
+export interface UseQueryEntry<TResult = unknown, TError = unknown> {
   /**
-   * The last successful data resolved by the query.
+   * The state of the query. Contains the data, error and status.
    */
-  data: ShallowRef<TResult | undefined>
+  state: ShallowRef<DataState<TResult, TError>>
 
   /**
-   * The error rejected by the query.
+   * A placeholder `data` that is initially shown while the query is loading for the first time. This will also show the
+   * `status` as `success` until the query finishes loading (no matter the outcome).
    */
-  error: ShallowRef<TError | null>
+  placeholderData: TResult | null | undefined
 
   /**
    * The status of the query.
-   * @see {@link QueryStatus}
    */
-  status: ShallowRef<QueryStatus>
-  /**
-   * Returns whether the request is still pending its first call. Alias for `status.value === 'pending'`
-   */
-  isPending: ComputedRef<boolean>
+  asyncStatus: ShallowRef<AsyncStatus>
 
-  /**
-   * Returns whether the request is currently fetching data.
-   */
-  isFetching: ShallowRef<boolean>
-}
-
-export interface UseQueryEntry<TResult = unknown, TError = unknown>
-  extends _UseQueryEntry_State<TResult, TError> {
   /**
    * When was this data fetched the last time in ms
    */
   when: number
 
   /**
-   * The key associated with this query entry.
+   * The serialized key associated with this query entry.
    */
   key: EntryNodeKey[]
 
   /**
    * Components and effects scopes that use this query entry.
    */
-  deps: Set<unknown>
+  deps: Set<EffectScope | ComponentInternalInstance>
 
   /**
    * Timeout id that scheduled a garbage collection. It is set here to clear it when the entry is used by a different component
@@ -80,12 +70,14 @@ export interface UseQueryEntry<TResult = unknown, TError = unknown>
 
   pending: null | {
     abortController: AbortController
-    refreshCall: Promise<void>
+    refreshCall: Promise<DataState<TResult, TError>>
     when: number
   }
 
   /**
-   * Options used to create the query. They can be undefined during hydration but are needed for fetching. This is why `store.ensureEntry()` sets this property.
+   * Options used to create the query. They can be undefined during hydration but are needed for fetching. This is why
+   * `store.ensure()` sets this property. Note these options might be shared by multiple query entries when the key is
+   * dynamic.
    */
   options: UseQueryOptionsWithDefaults<TResult, TError> | null
   // TODO: ideally shouldn't be null, there should be different kind of types
@@ -94,6 +86,89 @@ export interface UseQueryEntry<TResult = unknown, TError = unknown>
    * Whether the data is stale or not, requires `options.staleTime` to be set.
    */
   readonly stale: boolean
+
+  /**
+   * Whether the query is currently being used by a Component or EffectScope (e.g. a store).
+   */
+  readonly active: boolean
+
+  /**
+   * Component `__hmrId` to track wrong usage of `useQuery` and warn the user.
+   * @internal
+   */
+  __hmr?: {
+    id?: string
+    deps?: Set<EffectScope | ComponentInternalInstance>
+    skip?: boolean
+  }
+}
+
+/**
+ * Filter to get entries from the cache.
+ */
+export interface UseQueryEntryFilter {
+  /**
+   * A key to filter the entries.
+   */
+  key?: EntryKey
+
+  /**
+   * If true, it will only match the exact key, not the children.
+   *
+   * @example
+   * ```ts
+   * { key: ['a'], exact: true }
+   *  // will match ['a'] but not ['a', 'b'], while
+   * { key: ['a'] }
+   * // will match both
+   * ```
+   */
+  exact?: boolean
+
+  /**
+   * If true or false, it will only return entries that match the stale status.
+   */
+  stale?: boolean
+
+  /**
+   * If true or false, it will only return entries that match the active status.
+   */
+  active?: boolean
+
+  /**
+   * If defined, it will only return the entries with the given status.
+   */
+  status?: DataStateStatus
+
+  /**
+   * Pass a predicate to filter the entries. This will be executed for each entry matching the other filters.
+   * @param entry - entry to filter
+   */
+  predicate?: (entry: UseQueryEntry) => boolean
+}
+
+export function queryEntry_addDep(
+  entry: UseQueryEntry,
+  effect: EffectScope | ComponentInternalInstance | null | undefined,
+) {
+  if (!effect) return
+  entry.deps.add(effect)
+  clearTimeout(entry.gcTimeout)
+}
+
+export function queryEntry_removeDep(
+  entry: UseQueryEntry,
+  effect: EffectScope | ComponentInternalInstance | undefined | null,
+  store: ReturnType<typeof useQueryCache>,
+) {
+  if (!effect) return
+
+  entry.deps.delete(effect)
+  if (entry.deps.size > 0 || !entry.options) return
+  clearTimeout(entry.gcTimeout)
+  entry.gcTimeout = setTimeout(() => {
+    store.remove(entry)
+  }, entry.options.gcTime)
 }
 
 /**
@@ -111,41 +186,56 @@ export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
   error: TError | null = null,
   when: number = 0, // stale by default
 ): UseQueryEntry<TResult, TError> {
-  const data = shallowRef(initialData)
-  const status = shallowRef<QueryStatus>(
-    error ? 'error' : initialData !== undefined ? 'success' : 'pending',
+  const state = shallowRef<DataState<TResult, TError>>(
+    // @ts-expect-error: to make the code shorter we are using one declaration instead of multiple ternaries
+    {
+      data: initialData,
+      error,
+      status: error
+        ? 'error'
+        : initialData !== undefined
+          ? 'success'
+          : 'pending',
+    },
   )
-  return {
+  const asyncStatus = shallowRef<AsyncStatus>('idle')
+  // we markRaw to avoid unnecessary vue traversal
+  return markRaw<UseQueryEntry<TResult, TError>>({
     key,
-    data,
-    error: shallowRef(error),
+    state,
+    placeholderData: null,
     when,
-    status,
-    isPending: computed(() => data.value === undefined),
-    isFetching: computed(() => status.value === 'loading'),
+    asyncStatus,
     pending: null,
-    deps: new Set(),
+    // this set can contain components and effects and worsen the performance
+    // and create weird warnings
+    deps: markRaw(new Set()),
     gcTimeout: undefined,
     options: null,
     get stale() {
       return Date.now() > this.when + this.options!.staleTime
     },
-  }
+    get active() {
+      return this.deps.size > 0
+    },
+  })
 }
 
 /**
  * UseQueryEntry method to serialize the entry to JSON.
  *
  * @param entry - entry to serialize
+ * @param entry.when - when the data was fetched the last time
+ * @param entry.state - data state of the entry
+ * @param entry.state.value - value of the data state
  * @returns Serialized version of the entry
  */
 export const queryEntry_toJSON: <TResult, TError>(
   entry: UseQueryEntry<TResult, TError>,
-) => _UseQueryEntryNodeValueSerialized<TResult, TError> = (entry) => [
-  entry.data.value,
-  entry.error.value,
-  entry.when,
-]
+) => _UseQueryEntryNodeValueSerialized<TResult, TError> = ({
+  state: { value },
+  when,
+}) => [value.data, value.error, when]
 
 /**
  * UseQueryEntry method to serialize the entry to a string.
@@ -164,7 +254,13 @@ export const queryEntry_toString: <TResult, TError>(
  */
 export const QUERY_STORE_ID = '_pc_query'
 
-export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
+/**
+ * A query entry that is defined with {@link defineQuery}.
+ * @internal
+ */
+type DefineQueryEntry = [entries: UseQueryEntry[], returnValue: unknown]
+
+export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
   // We have two versions of the cache, one that track changes and another that doesn't so the actions can be used
   // inside computed properties
   const cachesRaw = new TreeMapNode<UseQueryEntry<unknown, unknown>>()
@@ -173,13 +269,17 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
   // this allows use to attach reactive effects to the scope later on
   const scope = getCurrentScope()!
 
-  type DefineQueryEntry = [entries: UseQueryEntry[], returnValue: unknown]
-  // keep track of the entry being defined so we can add the queries in ensureEntry
+  // keep track of the entry being defined so we can add the queries in ensure
   // this allows us to refresh the entry when a defined query is used again
   // and refetchOnMount is true
   let currentDefineQueryEntry: DefineQueryEntry | undefined | null
   const defineQueryMap = new WeakMap<() => unknown, DefineQueryEntry>()
-  function ensureDefinedQuery<T>(fn: () => T): T {
+
+  /**
+   * Ensures a query created with {@link defineQuery} is present in the cache. If it's not, it creates a new one.
+   * @param fn - function that defines the query
+   */
+  const ensureDefinedQuery = action(<T>(fn: () => T) => {
     let defineQueryEntry = defineQueryMap.get(fn)
     if (!defineQueryEntry) {
       // create the entry first
@@ -195,7 +295,7 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
         // and not be called during hydration
         if (queryEntry.options?.refetchOnMount) {
           if (queryEntry.options.refetchOnMount === 'always') {
-            refetch(queryEntry)
+            fetch(queryEntry)
           } else {
             // console.log('refreshing')
             refresh(queryEntry)
@@ -204,200 +304,279 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
       }
     }
 
-    return defineQueryEntry[1] as T
-  }
-  function ensureEntry<TResult = unknown, TError = ErrorDefault>(
-    keyRaw: EntryKey,
-    options: UseQueryOptionsWithDefaults<TResult, TError>,
-  ): UseQueryEntry<TResult, TError> {
-    if (process.env.NODE_ENV !== 'production' && keyRaw.length === 0) {
-      throw new Error(
-        `useQuery() was called with an empty array as the key. It must have at least one element.`,
-      )
-    }
-
-    const key = keyRaw.map(stringifyFlatObject)
-    // ensure the state
-    // console.log('⚙️ Ensuring entry', key)
-    let entry = cachesRaw.get(key) as UseQueryEntry<TResult, TError> | undefined
-    if (!entry) {
-      cachesRaw.set(
-        key,
-        (entry = scope.run(() =>
-          createQueryEntry(key, options.initialData?.()),
-        )!),
-      )
-    }
-
-    // add the options to the entry the first time only
-    entry.options ??= options
-
-    // if this query was defined within a defineQuery call, add it to the list
-    currentDefineQueryEntry?.[0].push(entry)
-
-    return entry
-  }
+    return defineQueryEntry
+  })
 
   /**
-   * Invalidates a query entry, forcing a refetch of the data if `refetch` is true
-   *
-   * @param key - the key of the query to invalidate
-   * @param options - options to invalidate the query
-   * @param options.exact - if true, it will only invalidate the exact query, not the children
-   * @param options.refetch - if true, it will refetch the data
+   * Invalidates and refetches (in parallel) all active queries in the cache that match the filters.
    */
-  function invalidateEntry(
-    key: EntryKey,
-    {
-      refetch: shouldRefetch = true,
-      exact = false,
-    }: {
-      refetch?: boolean
-      exact?: boolean
-    } = {},
-  ) {
-    const entryNode = cachesRaw.find(key.map(stringifyFlatObject))
-
-    // nothing to invalidate
-    if (!entryNode) return
-
-    const list = exact
-      ? entryNode.value != null
-        ? [entryNode.value]
-        : []
-      : [...entryNode]
-    for (const entry of list) {
-      // will force a fetch next time
-      entry.when = 0
-
-      // TODO: if active only
-      if (shouldRefetch) {
-        // reset any pending request
-        entry.pending = null
-        // force refresh
-        // TODO: test that it returns a promise that resolves when the refresh is done
-        return refetch(entry)
-      }
-    }
-  }
+  const invalidateQueries = action(
+    (filters?: UseQueryEntryFilter): Promise<unknown> => {
+      return Promise.all(
+        getEntries(filters).map((entry) => {
+          invalidate(entry)
+          return entry.active && fetch(entry)
+        }),
+      )
+    },
+  )
 
   /**
-   * Ensures the current data is fresh. If the data is stale, refetch, if not return as is. Can only be called if the
+   * Returns all the entries in the cache that match the filters.
+   * @param filters - filters to apply to the entries
+   */
+  const getEntries = action(
+    (filters: UseQueryEntryFilter = {}): UseQueryEntry[] => {
+      const node = filters.key
+        ? cachesRaw.find(filters.key.map(stringifyFlatObject))
+        : cachesRaw
+
+      if (!node) return []
+
+      return (
+        filters.exact ? (node.value ? [node.value] : []) : [...node]
+      ).filter((entry) => {
+        if (filters.stale != null) return entry.stale === filters.stale
+        if (filters.active != null) return entry.active === filters.active
+        if (filters.status) {
+          return entry.state.value.status === filters.status
+        }
+        if (filters.predicate) return filters.predicate(entry)
+
+        return true
+      })
+    },
+  )
+
+  /**
+   * Ensures a query entry is present in the cache. If it's not, it creates a new one. The resulting entry is required
+   * to call other methods like {@link fetch}, {@link refresh}, or {@link invalidate}.
+   *
+   * @param key - the key of the query
+   */
+  const ensure = action(
+    <TResult = unknown, TError = ErrorDefault>(
+      options: UseQueryOptionsWithDefaults<TResult, TError>,
+    ): UseQueryEntry<TResult, TError> => {
+      const key = toValue(options.key).map(stringifyFlatObject)
+
+      if (process.env.NODE_ENV !== 'production' && key.length === 0) {
+        throw new Error(
+          `useQuery() was called with an empty array as the key. It must have at least one element.`,
+        )
+      }
+
+      // ensure the state
+      // console.log('⚙️ Ensuring entry', key)
+      let entry = cachesRaw.get(key) as
+        | UseQueryEntry<TResult, TError>
+        | undefined
+      if (!entry) {
+        cachesRaw.set(
+          key,
+          (entry = scope.run(() =>
+            createQueryEntry(key, options.initialData?.()),
+          )!),
+        )
+      }
+
+      // warn against using the same key for different functions
+      // this only applies outside of HMR since during HMR, the `useQuery()` will be called
+      // when remounting the component and it's essential to update the options.
+      // in other scenarios, it's a mistake
+      if (process.env.NODE_ENV !== 'production') {
+        const currentInstance = getCurrentInstance()
+        if (currentInstance) {
+          entry.__hmr ??= {}
+
+          entry.__hmr.deps ??= new Set()
+          entry.__hmr.id
+            // @ts-expect-error: internal property
+            = currentInstance.type.__hmrId
+        }
+      }
+
+      // technically we don't need to set this every time but it's shorter than entry.options ??= options and the check
+      // in useQuery already catches possible problems
+      entry.options = options
+
+      // if this query was defined within a defineQuery call, add it to the list
+      currentDefineQueryEntry?.[0].push(entry)
+
+      return entry
+    },
+  )
+
+  /**
+   * Invalidates a query entry
+   * @param entry - the entry of the query to invalidate
+   */
+  const invalidate = action((entry: UseQueryEntry) => {
+    // will force a fetch next time
+    entry.when = 0
+    // ignores the pending query
+    cancelQuery(entry)
+  })
+
+  /**
+   * Ensures the current data is fresh. If the data is stale, calls {@link fetch}, if not return the current data. Can only be called if the
    * entry has options.
    */
-  async function refresh<TResult, TError>(
-    entry: UseQueryEntry<TResult, TError>,
-  ): Promise<TResult> {
-    if (process.env.NODE_ENV !== 'production' && !entry.options) {
-      throw new Error(
-        `"entry.refresh()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`,
-      )
-    }
+  const refresh = action(
+    async <TResult, TError>(
+      entry: UseQueryEntry<TResult, TError>,
+    ): Promise<DataState<TResult, TError>> => {
+      if (process.env.NODE_ENV !== 'production' && !entry.options) {
+        throw new Error(
+          `"entry.refresh()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`,
+        )
+      }
 
-    if (entry.error.value || entry.stale) {
-      // console.log(`⬇️ refresh "${entry.key}". expired ${entry.when} / ${staleTime}`)
+      if (entry.state.value.error || entry.stale) {
+        return entry.pending?.refreshCall ?? fetch(entry)
+      }
 
-      // if (entry.pending?.refreshCall) console.log('  -> skipped!')
-
-      await (entry.pending?.refreshCall ?? refetch(entry))
-    }
-
-    // console.log(`${entry.key}  ->`, entry.data.value, entry.error.value)
-
-    return entry.data.value!
-  }
+      return entry.state.value
+    },
+  )
 
   /**
-   * Ignores fresh data and triggers a new fetch. Can only be called if the entry has options.
+   * Fetch an entry. Ignores fresh data and triggers a new fetch. Can only be called if the entry has options.
    */
-  async function refetch<TResult, TError>(
-    entry: UseQueryEntry<TResult, TError>,
-  ): Promise<TResult> {
-    if (process.env.NODE_ENV !== 'production' && !entry.options) {
-      throw new Error(
-        `"entry.refetch()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`,
-      )
-    }
+  const fetch = action(
+    async <TResult, TError>(
+      entry: UseQueryEntry<TResult, TError>,
+    ): Promise<DataState<TResult, TError>> => {
+      if (process.env.NODE_ENV !== 'production' && !entry.options) {
+        throw new Error(
+          `"entry.fetch()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`,
+        )
+      }
 
-    // console.log('🔄 refetching', entry.key)
-    entry.status.value = 'loading'
+      entry.asyncStatus.value = 'loading'
 
-    const abortController = new AbortController()
-    const { signal } = abortController
-    // abort any ongoing request
-    // TODO: test
-    entry.pending?.abortController.abort()
+      const abortController = new AbortController()
+      const { signal } = abortController
+      // abort any ongoing request
+      // TODO: test
+      // TODO: The abort should only happen when the query is out of date, becomes inactive or is manually cancelled
+      // entry.pending?.abortController.abort()
 
-    const pendingCall = (entry.pending = {
-      abortController,
-      refreshCall: entry
-        .options!.query({ signal })
-        .then((data) => {
-          if (pendingCall === entry.pending && !signal.aborted) {
-            entry.error.value = null
-            entry.data.value = data
-            entry.status.value = 'success'
-          }
-        })
-        .catch((error) => {
-          if (pendingCall === entry.pending) {
-            entry.error.value = error
-            entry.status.value = 'error'
-          }
-        })
-        .finally(() => {
-          if (pendingCall === entry.pending) {
-            entry.pending = null
-            entry.when = Date.now()
-          }
-        }),
-      when: Date.now(),
-    })
+      const pendingCall = (entry.pending = {
+        abortController,
+        // wrapping with async allows us to catch synchronous errors too
+        refreshCall: (async () => entry.options!.query({ signal }))()
+          .then((data) => {
+            if (pendingCall === entry.pending && !signal.aborted) {
+              setEntryState(entry, {
+                data,
+                error: null,
+                status: 'success',
+              })
+            }
+            return entry.state.value
+          })
+          .catch((error) => {
+            if (
+              pendingCall === entry.pending
+              && error
+              && (error.name !== 'AbortError' || error === signal.reason)
+            ) {
+              setEntryState(entry, {
+                status: 'error',
+                data: entry.state.value.data,
+                error,
+              })
+              throw error
+            }
+            // TODO: would it make more sense to not resolve here?
+            return entry.state.value
+          })
+          .finally(() => {
+            entry.asyncStatus.value = 'idle'
+            if (pendingCall === entry.pending) {
+              entry.pending = null
+              // reset the placeholder data to free up memory
+              entry.placeholderData = null
+              entry.when = Date.now()
+            }
+          }),
+        when: Date.now(),
+      })
 
-    await pendingCall.refreshCall
+      return pendingCall.refreshCall
+    },
+  )
 
-    // console.log('🔄 refetched', key)
-    // console.log('  ->', entry.data.value, entry.error.value)
+  /**
+   * Cancels a query if it's currently pending. This will effectively abort the `AbortSignal` of the query and any
+   * pending request will be ignored.
+   */
+  const cancelQuery = action((entry: UseQueryEntry, reason?: unknown) => {
+    entry.pending?.abortController.abort(reason)
+    entry.pending = null
+  })
 
-    return entry.data.value!
-  }
+  /**
+   * Sets the state of a query entry in the cache. This action is called every time the cache state changes and can be
+   * used by plugins to detect changes.
+   */
+  const setEntryState = action(
+    <TResult, TError>(
+      entry: UseQueryEntry<TResult, TError>,
+      // NOTE: NoInfer ensures correct inference of TResult and TError
+      state: DataState<NoInfer<TResult>, NoInfer<TError>>,
+    ) => {
+      entry.state.value = state
+      entry.when = Date.now()
+    },
+  )
 
   // TODO: tests
-  function setQueryData<TResult = unknown>(
-    key: EntryKey,
-    data: TResult | ((data: Ref<TResult | undefined>) => void),
-  ) {
-    const entry = caches.get(key.map(stringifyFlatObject)) as
-      | UseQueryEntry<TResult>
-      | undefined
-    // TODO: Should it create the entry?
-    if (!entry) return
+  /**
+   * Set the data of a query entry in the cache. Note this doesn't change the status of the query.
+   */
+  const setQueryData = action(
+    <TResult = unknown>(
+      key: EntryKey,
+      data: TResult | ((oldData: TResult | undefined) => TResult),
+    ) => {
+      const entry = caches.get(key.map(stringifyFlatObject)) as
+        | UseQueryEntry<TResult>
+        | undefined
+      // FIXME: it should create the entry if it doesn't exist
+      if (!entry) return
 
-    if (typeof data === 'function') {
-      // the remaining type is TResult & Fn, so we need a cast
-      ;(data as (data: Ref<TResult | undefined>) => void)(entry.data)
-      triggerRef(entry.data)
-    } else {
-      entry.data.value = data
-    }
-    // TODO: complete and test
-    entry.error.value = null
-  }
+      setEntryState(entry, {
+        // if we don't cast, this is not technically correct
+        // the user is responsible for setting the data
+        ...(entry.state.value as DataState_Success<TResult>),
+        data: toValueWithArgs(data, entry.state.value.data),
+      })
+    },
+  )
 
-  function getQueryData<TResult = unknown>(key: EntryKey): TResult | undefined {
-    const entry = caches.get(key.map(stringifyFlatObject)) as
-      | UseQueryEntry<TResult>
-      | undefined
-    return entry?.data.value
-  }
+  const getQueryData = action(
+    <TResult = unknown>(key: EntryKey): TResult | undefined => {
+      const entry = caches.get(key.map(stringifyFlatObject)) as
+        | UseQueryEntry<TResult>
+        | undefined
+      return entry?.state.value.data
+    },
+  )
 
-  function deleteQueryData(key: EntryKey) {
-    // console.log('🗑 data', key, Date.now())
-    caches.delete(key.map(stringifyFlatObject))
-  }
+  const remove = action(
+    /**
+     * Removes a query entry from the cache.
+     */
+    (entry: UseQueryEntry) => caches.delete(entry.key),
+  )
 
   // TODO: find a way to make it possible to prefetch. Right now we need the actual options of the query
-  function _preload(_useQueryFn: ReturnType<typeof defineQuery>) {}
+  const _preload = action((_useQueryFn: ReturnType<typeof defineQuery>) => {})
+
+  // TODO: implement
+  // activate? untrack? these actions should help plugins to augment pinia colada
 
   return {
     caches,
@@ -409,17 +588,28 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, () => {
     //     ? new WeakMap<object, boolean>()
     //     : undefined,
 
-    ensureEntry,
     ensureDefinedQuery,
-    invalidateEntry,
     setQueryData,
     getQueryData,
-    deleteQueryData,
+    cancelQuery,
 
-    refetch,
+    invalidateQueries,
+
+    // Actions for entries
+    invalidate,
+    fetch,
     refresh,
+    ensure,
+    remove,
+    setEntryState,
+    getEntries,
   }
 })
+
+/**
+ * The cache of the queries. It's the store returned by {@link useQueryCache}.
+ */
+export type QueryCache = ReturnType<typeof useQueryCache>
 
 /**
  * Raw data of a query entry. Can be serialized from the server and used to hydrate the store.
@@ -460,7 +650,7 @@ export type UseQueryEntryNodeSerialized = [
  * @param root - root node of the tree
  * @returns Array representation of the tree
  */
-export function serialize(
+export function serializeTreeMap(
   root: TreeMapNode<UseQueryEntry>,
 ): UseQueryEntryNodeSerialized[] {
   return root.children ? [...root.children.entries()].map(_serialize) : []
@@ -481,9 +671,17 @@ function _serialize([key, tree]: [
   ]
 }
 
-// TODO: rename to revive or similar to better convey the idea of hydrating
+/**
+ * @deprecated Use {@link serializeTreeMap} instead.
+ */
+export const serialize = serializeTreeMap
 
-export function createTreeMap(
+/**
+ * Creates a {@link TreeMapNode} from a serialized array.
+ *
+ * @param raw - array af values created with {@link serializeTreeMap}
+ */
+export function reviveTreeMap(
   raw: UseQueryEntryNodeSerialized[] = [],
 ): TreeMapNode<UseQueryEntry> {
   const root = new TreeMapNode<UseQueryEntry>()
@@ -491,7 +689,8 @@ export function createTreeMap(
   for (const entry of raw) {
     appendToTree(root, entry)
   }
-  return root
+  // NOTE: limitation of pinia: properties are added to `pinia.state.value` which is a `ref` so the class gets deeply checked
+  return markRaw(root)
 }
 
 function appendToTree(

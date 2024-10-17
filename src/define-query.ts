@@ -1,8 +1,34 @@
+import {
+  type EffectScope,
+  getCurrentInstance,
+  getCurrentScope,
+  onScopeDispose,
+} from 'vue'
 import type { UseQueryOptions } from './query-options'
-import { useQueryCache } from './query-store'
+import {
+  queryEntry_addDep,
+  queryEntry_removeDep,
+  useQueryCache,
+} from './query-store'
 import type { ErrorDefault } from './types-extension'
 import type { UseQueryReturn } from './use-query'
 import { useQuery } from './use-query'
+
+/**
+ * The current effect scope where the function returned by `defineQuery` is being called. This allows `useQuery()` to know if it should be attached to an effect scope or not
+ */
+let currentDefineQueryEffect: undefined | EffectScope
+
+// NOTE: no setter because it cannot be set outside of defineQuery()
+
+/**
+ * Gets the current defineQuery effect scope. This is used internally by `useQuery` to attach the effect to the query
+ * entry dependency list.
+ * @internal
+ */
+export function getCurrentDefineQueryEffect() {
+  return currentDefineQueryEffect
+}
 
 /**
  * Define a query with the given options. Similar to `useQuery(options)` but allows you to reuse the query in multiple
@@ -49,5 +75,35 @@ export function defineQuery(
     = typeof optionsOrSetup === 'function'
       ? optionsOrSetup
       : () => useQuery(optionsOrSetup)
-  return () => useQueryCache().ensureDefinedQuery(setupFn)
+
+  return () => {
+    const store = useQueryCache()
+    // preserve any current effect to account for nested usage of these functions
+    const previousEffect = currentDefineQueryEffect
+    const currentScope
+      = getCurrentInstance() || (currentDefineQueryEffect = getCurrentScope())
+
+    const [entries, ret] = store.ensureDefinedQuery(setupFn)
+    // NOTE: most of the time this should be set, so maybe we should show a dev warning
+    // if it's not set instead
+    if (currentScope) {
+      entries.forEach((entry) => {
+        queryEntry_addDep(entry, currentScope)
+        if (process.env.NODE_ENV !== 'production') {
+          entry.__hmr ??= {}
+          entry.__hmr.skip = true
+        }
+      })
+      onScopeDispose(() => {
+        entries.forEach((entry) => {
+          queryEntry_removeDep(entry, currentScope, store)
+        })
+      })
+    }
+
+    // reset the previous effect
+    currentDefineQueryEffect = previousEffect
+
+    return ret
+  }
 }

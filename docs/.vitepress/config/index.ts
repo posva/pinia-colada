@@ -3,6 +3,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitepress'
 import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
+import { extraFiles } from '../twoslash/files'
 
 export const META_IMAGE = 'https://pinia-colada.esm.dev/social.png'
 export const META_URL = 'https://pinia-colada.esm.dev'
@@ -15,7 +16,10 @@ const rCombining = /[\u0300-\u036F]/g
 
 // get all code snippets
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
-const mutations_todos = fs.readFileSync(path.join(__dirname, '../code-snippets/mutations/todos.ts'), 'utf-8')
+const mutations_todos = fs.readFileSync(
+  path.join(__dirname, '../code-snippets/mutations/todos.ts'),
+  'utf-8',
+)
 
 /**
  * Default slugification function
@@ -55,9 +59,15 @@ export default defineConfig({
     },
     codeTransformers: [
       transformerTwoslash({
+        // renderer: rendererRich(),
         twoslashOptions: {
           extraFiles: {
+            ...extraFiles,
             'mutations/todos.ts': mutations_todos,
+            'api/todos.ts': fs.readFileSync(
+              path.join(__dirname, '../code-snippets/api/todos.ts'),
+              'utf-8',
+            ),
           },
         },
       }),
@@ -132,9 +142,9 @@ export default defineConfig({
     },
 
     carbonAds: {
-      code: 'CEBICK3I',
-      placement: 'routervuejsorg',
-    },
+          code: 'CEBICK3I',
+          placement: 'routervuejsorg',
+        },
 
     nav: [
       {
@@ -173,7 +183,6 @@ export default defineConfig({
             { text: 'Installation', link: '/guide/installation.html' },
             { text: 'Queries', link: '/guide/queries.html' },
             { text: 'Query Keys', link: '/guide/query-keys.html' },
-            { text: 'Query Cache', link: '/guide/query-cache.html' },
             { text: 'Mutations', link: '/guide/mutations.html' },
             {
               text: 'Query Invalidation',
@@ -183,6 +192,13 @@ export default defineConfig({
               text: 'Optimistic Updates',
               link: '/guide/optimistic-updates.html',
             },
+          ],
+        },
+        {
+          text: 'Advanced',
+          items: [
+            { text: 'Query Cache', link: '/advanced/query-cache.html' },
+            { text: 'Plugins', link: '/advanced/plugins.html' },
           ],
         },
         {

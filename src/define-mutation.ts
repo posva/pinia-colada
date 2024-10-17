@@ -4,6 +4,7 @@ import {
   type UseMutationReturn,
   useMutation,
 } from './use-mutation'
+import type { _EmptyObject } from './utils'
 
 /**
  * Define a mutation with the given options. Similar to `useMutation(options)` but allows you to reuse the mutation in
@@ -25,7 +26,7 @@ export function defineMutation<
   TResult,
   TVars = void,
   TError = ErrorDefault,
-  TContext extends Record<any, any> | void | null = void,
+  TContext extends Record<any, any> = _EmptyObject,
 >(
   options: UseMutationOptions<TResult, TVars, TError, TContext>,
 ): () => UseMutationReturn<TResult, TVars, TError>

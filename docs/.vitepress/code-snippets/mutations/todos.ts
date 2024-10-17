@@ -10,7 +10,6 @@ export const useCreateTodo = defineMutation(() => {
         method: 'POST',
         body: JSON.stringify({ text: todoText.value }),
       }),
-
   })
 
   return {

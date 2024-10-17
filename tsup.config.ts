@@ -4,7 +4,7 @@ const commonOptions = {
   // splitting: false,
   sourcemap: true,
   format: ['cjs', 'esm'],
-  external: ['vue', 'pinia'],
+  external: ['vue', 'pinia', '@pinia/colada'],
   dts: true,
   target: 'esnext',
 } satisfies Options
@@ -16,9 +16,4 @@ export default defineConfig([
     entry: ['src/index.ts'],
     globalName: 'PiniaColada',
   },
-  // {
-  //   ...commonOptions,
-  //   entry: ['src/plugins/persist-pending-queries.ts'],
-  //   outDir: 'dist/plugins',
-  // },
 ])

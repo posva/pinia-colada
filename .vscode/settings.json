@@ -1,6 +1,7 @@
 {
   "cSpell.words": [
-    "Colada"
+    "Colada",
+    "twoslash"
   ],
   // Enable the ESlint flat config support
   "eslint.experimental.useFlatConfig": true,
@@ -68,5 +69,6 @@
     "jsonc",
     "yaml",
     "toml"
-  ]
+  ],
+  "typescript.tsdk": "node_modules/typescript/lib"
 }

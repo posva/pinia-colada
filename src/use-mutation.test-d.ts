@@ -1,196 +1,233 @@
-import { expectTypeOf, it } from 'vitest'
+import { describe, expectTypeOf, it } from 'vitest'
 import { useMutation } from './use-mutation'
+import type { QueryCache } from './query-store'
 
-it('types the parameters for the key', () => {
-  useMutation({
-    mutation: (_one: string) => Promise.resolve({ name: 'foo' }),
-    key(one) {
-      expectTypeOf(one).toBeString()
-      return ['foo']
-    },
-  })
-})
-
-it('types the parameters for the keys', () => {
-  const { mutate, mutateAsync } = useMutation({
-    mutation: (_one: string) => Promise.resolve({ name: 'foo' }),
-    keys(result, one) {
-      expectTypeOf(one).toBeString()
-      expectTypeOf(result).toEqualTypeOf<{ name: string }>()
-      return [['foo']]
-    },
+describe('useMutation type inference', () => {
+  it('types the parameters for the key', () => {
+    useMutation({
+      mutation: (_one: string) => Promise.resolve({ name: 'foo' }),
+      key(one) {
+        expectTypeOf(one).toBeString()
+        return ['foo']
+      },
+    })
   })
 
-  mutate('one')
-  mutateAsync('one')
-  // @ts-expect-error: missing arg
-  mutate()
-  // @ts-expect-error: missing arg
-  mutateAsync()
-})
-
-it('allows no arguments to mutation', () => {
-  const { mutate, mutateAsync } = useMutation({
-    mutation: () => Promise.resolve({ name: 'foo' }),
-    keys(result) {
-      expectTypeOf(result).toEqualTypeOf<{ name: string }>()
-      return [['foo']]
-    },
+  it('can infer the arguments from the mutation', () => {
+    useMutation({
+      mutation: (_one: string) => Promise.resolve({ name: 'foo' }),
+      onSuccess(_data, vars) {
+        expectTypeOf(vars).toEqualTypeOf<string>()
+      },
+      onError(_err, vars) {
+        expectTypeOf(vars).toEqualTypeOf<string>()
+      },
+      onSettled(_data, _err, vars) {
+        expectTypeOf(vars).toEqualTypeOf<string>()
+      },
+    })
   })
 
-  mutate()
-  mutateAsync()
-  // @ts-expect-error: no extra arg
-  mutate(25)
-  // @ts-expect-error: no extra arg
-  mutateAsync(25)
-})
-
-it('can return an array of keys', () => {
-  useMutation({
-    mutation: () => Promise.resolve(42),
-    keys() {
-      return [['one']]
-    },
+  it('can infer the data from the mutation', () => {
+    useMutation({
+      mutation: () => Promise.resolve(42),
+      onSuccess(data) {
+        expectTypeOf(data).toEqualTypeOf<number>()
+      },
+      onSettled(data) {
+        expectTypeOf(data).toEqualTypeOf<number | undefined>()
+      },
+    })
   })
-})
 
-it('can infer the arguments from the mutation', () => {
-  useMutation({
-    mutation: (_one: string) => Promise.resolve({ name: 'foo' }),
-    onSuccess({ vars }) {
-      expectTypeOf(vars).toEqualTypeOf<string>()
-    },
-    onError({ vars }) {
-      expectTypeOf(vars).toEqualTypeOf<string>()
-    },
-    onSettled({ vars }) {
-      expectTypeOf(vars).toEqualTypeOf<string>()
-    },
+  it('can infer the context from sync onMutate', () => {
+    useMutation({
+      onMutate() {
+        return { foo: 'bar' }
+      },
+      mutation: async (vars: number, context) => {
+        expectTypeOf(vars).toBeNumber()
+        expectTypeOf(context).not.toBeAny()
+        expectTypeOf(context).toEqualTypeOf<{ foo: string }>()
+        return 42
+      },
+      onSuccess(_d, _v, context) {
+        expectTypeOf(context).not.toBeAny()
+        expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
+      },
+      onError(_e, _v, context) {
+        expectTypeOf(context).not.toBeAny()
+        expectTypeOf(context.foo).toMatchTypeOf<string | undefined>()
+      },
+      onSettled(_d, _e, _v, context) {
+        expectTypeOf(context).not.toBeAny()
+        expectTypeOf(context.foo).toMatchTypeOf<string | undefined>()
+      },
+    })
   })
-})
 
-it('can infer the data from the mutation', () => {
-  useMutation({
-    mutation: () => Promise.resolve(42),
-    onSuccess({ data }) {
-      expectTypeOf(data).toEqualTypeOf<number>()
-    },
-    onSettled({ data }) {
-      expectTypeOf(data).toEqualTypeOf<number | undefined>()
-    },
+  it('must return an object in onMutate', () => {
+    useMutation({
+      mutation: () => Promise.resolve(42),
+      // @ts-expect-error: must return an object
+      onMutate() {
+        return 42
+      },
+    })
   })
-})
 
-it('can infer the context from sync onMutate', () => {
-  useMutation({
-    onMutate() {
-      return { foo: 'bar' }
-    },
-    mutation: async (vars: number, context) => {
-      expectTypeOf(vars).toBeNumber()
-      expectTypeOf(context).not.toBeAny()
-      expectTypeOf(context).toEqualTypeOf<{ foo: string }>()
-      return 42
-    },
-    onSuccess(context) {
-      expectTypeOf(context).not.toBeAny()
-      expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
-    },
-    onError(context) {
-      expectTypeOf(context).not.toBeAny()
-      expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
-    },
-    onSettled(context) {
-      expectTypeOf(context).not.toBeAny()
-      expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
-    },
+  it('can return undefined in onMutate', () => {
+    useMutation({
+      mutation: () => Promise.resolve(42),
+      onMutate() {
+        return undefined
+      },
+      onSuccess(_d, _v, context) {
+        expectTypeOf(context).not.toBeAny()
+        expectTypeOf<QueryCache>(context.queryCache)
+      },
+    })
   })
-})
 
-it('must return an object in onMutate', () => {
-  useMutation({
-    mutation: () => Promise.resolve(42),
-    // @ts-expect-error: must return an object
-    onMutate() {
-      return 42
-    },
+  it('can return null in onMutate', () => {
+    useMutation({
+      mutation: () => Promise.resolve(42),
+      onMutate() {
+        return null
+      },
+    })
   })
-})
 
-it('can return undefined in onMutate', () => {
-  useMutation({
-    mutation: () => Promise.resolve(42),
-    onMutate() {
-      return undefined
-    },
-    onSuccess(context) {
-      expectTypeOf(context).not.toBeAny()
-      expectTypeOf(context).toMatchTypeOf<{
-        data: number
-      }>()
-    },
+  it('can infer the context from async onMutate', () => {
+    useMutation({
+      mutation: () => Promise.resolve(42),
+      async onMutate() {
+        return { foo: 'bar' }
+      },
+      onSuccess(_d, _v, context) {
+        expectTypeOf(context).not.toBeAny()
+        expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
+      },
+      onError(_e, _v, context) {
+        expectTypeOf(context).not.toBeAny()
+        expectTypeOf(context).toMatchTypeOf<{ foo?: string }>()
+      },
+      onSettled(_d, _e, _v, context) {
+        expectTypeOf(context).not.toBeAny()
+        expectTypeOf(context).toMatchTypeOf<{ foo?: string }>()
+      },
+    })
   })
-})
 
-it('can return null in onMutate', () => {
-  useMutation({
-    mutation: () => Promise.resolve(42),
-    onMutate() {
-      return null
-    },
+  it('allows type narrowing based on context properties', () => {
+    useMutation({
+      mutation: () => Promise.resolve(42),
+      async onMutate() {
+        return { foo: 'bar', bar: 'baz' }
+      },
+      onSuccess(_d, _v, context) {
+        expectTypeOf(context).not.toBeAny()
+        if (context.foo != null) {
+          expectTypeOf(context).toMatchTypeOf<{ foo: string, bar: string }>()
+        } else {
+          expectTypeOf<QueryCache>(context.queryCache)
+          expectTypeOf<never>(context.foo)
+          expectTypeOf<never | undefined | string>(context.bar)
+        }
+      },
+      onError(_e, _v, context) {
+        expectTypeOf(context).not.toBeAny()
+        if (context.foo != null) {
+          expectTypeOf(context).toMatchTypeOf<{ foo: string, bar: string }>()
+        } else {
+          expectTypeOf<QueryCache>(context.queryCache)
+          expectTypeOf<never | undefined>(context.foo)
+          expectTypeOf<never | undefined>(context.bar)
+        }
+      },
+      onSettled(_d, _e, _v, context) {
+        expectTypeOf(context).not.toBeAny()
+        if (context.foo != null) {
+          expectTypeOf(context).toMatchTypeOf<{ foo: string, bar: string }>()
+        } else {
+          expectTypeOf<QueryCache>(context.queryCache)
+          expectTypeOf<never | undefined>(context.foo)
+          expectTypeOf<never | undefined>(context.bar)
+        }
+      },
+    })
   })
-})
 
-it('can infer the context from async onMutate', () => {
-  useMutation({
-    mutation: () => Promise.resolve(42),
-    async onMutate() {
-      return { foo: 'bar' }
-    },
-    onSuccess(context) {
-      expectTypeOf(context).not.toBeAny()
-      expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
-    },
-    onError(context) {
-      expectTypeOf(context).not.toBeAny()
-      expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
-    },
-    onSettled(context) {
-      expectTypeOf(context).not.toBeAny()
-      expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
-    },
-  })
-})
+  it('can infer a context of void', () => {
+    useMutation({
+      mutation: () => Promise.resolve(42),
+      onMutate() {
+        // no return
+      },
 
-it('can infer a context of void', () => {
-  useMutation({
-    mutation: () => Promise.resolve(42),
-    onMutate() {
-      // no return
-    },
+      onSuccess(_d, _v, context) {
+        expectTypeOf(context).not.toBeAny()
+        expectTypeOf(context).toMatchTypeOf<{
+          queryCache: QueryCache
+        }>()
+      },
+      onError(_e, _v, context) {
+        expectTypeOf(context).not.toBeAny()
+        expectTypeOf(context).toMatchTypeOf<{
+          queryCache: QueryCache
+        }>()
+      },
+      onSettled(_d, _e, _v, context) {
+        expectTypeOf(context).not.toBeAny()
+        expectTypeOf(context).toMatchTypeOf<{
+          queryCache: QueryCache
+        }>()
+      },
+    })
 
-    onSuccess(context) {
-      expectTypeOf(context).not.toBeAny()
-      expectTypeOf(context).toMatchTypeOf<{
-        data: number
-        vars: undefined | void
-      }>()
-    },
-    onError(context) {
-      expectTypeOf(context).not.toBeAny()
-      expectTypeOf(context).toMatchTypeOf<{
-        error: unknown
-        vars: undefined | void
-      }>()
-    },
-    onSettled(context) {
-      expectTypeOf(context).not.toBeAny()
-      expectTypeOf(context).toMatchTypeOf<{
-        data: number | undefined
-        error: unknown | null
-        vars: undefined | void
-      }>()
-    },
+    it('keeps empty context types when no return type onMutate', () => {
+      useMutation({
+        mutation: () => Promise.resolve(42),
+        onMutate() {
+          // no return
+          // return { o: true }
+        },
+        onSuccess(
+          _d,
+          _v,
+          {
+            // NOTE: the caches allows to ensure the type is correctly checking what it should
+            queryCache,
+            // @ts-expect-error: foo deosn't exist
+            foo: _foo,
+          },
+        ) {
+          expectTypeOf<QueryCache>(queryCache)
+        },
+        onError(
+          _d,
+          _v,
+          {
+            queryCache,
+            // @ts-expect-error: foo deosn't exist
+            foo: _foo,
+          },
+        ) {
+          expectTypeOf<QueryCache>(queryCache)
+        },
+        onSettled(
+          _d,
+          _e,
+          _v,
+          {
+            queryCache,
+            // @ts-expect-error: foo deosn't exist
+            foo: _foo,
+          },
+        ) {
+          expectTypeOf<QueryCache>(queryCache)
+        },
+      })
+    })
   })
 })

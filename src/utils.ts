@@ -1,13 +1,9 @@
 import {
-  type ComputedRef,
   type Ref,
   type ShallowRef,
   computed,
   getCurrentScope,
   onScopeDispose,
-  ref,
-  toValue,
-  watch,
 } from 'vue'
 
 /**
@@ -62,6 +58,20 @@ export type _MaybeFunction<T, Args extends any[] = []> =
   | ((...args: Args) => T)
 
 /**
+ * Transforms a value or a function that returns a value to a value.
+ * @param valFn either a value or a function that returns a value
+ * @param args  arguments to pass to the function if `valFn` is a function
+ */
+export function toValueWithArgs<T, Args extends any[]>(
+  valFn: T | ((...args: Args) => T),
+  ...args: Args
+): T {
+  return typeof valFn === 'function'
+    ? (valFn as (...args: Args) => T)(...args)
+    : valFn
+}
+
+/**
  * Type that represents a value that can be a promise or a single value.
  * @internal
  */
@@ -83,6 +93,10 @@ export const toArray = <T>(value: _MaybeArray<T>): T[] =>
 
 export type _JSONPrimitive = string | number | boolean | null | undefined
 
+/**
+ * Utility type to represent a flat object that can be stringified with `JSON.stringify` no matter the order of keys.
+ * @internal
+ */
 export interface _ObjectFlat {
   [key: string]: _JSONPrimitive | Array<_JSONPrimitive>
 }
@@ -104,7 +118,7 @@ export function stringifyFlatObject(obj: _ObjectFlat | _JSONPrimitive): string {
  * ...undefined, ...null }
  * @internal
  */
-export type _MergeObjects<Obj, MaybeNull> = MaybeNull extends undefined | null
+export type _MergeObjects<Obj, MaybeNull> = MaybeNull extends undefined | null | void
   ? Obj
   : _Simplify<Obj & MaybeNull>
 
@@ -112,43 +126,6 @@ export type _MergeObjects<Obj, MaybeNull> = MaybeNull extends undefined | null
  * @internal
  */
 export const noop = () => {}
-
-/**
- * Creates a delayed computed ref from an existing ref, computed, or getter. Use this to delay a loading state (`isFetching`, `isLoading`) to avoid flickering.
- *
- * @example
- * ```ts
- * const { isLoading: _isLoading } = useQuery({ queryKey: 'todos', queryFn: fetchTodos })
- * const isLoading = delayLoadingRef(_isLoading, 300)
- * ```
- *
- * @param refOrGetter - ref or getter to delay
- * @param delay - delay in ms
- */
-export function delayLoadingRef(
-  refOrGetter: Ref<boolean> | ComputedRef<boolean> | (() => boolean),
-  delay = 300,
-) {
-  const isDelayElapsed = ref(toValue(refOrGetter))
-  const newRef = computed(() => toValue(refOrGetter) && isDelayElapsed.value)
-  let timeout: ReturnType<typeof setTimeout> | undefined
-  const stop = () => {
-    clearTimeout(timeout)
-  }
-  watch(refOrGetter, (value) => {
-    stop()
-    if (value) {
-      isDelayElapsed.value = false
-      timeout = setTimeout(() => {
-        isDelayElapsed.value = true
-      }, delay)
-    }
-  })
-
-  onScopeDispose(stop)
-
-  return newRef
-}
 
 /**
  * Wraps a getter to be used as a ref. This is useful when you want to use a getter as a ref but you need to modify the
@@ -170,3 +147,18 @@ export const computedRef = <T>(other: () => Ref<T>): ShallowRef<T> =>
 export type _RenameProperty<T, Key extends keyof T, NewKey extends string> = {
   [P in keyof T as P extends Key ? NewKey : P]: T[P]
 }
+
+/**
+ * Type safe version of `Object.assign` that allows to set all properties of a reactive object at once. Used to set
+ * {@link DataState} properties in a type safe way.
+ */
+export const setReactiveValue = Object.assign as <T>(
+  value: T,
+  ...args: T[]
+) => T
+
+/**
+ * To avoid using `{}`
+ * @internal
+ */
+export interface _EmptyObject {}
