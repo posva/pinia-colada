@@ -105,6 +105,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
     ...USE_QUERY_DEFAULTS,
     ..._options,
   } satisfies UseQueryOptionsWithDefaults<TResult, TError>
+  const { refetchOnMount, refetchOnReconnect, refetchOnWindowFocus, enabled } = options
 
   // TODO:
   // allows warning against potentially wrong usage
@@ -196,7 +197,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
   if (hasCurrentInstance) {
     // only happens on server, app awaits this
     onServerPrefetch(async () => {
-      if (toValue(options.enabled)) await refresh()
+      if (toValue(enabled)) await refresh()
       // TODO: after adding a test, remove these lines and refactor the const queryReturn to just a return statement
     })
   }
@@ -243,14 +244,14 @@ export function useQuery<TResult, TError = ErrorDefault>(
       queryEntry_addDep(entry, hasCurrentInstance)
       queryEntry_addDep(entry, currentEffect)
 
-      if (toValue(options.enabled)) refresh()
+      if (toValue(enabled)) refresh()
     },
     { immediate: true },
   )
 
   // avoid adding a watcher if enabled cannot change
-  if (typeof options.enabled !== 'boolean') {
-    watch(options.enabled, (newEnabled) => {
+  if (typeof enabled !== 'boolean') {
+    watch(enabled, (newEnabled) => {
       // no need to check for the previous value since the watcher will only trigger if the value changed
       if (newEnabled) refresh()
     })
@@ -262,12 +263,12 @@ export function useQuery<TResult, TError = ErrorDefault>(
     // TODO: optimize so it doesn't refresh if we are hydrating
     onMounted(() => {
       if (
-        (options.refetchOnMount
+        (refetchOnMount
           // always fetch initially if no value is present
           || queryReturn.status.value === 'pending')
-        && toValue(options.enabled)
+        && toValue(enabled)
       ) {
-        if (options.refetchOnMount === 'always') {
+        if (refetchOnMount === 'always') {
           refetch()
         } else {
           refresh()
@@ -278,13 +279,13 @@ export function useQuery<TResult, TError = ErrorDefault>(
   // TODO: we could save the time it was fetched to avoid fetching again. This is useful to not refetch during SSR app but do refetch in SSG apps if the data is stale. Careful with timers and timezones
 
   if (IS_CLIENT) {
-    if (options.refetchOnWindowFocus) {
+    if (refetchOnWindowFocus) {
       useEventListener(document, 'visibilitychange', () => {
         if (
           document.visibilityState === 'visible'
-          && toValue(options.enabled)
+          && toValue(enabled)
         ) {
-          if (options.refetchOnWindowFocus === 'always') {
+          if (refetchOnWindowFocus === 'always') {
             refetch()
           } else {
             refresh()
@@ -293,10 +294,10 @@ export function useQuery<TResult, TError = ErrorDefault>(
       })
     }
 
-    if (options.refetchOnReconnect) {
+    if (refetchOnReconnect) {
       useEventListener(window, 'online', () => {
-        if (toValue(options.enabled)) {
-          if (options.refetchOnReconnect === 'always') {
+        if (toValue(enabled)) {
+          if (refetchOnReconnect === 'always') {
             refetch()
           } else {
             refresh()
