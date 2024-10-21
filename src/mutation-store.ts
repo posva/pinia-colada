@@ -86,7 +86,7 @@ function createMutationEntry<
   }
 }
 
-export const useMutationCache = defineStore('_pc_mutation', () => {
+export const useMutationCache = /* @__PURE__ */ defineStore('_pc_mutation', () => {
   // We have two versions of the cache, one that track changes and another that doesn't so the actions can be used
   // inside computed properties
   const cachesRaw = new TreeMapNode<UseMutationEntry<unknown, unknown>>()

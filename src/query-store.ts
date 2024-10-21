@@ -260,7 +260,7 @@ export const QUERY_STORE_ID = '_pc_query'
  */
 type DefineQueryEntry = [entries: UseQueryEntry[], returnValue: unknown]
 
-export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
+export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ action }) => {
   // We have two versions of the cache, one that track changes and another that doesn't so the actions can be used
   // inside computed properties
   const cachesRaw = new TreeMapNode<UseQueryEntry<unknown, unknown>>()
