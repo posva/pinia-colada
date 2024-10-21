@@ -1,12 +1,11 @@
-import { PiniaColada, type PiniaColadaOptions } from '@pinia/colada'
+import { PiniaColada } from '@pinia/colada'
 import { defineNuxtPlugin } from '#app'
+import coladaOptions from '#build/colada.options'
 
 export default defineNuxtPlugin({
+  name: 'Pinia Colada',
   dependsOn: ['pinia'],
   setup(nuxtApp) {
-    nuxtApp.vueApp.use(PiniaColada, {
-
-      // for some reason there is no autocomplete
-    } satisfies PiniaColadaOptions)
+    nuxtApp.vueApp.use(PiniaColada, coladaOptions)
   },
 })
