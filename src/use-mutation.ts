@@ -4,12 +4,8 @@ import type { EntryKey } from './entry-options'
 import type { ErrorDefault } from './types-extension'
 import { computed, shallowRef } from 'vue'
 import { useMutationCache, type UseMutationEntry } from './mutation-store'
-import { type QueryCache, useQueryCache } from './query-store'
-import {
-  type _Awaitable,
-  type _EmptyObject,
-  noop,
-} from './utils'
+import type { QueryCache } from './query-store'
+import { type _Awaitable, type _EmptyObject, noop } from './utils'
 
 /**
  * Valid keys for a mutation. Similar to query keys.
@@ -281,7 +277,6 @@ export function useMutation<
 >(
   options: UseMutationOptions<TResult, TVars, TError, TContext>,
 ): UseMutationReturn<TResult, TVars, TError> {
-  const queryCache = useQueryCache()
   const mutationCache = useMutationCache()
   // always create an initial entry with no key (cannot be computed without vars)
   const entry = shallowRef<UseMutationEntry<TResult, TVars, TError, TContext>>(
@@ -295,93 +290,12 @@ export function useMutation<
   const asyncStatus = computed(() => entry.value.asyncStatus.value)
   const variables = computed(() => entry.value.vars.value)
 
-  let pendingCall: symbol | undefined
   async function mutateAsync(vars: TVars): Promise<TResult> {
     // either create a new entry, transform the initial one with the correct keys, or reuse the same if keys are undefined
-    const currentEntry = (entry.value = mutationCache.ensure(
-      options,
-      entry.value,
+    return mutationCache.mutate(
+      (entry.value = mutationCache.ensure(options, entry.value, vars)),
       vars,
-    ))
-    currentEntry.asyncStatus.value = 'loading'
-    currentEntry.vars.value = vars
-
-    // TODO: AbortSignal that is aborted when the mutation is called again so we can throw in pending
-    let currentData: TResult | undefined
-    let currentError: TError | undefined
-    type OnMutateContext = Parameters<
-      Required<UseMutationOptions<TResult, TVars, TError, TContext>>['onMutate']
-    >['1']
-    type OnSuccessContext = Parameters<
-      Required<
-        UseMutationOptions<TResult, TVars, TError, TContext>
-      >['onSuccess']
-    >['2']
-    type OnErrorContext = Parameters<
-      Required<UseMutationOptions<TResult, TVars, TError, TContext>>['onError']
-    >['2']
-
-    let context: OnMutateContext | OnErrorContext | OnSuccessContext = {
-      queryCache,
-    }
-
-    const currentCall = (pendingCall = Symbol())
-    try {
-      // TODO:
-      let globalOnMutateContext: UseMutationGlobalContext | undefined
-      // globalOnMutateContext = await globalOptions.onMutate?.(vars)
-
-      const onMutateContext = (await options.onMutate?.(
-        vars,
-        context,
-        // NOTE: the cast makes it easier to write without extra code. It's safe because { ...null, ...undefined } works and TContext must be a Record<any, any>
-      )) as _ReduceContext<TContext>
-
-      const newData = (currentData = await options.mutation(
-        vars,
-        onMutateContext,
-      ))
-
-      // we set the context here so it can be used by other hooks
-      context = {
-        ...globalOnMutateContext!,
-        queryCache,
-        ...onMutateContext,
-        // NOTE: needed for onSuccess cast
-      } satisfies OnSuccessContext
-
-      await options.onSuccess?.(
-        newData,
-        vars,
-        // NOTE: cast is safe because of the satisfies above
-        // using a spread also works
-        context as OnSuccessContext,
-      )
-
-      if (pendingCall === currentCall) {
-        currentEntry.state.value = {
-          status: 'success',
-          data: newData,
-          error: null,
-        }
-      }
-    } catch (newError: any) {
-      currentError = newError
-      await options.onError?.(newError, vars, context)
-      if (pendingCall === currentCall) {
-        currentEntry.state.value = {
-          status: 'error',
-          data: currentEntry.state.value.data,
-          error: newError,
-        }
-      }
-      throw newError
-    } finally {
-      await options.onSettled?.(currentData, currentError, vars, context)
-      currentEntry.asyncStatus.value = 'idle'
-    }
-
-    return currentData
+    )
   }
 
   function mutate(vars: NoInfer<TVars>) {

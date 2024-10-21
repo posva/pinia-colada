@@ -53,7 +53,7 @@ export interface PiniaColadaOptions
 /**
  * Plugin that installs the Query and Mutation plugins alongside some extra plugins.
  *
- * @see {@link PiniaColada} to only install the Query plugin.
+ * @see {@link QueryPlugin} to only install the Query plugin.
  * @see {@link MutationPlugin} to only install the Query plugin.
  *
  * @param app - Vue App
