@@ -118,7 +118,10 @@ export function stringifyFlatObject(obj: _ObjectFlat | _JSONPrimitive): string {
  * ...undefined, ...null }
  * @internal
  */
-export type _MergeObjects<Obj, MaybeNull> = MaybeNull extends undefined | null | void
+export type _MergeObjects<Obj, MaybeNull> = MaybeNull extends
+  | undefined
+  | null
+  | void
   ? Obj
   : _Simplify<Obj & MaybeNull>
 
@@ -162,3 +165,17 @@ export const setReactiveValue = Object.assign as <T>(
  * @internal
  */
 export interface _EmptyObject {}
+
+/**
+ * Compares two arrays to check if they are the same. Used for keys.
+ *
+ * @param arr1 - first array to compare
+ * @param arr2 - second array to compare
+ */
+export function isSameArray(arr1: unknown[], arr2: unknown[]): boolean {
+  if (arr1.length !== arr2.length) return false
+  for (let i = 0; i < arr1.length; i++) {
+    if (arr1[i] !== arr2[i]) return false
+  }
+  return true
+}

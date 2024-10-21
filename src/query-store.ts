@@ -490,6 +490,8 @@ export const useQueryCache = defineStore(QUERY_STORE_ID, ({ action }) => {
               throw error
             }
             // TODO: would it make more sense to not resolve here?
+            // we could also chain the new request
+            // return entry.pending?.refreshCall
             return entry.state.value
           })
           .finally(() => {
