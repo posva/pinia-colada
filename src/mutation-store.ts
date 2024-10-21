@@ -1,141 +1,149 @@
+import type { ComponentInternalInstance, EffectScope, ShallowRef } from 'vue'
+import type { AsyncStatus, DataState } from './data-state'
+import type { EntryNodeKey } from './tree-map'
 import { defineStore } from 'pinia'
-import type { ShallowRef } from 'vue'
-import { getCurrentScope, shallowReactive, shallowRef } from 'vue'
-import type { MutationStatus, UseMutationOptions } from './use-mutation'
-import type { ErrorDefault } from './types-extension'
-import type { EntryKey } from './entry-options'
-import { stringifyFlatObject } from './utils'
+import { shallowReactive, shallowRef } from 'vue'
+import { TreeMapNode } from './tree-map'
+import type { _EmptyObject } from './utils'
+import { isSameArray, stringifyFlatObject, toValueWithArgs } from './utils'
+import type { UseMutationOptions } from './use-mutation'
 
-type MutationKey = string
-
-interface UseMutationEntry<
-    TResult = unknown,
-    TVars = void,
-    TError = ErrorDefault,
-    TContext extends Record<any, any> | void | null = void,
+/**
+ * A mutation entry in the cache.
+ */
+export interface UseMutationEntry<
+  TResult = unknown,
+  TVars = unknown,
+  TError = unknown,
+  TContext extends Record<any, any> = _EmptyObject,
 > {
+  /**
+   * The state of the mutation. Contains the data, error and status.
+   */
+  state: ShallowRef<DataState<TResult, TError>>
+
+  /**
+   * The async status of the mutation.
+   */
+  asyncStatus: ShallowRef<AsyncStatus>
+
+  /**
+   * When was this data fetched the last time in ms
+   */
+  when: number
+
+  /**
+   * The serialized key associated with this mutation entry.
+   */
+  key: EntryNodeKey[] | undefined
+
+  /**
+   * The variables used to call the mutation.
+   */
+  vars: ShallowRef<TVars | undefined>
+
   options: UseMutationOptions<TResult, TVars, TError, TContext>
-  /**
-   * The status of the query.
-   */
-  status: ShallowRef<MutationStatus>
-  /**
-   * The data returned by the mutation.
-   */
-  data: ShallowRef<TResult | undefined>
-  /**
-   * The error rejected by the mutation.
-   */
-  error: ShallowRef<TError | null>
-  /**
-   * The key associated with this mutation entry.
-   */
-  key: ShallowRef<MutationKey | undefined>
-}
 
-function createMutationEntry<
-    TResult,
-    TVars,
-    TError,
-    TContext extends Record<any, any> | void | null = void,
->(options: UseMutationOptions<TResult, TVars, TError, TContext>) {
-  const status = shallowRef<MutationStatus>('pending')
-  const data = shallowRef<TResult>()
-  const error = shallowRef<TError | null>(null)
-  // set the key if it is static
-  const keyRaw = typeof options.key !== 'function' ? options.key : undefined
-  const key = shallowRef(keyRaw?.map(stringifyFlatObject).join())
+  pending: null | {
+    abortController: AbortController
+    refreshCall: Promise<DataState<TResult, TError>>
+    when: number
+  }
 
-  return {
-    status,
-    data,
-    error,
-    key,
-    options,
+  /**
+   * Component `__hmrId` to track wrong usage of `useQuery` and warn the user.
+   * @internal
+   */
+  __hmr?: {
+    id?: string
+    deps?: Set<EffectScope | ComponentInternalInstance>
+    skip?: boolean
   }
 }
 
-/**
- * The id of the store used for mutations.
- * @internal
- */
-export const MUTATION_STORE_ID = '_pc_mutation'
+function createMutationEntry<
+  TResult = unknown,
+  TVars = unknown,
+  TError = unknown,
+  TContext extends Record<any, any> = _EmptyObject,
+>(
+  options: UseMutationOptions<TResult, TVars, TError, TContext>,
+  key: EntryNodeKey[] | undefined,
+  vars?: TVars,
+): UseMutationEntry<TResult, TVars, TError, TContext> {
+  return {
+    state: shallowRef<DataState<TResult, TError>>({
+      status: 'pending',
+      data: undefined,
+      error: null,
+    }),
+    asyncStatus: shallowRef<AsyncStatus>('idle'),
+    when: 0,
+    vars: shallowRef(vars),
+    key,
+    options,
+    pending: null,
+  }
+}
 
-// TODO: add test cases
-export const useMutationStore = defineStore(MUTATION_STORE_ID, () => {
-  // TODO: find a better way to type the Set?
-  const entriesRaw = new Set<UseMutationEntry<any, any, any, any>>()
-  const entries = shallowReactive(entriesRaw)
+export const useMutationCache = defineStore('_pc_mutation', () => {
+  // We have two versions of the cache, one that track changes and another that doesn't so the actions can be used
+  // inside computed properties
+  const cachesRaw = new TreeMapNode<UseMutationEntry<unknown, unknown>>()
+  const caches = shallowReactive(cachesRaw)
 
-  // this allows use to attach reactive effects to the scope later on
-  const scope = getCurrentScope()!
+  function ensure<
+    TResult = unknown,
+    TVars = unknown,
+    TError = unknown,
+    TContext extends Record<any, any> = _EmptyObject,
+  >(
+    options: UseMutationOptions<TResult, TVars, TError, TContext>,
+  ): UseMutationEntry<TResult, TVars, TError, TContext>
+  function ensure<
+    TResult = unknown,
+    TVars = unknown,
+    TError = unknown,
+    TContext extends Record<any, any> = _EmptyObject,
+  >(
+    options: UseMutationOptions<TResult, TVars, TError, TContext>,
+    entry: UseMutationEntry<TResult, TVars, TError, TContext>,
+    vars: NoInfer<TVars>,
+  ): UseMutationEntry<TResult, TVars, TError, TContext>
 
-  function createEntry<
-      TResult = unknown,
-      TVars = void,
-      TError = ErrorDefault,
-      TContext extends Record<any, any> | void | null = void,
-  >(options: UseMutationOptions<TResult, TVars, TError, TContext>) {
-    const entry = scope.run(() => createMutationEntry<TResult, TVars, TError, TContext>(options))!
+  function ensure<
+    TResult = unknown,
+    TVars = unknown,
+    TError = unknown,
+    TContext extends Record<any, any> = _EmptyObject,
+  >(
+    options: UseMutationOptions<TResult, TVars, TError, TContext>,
+    entry?: UseMutationEntry<TResult, TVars, TError, TContext>,
+    vars?: NoInfer<TVars>,
+  ): UseMutationEntry<TResult, TVars, TError, TContext> {
+    const key
+      = vars && toValueWithArgs(options.key, vars)?.map(stringifyFlatObject)
 
-    entriesRaw.add(entry)
+    if (!entry) {
+      return createMutationEntry(options, key)
+    }
+    // reuse the entry when no key is provided
+    if (key) {
+      // update key
+      if (!entry.key) {
+        entry.key = key
+      } else if (!isSameArray(entry.key, key)) {
+        return createMutationEntry(
+          options,
+          key,
+          // the type NonNullable<TVars> is not assignable to TVars
+          vars as TVars,
+        )
+      }
+    }
 
     return entry
   }
 
-  /**
-   * Update key if it is a getter
-   */
-  function updateKey<
-      TResult,
-      TVars,
-      TError,
-      TContext extends Record<any, any> | void | null = void,
-  >(entry: UseMutationEntry<TResult, TVars, TError, TContext>, vars: TVars) {
-    // change only if the key is dynamic
-    if (typeof entry.options.key === 'function') {
-      entry.key.value = entry.options.key(vars).map(stringifyFlatObject).join()
-    }
-  }
-
-  function resetKey<
-      TResult,
-      TVars,
-      TError,
-      TContext extends Record<any, any> | void | null = void,
-  >(entry: UseMutationEntry<TResult, TVars, TError, TContext>) {
-    // initial value of an entry with getter key is undefined
-    if (typeof entry.options.key === 'function') {
-      entry.key.value = undefined
-    }
-  }
-
-  function removeEntry<
-      TResult,
-      TVars,
-      TError,
-      TContext extends Record<any, any> | void | null = void,
-  >(entry: UseMutationEntry<TResult, TVars, TError, TContext>) {
-    entriesRaw.delete(entry)
-  }
-
-  function getEntriesWithKey(keyRaw: EntryKey): UseMutationEntry[] {
-    // return array, in case we have 1 < mutations with the same key
-    const result = []
-    const key = keyRaw.map(stringifyFlatObject).join()
-    for (const entry of entries) {
-      if (entry.key.value === key) result.push(entry)
-    }
-
-    return result
-  }
-
-  return {
-    entries,
-    createEntry,
-    updateKey,
-    resetKey,
-    removeEntry,
-    getEntriesWithKey,
-  }
+  return { ensure, caches }
 })
