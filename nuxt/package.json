@@ -1,5 +1,8 @@
 {
   "name": "@pinia/colada-nuxt",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "version": "0.0.0",
   "description": "Pinia Colada Nuxt module",
