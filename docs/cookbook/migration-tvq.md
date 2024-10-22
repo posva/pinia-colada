@@ -2,7 +2,7 @@
 
 This guide will help you migrate from `@tanstack/vue-query` to `@pinia/colada`. The two libraries have similar function names and API options, so it should be mostly a matter of updating the imports and adjusting the function names but there are still a couple of differences to be aware of.
 
-::: note
+::: info NOTE
 
 This guide is a work in progress and may not cover all the differences between the two libraries. Please, help us improve it by contributing if you find any missing information.
 
