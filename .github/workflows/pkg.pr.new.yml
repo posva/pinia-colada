@@ -39,5 +39,8 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Build plugins
+        run: pnpm build:plugins
+
       - name: Release
-        run: pnpm dlx pkg-pr-new publish --compact --pnpm . './plugins/*'
+        run: pnpm dlx pkg-pr-new publish --compact --pnpm . './plugins/*' ./nuxt
