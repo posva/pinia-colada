@@ -1,6 +1,9 @@
 {
   "name": "@pinia/colada-plugin-debug",
   "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
   "version": "0.0.0",
   "description": "Debug plugin for Pinia Colada",
   "author": {
@@ -33,9 +36,6 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     }
-  },
-  "publishConfig": {
-    "access": "public"
   },
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

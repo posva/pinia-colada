@@ -1,5 +1,8 @@
 {
   "name": "@pinia/colada-plugin-auto-invalidate",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "version": "0.0.0",
   "description": "Automatically invalidate queries after mutations in Pinia Colada",
@@ -33,9 +36,6 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     }
-  },
-  "publishConfig": {
-    "access": "public"
   },
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

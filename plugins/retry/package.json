@@ -1,6 +1,9 @@
 {
   "name": "@pinia/colada-plugin-retry",
   "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
   "version": "0.0.0",
   "description": "Retry failed requests with Pinia Colada",
   "author": {
@@ -37,9 +40,6 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     }
-  },
-  "publishConfig": {
-    "access": "public"
   },
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
