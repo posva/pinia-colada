@@ -74,7 +74,7 @@
     "test:types": "tsc --build ./tsconfig.json",
     "test:cov": "vitest run --coverage",
     "build": "tsup",
-    "build:plugins": "pnpm run --stream --parallel --filter './plugins/*' build",
+    "build:plugins": "pnpm run --stream --parallel --filter './plugins/*' --filter './nuxt' build",
     "size": "size-limit",
     "prepare": "simple-git-hooks"
   },
