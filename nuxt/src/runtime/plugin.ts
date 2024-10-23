@@ -1,5 +1,5 @@
 import { PiniaColada } from '@pinia/colada'
-import { defineNuxtPlugin } from '#app'
+import { defineNuxtPlugin } from '#imports'
 import coladaOptions from '#build/colada.options'
 
 export default defineNuxtPlugin({

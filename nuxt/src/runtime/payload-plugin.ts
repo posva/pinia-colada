@@ -1,5 +1,10 @@
 import { TreeMapNode, reviveTreeMap, serializeTreeMap } from '@pinia/colada'
 import { markRaw } from 'vue'
+import {
+  definePayloadPlugin,
+  definePayloadReducer,
+  definePayloadReviver,
+} from '#imports'
 
 /**
  * Handles Firestore Timestamps, GeoPoint, and other types that needs special handling for serialization.
