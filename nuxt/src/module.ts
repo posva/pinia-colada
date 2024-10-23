@@ -1,9 +1,8 @@
 import { existsSync } from 'node:fs'
 import {
+  addImports,
   addPlugin,
-  addPluginTemplate,
   addTemplate,
-  addTypeTemplate,
   createResolver,
   defineNuxtModule,
 } from '@nuxt/kit'
@@ -40,5 +39,13 @@ export default defineNuxtModule<never>({
         return `export { default as default } from "${coladaOptionsPath}";`
       },
     })
+
+    addImports([
+      { from: '@pinia/colada', name: 'useQuery' },
+      { from: '@pinia/colada', name: 'defineQuery' },
+      { from: '@pinia/colada', name: 'useQueryCache' },
+      { from: '@pinia/colada', name: 'useMutation' },
+      { from: '@pinia/colada', name: 'defineMutation' },
+    ])
   },
 })
