@@ -23,6 +23,7 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
+      - run: pnpm -C nuxt run dev:prepare
       - run: pnpm run build
       - run: pnpm run lint
       - run: pnpm run test
