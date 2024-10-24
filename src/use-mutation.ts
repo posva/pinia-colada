@@ -4,7 +4,6 @@ import type { EntryKey } from './entry-options'
 import type { ErrorDefault } from './types-extension'
 import { computed, shallowRef } from 'vue'
 import { useMutationCache, type UseMutationEntry } from './mutation-store'
-import type { QueryCache } from './query-store'
 import { type _Awaitable, type _EmptyObject, noop } from './utils'
 
 /**
@@ -48,12 +47,7 @@ export interface UseMutationGlobalContext {}
 /**
  * Context object passed to the different hooks of a mutation like `onMutate`, `onSuccess`, `onError` and `onSettled`.
  */
-export interface UseMutationHooksContext {
-  /**
-   * The global query cache store.
-   */
-  queryCache: QueryCache
-}
+export interface UseMutationHooksContext {}
 
 /**
  * Options to create a mutation.

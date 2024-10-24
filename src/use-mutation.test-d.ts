@@ -1,6 +1,6 @@
 import { describe, expectTypeOf, it } from 'vitest'
 import { useMutation } from './use-mutation'
-import type { QueryCache } from './query-store'
+import type { _EmptyObject } from './utils'
 
 describe('useMutation type inference', () => {
   it('types the parameters for the key', () => {
@@ -84,7 +84,6 @@ describe('useMutation type inference', () => {
       },
       onSuccess(_d, _v, context) {
         expectTypeOf(context).not.toBeAny()
-        expectTypeOf<QueryCache>(context.queryCache)
       },
     })
   })
@@ -130,7 +129,6 @@ describe('useMutation type inference', () => {
         if (context.foo != null) {
           expectTypeOf(context).toMatchTypeOf<{ foo: string, bar: string }>()
         } else {
-          expectTypeOf<QueryCache>(context.queryCache)
           expectTypeOf<never>(context.foo)
           expectTypeOf<never | undefined | string>(context.bar)
         }
@@ -140,7 +138,6 @@ describe('useMutation type inference', () => {
         if (context.foo != null) {
           expectTypeOf(context).toMatchTypeOf<{ foo: string, bar: string }>()
         } else {
-          expectTypeOf<QueryCache>(context.queryCache)
           expectTypeOf<never | undefined>(context.foo)
           expectTypeOf<never | undefined>(context.bar)
         }
@@ -150,7 +147,6 @@ describe('useMutation type inference', () => {
         if (context.foo != null) {
           expectTypeOf(context).toMatchTypeOf<{ foo: string, bar: string }>()
         } else {
-          expectTypeOf<QueryCache>(context.queryCache)
           expectTypeOf<never | undefined>(context.foo)
           expectTypeOf<never | undefined>(context.bar)
         }
@@ -167,21 +163,15 @@ describe('useMutation type inference', () => {
 
       onSuccess(_d, _v, context) {
         expectTypeOf(context).not.toBeAny()
-        expectTypeOf(context).toMatchTypeOf<{
-          queryCache: QueryCache
-        }>()
+        expectTypeOf(context).toMatchTypeOf<_EmptyObject>()
       },
       onError(_e, _v, context) {
         expectTypeOf(context).not.toBeAny()
-        expectTypeOf(context).toMatchTypeOf<{
-          queryCache: QueryCache
-        }>()
+        expectTypeOf(context).toMatchTypeOf<_EmptyObject>()
       },
       onSettled(_d, _e, _v, context) {
         expectTypeOf(context).not.toBeAny()
-        expectTypeOf(context).toMatchTypeOf<{
-          queryCache: QueryCache
-        }>()
+        expectTypeOf(context).toMatchTypeOf<_EmptyObject>()
       },
     })
 
@@ -196,36 +186,29 @@ describe('useMutation type inference', () => {
           _d,
           _v,
           {
-            // NOTE: the caches allows to ensure the type is correctly checking what it should
-            queryCache,
-            // @ts-expect-error: foo deosn't exist
+            // @ts-expect-error: foo doesn't exist
             foo: _foo,
           },
         ) {
-          expectTypeOf<QueryCache>(queryCache)
         },
         onError(
           _d,
           _v,
           {
-            queryCache,
-            // @ts-expect-error: foo deosn't exist
+            // @ts-expect-error: foo doesn't exist
             foo: _foo,
           },
         ) {
-          expectTypeOf<QueryCache>(queryCache)
         },
         onSettled(
           _d,
           _e,
           _v,
           {
-            queryCache,
-            // @ts-expect-error: foo deosn't exist
+            // @ts-expect-error: foo doesn't exist
             foo: _foo,
           },
         ) {
-          expectTypeOf<QueryCache>(queryCache)
         },
       })
     })
