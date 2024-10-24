@@ -415,7 +415,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     // will force a fetch next time
     entry.when = 0
     // ignores the pending query
-    cancelQuery(entry)
+    cancel(entry)
   })
 
   /**
@@ -511,13 +511,23 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   )
 
   /**
-   * Cancels a query if it's currently pending. This will effectively abort the `AbortSignal` of the query and any
+   * Cancels an entry's query if it's currently pending. This will effectively abort the `AbortSignal` of the query and any
    * pending request will be ignored.
    */
-  const cancelQuery = action((entry: UseQueryEntry, reason?: unknown) => {
+  const cancel = action((entry: UseQueryEntry, reason?: unknown) => {
     entry.pending?.abortController.abort(reason)
     entry.pending = null
   })
+
+  /**
+   * Cancels queries if they are currently pending. This will effectively abort the `AbortSignal` of the query and any
+   * pending request will be ignored.
+   */
+  const cancelQueries = action(
+    (filters?: UseQueryEntryFilter, reason?: unknown) => {
+      getEntries(filters).forEach((entry) => cancel(entry, reason))
+    },
+  )
 
   /**
    * Sets the state of a query entry in the cache. This action is called every time the cache state changes and can be
@@ -593,15 +603,16 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     ensureDefinedQuery,
     setQueryData,
     getQueryData,
-    cancelQuery,
 
     invalidateQueries,
+    cancelQueries,
 
     // Actions for entries
     invalidate,
     fetch,
     refresh,
     ensure,
+    cancel,
     remove,
     setEntryState,
     getEntries,
