@@ -10,7 +10,7 @@ import {
   shallowRef,
   toValue,
 } from 'vue'
-import { stringifyFlatObject, toValueWithArgs } from './utils'
+import { stringifyFlatObject, toValueWithArgs, warnOnce } from './utils'
 import { type EntryNodeKey, TreeMapNode } from './tree-map'
 import type { EntryKey } from './entry-options'
 import type { UseQueryOptionsWithDefaults } from './query-options'
@@ -393,6 +393,11 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           entry.__hmr.id
             // @ts-expect-error: internal property
             = currentInstance.type.__hmrId
+          if (entry.__hmr.id == null) {
+            warnOnce(
+              `Found a nullish hmr id. This is probably a bug. Please report it to pinia-colada with a boiled down reproduction. Thank you!`,
+            )
+          }
         }
       }
 
