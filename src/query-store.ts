@@ -393,7 +393,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           entry.__hmr.id
             // @ts-expect-error: internal property
             = currentInstance.type.__hmrId
-          if (entry.__hmr.id == null) {
+          if (entry.__hmr.id == null && process.env.NODE_ENV !== 'test') {
             warnOnce(
               `Found a nullish hmr id. This is probably a bug. Please report it to pinia-colada with a boiled down reproduction. Thank you!`,
             )
