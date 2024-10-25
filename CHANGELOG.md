@@ -1,3 +1,37 @@
+## 0.11.0 (2024-10-25)
+
+### ⚠ BREAKING CHANGES
+
+- **mutations:** Remove the `caches` property in hooks. This wasn't needed as instead, one can use `useQueryCache()` outside. It could be added back if needed but it's more pragmatic to start without it.
+- **query:** The `queryCache.cancelQuery()` is renamed to
+  `queryCache.cancel()` to better match the other functions naming. A new
+  function `queryCache.cancelQueries()` is added to actually cancel one or
+  multiple queries instead of just one.
+
+### Features
+
+- add mutation store ([#47](https://github.com/posva/pinia-colada/issues/47)) ([7954f83](https://github.com/posva/pinia-colada/commit/7954f836943e0f6dd849362d8b9b533f75d2554f))
+- **hmr:** warn against bugs ([7bb44a0](https://github.com/posva/pinia-colada/commit/7bb44a046d523872968485bffe389348fc7123d4))
+- **nuxt:** add auto imports ([964bce2](https://github.com/posva/pinia-colada/commit/964bce27f7688a48961cca240ec1aa3e982c7bc0))
+- **nuxt:** support colada.options ([57a0430](https://github.com/posva/pinia-colada/commit/57a0430f1b306feb5b563c6215f48096c96d3ccc))
+- predicate in filter ([2fc62b7](https://github.com/posva/pinia-colada/commit/2fc62b76e9c2ffcac1f7331f0ab7a1098d6e2fd8))
+- **query:** add cancelQueries ([a374ee2](https://github.com/posva/pinia-colada/commit/a374ee2eda1e5e76f542e958343b5f1a8d5ae42f))
+- run defined mutations in effect scope ([86ff5ed](https://github.com/posva/pinia-colada/commit/86ff5ed780d50d9df0105c5f60ef51b40c22a7b1))
+
+### Bug Fixes
+
+- **nuxt:** plugins ([fd95add](https://github.com/posva/pinia-colada/commit/fd95add709a17b47c906692fad7bfc41d9e02d5b))
+
+### Performance Improvements
+
+- tree shake unused stores ([e0ede7e](https://github.com/posva/pinia-colada/commit/e0ede7eb14d1c8fda6c6142d23302585570b6f69))
+
+### Code Refactoring
+
+- **mutations:** Remove `queryCache` from the context ([d9c2509](https://github.com/posva/pinia-colada/commit/d9c2509d4a80d409be86beea49965cfbab2fe71e))
+- **plugins:** rename `cache` to `queryCache` ([c97639b](https://github.com/posva/pinia-colada/commit/c97639bfe75e020eeae680aaed8374c5cc1432d6))
+- rename `caches` to `queryCache` ([e514d33](https://github.com/posva/pinia-colada/commit/e514d33dcd17650ebd04d3c5f55c40d212b9e52d))
+
 ## 0.10.0 (2024-10-04)
 
 ### ⚠ BREAKING CHANGES
