@@ -223,38 +223,41 @@ async function main() {
   }
 
   step('\nGenerating changelogs...')
-  for (const pkg of pkgWithVersions) {
-    step(` -> ${pkg.name} (${pkg.path})`)
-    const changelogExists = existsSync(join(pkg.path, 'CHANGELOG.md'))
+  await Promise.all(
+    pkgWithVersions.map(async (pkg) => {
+      step(` -> ${pkg.name} (${pkg.path})`)
+      const changelogExists = existsSync(join(pkg.path, 'CHANGELOG.md'))
 
-    await runIfNotDry(
-      `pnpm`,
-      [
-        'exec',
-        'conventional-changelog',
-        '-i',
-        'CHANGELOG.md',
-        '-s',
-        '-p',
-        'conventionalcommits',
-        '-r',
-        changelogExists ? '1' : 0,
-        '--commit-path',
-        '.',
-        '-l',
-        pkg.name,
-      ],
-      { cwd: pkg.path },
-    )
-    await runIfNotDry(`pnpm`, ['exec', 'prettier', '--write', 'CHANGELOG.md'], {
-      cwd: pkg.path,
-    })
-    // FIXME: is this needed with latest pnpm?
-    // await fs.copyFile(
-    //   resolve(__dirname, '../LICENSE'),
-    //   resolve(pkg.path, 'LICENSE'),
-    // )
-  }
+      await runIfNotDry(
+        `pnpm`,
+        [
+          'exec',
+          'conventional-changelog',
+          '-i',
+          'CHANGELOG.md',
+          '--same-file',
+          '-p',
+          'conventionalcommits',
+          '-r',
+          changelogExists ? '1' : '0',
+          '--commit-path',
+          '.',
+          '--lerna-package',
+          pkg.name,
+          ...(pkg.name === MAIN_PKG_NAME ? [] : ['--tag-prefix', `${pkg.name}@`]),
+        ],
+        { cwd: pkg.path },
+      )
+      await runIfNotDry(
+        `pnpm`,
+        ['exec', 'prettier', '--write', 'CHANGELOG.md'],
+        {
+          cwd: pkg.path,
+        },
+      )
+      // NOTE: pnpm publish automatically copies the LICENSE file
+    }),
+  )
 
   const { yes: isChangelogCorrect } = await prompt({
     type: 'confirm',
