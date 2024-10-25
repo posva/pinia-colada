@@ -8,6 +8,7 @@ import semver from 'semver'
 import enquirer from 'enquirer'
 import { execa } from 'execa'
 import pSeries from 'p-series'
+import { globby } from 'globby'
 
 const { prompt } = enquirer
 
@@ -48,11 +49,13 @@ Flags:
 //   args.preId ||
 //   (semver.prerelease(currentVersion) && semver.prerelease(currentVersion)[0])
 const EXPECTED_BRANCH = 'main'
+// this package will use tags like v1.0.0 while the rest will use the full package name like @pinia/colada-nuxt@1.0.0
+const MAIN_PKG_NAME = '@pinia/colada'
 
 /**
  * @param bin {string}
  * @param args {string}
- * @param opts {import('execa').CommonOptions<string>}
+ * @param opts {import('execa').Options}
  */
 const run = (bin, args, opts = {}) =>
   execa(bin, args, { stdio: 'inherit', ...opts })
@@ -105,15 +108,19 @@ async function main() {
     }
   }
 
-  const changedPackages = await getChangedPackages(
-    // FIXME: uncomment once plugins are ready
+  const packagesFolders = [
+    // @pinia/colada
+    join(__dirname, '..'),
+    // @pinia/colada-nuxt
+    join(__dirname, '../nuxt'),
     // globby expects `/` even on windows
-    // await globby(join(__dirname, '../plugins/*').replace(/\\/g, '/'), {
-    //   onlyFiles: false,
-    // }),
-    // add the root package
-    join(__dirname, '..').replace(/\\/g, '/'),
-  )
+    ...(await globby(join(__dirname, '../plugins/*').replace(/\\/g, '/'), {
+      onlyFiles: false,
+    })),
+  ]
+
+  const changedPackages = await getChangedPackages(...packagesFolders)
+
   if (!changedPackages.length) {
     console.log(chalk.red(`No packages have changed since last release`))
     return
@@ -251,9 +258,15 @@ async function main() {
     step('\nCommitting changes...')
     await runIfNotDry('git', [
       'add',
-      'plugins/*/CHANGELOG.md',
-      'plugins/*/package.json',
+      'package.json',
       'pnpm-lock.yaml',
+      'CHANGELOG.md',
+      // plugins
+      'plugins/*/package.json',
+      'plugins/*/CHANGELOG.md',
+      // nuxt
+      'nuxt/package.json',
+      'nuxt/CHANGELOG.md',
     ])
     await runIfNotDry('git', [
       'commit',
@@ -270,7 +283,7 @@ async function main() {
   const versionsToPush = []
   for (const pkg of pkgWithVersions) {
     const tagName
-      = pkg.name === 'vue-router'
+      = pkg.name === MAIN_PKG_NAME
         ? `v${pkg.version}`
         : `${pkg.name}@${pkg.version}`
 
@@ -377,61 +390,94 @@ async function publishPackage(pkg) {
 }
 
 /**
- * Get the packages that have changed. Based on `lerna changed` but without lerna.
+ * Get the last tag published for a package or null if there are no tags
  *
- * @param {string[]} folders
- * @returns {Promise<{ name: string; path: string; pkg: any; version: string }[]} a promise of changed packages
+ * @param {string} pkgName - package name
+ * @returns {string} the last tag or full commit hash
  */
-async function getChangedPackages(...folders) {
-  let lastTag
-
+async function getLastTag(pkgName) {
   try {
-    const { stdout } = await run('git', ['describe', '--tags', '--abbrev=0'], {
-      stdio: 'pipe',
-    })
-    lastTag = stdout
-  } catch (_error) {
-    console.error(_error)
-    // maybe there are no tags
-    console.error(`Couldn't get the last tag, using first commit...`)
+    const { stdout } = await run(
+      'git',
+      [
+        'describe',
+        '--tags',
+        '--abbrev=0',
+        '--match',
+        pkgName === MAIN_PKG_NAME ? 'v*' : `${pkgName}@*`,
+      ],
+      {
+        stdio: 'pipe',
+      },
+    )
+
+    return stdout
+  } catch (error) {
+    console.log(chalk.dim(`Couldn't get "${chalk.bold(pkgName)}" last tag, using first commit...`))
+
+    // 128 is the git exit code when there is nothing to describe
+    if (error.exitCode !== 128) {
+      console.error(error)
+    }
     const { stdout } = await run(
       'git',
       ['rev-list', '--max-parents=0', 'HEAD'],
       { stdio: 'pipe' },
     )
-    lastTag = stdout
+    return stdout
   }
+}
 
+/**
+ * Get the packages that have changed. Based on `lerna changed` but without lerna.
+ *
+ * @param {string[]} folders
+ * @returns {Promise<{ name: string; path: string; pkg: any; version: string; start: string }[]} a promise of changed packages
+ */
+async function getChangedPackages(...folders) {
   const pkgs = await Promise.all(
     folders.map(async (folder) => {
-      if (!(await fs.lstat(folder)).isDirectory()) return null
+      if (!(await fs.lstat(folder)).isDirectory()) {
+        console.warn(chalk.dim(`Skipping "${folder}" as it is not a directory`))
+        return null
+      }
 
       const pkg = JSON.parse(await fs.readFile(join(folder, 'package.json')))
-      if (!pkg.private) {
-        const { stdout: hasChanges } = await run(
-          'git',
-          [
-            'diff',
-            lastTag,
-            '--',
-            // apparently {src,package.json} doesn't work
-            join(folder, 'src'),
-            // TODO: should not check dev deps and should compare to last tag changes
-            join(folder, 'package.json'),
-          ],
-          { stdio: 'pipe' },
+      if (pkg.private) {
+        console.warn(
+          chalk.dim(
+            `Skipping "${pkg.name}" as it has no changes since last release`,
+          ),
         )
+        return null
+      }
 
-        if (hasChanges) {
-          return {
-            path: folder,
-            name: pkg.name,
-            version: pkg.version,
-            pkg,
-          }
-        } else {
-          return null
+      const lastTag = await getLastTag(pkg.name)
+
+      const { stdout: hasChanges } = await run(
+        'git',
+        [
+          'diff',
+          lastTag,
+          '--',
+          // apparently {src,package.json} doesn't work
+          join(folder, 'src'),
+          // TODO: should not check dev deps and should compare to last tag changes
+          join(folder, 'package.json'),
+        ],
+        { stdio: 'pipe' },
+      )
+
+      if (hasChanges) {
+        return {
+          path: folder,
+          name: pkg.name,
+          version: pkg.version,
+          pkg,
+          start: lastTag,
         }
+      } else {
+        return null
       }
     }),
   )
