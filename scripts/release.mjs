@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import fs from 'node:fs/promises'
+import { existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import minimist from 'minimist'
@@ -224,7 +225,27 @@ async function main() {
   step('\nGenerating changelogs...')
   for (const pkg of pkgWithVersions) {
     step(` -> ${pkg.name} (${pkg.path})`)
-    await runIfNotDry(`pnpm`, ['run', 'changelog'], { cwd: pkg.path })
+    const changelogExists = existsSync(join(pkg.path, 'CHANGELOG.md'))
+
+    await runIfNotDry(
+      `pnpm`,
+      [
+        'exec',
+        'conventional-changelog',
+        '-i',
+        'CHANGELOG.md',
+        '-s',
+        '-p',
+        'conventionalcommits',
+        '-r',
+        changelogExists ? '1' : 0,
+        '--commit-path',
+        '.',
+        '-l',
+        pkg.name,
+      ],
+      { cwd: pkg.path },
+    )
     await runIfNotDry(`pnpm`, ['exec', 'prettier', '--write', 'CHANGELOG.md'], {
       cwd: pkg.path,
     })
@@ -413,7 +434,11 @@ async function getLastTag(pkgName) {
 
     return stdout
   } catch (error) {
-    console.log(chalk.dim(`Couldn't get "${chalk.bold(pkgName)}" last tag, using first commit...`))
+    console.log(
+      chalk.dim(
+        `Couldn't get "${chalk.bold(pkgName)}" last tag, using first commit...`,
+      ),
+    )
 
     // 128 is the git exit code when there is nothing to describe
     if (error.exitCode !== 128) {

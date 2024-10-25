@@ -1,37 +1,36 @@
-# Changelog
-
-All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
-
-## [0.10.0](https://github.com/posva/pinia-colada/compare/v0.9.1...v0.10.0) (2024-10-04)
+## 0.10.0 (2024-10-04)
 
 ### ⚠ BREAKING CHANGES
 
-- `useMutation()` hooks now uses positional arguments. This change is mainly to simplify migration from TanStack Query.
-- `caches.invalidateQueries()` only fetches active queries
+- This change is mainly to simplify migration from
+  TanStack Query.
+- caches.invalidateQueries only fetches active queries
 - The `keys` option that automatically invalidate keys
   has been renamed to `invalidateKeys` and moved to a plugin. This is in
   practice not needed. It's just an opinionated convenience that can be
   replaced by directly invalidating queries in the cache with the
   `onSettled()` hook in `useMutation()`:
 
-```ts
-const { mutate } = useMutation({
-  onSettled({ caches, vars: { id } }) {
-    caches.invalidateQueries({ key: ['contacts-search'] })
-    caches.invalidateQueries({ key: ['contacts', id] })
-  },
-  mutation: (contact) => patchContact(contact),
-})
-```
+  ```ts
+  const { mutate } = useMutation({
+    onSettled({ caches, vars: { id } }) {
+      caches.invalidateQueries({ key: ['contacts-search'] })
+      caches.invalidateQueries({ key: ['contacts', id] })
+    },
+    mutation: (contact) => patchContact(contact),
+  })
+  ```
 
 ### Features
 
 - caches.invalidateQueries only fetches active queries ([e8d9088](https://github.com/posva/pinia-colada/commit/e8d9088b78df97665f5b9cb15e429183505d171d))
 
+### Code Refactoring
+
 - rename `keys` to `invalidateKeys` and move to plugin ([f709928](https://github.com/posva/pinia-colada/commit/f70992807b5857e17b56c3ca2b90df3fb665eb04))
 - useMutation hooks now use positional arguments ([dce00b4](https://github.com/posva/pinia-colada/commit/dce00b4629c19774367bedfa40b53ad2e9f517ea))
 
-### [0.9.1](https://github.com/posva/pinia-colada/compare/v0.9.0...v0.9.1) (2024-09-27)
+### 0.9.1 (2024-09-27)
 
 ### Features
 
@@ -43,7 +42,7 @@ const { mutate } = useMutation({
 
 - **query:** handle sync errors ([cfcdcb1](https://github.com/posva/pinia-colada/commit/cfcdcb192800fb511dd2aa1acca5dc67d8874ff4)), closes [#70](https://github.com/posva/pinia-colada/issues/70) [#69](https://github.com/posva/pinia-colada/issues/69)
 
-## [0.9.0](https://github.com/posva/pinia-colada/compare/v0.8.2...v0.9.0) (2024-08-26)
+## 0.9.0 (2024-08-26)
 
 ### ⚠ BREAKING CHANGES
 
@@ -56,11 +55,13 @@ const { mutate } = useMutation({
 - **query-cache:** Rename `setQueryState` to `setEntryState` ([f481eb0](https://github.com/posva/pinia-colada/commit/f481eb00ed4641e7698313fd3e8d8e05c7f384fa))
 - **warn:** warn about reused keys ([7375a19](https://github.com/posva/pinia-colada/commit/7375a193bb850c877644b175135bc4c4f9bb3072))
 
-### [0.8.2](https://github.com/posva/pinia-colada/compare/v0.8.1...v0.8.2) (2024-08-21)
+### 0.8.2 (2024-08-21)
 
-Small performance improvements.
+### Performance Improvements
 
-### [0.8.1](https://github.com/posva/pinia-colada/compare/v0.8.0...v0.8.1) (2024-08-17)
+- skip reactivity traversal in store ([3984a3a](https://github.com/posva/pinia-colada/commit/3984a3a77f68fcea30964d23158bd6847b3e7431))
+
+### 0.8.1 (2024-08-17)
 
 ### Features
 
@@ -70,9 +71,7 @@ Small performance improvements.
 
 - **ssr:** mark raw tree node in reviver ([4ff13ad](https://github.com/posva/pinia-colada/commit/4ff13addcd0168c7b2f5e4196aff795e0c690b39))
 
-## [0.8.0](https://github.com/posva/pinia-colada/compare/v0.7.1...v0.8.0) (2024-08-12)
-
-This release contains many breaking changes to improve the library. If you find anything missing, please open a pull request or issue.
+## 0.8.0 (2024-08-12)
 
 ### ⚠ BREAKING CHANGES
 
@@ -90,8 +89,6 @@ This release contains many breaking changes to improve the library. If you find 
   `PiniaColadaQueryHooksPlugin`
 
   ```diff
-  +import { PiniaColada, PiniaColadaQueryHooksPlugin } from '@pinia/colada'
-
    app.use(PiniaColada, {
   +  plugins: [
   +    PiniaColadaQueryHooksPlugin({
@@ -103,12 +100,12 @@ This release contains many breaking changes to improve the library. If you find 
    })
   ```
 
-- `status` state is split into two different _status_ properties:
+- This feature splits up the `status` state into two
+  different _status_ properties:
 
   - `status` is now just for the data `'pending' | 'success' | 'error'`
-  - `asyncStatus` tells if the query is still running or not with `'idle' | 'running'`
-
-  Note this affects both `useQuery()` and `useMutation()`
+  - `queryStatus` tells if the query is still running or not with `'idle' |
+'running'`
 
 - `refetch`, `refresh` and similar methods now resolve
   the `state` property without rejecting. This is usually more convenient.
@@ -123,7 +120,7 @@ This release contains many breaking changes to improve the library. If you find 
   - invalidateEntry -> invalidate
   - ensureEntry -> ensure
 
-  Their arguments have changed as well. This is part of a bigger refactor to empower plugins and make the cache store more flexible.
+Their arguments have changed as well.
 
 - This release removes the deprecated `QueryPlugin`. Use
   `PiniaColada` instead.
@@ -136,18 +133,20 @@ This release contains many breaking changes to improve the library. If you find 
 - **query:** add `active` property to query entry ([994db63](https://github.com/posva/pinia-colada/commit/994db63ebbba91660ee9602dfbbd5797fe441524)), closes [#65](https://github.com/posva/pinia-colada/issues/65)
 - split useMutation status like useQuery ([6c6078f](https://github.com/posva/pinia-colada/commit/6c6078fee55a3c82df038c7e66ba384882923c47))
 
+### Code Refactoring
+
 - rename `isFetching` to `isLoading` ([003f7a1](https://github.com/posva/pinia-colada/commit/003f7a162d475300f5ab7880fafefbde3c467716))
 - rename cache store actions ([792ec6e](https://github.com/posva/pinia-colada/commit/792ec6ec16bebd01f24d5c0a24f66884d902ebc8))
 - Replace QueryPlugin with PiniaColada ([2a3f3d9](https://github.com/posva/pinia-colada/commit/2a3f3d9b2c1fe23767765238094b2d753c0a8fc6))
 - useQuery setup option now receives the options as the second argument ([a86b41d](https://github.com/posva/pinia-colada/commit/a86b41dd74a7bbbfc355c1dd19b7f40d96e8bab6))
 
-### [0.7.1](https://github.com/posva/pinia-colada/compare/v0.7.0...v0.7.1) (2024-07-30)
+### 0.7.1 (2024-07-30)
 
 ### Bug Fixes
 
 - **hmr:** always update options ([a6a6b7a](https://github.com/posva/pinia-colada/commit/a6a6b7a209bfbff4cc0644ba40e6486a35166d1c))
 
-## [0.7.0](https://github.com/posva/pinia-colada/compare/v0.6.0...v0.7.0) (2024-07-26)
+## 0.7.0 (2024-07-26)
 
 ### ⚠ BREAKING CHANGES
 
@@ -170,10 +169,16 @@ This release contains many breaking changes to improve the library. If you find 
 - **query:** query refresh on defineQuery output composable call ([28a3ec1](https://github.com/posva/pinia-colada/commit/28a3ec1741b38b8f672c90badbc38327813e1238))
 - trigger nested actions ([7e3a9f6](https://github.com/posva/pinia-colada/commit/7e3a9f6d2582ddab4d7bed4943899bcff7c1ced2))
 
+### Reverts
+
+- Revert "refactor: add a stale getter" ([6e059f4](https://github.com/posva/pinia-colada/commit/6e059f4769c147c567ef4fdeb192570cb3f634d4))
+
+### Code Refactoring
+
 - rename type 'UseQueryKey' to 'UseEntryKey' ([6a32d89](https://github.com/posva/pinia-colada/commit/6a32d894a61d3af5c2e8f549c59aba1c28425ba8))
 - rename type `UseEntryKey` to `EntryKey` ([8110feb](https://github.com/posva/pinia-colada/commit/8110feb9fd0f0e5372574a7f4dc6b9707b1a59a7))
 
-## [0.6.0](https://github.com/posva/pinia-colada/compare/v0.5.3...v0.6.0) (2024-04-02)
+## 0.6.0 (2024-04-02)
 
 ### ⚠ BREAKING CHANGES
 
@@ -199,21 +204,23 @@ This release contains many breaking changes to improve the library. If you find 
 - **useMutation:** add hook context ([0894a81](https://github.com/posva/pinia-colada/commit/0894a81e52b8882322a574db49162d45558e0f77))
 - **useMutation:** add hooks ([c44af13](https://github.com/posva/pinia-colada/commit/c44af132ffbee94cd0678e3ec7a2b9c21ee3054c))
 
+### Code Refactoring
+
 - **mutation:** rename UseQueryStatus to QueryStatus ([ff0067a](https://github.com/posva/pinia-colada/commit/ff0067a39de4cce04e285a041a43c36775cad4ea))
 
-### [0.5.3](https://github.com/posva/pinia-colada/compare/v0.5.2...v0.5.3) (2024-02-21)
+### 0.5.3 (2024-02-21)
 
 ### Bug Fixes
 
 - onScopeDispose guard ([0ed15fe](https://github.com/posva/pinia-colada/commit/0ed15fe45e3d381bde73ef0557ab98ad8871e3ea))
 
-### [0.5.2](https://github.com/posva/pinia-colada/compare/v0.5.1...v0.5.2) (2024-02-20)
+### 0.5.2 (2024-02-20)
 
 ### Bug Fixes
 
 - allow writing to entries ([8e9ac7e](https://github.com/posva/pinia-colada/commit/8e9ac7e35713a40f0160584a5a8bc17c520129b4))
 
-### [0.5.1](https://github.com/posva/pinia-colada/compare/v0.5.0...v0.5.1) (2024-02-19)
+### 0.5.1 (2024-02-19)
 
 ### Features
 
@@ -223,7 +230,7 @@ This release contains many breaking changes to improve the library. If you find 
 
 - avoid computed warns ([c11ee2f](https://github.com/posva/pinia-colada/commit/c11ee2f863f527eba42929bbe61b855db8810f36))
 
-## [0.5.0](https://github.com/posva/pinia-colada/compare/v0.4.3...v0.5.0) (2024-02-19)
+## 0.5.0 (2024-02-19)
 
 ### ⚠ BREAKING CHANGES
 
@@ -234,26 +241,26 @@ This release contains many breaking changes to improve the library. If you find 
 
 - pass signal to query ([bf1666c](https://github.com/posva/pinia-colada/commit/bf1666c0d235085db7e10d19b690bfab04af813c))
 
+### Code Refactoring
+
 - force array of keys to avoid easy mistakes ([7d95da0](https://github.com/posva/pinia-colada/commit/7d95da0cd925836f830a80d3eaeae5ee11c9f8b7))
 - remove internal global defaults ([53ce0bc](https://github.com/posva/pinia-colada/commit/53ce0bcbfcf465d43b60fe6ca2be3b2b2b2c1ce4))
 
-### [0.4.3](https://github.com/posva/pinia-colada/compare/v0.4.2...v0.4.3) (2024-02-11)
+### 0.4.3 (2024-02-11)
 
 ### Features
 
 - add delayLoadingRef ([ebbc503](https://github.com/posva/pinia-colada/commit/ebbc5034321c5274a032eee898503bd97207e276))
 
-### [0.4.2](https://github.com/posva/pinia-colada/compare/v0.4.1...v0.4.2) (2024-02-08)
+### 0.4.2 (2024-02-08)
 
 ### Bug Fixes
 
 - avoid warn onScopeDispose ([47ac1a6](https://github.com/posva/pinia-colada/commit/47ac1a6b9cf051e7d6979f7f83cdce8dc8dbb6de))
 
-### [0.4.1](https://github.com/posva/pinia-colada/compare/v0.4.0...v0.4.1) (2024-02-07)
+### 0.4.1 (2024-02-07)
 
-- logs
-
-## [0.4.0](https://github.com/posva/pinia-colada/compare/v0.3.1...v0.4.0) (2024-02-06)
+## 0.4.0 (2024-02-06)
 
 ### ⚠ BREAKING CHANGES
 
@@ -267,18 +274,20 @@ This release contains many breaking changes to improve the library. If you find 
 
 - **ssr:** wip initial version ([8e6cbf6](https://github.com/posva/pinia-colada/commit/8e6cbf6caf3c4154213680fdd216c7c0262a72ea))
 
+### Code Refactoring
+
 - adapt status ([2d5625c](https://github.com/posva/pinia-colada/commit/2d5625c81efdf44932a1e85142fc67dcff3040b0))
 - add `QueryPlugin` to configure useQuery() ([67cb2d3](https://github.com/posva/pinia-colada/commit/67cb2d37382c50179c662509b2eb8322de4a13e3))
 - rename data fetching store ([b9ef0fb](https://github.com/posva/pinia-colada/commit/b9ef0fb838135b6fa62fd74ace03d00590826de5))
 - replace class usage ([9bf1fd9](https://github.com/posva/pinia-colada/commit/9bf1fd9295e20a4dc0165deea2e5e55afd5bf2b2))
 
-### [0.3.1](https://github.com/posva/pinia-colada/compare/v0.3.0...v0.3.1) (2024-02-03)
+### 0.3.1 (2024-02-03)
 
 ### Bug Fixes
 
 - **useMutation:** options ([23eccb1](https://github.com/posva/pinia-colada/commit/23eccb11f0d9d77d29ec55a7158748887e6e396c))
 
-## [0.3.0](https://github.com/posva/pinia-colada/compare/v0.2.0...v0.3.0) (2024-02-03)
+## 0.3.0 (2024-02-03)
 
 ### ⚠ BREAKING CHANGES
 
@@ -286,9 +295,11 @@ This release contains many breaking changes to improve the library. If you find 
   to `query`. The option `mutator` for `useMutation()` has been renamed
   `mutation`.
 
+### Code Refactoring
+
 - rename options for `useQuery` and `useMutation` ([28ecc75](https://github.com/posva/pinia-colada/commit/28ecc757473b17cf5ae8579250faa197232c0988))
 
-## [0.2.0](https://github.com/posva/pinia-colada/compare/v0.1.0...v0.2.0) (2024-01-16)
+## 0.2.0 (2024-01-16)
 
 ### ⚠ BREAKING CHANGES
 
@@ -307,11 +318,16 @@ This release contains many breaking changes to improve the library. If you find 
 - only use onServerPrefetch in components ([445921a](https://github.com/posva/pinia-colada/commit/445921a14583d18519c379c18762e373fb12e027))
 - recompute based on key ([c9d739f](https://github.com/posva/pinia-colada/commit/c9d739ffd2328b1795319526d5069bd534f3f44e))
 
-### build
+### Performance Improvements
+
+- avoid creating children on tree ([0bdbe1d](https://github.com/posva/pinia-colada/commit/0bdbe1d95eed351293a635019ccd29ff574ba81e))
+- use shallowRef for internal primitives ([6b9e5e3](https://github.com/posva/pinia-colada/commit/6b9e5e3362c70057d96e61ba53d896fc6e64bfa5))
+
+### Build System
 
 - remove iife version ([0ee5c8a](https://github.com/posva/pinia-colada/commit/0ee5c8a7af2793aeb640261583ea89db3b425967))
 
-## [0.1.0](https://github.com/posva/pinia-colada/compare/v0.0.1...v0.1.0) (2023-12-25)
+## 0.1.0 (2023-12-25)
 
 ### ⚠ BREAKING CHANGES
 
@@ -320,6 +336,8 @@ This release contains many breaking changes to improve the library. If you find 
 ### Bug Fixes
 
 - swallow error in automatic refreshes ([d955754](https://github.com/posva/pinia-colada/commit/d9557545fd6716929d5e127cf6b8e125c5cd23d7))
+
+### Code Refactoring
 
 - rename options ([f6d01c5](https://github.com/posva/pinia-colada/commit/f6d01c5396fb9495e3685f94d7fa24cff81b2da3))
 
