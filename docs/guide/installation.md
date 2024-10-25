@@ -46,3 +46,4 @@ app.use(PiniaColada, {
 ```
 
 <!-- TODO: add note about other plugins -->
+<!-- TODO: add guide for Nuxt devs -->
