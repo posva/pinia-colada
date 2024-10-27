@@ -19,6 +19,16 @@ export default defineNuxtConfig({
 })
 ```
 
+::: info
+
+Since Pinia Colada depends on Pinia, you also need to install its Nuxt module:
+
+```bash
+npx nuxi module add pinia
+```
+
+:::
+
 ## Configuration
 
 You can configure the Pinia Colada plugin by creating a `colada.options.ts` file at the root of your project.
