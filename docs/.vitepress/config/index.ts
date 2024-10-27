@@ -196,6 +196,10 @@ export default defineConfig({
               text: 'Nuxt',
               link: '/nuxt.html',
             },
+            {
+              text: 'SSR',
+              link: '/guide/ssr.html',
+            },
           ],
         },
         {
