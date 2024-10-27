@@ -192,6 +192,10 @@ export default defineConfig({
               text: 'Optimistic Updates',
               link: '/guide/optimistic-updates.html',
             },
+            {
+              text: 'Nuxt',
+              link: '/nuxt.html',
+            },
           ],
         },
         {
