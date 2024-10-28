@@ -183,9 +183,6 @@ export function useQuery<TResult, TError = ErrorDefault>(
       : entry.value.state.value,
   )
 
-  // TODO: adapt to use the placeholderData in data and state
-  // and to change the status to success
-
   const queryReturn = {
     state,
 
@@ -209,7 +206,6 @@ export function useQuery<TResult, TError = ErrorDefault>(
     // only happens on server, app awaits this
     onServerPrefetch(async () => {
       if (toValue(enabled)) await refresh()
-      // TODO: after adding a test, remove these lines and refactor the const queryReturn to just a return statement
     })
   }
 

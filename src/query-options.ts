@@ -114,8 +114,8 @@ export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
    */
   transformError?: (error: unknown) => TError
 
-  // TODO: move to a plugin? Included in Pinia Colada
-  // TODO: rename to refresh since that's the default? and change 'always' to 'force'?
+  // TODO: allow refs or a getter with the query
+
   refetchOnMount?: _RefetchOnControl
   refetchOnWindowFocus?: _RefetchOnControl
   refetchOnReconnect?: _RefetchOnControl

@@ -55,4 +55,4 @@ export type DataState<TResult, TError> =
  * - `loading`: currently loading
  */
 export type AsyncStatus = 'idle' | 'loading'
-// TODO: ? - `paused`: waiting to be run e.g. offline, debunce/throttle, etc
+// TODO: ? - `paused`: waiting to be run e.g. offline, debounce/throttle, etc

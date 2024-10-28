@@ -75,12 +75,11 @@ export interface UseQueryEntry<TResult = unknown, TError = unknown> {
   }
 
   /**
-   * Options used to create the query. They can be undefined during hydration but are needed for fetching. This is why
+   * Options used to create the query. They can be `null` during hydration but are needed for fetching. This is why
    * `store.ensure()` sets this property. Note these options might be shared by multiple query entries when the key is
    * dynamic.
    */
   options: UseQueryOptionsWithDefaults<TResult, TError> | null
-  // TODO: ideally shouldn't be null, there should be different kind of types
 
   /**
    * Whether the data is stale or not, requires `options.staleTime` to be set.
@@ -295,9 +294,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       defineQueryMap.set(fn, defineQueryEntry)
     } else {
       // if the entry already exists, we know the queries inside
+      // we should consider as if they are activated again
       for (const queryEntry of defineQueryEntry[0]) {
-        // TODO: refactor this to be a method of the store so it can be used in useQuery too
-        // and not be called during hydration
+        // TODO: should this be part of an `activate` action?
         if (queryEntry.options?.refetchOnMount) {
           if (queryEntry.options.refetchOnMount === 'always') {
             fetch(queryEntry)
@@ -429,8 +428,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   })
 
   /**
-   * Ensures the current data is fresh. If the data is stale, calls {@link fetch}, if not return the current data. Can only be called if the
-   * entry has options.
+   * Ensures the current data is fresh. If the data is stale or if the status is 'error', calls {@link fetch}, if not
+   * return the current data. Can only be called if the entry has been initialized with `useQuery()` and has options.
    */
   const refresh = action(
     async <TResult, TError>(
@@ -467,10 +466,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
 
       const abortController = new AbortController()
       const { signal } = abortController
-      // abort any ongoing request
-      // TODO: test
-      // TODO: The abort should only happen when the query is out of date, becomes inactive or is manually cancelled
-      // entry.pending?.abortController.abort()
+      // Abort any ongoing request
+      entry.pending?.abortController.abort()
 
       const pendingCall = (entry.pending = {
         abortController,
@@ -553,7 +550,6 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     },
   )
 
-  // TODO: tests
   /**
    * Set the data of a query entry in the cache. Note this doesn't change the status of the query.
    */
@@ -723,6 +719,8 @@ function appendToTree(
   parent.children ??= new Map()
   const node = new TreeMapNode<UseQueryEntry>(
     [],
+    // NOTE: this could happen outside of an effect scope but since it's only for client side hydration, it should be
+    // fine to have global shallowRefs as they can still be cleared when needed
     value && createQueryEntry([...parentKey, key], ...value),
   )
   parent.children.set(key, node)
