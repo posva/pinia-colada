@@ -260,9 +260,9 @@ describe('useQuery', () => {
 
       await flushPromises()
       expect(cache.getQueryData(['key'])).toBe(42)
-      await vi.advanceTimersByTime(1000)
+      vi.advanceTimersByTime(1000)
       expect(cache.getQueryData(['key'])).toBe(42)
-      await vi.advanceTimersByTime(1000)
+      vi.advanceTimersByTime(1000)
       expect(cache.getQueryData(['key'])).toBe(42)
     })
 
@@ -271,13 +271,13 @@ describe('useQuery', () => {
       const cache = useQueryCache()
 
       await flushPromises()
-      await vi.advanceTimersByTime(1000)
+      vi.advanceTimersByTime(1000)
       expect(cache.getQueryData(['key'])).toBe(42)
       wrapper.unmount()
-      await vi.advanceTimersByTime(999)
+      vi.advanceTimersByTime(999)
       // still there
       expect(cache.getQueryData(['key'])).toBe(42)
-      await vi.advanceTimersByTime(1)
+      vi.advanceTimersByTime(1)
       expect(cache.getQueryData(['key'])).toBeUndefined()
     })
 
@@ -293,21 +293,21 @@ describe('useQuery', () => {
       const cache = useQueryCache()
 
       await flushPromises()
-      await vi.advanceTimersByTime(1000)
+      vi.advanceTimersByTime(1000)
       expect(cache.getQueryData(['key'])).toBe(42)
       w1.unmount()
-      await vi.advanceTimersByTime(999)
+      vi.advanceTimersByTime(999)
       const [w2] = mountSimple(options, { plugins: [pinia] })
       // still there
-      await vi.advanceTimersByTime(1)
+      vi.advanceTimersByTime(1)
       expect(cache.getQueryData(['key'])).toBe(42)
       // check that gcTime doesn't impact it
-      await vi.advanceTimersByTime(1000)
+      vi.advanceTimersByTime(1000)
       expect(cache.getQueryData(['key'])).toBe(42)
       w2.unmount()
-      await vi.advanceTimersByTime(999)
+      vi.advanceTimersByTime(999)
       expect(cache.getQueryData(['key'])).toBe(42)
-      await vi.advanceTimersByTime(1)
+      vi.advanceTimersByTime(1)
       expect(cache.getQueryData(['key'])).toBeUndefined()
     })
 
@@ -620,7 +620,7 @@ describe('useQuery', () => {
       expect(wrapper.vm.data).toBe(60)
       expect(query).toHaveBeenCalledTimes(0)
 
-      await vi.advanceTimersByTime(101)
+      vi.advanceTimersByTime(101)
       wrapper.vm.refresh()
       await flushPromises()
       expect(wrapper.vm.data).toBe(42)
@@ -686,7 +686,7 @@ describe('useQuery', () => {
       )
       await flushPromises()
       expect(query).toHaveBeenCalledTimes(1)
-      await vi.advanceTimersByTime(100)
+      vi.advanceTimersByTime(100)
 
       mountDynamicKey(
         { initialId: 0, staleTime: 10, query },
