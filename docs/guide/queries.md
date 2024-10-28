@@ -260,6 +260,8 @@ const {
     {{ data.name }}
   </div>
 </template>
+```
+
 :::
 
 ## Caveat: SSR and `defineQuery()`
