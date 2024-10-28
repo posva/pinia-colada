@@ -1,12 +1,31 @@
+## 0.11.1 (2024-10-28)
+
+### Features
+
+- allow refetch to throw on error ([f168b6c](https://github.com/posva/pinia-colada/commit/f168b6c7e39a8f6c93231dc77bc8e7a562ba807b))
+- allow setting data for un-existing queries ([5c3870c](https://github.com/posva/pinia-colada/commit/5c3870cbbffcae1f20b196c6659b3205ded594b7))
+
+### Bug Fixes
+
+- allow gcTime to never be set ([4714b9a](https://github.com/posva/pinia-colada/commit/4714b9a349a0b62697afaecf07c93f525c0ae4ee))
+- eagerly change asyncStatus on cancel ([b2f1349](https://github.com/posva/pinia-colada/commit/b2f134904a2e4f9d31df9661b8f0fb8dd56b8ce9))
+- staleTime of 0 always refreshes ([66ef9ec](https://github.com/posva/pinia-colada/commit/66ef9ec0c5c10801143677506aa72f8fd4736d0f))
+
 ## 0.11.0 (2024-10-25)
 
 ### ⚠ BREAKING CHANGES
 
-- **mutations:** Remove the `caches` property in hooks. This wasn't needed as instead, one can use `useQueryCache()` outside. It could be added back if needed but it's more pragmatic to start without it.
+- **mutations:** This wasn't needed as instead, one can use
+  `useQueryCache()` outside. It could be added back if needed but it's
+  more pragmatic to start without it.
 - **query:** The `queryCache.cancelQuery()` is renamed to
   `queryCache.cancel()` to better match the other functions naming. A new
   function `queryCache.cancelQueries()` is added to actually cancel one or
   multiple queries instead of just one.
+- **plugins:** In plugins, `cache` is renamed to `queryCache` for
+  consistency.
+- This makes it clearer that `queryCache` is the result
+  of `useQueryCache()`.
 
 ### Features
 
@@ -64,7 +83,7 @@
 - rename `keys` to `invalidateKeys` and move to plugin ([f709928](https://github.com/posva/pinia-colada/commit/f70992807b5857e17b56c3ca2b90df3fb665eb04))
 - useMutation hooks now use positional arguments ([dce00b4](https://github.com/posva/pinia-colada/commit/dce00b4629c19774367bedfa40b53ad2e9f517ea))
 
-### 0.9.1 (2024-09-27)
+## 0.9.1 (2024-09-27)
 
 ### Features
 
@@ -89,13 +108,13 @@
 - **query-cache:** Rename `setQueryState` to `setEntryState` ([f481eb0](https://github.com/posva/pinia-colada/commit/f481eb00ed4641e7698313fd3e8d8e05c7f384fa))
 - **warn:** warn about reused keys ([7375a19](https://github.com/posva/pinia-colada/commit/7375a193bb850c877644b175135bc4c4f9bb3072))
 
-### 0.8.2 (2024-08-21)
+## 0.8.2 (2024-08-21)
 
 ### Performance Improvements
 
 - skip reactivity traversal in store ([3984a3a](https://github.com/posva/pinia-colada/commit/3984a3a77f68fcea30964d23158bd6847b3e7431))
 
-### 0.8.1 (2024-08-17)
+## 0.8.1 (2024-08-17)
 
 ### Features
 
@@ -138,8 +157,7 @@
   different _status_ properties:
 
   - `status` is now just for the data `'pending' | 'success' | 'error'`
-  - `queryStatus` tells if the query is still running or not with `'idle' |
-'running'`
+  - `queryStatus` tells if the query is still running or not with `'idle' | 'running'`
 
 - `refetch`, `refresh` and similar methods now resolve
   the `state` property without rejecting. This is usually more convenient.
@@ -174,7 +192,7 @@ Their arguments have changed as well.
 - Replace QueryPlugin with PiniaColada ([2a3f3d9](https://github.com/posva/pinia-colada/commit/2a3f3d9b2c1fe23767765238094b2d753c0a8fc6))
 - useQuery setup option now receives the options as the second argument ([a86b41d](https://github.com/posva/pinia-colada/commit/a86b41dd74a7bbbfc355c1dd19b7f40d96e8bab6))
 
-### 0.7.1 (2024-07-30)
+## 0.7.1 (2024-07-30)
 
 ### Bug Fixes
 
@@ -242,19 +260,19 @@ Their arguments have changed as well.
 
 - **mutation:** rename UseQueryStatus to QueryStatus ([ff0067a](https://github.com/posva/pinia-colada/commit/ff0067a39de4cce04e285a041a43c36775cad4ea))
 
-### 0.5.3 (2024-02-21)
+## 0.5.3 (2024-02-21)
 
 ### Bug Fixes
 
 - onScopeDispose guard ([0ed15fe](https://github.com/posva/pinia-colada/commit/0ed15fe45e3d381bde73ef0557ab98ad8871e3ea))
 
-### 0.5.2 (2024-02-20)
+## 0.5.2 (2024-02-20)
 
 ### Bug Fixes
 
 - allow writing to entries ([8e9ac7e](https://github.com/posva/pinia-colada/commit/8e9ac7e35713a40f0160584a5a8bc17c520129b4))
 
-### 0.5.1 (2024-02-19)
+## 0.5.1 (2024-02-19)
 
 ### Features
 
@@ -280,19 +298,19 @@ Their arguments have changed as well.
 - force array of keys to avoid easy mistakes ([7d95da0](https://github.com/posva/pinia-colada/commit/7d95da0cd925836f830a80d3eaeae5ee11c9f8b7))
 - remove internal global defaults ([53ce0bc](https://github.com/posva/pinia-colada/commit/53ce0bcbfcf465d43b60fe6ca2be3b2b2b2c1ce4))
 
-### 0.4.3 (2024-02-11)
+## 0.4.3 (2024-02-11)
 
 ### Features
 
 - add delayLoadingRef ([ebbc503](https://github.com/posva/pinia-colada/commit/ebbc5034321c5274a032eee898503bd97207e276))
 
-### 0.4.2 (2024-02-08)
+## 0.4.2 (2024-02-08)
 
 ### Bug Fixes
 
 - avoid warn onScopeDispose ([47ac1a6](https://github.com/posva/pinia-colada/commit/47ac1a6b9cf051e7d6979f7f83cdce8dc8dbb6de))
 
-### 0.4.1 (2024-02-07)
+## 0.4.1 (2024-02-07)
 
 ## 0.4.0 (2024-02-06)
 
@@ -315,7 +333,7 @@ Their arguments have changed as well.
 - rename data fetching store ([b9ef0fb](https://github.com/posva/pinia-colada/commit/b9ef0fb838135b6fa62fd74ace03d00590826de5))
 - replace class usage ([9bf1fd9](https://github.com/posva/pinia-colada/commit/9bf1fd9295e20a4dc0165deea2e5e55afd5bf2b2))
 
-### 0.3.1 (2024-02-03)
+## 0.3.1 (2024-02-03)
 
 ### Bug Fixes
 
@@ -375,7 +393,7 @@ Their arguments have changed as well.
 
 - rename options ([f6d01c5](https://github.com/posva/pinia-colada/commit/f6d01c5396fb9495e3685f94d7fa24cff81b2da3))
 
-### 0.0.1 (2023-12-20)
+## 0.0.1 (2023-12-20)
 
 ### Features
 
