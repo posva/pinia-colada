@@ -183,6 +183,7 @@ export default defineConfig({
             { text: 'Installation', link: '/guide/installation.html' },
             { text: 'Queries', link: '/guide/queries.html' },
             { text: 'Query Keys', link: '/guide/query-keys.html' },
+            { text: 'Paginated Queries', link: '/guide/paginated-queries.html' },
             { text: 'Mutations', link: '/guide/mutations.html' },
             {
               text: 'Query Invalidation',
