@@ -77,4 +77,12 @@ describe('Query Cache store', () => {
       expect(queryCache.getEntries({ status: 'pending' })).toHaveLength(0)
     })
   })
+
+  it('creates a query entry when setting the data if it does not exist', () => {
+    const queryCache = useQueryCache()
+    queryCache.setQueryData(['a'], 'ok')
+    const [entry] = queryCache.getEntries({ key: ['a'] })
+    expect(entry).toBeDefined()
+    expect(entry.state.value.data).toBe('ok')
+  })
 })

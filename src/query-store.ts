@@ -561,11 +561,20 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       key: EntryKey,
       data: TResult | ((oldData: TResult | undefined) => TResult),
     ) => {
-      const entry = caches.get(key.map(stringifyFlatObject)) as
+        const cacheKey = key.map(stringifyFlatObject)
+      let entry = caches.get(cacheKey) as
         | UseQueryEntry<TResult>
         | undefined
-      // FIXME: it should create the entry if it doesn't exist
-      if (!entry) return
+
+      // if the entry doesn't exist, we create it to set the data
+      // it cannot be refreshed or fetched since the options
+      // will be missing
+      if (!entry) {
+        caches.set(
+          cacheKey,
+          (entry = scope.run(() => createQueryEntry<TResult>(cacheKey))!),
+        )
+      }
 
       setEntryState(entry, {
         // if we don't cast, this is not technically correct
