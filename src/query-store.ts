@@ -217,7 +217,7 @@ export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
     gcTimeout: undefined,
     options: null,
     get stale() {
-      return Date.now() > this.when + this.options!.staleTime
+      return Date.now() >= this.when + this.options!.staleTime
     },
     get active() {
       return this.deps.size > 0

@@ -251,6 +251,18 @@ describe('useQuery', () => {
       expect(wrapper.vm.error).toEqual(null)
       expect(wrapper.vm.data).toBe(42)
     })
+
+    it('always fetches if staleTime is 0', async () => {
+      const { wrapper, query } = mountSimple({ staleTime: 0 })
+
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+
+      wrapper.vm.refresh()
+      await flushPromises()
+
+      expect(query).toHaveBeenCalledTimes(2)
+    })
   })
 
   describe('gcTime', () => {
