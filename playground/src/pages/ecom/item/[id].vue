@@ -39,7 +39,7 @@ const { mutate: bookProduct } = useMutation({
     await delay(Math.random() * 1000 + 200)
     return changeProductAvailability(product, undefined)
   },
-  // NOTE: the optimistic update only works if there are no parallele updates
+  // NOTE: the optimistic update only works if there are no parallel updates
   onMutate: (product) => {
     const context = { previousAvailability: product.availability }
     itemAvailability.value = product.availability - 1
