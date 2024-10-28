@@ -109,13 +109,6 @@ export function useQuery<TResult, TError = ErrorDefault>(
   } satisfies UseQueryOptionsWithDefaults<TResult, TError>
   const { refetchOnMount, refetchOnReconnect, refetchOnWindowFocus, enabled } = options
 
-  // TODO:
-  // allows warning against potentially wrong usage
-  // const keyGetter
-  //   = process.env.NODE_ENV !== 'production'
-  //     ? computedKeyWithWarnings(options.key, store.warnChecksMap!)
-  //     : options.key
-
   // warn against using the same key for different functions
   // this only applies outside of HMR since during HMR, the `useQuery()` will be called
   // when remounting the component and it's essential to update the options.
@@ -267,7 +260,6 @@ export function useQuery<TResult, TError = ErrorDefault>(
   // only happens on client
   // we could also call fetch instead but forcing a refresh is more interesting
   if (hasCurrentInstance) {
-    // TODO: optimize so it doesn't refresh if we are hydrating
     onMounted(() => {
       if (
         (refetchOnMount

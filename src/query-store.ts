@@ -609,13 +609,6 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
 
   return {
     caches,
-    // TODO: figure out if worth or eslint is enough
-    // used to warn the user against wrong usage and redirect them to the docs
-    // to use `defineQuery()` instead
-    // warnChecksMap:
-    //   process.env.NODE_ENV !== 'production'
-    //     ? new WeakMap<object, boolean>()
-    //     : undefined,
 
     ensureDefinedQuery,
     setQueryData,
