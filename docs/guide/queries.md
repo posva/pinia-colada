@@ -264,6 +264,47 @@ const {
 
 :::
 
+## Refetching Queries
+
+You can manually trigger queries using the `refetch()` and `refresh()` methods. Both return a promise, with errors caught to prevent _Uncaught Promise Rejection_ errors when used directly in the template. They both return the `state` object, which contains the `status`, `data`, and `error` properties.
+
+```ts twoslash
+// ---cut-start---
+import { useQuery } from '@pinia/colada'
+import { defineComponent } from 'vue'
+// ---cut-end---
+const {
+  // ...
+  refresh,
+  refetch,
+ } = useQuery({
+  // ...
+  // ---cut-start---
+  key: ['user-info'],
+  query: async () => ({ name: 'John Doe', id: 2 }),
+  // ---cut-end---
+})
+
+refetch().then(({ data, error }) => {
+  if (error) {
+    console.error('Last Error:', error)
+  } else {
+    console.log('Refetched!', data)
+  }
+})
+
+// Pass `true` to throw if the query fails
+refetch(true).catch((error) => {
+  console.error('Error refetching:', error)
+})
+```
+
+### When to use `refetch()` and `refresh()`
+
+In practice, aim to use `refresh()` as much as possible because it will **reuse any loading request** and **avoid unnecessary network calls** based on `staleTime`.
+
+Use `refetch()` when you are certain you need to refetch the data, regardless of the current status. This is useful when you want to force a new request, such as when the user explicitly requests a refresh.
+
 ## Caveat: SSR and `defineQuery()`
 
 While `defineQuery()` looks like a [setup store](https://pinia.vuejs.org/core-concepts/#Setup-Stores) in pinia, it doesn't define a store, **the state returned is not serialized to the page**. This means that you are fully responsible for ensuring consistent values across the server and client for anything that is not returned by `useQuery()`. In short, this means that you cannot have code like this:

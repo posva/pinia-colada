@@ -779,7 +779,20 @@ describe('useQuery', () => {
       expect(query).toBeCalledTimes(1)
     })
 
-    it.todo('can avoid throwing', async () => {
+    it('refetch still resolves on error', async () => {
+      const { wrapper, query } = mountSimple({
+        staleTime: 0,
+      })
+
+      await flushPromises()
+      expect(wrapper.vm.error).toBeNull()
+
+      query.mockRejectedValueOnce(new Error('ko'))
+
+      await expect(wrapper.vm.refetch()).resolves.toBeDefined()
+    })
+
+    it('refresh still resolves on error', async () => {
       const { wrapper, query } = mountSimple({
         staleTime: 0,
       })

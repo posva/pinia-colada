@@ -497,12 +497,11 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
                 data: entry.state.value.data,
                 error,
               })
-              throw error
             }
-            // TODO: would it make more sense to not resolve here?
-            // we could also chain the new request
-            // return entry.pending?.refreshCall
-            return entry.state.value
+
+            // always propagate up the error
+            throw error
+            // NOTE: other options included returning an ongoing request if the error was a cancellation but it seems not worth it
           })
           .finally(() => {
             entry.asyncStatus.value = 'idle'

@@ -78,15 +78,17 @@ export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault> {
 
   /**
    * Ensures the current data is fresh. If the data is stale, refetch, if not return as is.
+   * @param throwOnError - whether to throw an error if the refresh fails. Defaults to `false`
    * @returns a promise that resolves when the refresh is done
    */
-  refresh: () => Promise<DataState<TResult, TError>>
+  refresh: (throwOnError?: boolean) => Promise<DataState<TResult, TError>>
 
   /**
    * Ignores fresh data and triggers a new fetch
+   * @param throwOnError - whether to throw an error if the fetch fails. Defaults to `false`
    * @returns a promise that resolves when the fetch is done
    */
-  refetch: () => Promise<DataState<TResult, TError>>
+  refetch: (throwOnError?: boolean) => Promise<DataState<TResult, TError>>
 }
 
 /**
@@ -155,12 +157,21 @@ export function useQuery<TResult, TError = ErrorDefault>(
 
   // adapter that returns the entry state
   const errorCatcher = () => entry.value.state.value
-  const refresh = () => cacheEntries.refresh(entry.value).catch(errorCatcher)
-  const refetch = () => cacheEntries.fetch(entry.value).catch(errorCatcher)
+  const refresh = (throwOnError?: boolean) =>
+    cacheEntries.refresh(entry.value).catch(
+      // true is not allowed but it works per spec as only callable onRejected are used
+      // https://tc39.es/ecma262/multipage/control-abstraction-objects.html#sec-performpromisethen
+      // In other words `Promise.rejects('ok').catch(true)` still rejects
+      // anything other than `true` falls back to the `errorCatcher`
+      throwOnError as (false | undefined) || errorCatcher,
+    )
+  const refetch = (throwOnError?: boolean) =>
+    cacheEntries.fetch(entry.value).catch(
+      // same as above
+      throwOnError as (false | undefined) || errorCatcher,
+    )
   const isPlaceholderData = computed(
-    () =>
-      entry.value.placeholderData != null
-      && entry.value.state.value.status === 'pending',
+    () => entry.value.placeholderData != null && entry.value.state.value.status === 'pending',
   )
   const state = computed<DataState<TResult, TError>>(() =>
     isPlaceholderData.value

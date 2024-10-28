@@ -25,3 +25,10 @@ Most of the sensible defaults from `@tanstack/vue-query` are kept in `@pinia/col
 - `queryFn` is named `query`
 - `queryKey` is named `key`
 - `mutationFn` is named `mutation`
+
+## API Differences
+
+| TanStack Vue Query Equivalent | Pinia Colada | Comment |
+|---|---|---|
+| `refetch({ cancelRefetch: false })` | `refresh()` | See [Refetching Queries](../guide/queries.md#Refetching-Queries)|
+| `refetch({ throwOnError: true })` | `refetch(true)` | Same for `refresh()` |
