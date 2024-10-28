@@ -522,6 +522,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    */
   const cancel = action((entry: UseQueryEntry, reason?: unknown) => {
     entry.pending?.abortController.abort(reason)
+    // eagerly set the status to idle because the abort signal might not
+    // be consumed by the user's query
+    entry.asyncStatus.value = 'idle'
     entry.pending = null
   })
 
