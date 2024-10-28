@@ -367,6 +367,17 @@ describe('useQuery', () => {
     })
 
     it.todo('works with effectScope too')
+
+    it('keeps the cache forever if gcTime is false', async () => {
+      const { wrapper } = mountSimple({ gcTime: false })
+      const cache = useQueryCache()
+
+      await flushPromises()
+      expect(cache.getQueryData(['key'])).toBe(42)
+      wrapper.unmount()
+      vi.advanceTimersByTime(1000000)
+      expect(cache.getQueryData(['key'])).toBe(42)
+    })
   })
 
   describe('placeholderData', () => {

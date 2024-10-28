@@ -166,9 +166,14 @@ export function queryEntry_removeDep(
   entry.deps.delete(effect)
   if (entry.deps.size > 0 || !entry.options) return
   clearTimeout(entry.gcTimeout)
-  entry.gcTimeout = setTimeout(() => {
-    store.remove(entry)
-  }, entry.options.gcTime)
+  // avoid setting a timeout with false, Infinity or NaN
+  if (
+    (Number.isFinite as (val: unknown) => val is number)(entry.options.gcTime)
+  ) {
+    entry.gcTimeout = setTimeout(() => {
+      store.remove(entry)
+    }, entry.options.gcTime)
+  }
 }
 
 /**

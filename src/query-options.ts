@@ -73,12 +73,11 @@ export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
   staleTime?: number
 
   /**
-   * Time in ms after which, once the data is no longer being used, it will be garbage collected to free resources.
+   * Time in ms after which, once the data is no longer being used, it will be garbage collected to free resources. Set to `false` to disable garbage collection.
    * @default 300000 (5 minutes)
    */
-  gcTime?: number
+  gcTime?: number | false
 
-  // TODO: this might be just sugar syntax to do `setQueryData()` on creation
   /**
    * The data which is initially set to the query while the query is loading for the first time.
    * Note: unlike with `placeholderData`, setting the initial data changes the state of the query (it will be set to `success`).
@@ -127,7 +126,7 @@ export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
  */
 export const USE_QUERY_DEFAULTS = {
   staleTime: 1000 * 5, // 5 seconds
-  gcTime: 1000 * 60 * 5, // 5 minutes
+  gcTime: 1000 * 60 * 5 as NonNullable<UseQueryOptions['gcTime']>, // 5 minutes
   // avoid type narrowing to `true`
   refetchOnWindowFocus: true as _RefetchOnControl,
   refetchOnReconnect: true as _RefetchOnControl,
