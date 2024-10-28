@@ -800,7 +800,6 @@ describe('useQuery', () => {
       expect(wrapper.vm.error).toBeNull()
 
       query.mockRejectedValueOnce(new Error('ko'))
-
       await expect(wrapper.vm.refetch()).resolves.toBeDefined()
     })
 
@@ -813,8 +812,26 @@ describe('useQuery', () => {
       expect(wrapper.vm.error).toBeNull()
 
       query.mockRejectedValueOnce(new Error('ko'))
+      await expect(wrapper.vm.refresh()).resolves.toBeDefined()
+    })
 
-      await expect(wrapper.vm.refetch()).resolves.toBeUndefined()
+    it('aborts the previous query when refreshing', async () => {
+      let signal: AbortSignal | undefined
+      const query = vi.fn(async (opts: { signal: AbortSignal }) => {
+        signal ??= opts.signal
+        // await delay(10)
+        return 'ok'
+      })
+      const { wrapper } = mountSimple({ query })
+      expect(signal).toBeDefined()
+      expect(signal?.aborted).toBe(false)
+
+      wrapper.vm.refetch()
+
+      expect(signal?.aborted).toBe(true)
+
+      await flushPromises()
+      expect(wrapper.vm.data).toBe('ok')
     })
   })
 
