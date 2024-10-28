@@ -289,7 +289,7 @@ refetch().then(({ data, error }) => {
   if (error) {
     console.error('Last Error:', error)
   } else {
-    console.log('Refetched!', data)
+    console.log('Fetched data:', data)
   }
 })
 
