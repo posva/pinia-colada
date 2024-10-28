@@ -228,6 +228,10 @@ async function main() {
       step(` -> ${pkg.name} (${pkg.path})`)
       const changelogExists = existsSync(join(pkg.path, 'CHANGELOG.md'))
 
+      if (!changelogExists) {
+        console.log(chalk.yellow(`No CHANGELOG.md found in ${pkg.name}`))
+      }
+
       await runIfNotDry(
         `pnpm`,
         [
