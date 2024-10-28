@@ -37,12 +37,12 @@
   "devDependencies": {
     "@nuxt/devtools": "^1.6.0",
     "@nuxt/eslint-config": "^0.6.0",
-    "@nuxt/module-builder": "^0.8.3",
+    "@nuxt/module-builder": "^0.8.4",
     "@nuxt/schema": "^3.13.2",
     "@nuxt/test-utils": "^3.14.4",
     "@pinia/colada": "workspace:*",
     "@pinia/nuxt": "^0.5.5",
     "nuxt": "^3.13.2",
-    "vue-tsc": "^2.1.6"
+    "vue-tsc": "^2.1.8"
   }
 }
