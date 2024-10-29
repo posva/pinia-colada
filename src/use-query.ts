@@ -100,11 +100,11 @@ export function useQuery<TResult, TError = ErrorDefault>(
   _options: UseQueryOptions<TResult, TError>,
 ): UseQueryReturn<TResult, TError> {
   const cacheEntries = useQueryCache()
-  const USE_QUERY_DEFAULTS = useQueryOptions()
+  const optionDefaults = useQueryOptions()
   // const effect = (getActivePinia() as any)._e as EffectScope
 
   const options = {
-    ...USE_QUERY_DEFAULTS,
+    ...optionDefaults,
     ..._options,
   } satisfies UseQueryOptionsWithDefaults<TResult, TError>
   const { refetchOnMount, refetchOnReconnect, refetchOnWindowFocus, enabled } = options

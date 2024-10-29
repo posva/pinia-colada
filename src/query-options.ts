@@ -126,7 +126,7 @@ export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
  */
 export const USE_QUERY_DEFAULTS = {
   staleTime: 1000 * 5, // 5 seconds
-  gcTime: 1000 * 60 * 5 as NonNullable<UseQueryOptions['gcTime']>, // 5 minutes
+  gcTime: (1000 * 60 * 5) as NonNullable<UseQueryOptions['gcTime']>, // 5 minutes
   // avoid type narrowing to `true`
   refetchOnWindowFocus: true as _RefetchOnControl,
   refetchOnReconnect: true as _RefetchOnControl,
@@ -136,23 +136,21 @@ export const USE_QUERY_DEFAULTS = {
   transformError: (error: unknown) => error as any,
 } satisfies Partial<UseQueryOptions>
 
-export type UseQueryOptionsWithDefaults<
-  TResult = unknown,
-  TError = ErrorDefault,
-> = UseQueryOptions<TResult, TError> & typeof USE_QUERY_DEFAULTS
+export type UseQueryOptionsWithDefaults<TResult = unknown, TError = ErrorDefault> = UseQueryOptions<TResult, TError> &
+  typeof USE_QUERY_DEFAULTS
 
-export const USE_QUERY_OPTIONS_KEY: InjectionKey<
-  typeof USE_QUERY_DEFAULTS &
-    Omit<
-      UseQueryOptions,
-      'key' | 'query' | 'initialData' | 'placeholderData'
-    > & {
-      setup?: PiniaColadaOptions['setup']
-    }
-> = process.env.NODE_ENV !== 'production' ? Symbol('useQueryOptions') : Symbol()
+/**
+ * Global default options for `useQuery()`.
+ * @internal
+ */
+export type UseQueryOptionsGlobalDefaults = typeof USE_QUERY_DEFAULTS &
+  Omit<UseQueryOptions, 'key' | 'query' | 'initialData' | 'placeholderData'> & { setup?: PiniaColadaOptions['setup'] }
+
+export const USE_QUERY_OPTIONS_KEY: InjectionKey<UseQueryOptionsGlobalDefaults>
+  = process.env.NODE_ENV !== 'production' ? Symbol('useQueryOptions') : Symbol()
 
 /**
  * Injects the global query options.
  * @internal
  */
-export const useQueryOptions = () => inject(USE_QUERY_OPTIONS_KEY)!
+export const useQueryOptions = (): UseQueryOptionsGlobalDefaults => inject(USE_QUERY_OPTIONS_KEY, USE_QUERY_DEFAULTS)
