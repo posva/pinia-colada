@@ -33,7 +33,6 @@ watch(
 
 const { mutate: bookProduct } = useMutation({
   key: (product) => ['book-item', product.id],
-  // TODO: migrate to onSettled
   // invalidateKeys: (product) => [['items'], ['items', product.id]],
   mutation: async (product: ProductListItem) => {
     await delay(Math.random() * 1000 + 200)
@@ -49,11 +48,9 @@ const { mutate: bookProduct } = useMutation({
     itemAvailability.value = item.value?.availability
   },
   onSuccess(data) {
-    // TODO: find a better usecase
     console.log('Success hook called', data)
   },
   onSettled() {
-    // TODO: find a better usecase
     console.log('Settled hook called')
   },
   // onMutate: async () => {
@@ -77,8 +74,6 @@ const { mutate: bookProduct } = useMutation({
   //   queryClient.invalidateQueries(itemsQuery)
   // }
 })
-
-// TODO: loader
 </script>
 
 <template>

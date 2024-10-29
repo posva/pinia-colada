@@ -34,7 +34,16 @@ app.use(PiniaColadaRetry, {
 You can customize the retry behavior individually for each query/mutation with the `retry` option:
 
 ```ts
-// TODO:
+useQuery({
+  key: ['todos'],
+  query: getTodos,
+  retry: {
+    // Number of retries, can also be a function
+    retry: 3,
+    // Delay between retries, can also be a function
+    delay: 1000,
+  },
+})
 ```
 
 ## License
