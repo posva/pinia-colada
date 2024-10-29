@@ -146,35 +146,6 @@ export interface UseQueryEntryFilter {
   predicate?: (entry: UseQueryEntry) => boolean
 }
 
-export function queryEntry_addDep(
-  entry: UseQueryEntry,
-  effect: EffectScope | ComponentInternalInstance | null | undefined,
-) {
-  if (!effect) return
-  entry.deps.add(effect)
-  clearTimeout(entry.gcTimeout)
-}
-
-export function queryEntry_removeDep(
-  entry: UseQueryEntry,
-  effect: EffectScope | ComponentInternalInstance | undefined | null,
-  store: ReturnType<typeof useQueryCache>,
-) {
-  if (!effect) return
-
-  entry.deps.delete(effect)
-  if (entry.deps.size > 0 || !entry.options) return
-  clearTimeout(entry.gcTimeout)
-  // avoid setting a timeout with false, Infinity or NaN
-  if (
-    (Number.isFinite as (val: unknown) => val is number)(entry.options.gcTime)
-  ) {
-    entry.gcTimeout = setTimeout(() => {
-      store.remove(entry)
-    }, entry.options.gcTime)
-  }
-}
-
 /**
  * Creates a new query entry.
  *
@@ -296,7 +267,6 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       // if the entry already exists, we know the queries inside
       // we should consider as if they are activated again
       for (const queryEntry of defineQueryEntry[0]) {
-        // TODO: should this be part of an `activate` action?
         if (queryEntry.options?.refetchOnMount) {
           if (queryEntry.options.refetchOnMount === 'always') {
             fetch(queryEntry)
@@ -310,6 +280,30 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
 
     return defineQueryEntry
   })
+
+  function track(entry: UseQueryEntry, effect: EffectScope | ComponentInternalInstance | null | undefined) {
+    if (!effect) return
+    entry.deps.add(effect)
+    clearTimeout(entry.gcTimeout)
+  }
+
+  function untrack(
+    entry: UseQueryEntry,
+    effect: EffectScope | ComponentInternalInstance | undefined | null,
+    store: ReturnType<typeof useQueryCache>,
+  ) {
+    if (!effect) return
+
+    entry.deps.delete(effect)
+    if (entry.deps.size > 0 || !entry.options) return
+    clearTimeout(entry.gcTimeout)
+    // avoid setting a timeout with false, Infinity or NaN
+    if ((Number.isFinite as (val: unknown) => val is number)(entry.options.gcTime)) {
+      entry.gcTimeout = setTimeout(() => {
+        store.remove(entry)
+      }, entry.options.gcTime)
+    }
+  }
 
   /**
    * Invalidates and refetches (in parallel) all active queries in the cache that match the filters.
@@ -604,9 +598,6 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   // TODO: find a way to make it possible to prefetch. Right now we need the actual options of the query
   const _preload = action((_useQueryFn: ReturnType<typeof defineQuery>) => {})
 
-  // TODO: implement
-  // activate? untrack? these actions should help plugins to augment pinia colada
-
   return {
     caches,
 
@@ -622,6 +613,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     fetch,
     refresh,
     ensure,
+    track,
+    untrack,
     cancel,
     remove,
     setEntryState,

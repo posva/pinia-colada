@@ -12,11 +12,7 @@ import {
 } from 'vue'
 import { IS_CLIENT, toValueWithArgs, useEventListener } from './utils'
 import type { UseQueryEntry } from './query-store'
-import {
-  queryEntry_addDep,
-  queryEntry_removeDep,
-  useQueryCache,
-} from './query-store'
+import { useQueryCache } from './query-store'
 import { useQueryOptions } from './query-options'
 import type {
   UseQueryOptions,
@@ -99,7 +95,7 @@ export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault> {
 export function useQuery<TResult, TError = ErrorDefault>(
   _options: UseQueryOptions<TResult, TError>,
 ): UseQueryReturn<TResult, TError> {
-  const cacheEntries = useQueryCache()
+  const queryCache = useQueryCache()
   const optionDefaults = useQueryOptions()
   // const effect = (getActivePinia() as any)._e as EffectScope
 
@@ -116,7 +112,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
   if (process.env.NODE_ENV !== 'production') {
     const currentInstance = getCurrentInstance()
     if (currentInstance) {
-      const entry: UseQueryEntry | undefined = cacheEntries.getEntries({
+      const entry: UseQueryEntry | undefined = queryCache.getEntries({
         exact: true,
         key: toValue(options.key),
       })[0]
@@ -146,12 +142,12 @@ export function useQuery<TResult, TError = ErrorDefault>(
     }
   }
 
-  const entry = computed(() => cacheEntries.ensure<TResult, TError>(options))
+  const entry = computed(() => queryCache.ensure<TResult, TError>(options))
 
   // adapter that returns the entry state
   const errorCatcher = () => entry.value.state.value
   const refresh = (throwOnError?: boolean) =>
-    cacheEntries.refresh(entry.value).catch(
+    queryCache.refresh(entry.value).catch(
       // true is not allowed but it works per spec as only callable onRejected are used
       // https://tc39.es/ecma262/multipage/control-abstraction-objects.html#sec-performpromisethen
       // In other words `Promise.rejects('ok').catch(true)` still rejects
@@ -159,7 +155,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
       throwOnError as (false | undefined) || errorCatcher,
     )
   const refetch = (throwOnError?: boolean) =>
-    cacheEntries.fetch(entry.value).catch(
+    queryCache.fetch(entry.value).catch(
       // same as above
       throwOnError as (false | undefined) || errorCatcher,
     )
@@ -208,18 +204,18 @@ export function useQuery<TResult, TError = ErrorDefault>(
   if (hasCurrentInstance) {
     onMounted(() => {
       isActive = true
-      queryEntry_addDep(entry.value, hasCurrentInstance)
+      queryCache.track(entry.value, hasCurrentInstance)
     })
     onUnmounted(() => {
       // remove instance from Set of refs
-      queryEntry_removeDep(entry.value, hasCurrentInstance, cacheEntries)
+      queryCache.untrack(entry.value, hasCurrentInstance, queryCache)
     })
   } else {
     isActive = true
     if (currentEffect) {
-      queryEntry_addDep(entry.value, currentEffect)
+      queryCache.track(entry.value, currentEffect)
       onScopeDispose(() => {
-        queryEntry_removeDep(entry.value, currentEffect, cacheEntries)
+        queryCache.untrack(entry.value, currentEffect, queryCache)
       })
     }
   }
@@ -237,12 +233,12 @@ export function useQuery<TResult, TError = ErrorDefault>(
       }
       if (!isActive) return
       if (previousEntry) {
-        queryEntry_removeDep(previousEntry, hasCurrentInstance, cacheEntries)
-        queryEntry_removeDep(previousEntry, currentEffect, cacheEntries)
+        queryCache.untrack(previousEntry, hasCurrentInstance, queryCache)
+        queryCache.untrack(previousEntry, currentEffect, queryCache)
       }
       // track the current effect and component
-      queryEntry_addDep(entry, hasCurrentInstance)
-      queryEntry_addDep(entry, currentEffect)
+      queryCache.track(entry, hasCurrentInstance)
+      queryCache.track(entry, currentEffect)
 
       if (toValue(enabled)) refresh()
     },

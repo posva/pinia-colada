@@ -5,11 +5,7 @@ import {
   onScopeDispose,
 } from 'vue'
 import type { UseQueryOptions } from './query-options'
-import {
-  queryEntry_addDep,
-  queryEntry_removeDep,
-  useQueryCache,
-} from './query-store'
+import { useQueryCache } from './query-store'
 import type { ErrorDefault } from './types-extension'
 import type { UseQueryReturn } from './use-query'
 import { useQuery } from './use-query'
@@ -77,18 +73,18 @@ export function defineQuery(
       : () => useQuery(optionsOrSetup)
 
   return () => {
-    const store = useQueryCache()
+    const queryCache = useQueryCache()
     // preserve any current effect to account for nested usage of these functions
     const previousEffect = currentDefineQueryEffect
     const currentScope
       = getCurrentInstance() || (currentDefineQueryEffect = getCurrentScope())
 
-    const [entries, ret] = store.ensureDefinedQuery(setupFn)
+    const [entries, ret] = queryCache.ensureDefinedQuery(setupFn)
     // NOTE: most of the time this should be set, so maybe we should show a dev warning
     // if it's not set instead
     if (currentScope) {
       entries.forEach((entry) => {
-        queryEntry_addDep(entry, currentScope)
+        queryCache.track(entry, currentScope)
         if (process.env.NODE_ENV !== 'production') {
           entry.__hmr ??= {}
           entry.__hmr.skip = true
@@ -96,7 +92,7 @@ export function defineQuery(
       })
       onScopeDispose(() => {
         entries.forEach((entry) => {
-          queryEntry_removeDep(entry, currentScope, store)
+          queryCache.untrack(entry, currentScope, queryCache)
         })
       })
     }
