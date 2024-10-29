@@ -114,11 +114,23 @@ export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
    */
   transformError?: (error: unknown) => TError
 
-  // TODO: allow refs or a getter with the query
+  /**
+   * Whether to refetch the query when the component is mounted.
+   * @default true
+   */
+  refetchOnMount?: MaybeRefOrGetter<_RefetchOnControl>
 
-  refetchOnMount?: _RefetchOnControl
-  refetchOnWindowFocus?: _RefetchOnControl
-  refetchOnReconnect?: _RefetchOnControl
+  /**
+   * Whether to refetch the query when the window regains focus.
+   * @default true
+   */
+  refetchOnWindowFocus?: MaybeRefOrGetter<_RefetchOnControl>
+
+  /**
+   * Whether to refetch the query when the network reconnects.
+   * @default true
+   */
+  refetchOnReconnect?: MaybeRefOrGetter<_RefetchOnControl>
 }
 
 /**
@@ -128,9 +140,9 @@ export const USE_QUERY_DEFAULTS = {
   staleTime: 1000 * 5, // 5 seconds
   gcTime: (1000 * 60 * 5) as NonNullable<UseQueryOptions['gcTime']>, // 5 minutes
   // avoid type narrowing to `true`
-  refetchOnWindowFocus: true as _RefetchOnControl,
-  refetchOnReconnect: true as _RefetchOnControl,
-  refetchOnMount: true as _RefetchOnControl,
+  refetchOnWindowFocus: true as NonNullable<UseQueryOptions['refetchOnWindowFocus']>,
+  refetchOnReconnect: true as NonNullable<UseQueryOptions['refetchOnReconnect']>,
+  refetchOnMount: true as NonNullable<UseQueryOptions['refetchOnMount']>,
   enabled: true as MaybeRefOrGetter<boolean>,
   // as any to simplify the typing with generics
   transformError: (error: unknown) => error as any,

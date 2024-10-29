@@ -268,7 +268,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       // we should consider as if they are activated again
       for (const queryEntry of defineQueryEntry[0]) {
         if (queryEntry.options?.refetchOnMount) {
-          if (queryEntry.options.refetchOnMount === 'always') {
+          if (toValue(queryEntry.options.refetchOnMount) === 'always') {
             fetch(queryEntry)
           } else {
             // console.log('refreshing')

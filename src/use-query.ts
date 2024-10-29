@@ -280,7 +280,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
           document.visibilityState === 'visible'
           && toValue(enabled)
         ) {
-          if (refetchOnWindowFocus === 'always') {
+          if (toValue(refetchOnWindowFocus) === 'always') {
             refetch()
           } else {
             refresh()
@@ -292,7 +292,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
     if (refetchOnReconnect) {
       useEventListener(window, 'online', () => {
         if (toValue(enabled)) {
-          if (refetchOnReconnect === 'always') {
+          if (toValue(refetchOnReconnect) === 'always') {
             refetch()
           } else {
             refresh()
