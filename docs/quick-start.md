@@ -14,7 +14,7 @@ npm i @pinia/colada
 
 ## Setup
 
-Install the `PiniaColada` plugin **after Pinia** (so it picks it up automatically ✨):
+Install the `PiniaColada` plugin **after Pinia** (so it picks it up automatically ✨). This allows you to provide global options for your queries as well as plugins:
 
 ```ts twoslash
 import { createApp } from 'vue'
