@@ -48,6 +48,23 @@ const { mutate } = useMutation({
 </script>
 ```
 
+### To `await` or not to `await`
+
+In mutations, it's possible to `await` within the different hooks. This will effectively delay the resolution or rejection of the mutation and its `asyncStatus`:
+
+```ts
+const queryCache = useQueryCache()
+
+const { mutate } = useMutation({
+  mutation: (text: string) => createTodo(text),
+  onSettled: async () =>
+    // The mutation will resolve/reject after the related queries have been fetched again
+    await queryCache.invalidateQueries({ key: ['todos'], exact: true }),
+})
+```
+
+This allows you to display a loading state until the queries are refetched.
+
 ### Optimistic Updates
 
 You can also combine query invalidation with optimistic updates like this:
