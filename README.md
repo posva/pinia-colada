@@ -19,28 +19,34 @@
 
 > The missing data fetching library for [Pinia](https://pinia.vuejs.org)
 
-This is a more complete and production-ready (not yet!) version of the exercises from [Mastering Pinia](https://masteringpinia.com/).
+Pinia Colada makes data fetching in Vue applications a breeze. It's built on top of [Pinia](https://pinia.vuejs.org) and takes away all of the complexity and boilerplate that comes with fetching data. It's fully typed and tree-shakeable, and it's built with the same principles as Pinia and Vue: It's approachable, flexible, powerful and can be progressively adopted.
 
-<a href="https://masteringpinia.com/?utm=pinia-colada-readme">
-  <img src="https://github.com/posva/pinia-colada/assets/664177/2f7081a5-90fe-467a-b021-7e709f71603e" width="320" alt="Mastering Pinia banner">
-</a>
+> [!TIP]
+> This is a feature-complete version of the exercises from [Mastering Pinia](https://masteringpinia.com/?utm=pinia-colada-readme). If you would like to learn how it started and become an expert in Vue state management, check it out!
+>
+> <a href="https://masteringpinia.com/?utm=pinia-colada-readme">
+> <img src="https://github.com/posva/pinia-colada/assets/664177/2f7081a5-90fe-467a-b021-7e709f71603e" width="200" alt="Mastering Pinia banner">
+> </a>
 
-> [!NOTE]
-> Pinia Colada is in active development not ready for production. New versions might introduce breaking changes.
-> Feedback regarding new and existing options and features is welcome!
-> Documentation is a work in progress and **contributions are welcome**.
-
-Pinia Colada is an opinionated yet flexible data fetching layer on top of Pinia. It's built as a set of **pinia plugins**, **stores** and **composables** to benefit from Pinia's features and ecosystem. Pinia Colada has:
+## Features
 
 - ⚡️ **Automatic caching**: Smart client-side caching with request deduplication
 - 🗄️ **Async State**: Handle any async state
+- 🔌 **Plugins**: Powerful plugin system
+- ✨ **Optimistic Updates**: Optimistic updates with ease
+- 💡 **Sensible defaults**: Sane defaults with full customization
+- 🧩 **Out-of-the box plugins**: A set of composable functions to handle data fetching
 - 📚 **Typescript Support**: Fully typed with Typescript
   <!-- - 📡 **Network Status**: Handle network status and offline support -->
   <!-- - 🛠 **Devtools**: Integration with the Vue devtools -->
-- 💨 **Bundle Size**: Small bundle size (<2kb) and fully tree-shakeable
+- 💨 **Small Bundle Size**: A baseline of ~2kb and fully tree-shakeable
 - 📦 **Zero Dependencies**: No dependencies other than Pinia
-- ⚙️ **SSR**: Server-side rendering support
-- 🔌 **Plugins**: Powerful plugin system
+- ⚙️ **SSR**: Out of the box server-side rendering support
+
+> [!NOTE]
+> Pinia Colada is always trying to improve and evolve.
+> Feedback regarding new and existing options and features is very welcome!
+> Contribution to documentation, issues, and pull requests are highly appreciated.
 
 ## Installation
 
@@ -50,7 +56,7 @@ npm install pinia @pinia/colada
 
 Install the plugins for the features you need:
 
-```js
+```ts
 import { createPinia } from 'pinia'
 import { PiniaColada } from '@pinia/colada'
 
@@ -63,32 +69,39 @@ app.use(PiniaColada, {
 
 ## Usage
 
+The core of Pinia Colada is the `useQuery` and `useMutation` functions. They are used to read data and write it respectively. Here's a simple example:
+
 ```vue
 <script lang="ts" setup>
 import { useRoute } from 'vue-router'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
-import { updateContact as _updateContact, getContactById } from '~/api/contacts'
+import { patchContact, getContactById } from '~/api/contacts'
 
 const route = useRoute()
-const caches = useQueryCache()
+const queryCache = useQueryCache()
 
-const { data: contact, isLoading } = useQuery({
-  // recognizes this query as ['contacts', id]
+const { data: contact, isPending } = useQuery({
+  // unique key for the query in the cache
   key: () => ['contacts', route.params.id],
   query: () => getContactById(route.params.id),
 })
 
-const { mutate: updateContact } = useMutation({
-  mutation: _updateContact,
-  onSettled({ id }) {
-    caches.invalidateQueries({ key: ['contacts', id], exact: true })
+const { mutate: updateContact, isLoading } = useMutation({
+  mutation: patchContact,
+  async onSettled({ id }) {
+    // invalidate the query to refetch the data of the query above
+    await queryCache.invalidateQueries({ key: ['contacts', id], exact: true })
   },
 })
 </script>
 
 <template>
   <section>
+    <p v-if="isPending">
+      Loading...
+    </p>
     <ContactCard
+      v-else
       :key="contact.id"
       :contact="contact"
       :is-updating="isLoading"
@@ -97,6 +110,8 @@ const { mutate: updateContact } = useMutation({
   </section>
 </template>
 ```
+
+Learn more about the core concepts and how to use them in the [documentation](https://pinia-colada.esm.dev).
 
 ## License
 
