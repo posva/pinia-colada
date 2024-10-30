@@ -68,9 +68,21 @@ export interface UseQueryEntry<TResult = unknown, TError = unknown> {
    */
   gcTimeout: ReturnType<typeof setTimeout> | undefined
 
+  /**
+   * The current pending request.
+   */
   pending: null | {
+    /**
+     * The abort controller used to cancel the request and which `signal` is passed to the query function.
+     */
     abortController: AbortController
+    /**
+     * The promise created by `queryCache.fetch` that is currently pending.
+     */
     refreshCall: Promise<DataState<TResult, TError>>
+    /**
+     * When was this `pending` object created.
+     */
     when: number
   }
 
@@ -125,7 +137,7 @@ export interface UseQueryEntryFilter {
   exact?: boolean
 
   /**
-   * If true or false, it will only return entries that match the stale status.
+   * If true or false, it will only return entries that match the stale status. Requires `entry.options` to be set.
    */
   stale?: boolean
 
