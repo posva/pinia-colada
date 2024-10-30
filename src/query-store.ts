@@ -160,6 +160,7 @@ export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
   initialData?: TResult,
   error: TError | null = null,
   when: number = 0, // stale by default
+  options: UseQueryOptionsWithDefaults<TResult, TError> | null = null,
 ): UseQueryEntry<TResult, TError> {
   const state = shallowRef<DataState<TResult, TError>>(
     // @ts-expect-error: to make the code shorter we are using one declaration instead of multiple ternaries
@@ -186,7 +187,7 @@ export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
     // and create weird warnings
     deps: markRaw(new Set()),
     gcTimeout: undefined,
-    options: null,
+    options,
     get stale() {
       return Date.now() >= this.when + this.options!.staleTime
     },
@@ -247,6 +248,18 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
 
   // this allows use to attach reactive effects to the scope later on
   const scope = getCurrentScope()!
+
+  const create = action(
+    <TResult, TError>(
+      key: EntryNodeKey[],
+      initialData?: TResult,
+      options: UseQueryOptionsWithDefaults<TResult, TError> | null = null,
+      error: TError | null = null,
+      when: number = 0,
+    ): UseQueryEntry<TResult, TError> =>
+      scope.run(() => createQueryEntry(key, initialData, error, when, options))!
+    ,
+  )
 
   // keep track of the entry being defined so we can add the queries in ensure
   // this allows us to refresh the entry when a defined query is used again
@@ -376,9 +389,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       if (!entry) {
         cachesRaw.set(
           key,
-          (entry = scope.run(() =>
-            createQueryEntry(key, options.initialData?.()),
-          )!),
+          entry = create(key, options.initialData?.(), options),
         )
       }
 
@@ -570,7 +581,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       if (!entry) {
         caches.set(
           cacheKey,
-          (entry = scope.run(() => createQueryEntry<TResult>(cacheKey))!),
+          (entry = create<TResult, any>(cacheKey)),
         )
       }
 
@@ -620,6 +631,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     track,
     untrack,
     cancel,
+    create,
     remove,
     setEntryState,
     getEntries,

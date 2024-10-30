@@ -242,6 +242,12 @@ importers:
         specifier: workspace:^
         version: link:../..
 
+  plugins/delay:
+    devDependencies:
+      '@pinia/colada':
+        specifier: workspace:^
+        version: link:../..
+
   plugins/retry:
     devDependencies:
       '@pinia/colada':
