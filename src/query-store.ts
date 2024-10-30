@@ -235,6 +235,10 @@ export const QUERY_STORE_ID = '_pc_query'
  */
 type DefineQueryEntry = [entries: UseQueryEntry[], returnValue: unknown]
 
+/**
+ * Composable to get the cache of the queries. As any other composable, it can be used inside the `setup` function of a
+ * component, within another composable, or in injectable contexts like stores and navigation guards.
+ */
 export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ action }) => {
   // We have two versions of the cache, one that track changes and another that doesn't so the actions can be used
   // inside computed properties
