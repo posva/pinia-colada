@@ -8,13 +8,13 @@
  * export {}
  * declare module '@pinia/colada' {
  *   interface TypesConfig {
- *     Error: MyCustomError
+ *     defaultError: MyCustomError
  *   }
  * }
  * ```
  */
 export interface TypesConfig {
-  // Error:
+  // defaultError:
 }
 
 /**
@@ -22,6 +22,6 @@ export interface TypesConfig {
  * @internal
  */
 export type ErrorDefault =
-  TypesConfig extends Record<'Error', infer E> ? E : Error
+  TypesConfig extends Record<'defaultError', infer E> ? E : Error
 
 // TODO: meta to add properties?

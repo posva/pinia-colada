@@ -179,6 +179,6 @@ class UnexpectedError extends Error {
 
 declare module './types-extension' {
   interface TypesConfig {
-    Error: { custom: Error }
+    defaultError: { custom: Error }
   }
 }
