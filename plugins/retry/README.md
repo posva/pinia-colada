@@ -21,7 +21,7 @@ npm install @pinia/colada-plugin-retry
 import { PiniaColadaRetry } from '@pinia/colada-plugin-retry'
 
 // Pass the plugin to Pinia Colada options
-app.use(PiniaColadaRetry, {
+app.use(PiniaColada, {
   // ...
   plugins: [
     PiniaColadaRetry({
