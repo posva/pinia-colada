@@ -24,6 +24,9 @@ export default defineConfig({
       '@pinia/colada-plugin-debug': fileURLToPath(
         new URL('../plugins/debug/src/index.ts', import.meta.url),
       ),
+      '@pinia/colada-plugin-delay': fileURLToPath(
+        new URL('../plugins/delay/src/index.ts', import.meta.url),
+      ),
     },
   },
 })

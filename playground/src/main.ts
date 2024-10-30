@@ -9,6 +9,7 @@ import { PiniaColadaRetry } from '@pinia/colada-plugin-retry'
 
 import App from './App.vue'
 import { PiniaColadaDebugPlugin } from '@pinia/colada-plugin-debug'
+import { PiniaColadaDelay } from '@pinia/colada-plugin-delay'
 
 const app = createApp(App)
 const router = createRouter({
@@ -19,6 +20,7 @@ const router = createRouter({
 app.use(createPinia())
 app.use(PiniaColada, {
   plugins: [
+    PiniaColadaDelay(),
     PiniaColadaDebugPlugin(),
     PiniaColadaRetry(),
     PiniaColadaQueryHooksPlugin({
