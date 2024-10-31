@@ -5,26 +5,16 @@ import { PiniaColada } from './pinia-colada'
 declare const app: App
 
 describe('PiniaColada types', () => {
-  it('disallows "setup" to return a promise', () => {
-    app.use(PiniaColada, {
-      // @ts-expect-error: async await
-      async setup(a) {
-        return a
-      },
-    })
+  it('works', () => {
+    app.use(PiniaColada)
+    app.use(PiniaColada, {})
+  })
 
+  it('allows global types', () => {
     app.use(PiniaColada, {
-      // @ts-expect-error: explicit promise
-      setup(a) {
-        return Promise.resolve(a)
-      },
-    })
-
-    app.use(PiniaColada, {
-      setup(queryReturn) {
-        // works!
-        return queryReturn
-      },
+      enabled: true,
+      refetchOnMount: true,
+      refetchOnReconnect: true,
     })
   })
 })

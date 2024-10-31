@@ -63,8 +63,9 @@ describe('SSR', () => {
     }
   }
 
-  it('works', async () => {
-    const spy = vi.fn()
+  it('propagates query errors', async () => {
+    // return falso to stop the error from propagating
+    const spy = vi.fn(() => false)
     const { app, query } = renderApp({
       appSetup() {
         onErrorCaptured(spy)

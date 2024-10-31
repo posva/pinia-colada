@@ -1,4 +1,4 @@
-import type { ComputedRef, ShallowRef } from 'vue'
+import type { ComputedRef, Ref, ShallowRef } from 'vue'
 import {
   computed,
   getCurrentInstance,
@@ -175,15 +175,15 @@ export function useQuery<TResult, TError = ErrorDefault>(
   )
 
   // TODO: find a way to allow a custom implementation for the returned value
-  const extensions = {} as UseQueryEntryExtensions<TResult, TError>
+  const extensions = {} as Record<string, any>
   for (const key in entry.value.ext) {
-    extensions[key as keyof UseQueryEntryExtensions<TResult, TError>] = computed({
+    extensions[key] = computed({
       get: () =>
       toValue(entry.value.ext[key as keyof UseQueryEntryExtensions<TResult, TError>]),
       set(value) {
         const target = entry.value.ext[key as keyof UseQueryEntryExtensions<TResult, TError>]
         if (isRef(target)) {
-          entry.value.ext[key as keyof UseQueryEntryExtensions<TResult, TError>].value = value
+          (target as Ref).value = value
         } else {
           (entry.value.ext[key as keyof UseQueryEntryExtensions<TResult, TError>] as unknown) = value
         }
@@ -192,7 +192,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
   }
 
   const queryReturn = {
-    ...extensions,
+    ...(extensions as UseQueryEntryExtensions<TResult, TError>),
     state,
 
     status: computed(() => state.value.status),
