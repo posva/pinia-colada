@@ -43,6 +43,8 @@ export {
   serializeTreeMap,
   useQueryCache,
   type UseQueryEntry,
+  type UseQueryEntryExtensions,
+  type UseQueryEntryFilter,
 } from './query-store'
 
 export { type EntryNodeKey, TreeMapNode } from './tree-map'
