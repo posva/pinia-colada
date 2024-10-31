@@ -49,8 +49,6 @@ export { type EntryNodeKey, TreeMapNode } from './tree-map'
 
 export { type _Awaitable, type _EmptyObject, type _MaybeArray } from './utils'
 
-export { delayLoadingRef } from './delay-loading'
-
 export type { TypesConfig } from './types-extension'
 
 export type { PiniaColadaPlugin, PiniaColadaPluginContext } from './plugins'
