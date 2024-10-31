@@ -194,7 +194,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
   if (hasCurrentInstance) {
     // only happens on server, app awaits this
     onServerPrefetch(async () => {
-      if (toValue(enabled)) await refresh()
+      if (toValue(enabled)) await refresh(true)
     })
   }
 
