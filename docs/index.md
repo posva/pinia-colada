@@ -24,23 +24,27 @@ hero:
 
 features:
   - title: ⚡️ Automatic caching
-    details: Smart and configurable client-side caching with automatic cache invalidation and request deduplication.
-  - title: ♾️ Flexible
-    details: Works with any asynchronous state. Data fetching, websockets, Web APIs, etc
-  - title: 🔑 Type Safe
-    details: Designed with TypeScript in mind for an effortless and type-safe experience.
-  - title: 🍍 Extensible
-    details: Being built on top of Pinia, it leverages its store pattern and plugins like Devtools!
-  - title: 📦 Extremely light
-    details: With zero dependencies and under 2kb min+gzip, your bundle won't even notice it's there. It is also tree-shakable!
-  - title: ⚙️ SSR Ready
-    details: Full SSR support with cache hydration and revalidation on the client side.
-  # - title: ⚙️ Devtools support
-  #   details: Pinia hooks into Vue devtools to give you an enhanced development experience in both Vue 2 and Vue 3.
-  # - title: 🔌 Extensible
-  #   details: React to store changes to extend Pinia with transactions, local storage synchronization, etc.
-  # - title: 🏗 Modular by design
-  #   details: Build multiple stores and let your bundler code split them automatically.
+    details: Smart client-side caching with request deduplication.
+  - title: 🗄️ Async State
+    details: Handle any async state.
+  - title: 🔌 Plugins
+    details: Powerful plugin system.
+  - title: ✨ Optimistic Updates
+    details: Optimistic updates with ease.
+  - title: 💡 Sensible defaults
+    details: Sane defaults with full customization.
+  - title: 🧩 Out-of-the box plugins
+    details: A set of composable functions to handle data fetching.
+  - title: 🔑 Typescript Support
+    details: Fully typed with Typescript.
+  - title: 💨 Small Bundle Size
+    details: A baseline of ~2kb and fully tree-shakeable.
+  - title: 📦 Zero Dependencies
+    details: No dependencies other than Pinia.
+  - title: ⚙️ SSR
+    details: Out of the box server-side rendering support.
+  - title: 🔄 Data Loaders
+    details: Official support for Vue Router Data Loaders.
 ---
 
 <script setup>
