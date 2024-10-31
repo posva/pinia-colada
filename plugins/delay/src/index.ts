@@ -1,7 +1,8 @@
 /**
  * @module @pinia/colada/plugins/delay
  */
-import { customRef } from 'vue'
+import type { ShallowRef } from 'vue'
+import { customRef, shallowRef } from 'vue'
 import type { PiniaColadaPlugin, AsyncStatus } from '@pinia/colada'
 
 /**
@@ -25,7 +26,8 @@ export function PiniaColadaDelay(options?: PiniaColadaDelayOptions): PiniaColada
       if (name === 'create') {
         after((entry) => {
           const delay = entry.options?.delay ?? options?.delay ?? 200
-          console.log('delay', entry.options?.delay, options?.delay, delay)
+          const isDelaying = shallowRef(false)
+          entry.ext.isDelaying = isDelaying
           if (!delay) return
 
           const initialValue = entry.asyncStatus.value
@@ -40,11 +42,14 @@ export function PiniaColadaDelay(options?: PiniaColadaDelayOptions): PiniaColada
               set(newValue) {
                 clearTimeout(timeout)
                 if (newValue === 'loading') {
+                  isDelaying.value = true
                   timeout = setTimeout(() => {
+                    isDelaying.value = false
                     value = newValue
                     trigger()
                   }, delay)
                 } else {
+                  isDelaying.value = false
                   value = newValue
                   trigger()
                 }
@@ -59,5 +64,13 @@ export function PiniaColadaDelay(options?: PiniaColadaDelayOptions): PiniaColada
 
 declare module '@pinia/colada' {
   // eslint-disable-next-line unused-imports/no-unused-vars
-  export interface UseQueryOptions<TResult, TError> extends PiniaColadaDelayOptions {}
+  interface UseQueryOptions<TResult, TError> extends PiniaColadaDelayOptions {}
+
+  // eslint-disable-next-line unused-imports/no-unused-vars
+  interface UseQueryEntryExtensions<TResult, TError> {
+    /**
+     * Returns whether the query is currently delaying its `asyncStatus` from becoming `'loading'`. Requires the {@link PiniaColadaDelay} plugin.
+     */
+    isDelaying: ShallowRef<boolean>
+  }
 }

@@ -3,6 +3,7 @@ import {
   computed,
   getCurrentInstance,
   getCurrentScope,
+  isRef,
   onMounted,
   onScopeDispose,
   onServerPrefetch,
@@ -11,7 +12,7 @@ import {
   watch,
 } from 'vue'
 import { IS_CLIENT, toValueWithArgs, useEventListener } from './utils'
-import type { UseQueryEntry } from './query-store'
+import type { UseQueryEntry, UseQueryEntryExtensions } from './query-store'
 import { useQueryCache } from './query-store'
 import { useQueryOptions } from './query-options'
 import type {
@@ -30,7 +31,8 @@ import type {
 /**
  * Return type of `useQuery()`.
  */
-export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault> {
+export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault>
+  extends UseQueryEntryExtensions<TResult, TError> {
   /**
    * The state of the query. Contains its data, error, and status.
    */
@@ -172,7 +174,25 @@ export function useQuery<TResult, TError = ErrorDefault>(
       : entry.value.state.value,
   )
 
+  // TODO: find a way to allow a custom implementation for the returned value
+  const extensions = {} as UseQueryEntryExtensions<TResult, TError>
+  for (const key in entry.value.ext) {
+    extensions[key as keyof UseQueryEntryExtensions<TResult, TError>] = computed({
+      get: () =>
+      toValue(entry.value.ext[key as keyof UseQueryEntryExtensions<TResult, TError>]),
+      set(value) {
+        const target = entry.value.ext[key as keyof UseQueryEntryExtensions<TResult, TError>]
+        if (isRef(target)) {
+          entry.value.ext[key as keyof UseQueryEntryExtensions<TResult, TError>].value = value
+        } else {
+          (entry.value.ext[key as keyof UseQueryEntryExtensions<TResult, TError>] as unknown) = value
+        }
+      },
+    })
+  }
+
   const queryReturn = {
+    ...extensions,
     state,
 
     status: computed(() => state.value.status),

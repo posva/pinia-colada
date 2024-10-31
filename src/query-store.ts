@@ -24,6 +24,13 @@ import type {
 } from './data-state'
 
 /**
+ * Allows defining extensions to the query entry that are returned by `useQuery()`.
+ */
+// eslint-disable-next-line unused-imports/no-unused-vars
+export interface UseQueryEntryExtensions<TResult, TError> {
+}
+
+/**
  * NOTE: Entries could be classes but the point of having all functions within the store is to allow plugins to hook
  * into actions.
  */
@@ -102,6 +109,11 @@ export interface UseQueryEntry<TResult = unknown, TError = unknown> {
    * Whether the query is currently being used by a Component or EffectScope (e.g. a store).
    */
   readonly active: boolean
+
+  /**
+   * Extensions to the query entry added by plugins.
+   */
+  ext: UseQueryEntryExtensions<TResult, TError>
 
   /**
    * Component `__hmrId` to track wrong usage of `useQuery` and warn the user.
@@ -199,6 +211,9 @@ export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
     // and create weird warnings
     deps: markRaw(new Set()),
     gcTimeout: undefined,
+    // eslint-disable-next-line ts/ban-ts-comment
+    // @ts-ignore: some plugins are adding properties to the entry type
+    ext: {},
     options,
     get stale() {
       return Date.now() >= this.when + this.options!.staleTime
