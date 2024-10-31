@@ -2,11 +2,146 @@
 
 Optimistic updates are a way to update the UI **before the mutation has completed**, optimistically assuming that the mutation will succeed. This is a way to provide a more responsive UI and a better user experience. Pinia Colada provides multiple ways to implement optimistic updates, depending on the use case.
 
+## Via the cache
+
+Updating directly the cache is the most efficient way to implement optimistic updates because you are collocating the optimistic update with the mutation itself. Since you are touching the cache directly, any query relying on the updated data will automatically reflect the changes. However, this also requires handling the **rollback** in case of errors.
+
+Here is a **complete example** of an optimistic update for the details of a contact:
+
+```ts twoslash
+import { useMutation, useQueryCache } from '@pinia/colada'
+import { patchContact, type Contact } from '@/api/contacts'
+
+const queryCache = useQueryCache()
+const { mutate } = useMutation({
+  mutation: patchContact,
+  // `contactInfo` type is inferred from the mutation function
+  onMutate(contactInfo) {
+    // get the current contact from the cache, we assume it exists
+    const oldContact = queryCache.getQueryData<Contact>(['contact', contactInfo.id])!
+    const newContact: Contact = {
+      // we merge both objects to have a complete contact
+      ...oldContact,
+      ...contactInfo,
+    }
+
+    // update the cache with the new contact
+    queryCache.setQueryData(['contact', newContact.id], newContact)
+    // we cancel (without refetching) all queries that depend on the contact
+    queryCache.cancelQueries({ key: ['contact', newContact.id] })
+
+    // pass the old and new contact to the other hooks
+    return { oldContact, newContact }
+  },
+
+  // on both error and success
+  onSettled(_data, _error, _vars, { newContact }) {
+    // `newContact` can be undefined if the `onMutate` hook fails
+    if (newContact) {
+      // invalidate the query to refetch the new data
+      queryCache.invalidateQueries({ key: ['contact', newContact.id] })
+    }
+  },
+
+  onError(err, contactInfo, { newContact, oldContact }) {
+    // before applying the rollback, we need to check if the value in the cache
+    // is the same because the cache could have been updated by another mutation
+    // or query
+    if (newContact === queryCache.getQueryData(['contact', contactInfo.id])) {
+      queryCache.setQueryData(['contact', contactInfo.id], oldContact)
+    }
+
+    // handle the error
+    console.error(`An error occurred when updating a contact "${contactInfo.id}"`, err)
+  },
+
+  // Depending on your code, this `onSuccess` hook might not be necessary
+  onSuccess(contact, _contactInfo, { newContact }) {
+    // update the contact with the information from the server
+    // since we are invalidating queries, this allows us to progressively
+    queryCache.setQueryData(['contact', newContact.id], contact)
+  },
+})
+```
+
+Here is a **complete example** of an optimistic update of a list of todos when creating a new todo item:
+
+```ts twoslash
+import { useMutation, useQueryCache } from '@pinia/colada'
+import { type TodoItem, createTodo } from './api/todos'
+
+const queryCache = useQueryCache()
+const { mutate } = useMutation({
+  mutation: (text: string) => createTodo(text),
+  onMutate(text) {
+    // save the current todo list
+    const oldTodoList = queryCache.getQueryData<TodoItem[]>(['todos'])
+    // keep track of the new todo item
+    const newTodoItem: TodoItem = {
+        text,
+        // we need to fill every required field
+        id: crypto.randomUUID(),
+
+    }
+    // create a copy of the current todo list with the new todo
+    const newTodoList: TodoItem[] = [
+      ...(oldTodoList || []),
+      newTodoItem,
+    ]
+    // update the cache with the new todo list
+    queryCache.setQueryData(['todos'], newTodoList)
+    // we cancel (without refetching) all queries that depend on the todo list
+    // to prevent them from updating the cache with an outdated value
+    queryCache.cancelQueries({ key: ['todos'] })
+
+    // pass the old and new todo list to the other hooks
+    // to handle rollbacks
+    return { newTodoList, oldTodoList, newTodoItem }
+  },
+
+  // on both error and success
+  onSettled() {
+    // invalidate the query to refetch the new data
+    queryCache.invalidateQueries({ key: ['todos'] })
+  },
+
+  onError(err, _title, { oldTodoList, newTodoList }) {
+    // before applying the rollback, we need to check if the value in the cache is the same
+    // because the cache could have been updated by another mutation or query
+    if (newTodoList === queryCache.getQueryData(['todos'])) {
+      queryCache.setQueryData(['todos'], oldTodoList)
+    }
+
+    // handle the error
+    console.error('An error occurred when creating a todo:', err)
+  },
+
+  onSuccess(todoItem, _vars, { newTodoItem }) {
+    // update the todo with the information from the server
+    // since we are invalidating queries, this allows us to progressively
+    // update the todo list even if the user is submitting multiple mutations
+    // successively
+    const todoList = queryCache.getQueryData<TodoItem[]>(['todos']) || []
+    // find the todo we added in `onMutate()` and replace it with the one from the server
+    const todoIndex = todoList.findIndex((t) => t.id === newTodoItem.id)
+    if (todoIndex >= 0) {
+      // Replace the whole array to trigger a reactivity update
+      // we could also use `.toSpliced()` in modern environments
+      const copy = todoList.slice()
+      copy.splice(todoIndex, 1, todoItem)
+      queryCache.setQueryData(['todos'], copy)
+    }
+  },
+})
+```
+
+As you see, depending on the mutation, you might need to update multiple queries in different ways. Optimistic updates are a very powerful tool, but they also require more care to handle errors and edge cases. Because of this, Pinia Colada provides a low level API to cater to all use cases!
+
 ## Via the UI
 
-The simplest way to implement optimistic updates is to update the UI directly when the mutation is called. This is done by combining the `variables` property of the mutation and invalidating affected queries.
+Handling the optimistic update directly in the UI is the simplest approach. This can be achieved by updating the UI immediately when the mutation is called. Combine the `variables` property of the mutation with invalidating affected queries to implement this method effectively.
 
-When a mutation lives close to the query it updates, it is possible to show the pending changes directly in the UI that displays a query:
+This approach is possible when the mutation lives close to the query it updates, it allows to show the pending changes directly in the UI that renders a query:
 
 ```vue{12-18,33-35} twoslash
 <script setup lang="ts">
@@ -16,7 +151,7 @@ import { getTodoList, createTodo } from './api/todos'
 
 const { data: todoList } = useQuery({
   key: ['todos'],
-  query: () => getTodoList()
+  query: () => getTodoList(),
 })
 
 const newTodoText = ref('')
@@ -92,44 +227,3 @@ const { isLoading, variables: newTodo } = useMutationState({
   key: ['createTodo'],
 })
 ```
-
-## Via the cache
-
-If the mutation affects state being used in multiple places, it might not be convenient to update the UI directly. In this case, updating the cache directly can be a better solution. However, this also requires handling the **rollback** in case of errors.
-
-We can achieve this by only touching the `useMutation()` code:
-
-```ts twoslash
-import { useMutation, useQueryCache } from '@pinia/colada'
-import { type TodoItem, createTodo } from './api/todos'
-
-const queryCache = useQueryCache()
-const { mutate } = useMutation({
-  mutation: (text: string) => createTodo(text),
-  onMutate: (text) => {
-    // save the current todo list
-    const todoList: TodoItem[] | undefined = queryCache.getQueryData(['todos'])
-    // optimistic update the cache
-    queryCache.setQueryData(['todos'], [...(todoList || []), { text }])
-    // return the current todo list to be used in case of errors
-    return { todoList }
-  },
-  onError: (error, text, { todoList }) => {
-    console.error('Error creating todo with text', text, error)
-    // rollback to the previous state
-    queryCache.setQueryData(['todos'], todoList)
-  },
-  onSettled: () => {
-    // invalidate the query to refetch the new data
-    queryCache.invalidateQueries({ key: ['todos'] })
-  },
-})
-```
-
-Note that depending on the mutation, you might want to update multiple queries, making the rollback more complex.
-
-::: tip
-
-The `queryCache.setQueryData()` action does not modify the `status` of the query nor cancels any ongoing queries. You can do that by manually calling the different query actions.
-
-:::

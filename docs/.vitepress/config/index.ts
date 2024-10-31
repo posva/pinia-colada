@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitepress'
 import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
 import { extraFiles } from '../twoslash/files'
+import { ModuleKind, ModuleResolutionKind, ScriptTarget } from 'typescript'
 
 export const META_IMAGE = 'https://pinia-colada.esm.dev/social.png'
 export const META_URL = 'https://pinia-colada.esm.dev'
@@ -61,6 +62,13 @@ export default defineConfig({
       transformerTwoslash({
         // renderer: rendererRich(),
         twoslashOptions: {
+          compilerOptions: {
+            module: ModuleKind.ESNext,
+            moduleResolution: ModuleResolutionKind.Bundler,
+            target: ScriptTarget.ESNext,
+            // TODO: it would be nice to have this
+            // lib: ['esnext', 'dom'],
+          },
           extraFiles: {
             ...extraFiles,
             'mutations/todos.ts': mutations_todos,

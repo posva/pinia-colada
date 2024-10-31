@@ -77,6 +77,18 @@ export function updateContact(
 }
 
 /**
+ * Update a contact.
+ *
+ * @param contact - The contact to update
+ * @returns the updated contact
+ */
+export function patchContact(
+  contact: Partial<ContactInfo> & { id: number },
+): Promise<Contact> {
+  return contacts.patch<Contact, 'json'>(`/${contact.id}`, contact)
+}
+
+/**
  * Search the contacts database.
  *
  * @param searchText - the text to search for
