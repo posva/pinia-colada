@@ -90,18 +90,19 @@ describe('useQuery type inference', () => {
     )
   })
 
-  it('can type the error with "transformError"', () => {
-    expectTypeOf<MyCustomError | UnexpectedError | null>(
-      useQuery({
-        query: async () => 42,
-        key: ['foo'],
-        transformError: (error) => {
-          return error instanceof MyCustomError
-            ? error
-            : new UnexpectedError(error)
-        },
-      }).error.value,
-    )
+  // NOTE: the old feature didn't make much sense. the error checker should be similar to data loaders
+  it.todo('can type the error with "transformError"', () => {
+    // expectTypeOf<MyCustomError | UnexpectedError | null>(
+    //   useQuery({
+    //     query: async () => 42,
+    //     key: ['foo'],
+    //     transformError: (error) => {
+    //       return error instanceof MyCustomError
+    //         ? error
+    //         : new UnexpectedError(error)
+    //     },
+    //   }).error.value,
+    // )
   })
 
   it('narrows down the state type based on the status', () => {
@@ -162,14 +163,14 @@ describe('useQuery type inference', () => {
   })
 })
 
-class MyCustomError extends Error {
+export class MyCustomError extends Error {
   constructor(message: string) {
     super(message)
     this.name = 'MyCustomError'
   }
 }
 
-class UnexpectedError extends Error {
+export class UnexpectedError extends Error {
   error: unknown
   constructor(error: unknown) {
     super()

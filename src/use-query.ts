@@ -152,12 +152,12 @@ export function useQuery<TResult, TError = ErrorDefault>(
       // https://tc39.es/ecma262/multipage/control-abstraction-objects.html#sec-performpromisethen
       // In other words `Promise.rejects('ok').catch(true)` still rejects
       // anything other than `true` falls back to the `errorCatcher`
-      throwOnError as (false | undefined) || errorCatcher,
+      (throwOnError as false | undefined) || errorCatcher,
     )
   const refetch = (throwOnError?: boolean) =>
     queryCache.fetch(entry.value).catch(
       // same as above
-      throwOnError as (false | undefined) || errorCatcher,
+      (throwOnError as false | undefined) || errorCatcher,
     )
   const isPlaceholderData = computed(
     () => entry.value.placeholderData != null && entry.value.state.value.status === 'pending',
@@ -302,5 +302,5 @@ export function useQuery<TResult, TError = ErrorDefault>(
     }
   }
 
-  return options.setup?.(queryReturn, options) || queryReturn
+  return queryReturn
 }

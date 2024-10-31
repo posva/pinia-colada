@@ -1,12 +1,52 @@
 import { type InjectionKey, type MaybeRefOrGetter, inject } from 'vue'
 import type { EntryKey } from './entry-options'
 import type { ErrorDefault } from './types-extension'
-import type { PiniaColadaOptions } from './pinia-colada'
 
 /**
  * `true` refetch if data is stale (refresh()), `false` never refetch, 'always' always refetch.
  */
 export type _RefetchOnControl = boolean | 'always'
+
+/**
+ * Options for queries that can be globally overridden.
+ */
+export interface UseQueryOptionsGlobal {
+  /**
+   * Whether the query should be enabled or not. If `false`, the query will not be executed until `refetch()` or
+   * `refresh()` is called. If it becomes `true`, the query will be refreshed.
+   */
+  enabled?: MaybeRefOrGetter<boolean>
+
+  /**
+   * Time in ms after which the data is considered stale and will be refreshed on next read.
+   * @default 5000 (5 seconds)
+   */
+  staleTime?: number
+
+  /**
+   * Time in ms after which, once the data is no longer being used, it will be garbage collected to free resources. Set to `false` to disable garbage collection.
+   * @default 300000 (5 minutes)
+   */
+  gcTime?: number | false
+
+  /**
+   * Whether to refetch the query when the component is mounted.
+   * @default true
+   */
+  refetchOnMount?: MaybeRefOrGetter<_RefetchOnControl>
+
+  /**
+   * Whether to refetch the query when the window regains focus.
+   * @default true
+   */
+  refetchOnWindowFocus?: MaybeRefOrGetter<_RefetchOnControl>
+
+  /**
+   * Whether to refetch the query when the network reconnects.
+   * @default true
+   */
+  refetchOnReconnect?: MaybeRefOrGetter<_RefetchOnControl>
+}
 
 /**
  * Context object passed to the `query` function of `useQuery()`.
@@ -35,6 +75,7 @@ export interface UseQueryFnContext {
  * }
  * ```
  */
+// eslint-disable-next-line unused-imports/no-unused-vars
 export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
   /**
    * The key used to identify the query. Array of primitives **without** reactive values or a reactive array or getter.
@@ -98,23 +139,6 @@ export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
       ) => NoInfer<TResult> | null | undefined | void)
 
   /**
-   * Function to type and ensure the `error` property is always an instance of `TError`.
-   *
-   * @param error - error thrown
-   * @example
-   * ```ts
-   * useQuery({
-   *   key: ['user', id],
-   *   query: () => fetchUser(id),
-   *   transformError: (error): MyCustomError | UnexpectedError =>
-   *     // this assumes both `MyCustomError` and a `UnexpectedError` are valid error classes
-   *     error instanceof MyCustomError ? error : new UnexpectedError(error),
-   * })
-   * ```
-   */
-  transformError?: (error: unknown) => TError
-
-  /**
    * Whether to refetch the query when the component is mounted.
    * @default true
    */
@@ -144,9 +168,7 @@ export const USE_QUERY_DEFAULTS = {
   refetchOnReconnect: true as NonNullable<UseQueryOptions['refetchOnReconnect']>,
   refetchOnMount: true as NonNullable<UseQueryOptions['refetchOnMount']>,
   enabled: true as MaybeRefOrGetter<boolean>,
-  // as any to simplify the typing with generics
-  transformError: (error: unknown) => error as any,
-} satisfies Partial<UseQueryOptions>
+} satisfies UseQueryOptionsGlobal
 
 export type UseQueryOptionsWithDefaults<TResult = unknown, TError = ErrorDefault> = UseQueryOptions<TResult, TError> &
   typeof USE_QUERY_DEFAULTS
@@ -155,8 +177,7 @@ export type UseQueryOptionsWithDefaults<TResult = unknown, TError = ErrorDefault
  * Global default options for `useQuery()`.
  * @internal
  */
-export type UseQueryOptionsGlobalDefaults = typeof USE_QUERY_DEFAULTS &
-  Omit<UseQueryOptions, 'key' | 'query' | 'initialData' | 'placeholderData'> & { setup?: PiniaColadaOptions['setup'] }
+export type UseQueryOptionsGlobalDefaults = UseQueryOptionsGlobal & typeof USE_QUERY_DEFAULTS
 
 export const USE_QUERY_OPTIONS_KEY: InjectionKey<UseQueryOptionsGlobalDefaults>
   = process.env.NODE_ENV !== 'production' ? Symbol('useQueryOptions') : Symbol()
