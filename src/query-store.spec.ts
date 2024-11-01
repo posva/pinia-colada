@@ -1,9 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import type { UseQueryEntry } from './query-store'
-import { useQueryCache } from './query-store'
+import { QUERY_STORE_ID, useQueryCache } from './query-store'
 import { USE_QUERY_DEFAULTS } from './query-options'
 import { flushPromises } from '@vue/test-utils'
+import { createApp } from 'vue'
+import type { UseQueryEntryNodeSerialized } from './tree-map'
+import { useQuery } from './use-query'
 
 describe('Query Cache store', () => {
   beforeEach(() => {
@@ -32,26 +35,20 @@ describe('Query Cache store', () => {
       expect(queryCache.getEntries({ key: ['a', 'a'] })).toHaveLength(1)
       expect(queryCache.getEntries({ key: ['a', 'b'] })).toHaveLength(0)
       expect(queryCache.getEntries({ key: ['a', 'a', 'a'] })).toHaveLength(0)
-      expect(queryCache.getEntries({ key: ['a', 'a'] })).toMatchObject([
-        { key: ['a', 'a'] },
-      ])
+      expect(queryCache.getEntries({ key: ['a', 'a'] })).toMatchObject([{ key: ['a', 'a'] }])
     })
 
     it('filters based on exact key', () => {
       const queryCache = useQueryCache()
       createEntries([['a'], ['b'], ['a', 'a']])
       expect(queryCache.getEntries({ exact: true, key: ['a'] })).toHaveLength(1)
-      expect(queryCache.getEntries({ exact: true, key: ['a', 'a'] })).toMatchObject(
-        [{ key: ['a', 'a'] }],
-      )
+      expect(queryCache.getEntries({ exact: true, key: ['a', 'a'] })).toMatchObject([{ key: ['a', 'a'] }])
     })
 
     it('filters based on predicate', () => {
       const queryCache = useQueryCache()
       createEntries([['a'], ['b'], ['a', 'a']])
-      expect(
-        queryCache.getEntries({ predicate: (entry) => entry.key[0] === 'a' }),
-      ).toHaveLength(2)
+      expect(queryCache.getEntries({ predicate: (entry) => entry.key[0] === 'a' })).toHaveLength(2)
     })
 
     it('filters based on predicate and key', () => {
@@ -84,5 +81,45 @@ describe('Query Cache store', () => {
     const [entry] = queryCache.getEntries({ key: ['a'] })
     expect(entry).toBeDefined()
     expect(entry.state.value.data).toBe('ok')
+  })
+
+  it('can get entries by key with initial state', () => {
+      const pinia = createPinia()
+      pinia.state.value[QUERY_STORE_ID] = {
+        caches: [['key', [60, null, Date.now()]]] satisfies UseQueryEntryNodeSerialized[],
+      }
+      const queryCache = useQueryCache(pinia)
+      queryCache.getEntries({ key: ['key'] })
+  })
+
+  describe('plugins', () => {
+    it('triggers the create hook once when creating data', () => {
+      const pinia = createPinia()
+      pinia.state.value[QUERY_STORE_ID] = {
+        caches: [['key', [60, null, Date.now()]]] satisfies UseQueryEntryNodeSerialized[],
+      }
+      const queryCache = useQueryCache(pinia)
+      const onActionCreate = vi.fn()
+      queryCache.$onAction((action) => {
+        if (action.name === 'create') {
+          onActionCreate(action)
+        }
+      })
+      expect(onActionCreate).toHaveBeenCalledTimes(0)
+
+      const options = {
+        key: ['key'],
+        query: async () => 42,
+      }
+
+      // the app allows inject and avoid warnings
+      const app = createApp({})
+      app.use(pinia)
+      app.runWithContext(() => {
+        useQuery(options)
+        useQuery(options)
+      })
+      expect(onActionCreate).toHaveBeenCalledTimes(1)
+    })
   })
 })

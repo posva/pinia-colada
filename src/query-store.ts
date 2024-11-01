@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { defineStore, skipHydrate } from 'pinia'
 import {
   type ComponentInternalInstance,
   type EffectScope,
@@ -11,7 +11,8 @@ import {
   toValue,
 } from 'vue'
 import { stringifyFlatObject, toValueWithArgs, warnOnce } from './utils'
-import { type EntryNodeKey, TreeMapNode } from './tree-map'
+import type { _UseQueryEntryNodeValueSerialized, UseQueryEntryNodeSerialized, EntryNodeKey } from './tree-map'
+import { appendSerializedNodeToTree, TreeMapNode } from './tree-map'
 import type { EntryKey } from './entry-options'
 import type { UseQueryOptionsWithDefaults } from './query-options'
 import type { ErrorDefault } from './types-extension'
@@ -171,58 +172,10 @@ export interface UseQueryEntryFilter {
 }
 
 /**
- * Creates a new query entry.
- *
+ * Empty starting object for extensions that allows to detect when to update.
  * @internal
- * @param key - key of the entry
- * @param initialData - initial data to set
- * @param error - initial error to set
- * @param when - when the data was fetched the last time. defaults to 0, meaning it's stale
  */
-export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
-  key: EntryNodeKey[],
-  initialData?: TResult,
-  error: TError | null = null,
-  when: number = 0, // stale by default
-  options: UseQueryOptionsWithDefaults<TResult, TError> | null = null,
-): UseQueryEntry<TResult, TError> {
-  const state = shallowRef<DataState<TResult, TError>>(
-    // @ts-expect-error: to make the code shorter we are using one declaration instead of multiple ternaries
-    {
-      data: initialData,
-      error,
-      status: error
-        ? 'error'
-        : initialData !== undefined
-          ? 'success'
-          : 'pending',
-    },
-  )
-  const asyncStatus = shallowRef<AsyncStatus>('idle')
-  // we markRaw to avoid unnecessary vue traversal
-  return markRaw<UseQueryEntry<TResult, TError>>({
-    key,
-    state,
-    placeholderData: null,
-    when,
-    asyncStatus,
-    pending: null,
-    // this set can contain components and effects and worsen the performance
-    // and create weird warnings
-    deps: markRaw(new Set()),
-    gcTimeout: undefined,
-    // eslint-disable-next-line ts/ban-ts-comment
-    // @ts-ignore: some plugins are adding properties to the entry type
-    ext: {},
-    options,
-    get stale() {
-      return Date.now() >= this.when + this.options!.staleTime
-    },
-    get active() {
-      return this.deps.size > 0
-    },
-  })
-}
+export const START_EXTS = {}
 
 /**
  * UseQueryEntry method to serialize the entry to JSON.
@@ -239,6 +192,7 @@ export const queryEntry_toJSON: <TResult, TError>(
   state: { value },
   when,
 }) => [value.data, value.error, when]
+// TODO: errors are not serializable by default. We should provide a way to serialize custom errors and, by default provide one that serializes the name and message
 
 /**
  * UseQueryEntry method to serialize the entry to a string.
@@ -271,20 +225,58 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   // We have two versions of the cache, one that track changes and another that doesn't so the actions can be used
   // inside computed properties
   const cachesRaw = new TreeMapNode<UseQueryEntry<unknown, unknown>>()
-  const caches = shallowReactive(cachesRaw)
+  const caches = skipHydrate(shallowReactive(cachesRaw))
 
   // this allows use to attach reactive effects to the scope later on
   const scope = getCurrentScope()!
+  // let serializedCacheToHydrate: UseQueryEntryNodeSerialized[] | null | undefined = getActivePinia()!.state.value[QUERY_STORE_ID]?.caches
 
   const create = action(
     <TResult, TError>(
       key: EntryNodeKey[],
       initialData?: TResult,
-      options: UseQueryOptionsWithDefaults<TResult, TError> | null = null,
       error: TError | null = null,
       when: number = 0,
+      options: UseQueryOptionsWithDefaults<TResult, TError> | null = null,
     ): UseQueryEntry<TResult, TError> =>
-      scope.run(() => createQueryEntry(key, initialData, error, when, options))!
+      scope.run(() => {
+        const state = shallowRef<DataState<TResult, TError>>(
+          // @ts-expect-error: to make the code shorter we are using one declaration instead of multiple ternaries
+          {
+            data: initialData,
+            error,
+            status: error
+              ? 'error'
+              : initialData !== undefined
+                ? 'success'
+                : 'pending',
+          },
+        )
+        const asyncStatus = shallowRef<AsyncStatus>('idle')
+        // we markRaw to avoid unnecessary vue traversal
+        return markRaw<UseQueryEntry<TResult, TError>>({
+          key,
+          state,
+          placeholderData: null,
+          when,
+          asyncStatus,
+          pending: null,
+          // this set can contain components and effects and worsen the performance
+          // and create weird warnings
+          deps: markRaw(new Set()),
+          gcTimeout: undefined,
+          // eslint-disable-next-line ts/ban-ts-comment
+          // @ts-ignore: some plugins are adding properties to the entry type
+          ext: START_EXTS,
+          options,
+          get stale() {
+            return Date.now() >= this.when + this.options!.staleTime
+          },
+          get active() {
+            return this.deps.size > 0
+          },
+        })
+      })!
     ,
   )
 
@@ -315,7 +307,6 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           if (toValue(queryEntry.options.refetchOnMount) === 'always') {
             fetch(queryEntry)
           } else {
-            // console.log('refreshing')
             refresh(queryEntry)
           }
         }
@@ -409,15 +400,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       }
 
       // ensure the state
-      // console.log('⚙️ Ensuring entry', key)
-      let entry = cachesRaw.get(key) as
-        | UseQueryEntry<TResult, TError>
-        | undefined
+      let entry = cachesRaw.get(key) as UseQueryEntry<TResult, TError> | undefined
       if (!entry) {
-        cachesRaw.set(
-          key,
-          entry = create(key, options.initialData?.(), options),
-        )
+        cachesRaw.set(key, (entry = create(key, options.initialData?.(), null, 0, options)))
       }
 
       // warn against using the same key for different functions
@@ -433,7 +418,11 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           entry.__hmr.id
             // @ts-expect-error: internal property
             = currentInstance.type.__hmrId
-          if (entry.__hmr.id == null && process.env.NODE_ENV !== 'test') {
+          if (
+            entry.__hmr.id == null
+            && process.env.NODE_ENV !== 'test'
+            && typeof document !== 'undefined'
+          ) {
             warnOnce(
               `Found a nullish hmr id. This is probably a bug. Please report it to pinia-colada with a boiled down reproduction. Thank you!`,
             )
@@ -445,12 +434,25 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       // in useQuery already catches possible problems
       entry.options = options
 
+      if (entry.ext === START_EXTS) {
+        entry.ext = {} as UseQueryEntryExtensions<TResult, TError>
+        extend(entry)
+      }
+
       // if this query was defined within a defineQuery call, add it to the list
       currentDefineQueryEntry?.[0].push(entry)
 
       return entry
     },
   )
+
+  /**
+   * Action called when an entry is ensured for the first time to allow plugins to extend it.
+   */
+  const extend = action(
+    <TResult = unknown, TError = ErrorDefault>(_entry: UseQueryEntry<TResult, TError>) => {
+  },
+)
 
   /**
    * Invalidates a query entry
@@ -655,6 +657,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     fetch,
     refresh,
     ensure,
+    extend,
     track,
     untrack,
     cancel,
@@ -669,40 +672,6 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
  * The cache of the queries. It's the store returned by {@link useQueryCache}.
  */
 export type QueryCache = ReturnType<typeof useQueryCache>
-
-/**
- * Raw data of a query entry. Can be serialized from the server and used to hydrate the store.
- * @internal
- */
-export type _UseQueryEntryNodeValueSerialized<
-  TResult = unknown,
-  TError = unknown,
-> = [
-  /**
-   * The data returned by the query.
-   */
-  data: TResult | undefined,
-
-  /**
-   * The error thrown by the query.
-   */
-  error: TError | null,
-
-  /**
-   * When was this data fetched the last time in ms
-   */
-  when?: number,
-]
-
-/**
- * Serialized version of a query entry node.
- * @internal
- */
-export type UseQueryEntryNodeSerialized = [
-  key: EntryNodeKey,
-  value: undefined | _UseQueryEntryNodeValueSerialized,
-  children?: UseQueryEntryNodeSerialized[],
-]
 
 /**
  * Transform a tree into a compressed array.
@@ -735,10 +704,12 @@ function _serialize([key, tree]: [
  */
 export const serialize = serializeTreeMap
 
+// TODO: remove in next release
 /**
  * Creates a {@link TreeMapNode} from a serialized array.
  *
  * @param raw - array af values created with {@link serializeTreeMap}
+ * @deprecated Not needed anymore the query cache handles reviving the map, only the serialization is needed.
  */
 export function reviveTreeMap(
   raw: UseQueryEntryNodeSerialized[] = [],
@@ -752,6 +723,9 @@ export function reviveTreeMap(
   return markRaw(root)
 }
 
+/**
+ * @deprecated
+ */
 function appendToTree(
   parent: TreeMapNode<UseQueryEntry>,
   [key, value, children]: UseQueryEntryNodeSerialized,
@@ -770,4 +744,81 @@ function appendToTree(
       appendToTree(node, child)
     }
   }
+}
+
+/**
+ * Creates a new query entry.
+ *
+ * @internal
+ * @deprecated
+ * @param key - key of the entry
+ * @param initialData - initial data to set
+ * @param error - initial error to set
+ * @param when - when the data was fetched the last time. defaults to 0, meaning it's stale
+ */
+export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
+  key: EntryNodeKey[],
+  initialData?: TResult,
+  error: TError | null = null,
+  when: number = 0, // stale by default
+  options: UseQueryOptionsWithDefaults<TResult, TError> | null = null,
+): UseQueryEntry<TResult, TError> {
+  const state = shallowRef<DataState<TResult, TError>>(
+    // @ts-expect-error: to make the code shorter we are using one declaration instead of multiple ternaries
+    {
+      data: initialData,
+      error,
+      status: error
+        ? 'error'
+        : initialData !== undefined
+          ? 'success'
+          : 'pending',
+    },
+  )
+  const asyncStatus = shallowRef<AsyncStatus>('idle')
+  // we markRaw to avoid unnecessary vue traversal
+  return markRaw<UseQueryEntry<TResult, TError>>({
+    key,
+    state,
+    placeholderData: null,
+    when,
+    asyncStatus,
+    pending: null,
+    // this set can contain components and effects and worsen the performance
+    // and create weird warnings
+    deps: markRaw(new Set()),
+    gcTimeout: undefined,
+    // eslint-disable-next-line ts/ban-ts-comment
+    // @ts-ignore: some plugins are adding properties to the entry type
+    ext: START_EXTS,
+    options,
+    get stale() {
+      return Date.now() >= this.when + this.options!.staleTime
+    },
+    get active() {
+      return this.deps.size > 0
+    },
+  })
+}
+
+/**
+ * Hydrates the query cache with the serialized cache. Used during SSR.
+ * @param queryCache - query cache
+ * @param serializedCache - serialized cache
+ */
+export function hydrateQueryCache(
+  queryCache: QueryCache,
+  serializedCache: UseQueryEntryNodeSerialized[],
+) {
+  for (const entryData of serializedCache) {
+    appendSerializedNodeToTree(queryCache.caches, entryData, queryCache.create)
+  }
+}
+
+/**
+ * Serializes the query cache to a compressed array. Used during SSR.
+ * @param queryCache - query cache
+ */
+export function serializeQueryCache(queryCache: QueryCache): UseQueryEntryNodeSerialized[] {
+  return serializeTreeMap(queryCache.caches)
 }

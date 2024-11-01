@@ -1,16 +1,16 @@
 import type { MockInstance } from 'vitest'
 import type { GlobalMountOptions } from '../test/utils'
 import type { UseQueryOptions } from './query-options'
-import type { UseQueryEntry } from './query-store'
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, nextTick, ref, shallowReactive } from 'vue'
+import { defineComponent, nextTick, ref } from 'vue'
 import { mockWarn } from '../test/mock-warn'
-import { isSpy } from '../test/utils'
+import { createSerializedTreeNodeEntry, isSpy } from '../test/utils'
 import { PiniaColada } from './pinia-colada'
-import { QUERY_STORE_ID, createQueryEntry, useQueryCache } from './query-store'
-import { TreeMapNode, entryNodeSize } from './tree-map'
+import { hydrateQueryCache, QUERY_STORE_ID, useQueryCache } from './query-store'
+import type { UseQueryEntryNodeSerialized } from './tree-map'
+import { entryNodeSize } from './tree-map'
 import { useQuery } from './use-query'
 
 describe('useQuery', () => {
@@ -609,36 +609,6 @@ describe('useQuery', () => {
       })
     }
 
-    it('refreshes the data even with initial values after staleTime is elapsed', async () => {
-      const pinia = createPinia()
-      pinia.state.value[QUERY_STORE_ID] = {
-        caches: shallowReactive(
-          new TreeMapNode(
-            ['key'],
-            createQueryEntry(['key'], 60, null, Date.now()),
-          ),
-        ),
-      }
-      const { wrapper, query } = mountSimple(
-        {
-          staleTime: 100,
-        },
-        {
-          plugins: [pinia],
-        },
-      )
-
-      await flushPromises()
-      expect(wrapper.vm.data).toBe(60)
-      expect(query).toHaveBeenCalledTimes(0)
-
-      vi.advanceTimersByTime(101)
-      wrapper.vm.refresh()
-      await flushPromises()
-      expect(wrapper.vm.data).toBe(42)
-      expect(query).toHaveBeenCalledTimes(1)
-    })
-
     it('refreshes the data if mounted and the key changes', async () => {
       const { wrapper, query } = mountDynamicKey({
         initialId: 0,
@@ -884,7 +854,16 @@ describe('useQuery', () => {
     })
   })
 
-  describe('ssr', () => {
+  describe('hydration', () => {
+    function createHydratedCache(caches: UseQueryEntryNodeSerialized[]) {
+      const pinia = createPinia()
+      // it doesn't matter because the value is skipped
+      pinia.state.value[QUERY_STORE_ID] = { caches: 1 }
+      hydrateQueryCache(useQueryCache(pinia), caches)
+
+      return pinia
+    }
+
     it('works with no state', async () => {
       const pinia = createPinia()
       const { wrapper } = mountSimple({}, { plugins: [pinia] })
@@ -894,32 +873,19 @@ describe('useQuery', () => {
     })
 
     it('uses initial data if present in store', async () => {
-      const pinia = createPinia()
+      const pinia = createHydratedCache([createSerializedTreeNodeEntry('key', 2, null, Date.now())])
 
-      const caches = shallowReactive(
-        new TreeMapNode<UseQueryEntry>(
-          ['key'],
-          createQueryEntry(['key'], 2, null, Date.now()),
-        ),
-      )
-      pinia.state.value[QUERY_STORE_ID] = { caches }
       const { wrapper } = mountSimple({ staleTime: 1000 }, { plugins: [pinia] })
 
-      // without waiting for times the data is present
+      // without waiting for the data is present
       expect(wrapper.vm.data).toBe(2)
     })
 
     it('avoids fetching if initial data is fresh', async () => {
-      const pinia = createPinia()
-
-      const caches = shallowReactive(
-        new TreeMapNode<UseQueryEntry>(
-          ['key'],
-          // fresh data
-          createQueryEntry(['key'], 2, null, Date.now()),
-        ),
+      const pinia = createHydratedCache(
+        [createSerializedTreeNodeEntry('key', 2, null, Date.now())],
       )
-      pinia.state.value[QUERY_STORE_ID] = { caches }
+
       const { wrapper, query } = mountSimple(
         // 1s stale time
         { staleTime: 1000 },
@@ -933,20 +899,11 @@ describe('useQuery', () => {
     })
 
     it('sets the error if the initial data is an error', async () => {
-      const pinia = createPinia()
-
-      const caches = shallowReactive(
-        new TreeMapNode<UseQueryEntry>(
-          ['key'],
-          // fresh data
-          createQueryEntry(['key'], undefined, new Error('fail'), Date.now()),
-        ),
-      )
-      pinia.state.value[QUERY_STORE_ID] = { caches }
-      const { wrapper } = mountSimple(
-        { refetchOnMount: false },
-        { plugins: [pinia] },
-      )
+      const caches = [
+        createSerializedTreeNodeEntry('key', undefined, new Error('fail'), Date.now()),
+      ]
+      const pinia = createHydratedCache(caches)
+      const { wrapper } = mountSimple({ refetchOnMount: false }, { plugins: [pinia] })
 
       expect(wrapper.vm.status).toBe('error')
       expect(wrapper.vm.error).toEqual(new Error('fail'))
@@ -954,16 +911,10 @@ describe('useQuery', () => {
     })
 
     it('sets the initial error even with initialData', async () => {
-      const pinia = createPinia()
-
-      const caches = shallowReactive(
-        new TreeMapNode<UseQueryEntry>(
-          ['key'],
-          // fresh data
-          createQueryEntry(['key'], undefined, new Error('fail'), Date.now()),
-        ),
-      )
-      pinia.state.value[QUERY_STORE_ID] = { caches }
+      const caches = [
+        createSerializedTreeNodeEntry('key', undefined, new Error('fail'), Date.now()),
+      ]
+      const pinia = createHydratedCache(caches)
       const { wrapper } = mountSimple(
         { refetchOnMount: false, initialData: () => 42 },
         { plugins: [pinia] },
@@ -974,6 +925,28 @@ describe('useQuery', () => {
     })
 
     it.todo('initialData is ignored if there is already data in the cache')
+
+    it('refreshes the data even with initial values after staleTime is elapsed', async () => {
+      const pinia = createHydratedCache([createSerializedTreeNodeEntry('key', 60, null, Date.now())])
+      const { wrapper, query } = mountSimple(
+        {
+          staleTime: 100,
+        },
+        {
+          plugins: [pinia],
+        },
+      )
+
+      await flushPromises()
+      expect(wrapper.vm.data).toBe(60)
+      expect(query).toHaveBeenCalledTimes(0)
+
+      vi.advanceTimersByTime(101)
+      wrapper.vm.refresh()
+      await flushPromises()
+      expect(wrapper.vm.data).toBe(42)
+      expect(query).toHaveBeenCalledTimes(1)
+    })
   })
 
   describe('warns', () => {
@@ -1012,10 +985,7 @@ describe('useQuery', () => {
 
     it.todo('does not warn if the route is used in the key')
 
-    it.todo(
-      'does not warn if the query data belongs to a defineQuery',
-      async () => {},
-    )
+    it.todo('does not warn if the query data belongs to a defineQuery', async () => {})
 
     it.todo('can safelist other global properties not to warn')
 
@@ -1036,9 +1006,7 @@ describe('useQuery', () => {
 
       await flushPromises()
 
-      expect(
-        /The same query key \[id\] was used with different query functions/,
-      ).toHaveBeenWarned()
+      expect(/The same query key \[id\] was used with different query functions/).toHaveBeenWarned()
     })
 
     // this is for data loaders
@@ -1064,9 +1032,7 @@ describe('useQuery', () => {
 
       await flushPromises()
 
-      expect(
-        /The same query key \[id\] was used with different query functions/,
-      ).toHaveBeenWarned()
+      expect(/The same query key \[id\] was used with different query functions/).toHaveBeenWarned()
     })
 
     it('does not warn if the same key is used during HMR', async () => {

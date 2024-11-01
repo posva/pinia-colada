@@ -93,6 +93,59 @@ export class TreeMapNode<T = unknown> {
   }
 }
 
+export function appendSerializedNodeToTree<T>(
+  parent: TreeMapNode<T>,
+  [key, value, children]: UseQueryEntryNodeSerialized,
+  createNodeValue: (key: EntryNodeKey[], initialData?: unknown, error?: unknown | null, when?: number) => T,
+  parentKey: EntryNodeKey[] = [],
+) {
+  parent.children ??= new Map()
+  const entryKey = [...parentKey, key]
+  const node = new TreeMapNode<T>(
+    [],
+    // NOTE: this could happen outside of an effect scope but since it's only for client side hydration, it should be
+    // fine to have global shallowRefs as they can still be cleared when needed
+    value && createNodeValue(entryKey, ...value),
+  )
+  parent.children.set(key, node)
+  if (children) {
+    for (const child of children) {
+      appendSerializedNodeToTree(node, child, createNodeValue, entryKey)
+    }
+  }
+}
+
+/**
+ * Raw data of a query entry. Can be serialized from the server and used to hydrate the store.
+ * @internal
+ */
+export type _UseQueryEntryNodeValueSerialized<TResult = unknown, TError = unknown> = [
+  /**
+   * The data returned by the query.
+   */
+  data: TResult | undefined,
+
+  /**
+   * The error thrown by the query.
+   */
+  error: TError | null,
+
+  /**
+   * When was this data fetched the last time in ms
+   */
+  when?: number,
+]
+
+/**
+ * Serialized version of a query entry node.
+ * @internal
+ */
+export type UseQueryEntryNodeSerialized = [
+  key: EntryNodeKey,
+  value: undefined | _UseQueryEntryNodeValueSerialized,
+  children?: UseQueryEntryNodeSerialized[],
+]
+
 // -------------------------------------
 // --- Below are debugging internals ---
 // -------------------------------------

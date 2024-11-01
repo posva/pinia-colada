@@ -35,7 +35,7 @@ describe('SSR', () => {
       },
     })
     const App = defineComponent({
-      ssrRender(ctx: any, push: any, _parent: any) {
+      ssrRender(_ctx: any, push: any, _parent: any) {
         ssrRenderSuspense(push, {
           default: () => {
             push(ssrRenderComponent(InnerComp, null, null, _parent))
@@ -64,7 +64,7 @@ describe('SSR', () => {
   }
 
   it('propagates query errors', async () => {
-    // return falso to stop the error from propagating
+    // return false to stop the error from propagating
     const spy = vi.fn(() => false)
     const { app, query } = renderApp({
       appSetup() {

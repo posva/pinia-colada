@@ -38,8 +38,10 @@ export {
 } from './plugins/query-hooks'
 
 export {
+  hydrateQueryCache,
   reviveTreeMap,
   serialize,
+  serializeQueryCache,
   serializeTreeMap,
   useQueryCache,
   type UseQueryEntry,
