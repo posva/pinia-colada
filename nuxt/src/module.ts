@@ -17,11 +17,15 @@ export default defineNuxtModule<never>({
   // Default configuration options of the Nuxt module
   setup(_options, nuxt) {
     const { resolve } = createResolver(import.meta.url)
+    const runtimeDir = fileURLToPath(new URL('./runtime', import.meta.url))
     const coladaOptionsPath = resolve(nuxt.options.rootDir, 'colada.options')
 
     // Do not add the extension since the `.ts` will be transpiled to `.mjs` after `npm run prepack`
     addPlugin(resolve('./runtime/plugin'))
     addPlugin(resolve('./runtime/payload-plugin'))
+
+    // Otherwise we end up duplicating pinia
+    nuxt.options.build.transpile.push(runtimeDir)
 
     nuxt.hook('prepare:types', (opts) => {
       opts.references.push({ path: resolve('./types/build.d.ts') })
