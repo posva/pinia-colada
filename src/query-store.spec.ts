@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createPinia, setActivePinia } from 'pinia'
+import { createPinia, getActivePinia, setActivePinia } from 'pinia'
 import type { UseQueryEntry } from './query-store'
 import { QUERY_STORE_ID, useQueryCache } from './query-store'
 import { USE_QUERY_DEFAULTS } from './query-options'
@@ -9,8 +9,11 @@ import type { UseQueryEntryNodeSerialized } from './tree-map'
 import { useQuery } from './use-query'
 
 describe('Query Cache store', () => {
+  let app!: ReturnType<typeof createApp>
   beforeEach(() => {
     const pinia = createPinia()
+    app = createApp({})
+    app.use(pinia)
     setActivePinia(pinia)
   })
 
@@ -84,7 +87,7 @@ describe('Query Cache store', () => {
   })
 
   it('can get entries by key with initial state', () => {
-      const pinia = createPinia()
+      const pinia = getActivePinia()!
       pinia.state.value[QUERY_STORE_ID] = {
         caches: [['key', [60, null, Date.now()]]] satisfies UseQueryEntryNodeSerialized[],
       }
@@ -94,7 +97,7 @@ describe('Query Cache store', () => {
 
   describe('plugins', () => {
     it('triggers the create hook once when creating data', () => {
-      const pinia = createPinia()
+      const pinia = getActivePinia()!
       pinia.state.value[QUERY_STORE_ID] = {
         caches: [['key', [60, null, Date.now()]]] satisfies UseQueryEntryNodeSerialized[],
       }

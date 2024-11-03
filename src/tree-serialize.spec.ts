@@ -3,11 +3,14 @@ import { TreeMapNode } from './tree-map'
 import type { UseQueryEntry } from './query-store'
 import { serializeTreeMap, useQueryCache } from './query-store'
 import { createPinia } from 'pinia'
+import { createApp } from 'vue'
 
 describe('tree-map serialization', () => {
   it('basic serialization', () => {
     const tree = new TreeMapNode<UseQueryEntry>()
     const pinia = createPinia()
+    const app = createApp({})
+    app.use(pinia)
     const queryCache = useQueryCache(pinia)
     tree.set(['a'], queryCache.create(['a'], 'a'))
     tree.set(['a', 'b'], queryCache.create(['a', 'b'], 'ab'))
