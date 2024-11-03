@@ -4,7 +4,7 @@ import type { UseQueryOptions } from './query-options'
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, nextTick, ref } from 'vue'
+import { createApp, defineComponent, nextTick, ref } from 'vue'
 import { mockWarn } from '../test/mock-warn'
 import { createSerializedTreeNodeEntry, isSpy } from '../test/utils'
 import { PiniaColada } from './pinia-colada'
@@ -857,6 +857,8 @@ describe('useQuery', () => {
   describe('hydration', () => {
     function createHydratedCache(caches: UseQueryEntryNodeSerialized[]) {
       const pinia = createPinia()
+      const app = createApp({})
+      app.use(pinia)
       // it doesn't matter because the value is skipped
       pinia.state.value[QUERY_STORE_ID] = { caches: 1 }
       hydrateQueryCache(useQueryCache(pinia), caches)
