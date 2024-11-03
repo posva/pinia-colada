@@ -14,8 +14,9 @@ export default defineNuxtPlugin({
     const pinia = nuxtApp.vueApp.config.globalProperties.$pinia
     if (import.meta.server) {
       nuxtApp.hook('app:rendered', ({ ssrContext }) => {
-        if (ssrContext) {
+        if (ssrContext && pinia.state.value._pc_query?.caches) {
           ssrContext.payload.pinia_colada = markRaw(serializeTreeMap(
+            // FIXME: this is empty in a new app...
             pinia.state.value._pc_query?.caches,
           ))
         }

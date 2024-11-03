@@ -20,6 +20,13 @@ export default defineNuxtModule<never>({
     const runtimeDir = fileURLToPath(new URL('./runtime', import.meta.url))
     const coladaOptionsPath = resolve(nuxt.options.rootDir, 'colada.options')
 
+    // avoids having multiple copies of @pinia/colada
+    nuxt.options.vite.optimizeDeps ??= {}
+    nuxt.options.vite.optimizeDeps.exclude ??= []
+    if (!nuxt.options.vite.optimizeDeps.exclude.includes('@pinia/colada')) {
+      nuxt.options.vite.optimizeDeps.exclude.push('@pinia/colada')
+    }
+
     // Do not add the extension since the `.ts` will be transpiled to `.mjs` after `npm run prepack`
     addPlugin(resolve('./runtime/plugin'))
     addPlugin(resolve('./runtime/payload-plugin'))
