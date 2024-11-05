@@ -11,7 +11,6 @@ import type {
   UseMutationGlobalContext,
   UseMutationOptions,
 } from './use-mutation'
-import { useQueryCache } from './query-store'
 
 /**
  * A mutation entry in the cache.
@@ -96,8 +95,6 @@ export const useMutationCache = /* @__PURE__ */ defineStore(
       UseMutationEntry<unknown, any, unknown, any>
     >()
     const caches = shallowReactive(cachesRaw)
-
-    const queryCache = useQueryCache()
 
     function ensure<
       TResult = unknown,
@@ -215,9 +212,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(
       >['2']
       const { options } = currentEntry
 
-      let context: OnMutateContext | OnErrorContext | OnSuccessContext = {
-        queryCache,
-      }
+      let context: OnMutateContext | OnErrorContext | OnSuccessContext = {}
 
       const currentCall = (currentEntry.pending = Symbol())
       try {
@@ -239,7 +234,6 @@ export const useMutationCache = /* @__PURE__ */ defineStore(
         // we set the context here so it can be used by other hooks
         context = {
           ...globalOnMutateContext!,
-          queryCache,
           ...onMutateContext,
           // NOTE: needed for onSuccess cast
         } satisfies OnSuccessContext
