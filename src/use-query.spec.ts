@@ -6,7 +6,7 @@ import { createPinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createApp, defineComponent, nextTick, ref } from 'vue'
 import { mockWarn } from '../test/mock-warn'
-import { createSerializedTreeNodeEntry, isSpy } from '../test/utils'
+import { createSerializedTreeNodeEntry, delay, isSpy, promiseWithResolvers } from '../test/utils'
 import { PiniaColada } from './pinia-colada'
 import { hydrateQueryCache, QUERY_STORE_ID, useQueryCache } from './query-store'
 import type { UseQueryEntryNodeSerialized } from './tree-map'
@@ -803,6 +803,145 @@ describe('useQuery', () => {
       await flushPromises()
       expect(wrapper.vm.data).toBe('ok')
     })
+  })
+
+  describe('abort signal', () => {
+    it('passes an abort signal to the query function', async () => {
+      const query = vi.fn(async () => 'ok')
+      mountSimple({ query })
+
+      expect(query).toHaveBeenCalledTimes(1)
+      expect(query).toHaveBeenCalledWith(
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      )
+    })
+
+    it('uses the data if the signal is aborted but not consumed', async () => {
+      let signal: AbortSignal | undefined
+      const { resolve, promise } = promiseWithResolvers<void>()
+      const { wrapper } = mountSimple({
+        key: ['key'],
+        async query(ctx) {
+          signal = ctx.signal
+          await promise
+          return 'ok'
+        },
+      })
+      const queryCache = useQueryCache()
+      const entry = queryCache.getEntries({ key: ['key'] })[0]
+      expect(entry).toBeDefined()
+      expect(entry.pending?.abortController.signal).toBe(signal)
+     entry.pending?.abortController.abort(new Error('from test'))
+
+      resolve()
+      await flushPromises()
+      expect(entry.state.value.data).toBe('ok')
+      expect(wrapper.vm.data).toBe('ok')
+    })
+
+    it('does not use the data if the signal is aborted and consumed', async () => {
+      const { resolve, promise } = promiseWithResolvers<void>()
+      const { wrapper } = mountSimple({
+        key: ['key'],
+        async query({ signal }) {
+          await promise
+          signal.throwIfAborted()
+          return 'ok'
+        },
+      })
+
+      const queryCache = useQueryCache()
+      const entry = queryCache.getEntries({ key: ['key'] })[0]
+      expect(entry).toBeDefined()
+      entry.pending?.abortController.abort(new Error('from test'))
+      resolve()
+
+      await flushPromises()
+      expect(entry.state.value.data).toBe(undefined)
+      expect(wrapper.vm.data).toBe(undefined)
+    })
+  })
+
+  it('can be cancelled through the queryCache without refetching', async () => {
+    const { query } = mountSimple({
+      key: ['key'],
+      query: async () => {
+        await delay(100)
+        return 'ok'
+      },
+    })
+
+    const queryCache = useQueryCache()
+    const entry = queryCache.getEntries({ key: ['key'] })[0]
+    expect(entry).toBeDefined()
+    queryCache.cancel(entry)
+
+    vi.advanceTimersByTime(100)
+    await flushPromises()
+
+    expect(query).toHaveBeenCalledTimes(1)
+  })
+
+  it('stays stale if it is cancelled before the query resolves', async () => {
+    mountSimple({
+      key: ['key'],
+      query: async () => {
+        await delay(100)
+        return 'ok'
+      },
+    })
+
+    const queryCache = useQueryCache()
+    const entry = queryCache.getEntries({ key: ['key'] })[0]
+    expect(entry).toBeDefined()
+    queryCache.cancel(entry)
+
+    vi.advanceTimersByTime(100)
+    await flushPromises()
+
+    expect(entry.stale).toBe(true)
+  })
+
+  it('stays not stale if it is cancelled but has resolved before', async () => {
+    mountSimple({
+      key: ['key'],
+      query: async () => {
+        await delay(100)
+        return 'ok'
+      },
+      staleTime: 500,
+    })
+
+    vi.advanceTimersByTime(100)
+    await flushPromises()
+
+    const queryCache = useQueryCache()
+    const entry = queryCache.getEntries({ key: ['key'] })[0]
+    expect(entry).toBeDefined()
+    expect(entry.stale).toBe(false)
+    queryCache.refresh(entry)
+    queryCache.cancel(entry)
+
+    await flushPromises()
+    expect(entry.stale).toBe(false)
+  })
+
+  it('can be invalidated through the queryCache to refetch', async () => {
+    const { query } = mountSimple({
+      key: ['key'],
+      query: async () => {
+        await delay(100)
+        return 'ok'
+      },
+    })
+
+    const queryCache = useQueryCache()
+    queryCache.invalidateQueries({ key: ['key'] })
+
+    vi.advanceTimersByTime(100)
+    await flushPromises()
+
+    expect(query).toHaveBeenCalledTimes(2)
   })
 
   describe('shared state', () => {

@@ -8,7 +8,12 @@ export type GlobalMountOptions = NonNullable<Parameters<typeof mount>[1]>['globa
 
 export function isSpy<Fn extends (...args: unknown[]) => unknown>(fn: any): fn is Mock<Fn>
 export function isSpy(fn: any): fn is Mock {
-  return typeof fn === 'function' && 'mock' in fn && typeof fn.mock === 'object' && Array.isArray(fn.mock.calls)
+  return (
+    typeof fn === 'function'
+    && 'mock' in fn
+    && typeof fn.mock === 'object'
+    && Array.isArray(fn.mock.calls)
+  )
 }
 
 /**
@@ -21,4 +26,15 @@ export function createSerializedTreeNodeEntry(
   when: number,
 ): UseQueryEntryNodeSerialized {
   return [key, [value, error, when]]
+}
+
+export function promiseWithResolvers<T = unknown>() {
+  let resolve!: (value: T | PromiseLike<T>) => void
+  let reject!: (reason?: any) => void
+  // the executor is guaranteed to get executed right away
+  const promise = new Promise<T>((_resolve, _reject) => {
+    resolve = _resolve
+    reject = _reject
+  })
+  return { promise, resolve, reject }
 }
