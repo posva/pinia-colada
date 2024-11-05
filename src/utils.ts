@@ -1,4 +1,5 @@
 import {
+  type MaybeRefOrGetter,
   type Ref,
   type ShallowRef,
   computed,
@@ -190,4 +191,16 @@ export function warnOnce(message: string, id: string = message) {
   if (warnedMessages.has(id)) return
   warnedMessages.add(id)
   console.warn(`[@pinia/colada]: ${message}`)
+}
+
+/**
+ * Removes the `MaybeRefOrGetter` wrapper from all fields of an object.
+ * @internal
+ */
+export type _RemoveMaybeRef<T> = {
+  [K in keyof T]: T[K] extends MaybeRefOrGetter<infer U>
+    ? MaybeRefOrGetter<U> extends T[K]
+      ? U
+      : T[K]
+    : T[K]
 }

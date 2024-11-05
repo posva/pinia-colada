@@ -5,6 +5,7 @@ import {
   type ShallowRef,
   getCurrentInstance,
   getCurrentScope,
+  hasInjectionContext,
   markRaw,
   shallowReactive,
   shallowRef,
@@ -14,9 +15,8 @@ import { stringifyFlatObject, toValueWithArgs, warnOnce } from './utils'
 import type { _UseQueryEntryNodeValueSerialized, UseQueryEntryNodeSerialized, EntryNodeKey } from './tree-map'
 import { appendSerializedNodeToTree, TreeMapNode } from './tree-map'
 import type { EntryKey } from './entry-options'
-import type { UseQueryOptionsWithDefaults } from './query-options'
+import { useQueryOptions, type UseQueryOptions, type UseQueryOptionsWithDefaults } from './query-options'
 import type { ErrorDefault } from './types-extension'
-import type { defineQuery } from './define-query'
 import type {
   AsyncStatus,
   DataState,
@@ -229,7 +229,17 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
 
   // this allows use to attach reactive effects to the scope later on
   const scope = getCurrentScope()!
-  // let serializedCacheToHydrate: UseQueryEntryNodeSerialized[] | null | undefined = getActivePinia()!.state.value[QUERY_STORE_ID]?.caches
+
+  if (process.env.NODE_ENV !== 'production') {
+    if (!hasInjectionContext()) {
+      warnOnce(
+        `useQueryCache() was called outside of an injection context (component setup, store, navigation guard) You will get a warning about "inject" being used incorrectly from Vue. Make sure to use it only in allowed places.\n`
+        + `See https://vuejs.org/guide/reusability/composables.html#usage-restrictions`,
+      )
+    }
+  }
+
+  const optionDefaults = useQueryOptions()
 
   const create = action(
     <TResult, TError>(
@@ -389,8 +399,12 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    */
   const ensure = action(
     <TResult = unknown, TError = ErrorDefault>(
-      options: UseQueryOptionsWithDefaults<TResult, TError>,
+      opts: UseQueryOptions<TResult, TError>,
     ): UseQueryEntry<TResult, TError> => {
+      const options: UseQueryOptionsWithDefaults<TResult, TError> = {
+        ...optionDefaults,
+        ...opts,
+      }
       const key = toValue(options.key).map(stringifyFlatObject)
 
       if (process.env.NODE_ENV !== 'production' && key.length === 0) {
