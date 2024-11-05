@@ -170,7 +170,10 @@ export const USE_QUERY_DEFAULTS = {
   enabled: true as MaybeRefOrGetter<boolean>,
 } satisfies UseQueryOptionsGlobal
 
-export type UseQueryOptionsWithDefaults<TResult = unknown, TError = ErrorDefault> = UseQueryOptions<TResult, TError> &
+export type UseQueryOptionsWithDefaults<TResult = unknown, TError = ErrorDefault> = UseQueryOptions<
+  TResult,
+  TError
+> &
   typeof USE_QUERY_DEFAULTS
 
 /**
