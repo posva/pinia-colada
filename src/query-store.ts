@@ -227,6 +227,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   const cachesRaw = new TreeMapNode<UseQueryEntry<unknown, unknown>>()
   const caches = skipHydrate(shallowReactive(cachesRaw))
 
+  // this version of the cache cannot be hydrated because it would miss all of the actions
+  // and plugins won't be able to hook into entry creation and fetching
   // this allows use to attach reactive effects to the scope later on
   const scope = getCurrentScope()!
 
