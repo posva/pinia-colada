@@ -1,3 +1,5 @@
+import type { UseQueryOptionsWithDefaults } from './query-options'
+
 /**
  * Key type for nodes in the tree map. Differently from {@link EntryKey}, this type is serializable to JSON.
  */
@@ -93,10 +95,20 @@ export class TreeMapNode<T = unknown> {
   }
 }
 
+// NOTE: this function is outside of TreeMapNode because it's only needed for SSR apps and shouldn't add to the bundle
+// size if they are client only
+/**
+ * Revives and appends a serialized node to the tree.
+ *
+ * @param parent - parent node
+ * @param param1 serialized entry
+ * @param createNodeValue - function to create the node value
+ * @param parentKey parent key
+ */
 export function appendSerializedNodeToTree<T>(
   parent: TreeMapNode<T>,
   [key, value, children]: UseQueryEntryNodeSerialized,
-  createNodeValue: (key: EntryNodeKey[], initialData?: unknown, error?: unknown | null, when?: number) => T,
+  createNodeValue: (key: EntryNodeKey[], options?: UseQueryOptionsWithDefaults<unknown, unknown> | null, initialData?: unknown, error?: unknown | null, when?: number) => T,
   parentKey: EntryNodeKey[] = [],
 ) {
   parent.children ??= new Map()
@@ -105,7 +117,7 @@ export function appendSerializedNodeToTree<T>(
     [],
     // NOTE: this could happen outside of an effect scope but since it's only for client side hydration, it should be
     // fine to have global shallowRefs as they can still be cleared when needed
-    value && createNodeValue(entryKey, ...value),
+    value && createNodeValue(entryKey, null, ...value),
   )
   parent.children.set(key, node)
   if (children) {
