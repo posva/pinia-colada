@@ -13,8 +13,7 @@ import type { PiniaColadaPlugin } from './plugins'
 /**
  * Options for the Pinia Colada plugin.
  */
-export interface PiniaColadaOptions
-  extends UseQueryOptionsGlobal {
+export interface PiniaColadaOptions extends UseQueryOptionsGlobal {
   /**
    * Pinia instance to use. This is only needed if installing before the Pinia plugin.
    */
