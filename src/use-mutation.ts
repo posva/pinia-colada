@@ -45,11 +45,6 @@ export type _ReduceContext<TContext> = TContext extends void | null | undefined
 export interface UseMutationGlobalContext {}
 
 /**
- * Context object passed to the different hooks of a mutation like `onMutate`, `onSuccess`, `onError` and `onSettled`.
- */
-export interface UseMutationHooksContext {}
-
-/**
  * Options to create a mutation.
  */
 export interface UseMutationOptions<
@@ -99,10 +94,8 @@ export interface UseMutationOptions<
      * The variables passed to the mutation.
      */
     vars: NoInfer<TVars>,
-    context: // always defined
-    UseMutationHooksContext &
-      // undefined if global onMutate throws
-      UseMutationGlobalContext,
+    context: // undefined properties if global onMutate throws
+    UseMutationGlobalContext,
   ) => _Awaitable<TContext | undefined | void | null>
 
   /**
@@ -120,9 +113,7 @@ export interface UseMutationOptions<
     /**
      * The merged context from `onMutate` and the global context.
      */
-    context: UseMutationGlobalContext &
-      UseMutationHooksContext &
-      _ReduceContext<NoInfer<TContext>>,
+    context: UseMutationGlobalContext & _ReduceContext<NoInfer<TContext>>,
   ) => unknown
 
   /**
@@ -142,15 +133,12 @@ export interface UseMutationOptions<
      * if `onMutate` throws.
      */
     context:
-      | (UseMutationHooksContext &
-          // undefined if global onMutate throws, makes type narrowing easier for the user
-          Partial<Record<keyof UseMutationGlobalContext, never>> &
+      | // undefined if global onMutate throws, makes type narrowing easier for the user
+      (Partial<Record<keyof UseMutationGlobalContext, never>> &
           Partial<Record<keyof _ReduceContext<NoInfer<TContext>>, never>>)
       // this is the success case where everything is defined
-      | (UseMutationHooksContext &
-          // undefined if global onMutate throws
-          UseMutationGlobalContext &
-          _ReduceContext<NoInfer<TContext>>),
+      // undefined if global onMutate throws
+      | (UseMutationGlobalContext & _ReduceContext<NoInfer<TContext>>),
   ) => unknown
 
   /**
@@ -174,15 +162,12 @@ export interface UseMutationOptions<
      * if `onMutate` throws.
      */
     context:
-      | (UseMutationHooksContext &
-          // undefined if global onMutate throws, makes type narrowing easier for the user
-          Partial<Record<keyof UseMutationGlobalContext, never>> &
+      | // undefined if global onMutate throws, makes type narrowing easier for the user
+      (Partial<Record<keyof UseMutationGlobalContext, never>> &
           Partial<Record<keyof _ReduceContext<NoInfer<TContext>>, never>>)
       // this is the success case where everything is defined
-      | (UseMutationHooksContext &
-          // undefined if global onMutate throws
-          UseMutationGlobalContext &
-          _ReduceContext<NoInfer<TContext>>),
+      // undefined if global onMutate throws
+      | (UseMutationGlobalContext & _ReduceContext<NoInfer<TContext>>),
   ) => unknown
 }
 

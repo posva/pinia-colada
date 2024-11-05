@@ -101,7 +101,10 @@ export class TreeMapNode<T = unknown> {
  * Revives and appends a serialized node to the tree.
  *
  * @param parent - parent node
- * @param param1 serialized entry
+ * @param serializedEntryNode serialized entry
+ * @param serializedEntryNode.0 entry key
+ * @param serializedEntryNode.1 entry data value
+ * @param serializedEntryNode.2 entry children
  * @param createNodeValue - function to create the node value
  * @param parentKey parent key
  */
@@ -189,7 +192,7 @@ export function entryNodeSize(node: TreeMapNode): number {
  */
 export function logTree(
   tree: TreeMapNode,
-  // eslint-disable-next-line no-console
+
   log: (str: string) => any = console.log,
 ) {
   log(printTreeMap(tree))

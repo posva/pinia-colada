@@ -4,7 +4,7 @@ import antfu from '@antfu/eslint-config'
 export default antfu(
   {
     ignores: [
-      //
+      // line split
       '**/*.ts.timestamp*',
       'nuxt',
     ],
@@ -26,6 +26,7 @@ export default antfu(
       'perfectionist/sort-imports': 'off',
       'perfectionist/sort-named-imports': 'off',
       'perfectionist/sort-exports': 'off',
+      'unused-imports/no-unused-imports': 'warn',
     },
   },
   {
@@ -38,6 +39,8 @@ export default antfu(
     files: ['docs/**/*', '!docs/.vitepress/**/*'],
     rules: {
       'import/order': ['off'],
+      'unused-imports/no-unused-imports': 'off',
+      'no-console': 'off',
       'node/handle-callback-err': 'off',
     },
   },

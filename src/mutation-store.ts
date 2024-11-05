@@ -8,7 +8,6 @@ import type { _EmptyObject } from './utils'
 import { isSameArray, stringifyFlatObject, toValueWithArgs } from './utils'
 import type {
   _ReduceContext,
-  UseMutationGlobalContext,
   UseMutationOptions,
 } from './use-mutation'
 
@@ -161,9 +160,11 @@ export const useMutationCache = /* @__PURE__ */ defineStore(
 
       return entry
     }
-    //
+
     // this allows use to attach reactive effects to the scope later on
     const scope = getCurrentScope()!
+
+    // const globalOptions = inject()
 
     const defineMutationMap = new WeakMap<() => unknown, unknown>()
 
@@ -216,9 +217,9 @@ export const useMutationCache = /* @__PURE__ */ defineStore(
 
       const currentCall = (currentEntry.pending = Symbol())
       try {
-        // TODO: remove until needed
-        let globalOnMutateContext: UseMutationGlobalContext | undefined
-        // globalOnMutateContext = await globalOptions.onMutate?.(vars)
+        // TODO: implement
+        // let globalOnMutateContext: UseMutationGlobalContext | undefined
+        // let globalOnMutateContext = await globalOptions.onMutate?.(vars)
 
         const onMutateContext = (await options.onMutate?.(
           vars,
@@ -228,7 +229,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(
 
         // we set the context here so it can be used by other hooks
         context = {
-          ...globalOnMutateContext!,
+          // ...globalOnMutateContext!,
           ...onMutateContext,
           // NOTE: needed for onSuccess cast
         } satisfies OnSuccessContext
