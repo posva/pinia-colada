@@ -175,7 +175,7 @@ export interface UseQueryEntryFilter {
  * Empty starting object for extensions that allows to detect when to update.
  * @internal
  */
-export const START_EXTS = {}
+export const START_EXT = {}
 
 /**
  * UseQueryEntry method to serialize the entry to JSON.
@@ -267,7 +267,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           gcTimeout: undefined,
           // eslint-disable-next-line ts/ban-ts-comment
           // @ts-ignore: some plugins are adding properties to the entry type
-          ext: START_EXTS,
+          ext: START_EXT,
           options,
           get stale() {
             return Date.now() >= this.when + this.options!.staleTime
@@ -434,7 +434,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       // in useQuery already catches possible problems
       entry.options = options
 
-      if (entry.ext === START_EXTS) {
+      // extend the entry with plugins the first time only
+      if (entry.ext === START_EXT) {
         entry.ext = {} as UseQueryEntryExtensions<TResult, TError>
         extend(entry)
       }
@@ -450,9 +451,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * Action called when an entry is ensured for the first time to allow plugins to extend it.
    */
   const extend = action(
-    <TResult = unknown, TError = ErrorDefault>(_entry: UseQueryEntry<TResult, TError>) => {
-  },
-)
+    <TResult = unknown, TError = ErrorDefault>(_entry: UseQueryEntry<TResult, TError>) => {},
+  )
 
   /**
    * Invalidates a query entry
@@ -592,7 +592,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   )
 
   /**
-   * Set the data of a query entry in the cache. Note this doesn't change the status of the query.
+   * Set the data of a query entry in the cache. Note this doesn't change the status of the query nor the `when` property of the entry. It assumes an already successfully fetched entry.
    */
   const setQueryData = action(
     <TResult = unknown>(
@@ -623,14 +623,13 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     },
   )
 
-  const getQueryData = action(
-    <TResult = unknown>(key: EntryKey): TResult | undefined => {
-      const entry = caches.get(key.map(stringifyFlatObject)) as
-        | UseQueryEntry<TResult>
-        | undefined
-      return entry?.state.value.data
-    },
-  )
+  /**
+   * Gets the data of a query entry in the cache based on the key of the query.
+   * @param key - the key of the query
+   */
+  function getQueryData<TResult = unknown>(key: EntryKey): TResult | undefined {
+    return caches.get(key.map(stringifyFlatObject))?.state.value.data as TResult | undefined
+  }
 
   const remove = action(
     /**
@@ -638,9 +637,6 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
      */
     (entry: UseQueryEntry) => caches.delete(entry.key),
   )
-
-  // TODO: find a way to make it possible to prefetch. Right now we need the actual options of the query
-  const _preload = action((_useQueryFn: ReturnType<typeof defineQuery>) => {})
 
   return {
     caches,
@@ -790,7 +786,7 @@ export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
     gcTimeout: undefined,
     // eslint-disable-next-line ts/ban-ts-comment
     // @ts-ignore: some plugins are adding properties to the entry type
-    ext: START_EXTS,
+    ext: START_EXT,
     options,
     get stale() {
       return Date.now() >= this.when + this.options!.staleTime

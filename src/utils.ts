@@ -88,8 +88,7 @@ export type _Simplify<T> = { [K in keyof T]: T[K] }
  *
  * @param value - value to convert
  */
-export const toArray = <T>(value: _MaybeArray<T>): T[] =>
-  Array.isArray(value) ? value : [value]
+export const toArray = <T>(value: _MaybeArray<T>): T[] => (Array.isArray(value) ? value : [value])
 
 export type _JSONPrimitive = string | number | boolean | null | undefined
 
@@ -155,10 +154,7 @@ export type _RenameProperty<T, Key extends keyof T, NewKey extends string> = {
  * Type safe version of `Object.assign` that allows to set all properties of a reactive object at once. Used to set
  * {@link DataState} properties in a type safe way.
  */
-export const setReactiveValue = Object.assign as <T>(
-  value: T,
-  ...args: T[]
-) => T
+export const setReactiveValue = Object.assign as <T>(value: T, ...args: T[]) => T
 
 /**
  * To avoid using `{}`

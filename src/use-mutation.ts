@@ -255,10 +255,11 @@ export interface UseMutationReturn<TResult, TVars, TError> {
  * @param options - Options to create the mutation
  * @example
  * ```ts
+ * const queryCache = useQueryCache()
  * const { mutate, status, error } = useMutation({
  *   mutation: (id: number) => fetch(`/api/todos/${id}`),
- *   onSuccess({ queryClient }) {
- *     queryClient.invalidateQueries('todos')
+ *   onSuccess() {
+ *     queryCache.invalidateQueries('todos')
  *   },
  * })
  * ```
