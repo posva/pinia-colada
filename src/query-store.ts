@@ -658,6 +658,11 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     caches,
 
     ensureDefinedQuery,
+    /**
+     * Scope to track effects and components that use the query cache.
+     * @internal
+     */
+    _s: markRaw(scope),
     setQueryData,
     getQueryData,
 

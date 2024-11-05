@@ -21,40 +21,42 @@ interface PiniaColadaDelayOptions {
  * @param options - Pinia Colada Delay Loading plugin options
  */
 export function PiniaColadaDelay(options?: PiniaColadaDelayOptions): PiniaColadaPlugin {
-  return ({ queryCache }) => {
+  return ({ queryCache, scope }) => {
     queryCache.$onAction(({ name, after }) => {
       if (name === 'create') {
         after((entry) => {
           const delay = entry.options?.delay ?? options?.delay ?? 200
-          const isDelaying = shallowRef(false)
-          entry.ext.isDelaying = isDelaying
-          if (!delay) return
+          scope.run(() => {
+            const isDelaying = shallowRef(false)
+            entry.ext.isDelaying = isDelaying
+            if (!delay) return
 
-          const initialValue = entry.asyncStatus.value
-          entry.asyncStatus = customRef<AsyncStatus>((track, trigger) => {
-            let value = initialValue
-            let timeout: ReturnType<typeof setTimeout> | undefined
-            return {
-              get() {
-                track()
-                return value
-              },
-              set(newValue) {
-                clearTimeout(timeout)
-                if (newValue === 'loading') {
-                  isDelaying.value = true
-                  timeout = setTimeout(() => {
+            const initialValue = entry.asyncStatus.value
+            entry.asyncStatus = customRef<AsyncStatus>((track, trigger) => {
+              let value = initialValue
+              let timeout: ReturnType<typeof setTimeout> | undefined
+              return {
+                get() {
+                  track()
+                  return value
+                },
+                set(newValue) {
+                  clearTimeout(timeout)
+                  if (newValue === 'loading') {
+                    isDelaying.value = true
+                    timeout = setTimeout(() => {
+                      isDelaying.value = false
+                      value = newValue
+                      trigger()
+                    }, delay)
+                  } else {
                     isDelaying.value = false
                     value = newValue
                     trigger()
-                  }, delay)
-                } else {
-                  isDelaying.value = false
-                  value = newValue
-                  trigger()
-                }
-              },
-            }
+                  }
+                },
+              }
+            })
           })
         })
       }
