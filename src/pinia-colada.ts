@@ -1,12 +1,7 @@
 import type { App } from 'vue'
 import type { Pinia } from 'pinia'
-import type {
-  UseQueryOptionsGlobal,
-} from './query-options'
-import {
-  USE_QUERY_DEFAULTS,
-  USE_QUERY_OPTIONS_KEY,
-} from './query-options'
+import type { UseQueryOptionsGlobal } from './query-options'
+import { USE_QUERY_DEFAULTS, USE_QUERY_OPTIONS_KEY } from './query-options'
 import { useQueryCache } from './query-store'
 import type { PiniaColadaPlugin } from './plugins'
 

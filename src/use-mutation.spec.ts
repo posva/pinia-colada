@@ -148,6 +148,23 @@ describe('useMutation', () => {
     )
   })
 
+  it('passes the returned value from onMutate to onError', async () => {
+    const onError = vi.fn()
+    const { wrapper, mutation } = mountSimple({
+      onMutate: () => ({ foo: 'bar' }),
+      onError,
+    })
+
+    mutation.mockRejectedValueOnce(new Error('onMutate'))
+    wrapper.vm.mutate()
+    await flushPromises()
+    expect(onError).toHaveBeenCalledWith(
+      new Error('onMutate'),
+      undefined,
+      expect.objectContaining({ foo: 'bar' }),
+    )
+  })
+
   it('skips setting the error if "onError" throws', async () => {
     const onError = vi.fn().mockRejectedValueOnce(new Error('onError'))
     const { wrapper } = mountSimple({
