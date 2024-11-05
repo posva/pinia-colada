@@ -50,6 +50,7 @@ describe('PiniaColada', () => {
     expect(plugin).toHaveBeenCalledTimes(1)
     expect(plugin).toHaveBeenCalledWith({
       queryCache: useQueryCache(pinia),
+      scope: useQueryCache(pinia)._s,
       pinia,
     })
   })

@@ -216,7 +216,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(
 
       const currentCall = (currentEntry.pending = Symbol())
       try {
-        // TODO:
+        // TODO: remove until needed
         let globalOnMutateContext: UseMutationGlobalContext | undefined
         // globalOnMutateContext = await globalOptions.onMutate?.(vars)
 
@@ -235,7 +235,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(
 
         const newData = (currentData = await options.mutation(
           vars,
-          onMutateContext,
+          context as OnSuccessContext,
         ))
 
         await options.onSuccess?.(

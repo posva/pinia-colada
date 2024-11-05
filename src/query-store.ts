@@ -246,9 +246,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   const create = action(
     <TResult, TError>(
       key: EntryNodeKey[],
+      options: UseQueryOptionsWithDefaults<TResult, TError> | null = null,
       initialData?: TResult,
       error: TError | null = null,
-      options: UseQueryOptionsWithDefaults<TResult, TError> | null = null,
       when: number = 0,
     ): UseQueryEntry<TResult, TError> =>
       scope.run(() => {
