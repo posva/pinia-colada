@@ -248,8 +248,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       key: EntryNodeKey[],
       initialData?: TResult,
       error: TError | null = null,
-      when: number = 0,
       options: UseQueryOptionsWithDefaults<TResult, TError> | null = null,
+      when: number = 0,
     ): UseQueryEntry<TResult, TError> =>
       scope.run(() => {
         const state = shallowRef<DataState<TResult, TError>>(
@@ -418,7 +418,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       // ensure the state
       let entry = cachesRaw.get(key) as UseQueryEntry<TResult, TError> | undefined
       if (!entry) {
-        cachesRaw.set(key, (entry = create(key, options.initialData?.(), null, 0, options)))
+        cachesRaw.set(key, (entry = create(key, options, options.initialData?.())))
       }
 
       // warn against using the same key for different functions

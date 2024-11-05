@@ -226,17 +226,17 @@ export const useMutationCache = /* @__PURE__ */ defineStore(
           // NOTE: the cast makes it easier to write without extra code. It's safe because { ...null, ...undefined } works and TContext must be a Record<any, any>
         )) as _ReduceContext<TContext>
 
-        const newData = (currentData = await options.mutation(
-          vars,
-          onMutateContext,
-        ))
-
         // we set the context here so it can be used by other hooks
         context = {
           ...globalOnMutateContext!,
           ...onMutateContext,
           // NOTE: needed for onSuccess cast
         } satisfies OnSuccessContext
+
+        const newData = (currentData = await options.mutation(
+          vars,
+          onMutateContext,
+        ))
 
         await options.onSuccess?.(
           newData,
