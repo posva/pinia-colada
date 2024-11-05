@@ -9,11 +9,19 @@ import { useQueryCache } from './query-store'
 import type { ErrorDefault } from './types-extension'
 import type { UseQueryReturn } from './use-query'
 import { useQuery } from './use-query'
+import type { _RemoveMaybeRef } from './utils'
 
 /**
  * The current effect scope where the function returned by `defineQuery` is being called. This allows `useQuery()` to know if it should be attached to an effect scope or not
  */
 let currentDefineQueryEffect: undefined | EffectScope
+
+/**
+ * Options to define a query with `defineQuery()`. Similar to {@link UseQueryOptions} but disallows reactive values as
+ * `defineQuery()` is used outside of an effect scope.
+ */
+export interface DefineQueryOptions<TResult = unknown, TError = ErrorDefault> extends _RemoveMaybeRef<UseQueryOptions<TResult, TError>> {
+}
 
 // NOTE: no setter because it cannot be set outside of defineQuery()
 
@@ -28,7 +36,7 @@ export function getCurrentDefineQueryEffect() {
 
 /**
  * Define a query with the given options. Similar to `useQuery(options)` but allows you to reuse the query in multiple
- * places.
+ * places. It only allow static values in options. If you need dynamic values, use the function version.
  *
  * @param options - the options to define the query
  * @example
@@ -40,7 +48,7 @@ export function getCurrentDefineQueryEffect() {
  * ```
  */
 export function defineQuery<TResult, TError = ErrorDefault>(
-  options: UseQueryOptions<TResult, TError>,
+  options: DefineQueryOptions<TResult, TError>,
 ): () => UseQueryReturn<TResult, TError>
 
 /**
@@ -65,7 +73,7 @@ export function defineQuery<TResult, TError = ErrorDefault>(
  */
 export function defineQuery<T>(setup: () => T): () => T
 export function defineQuery(
-  optionsOrSetup: UseQueryOptions | (() => unknown),
+  optionsOrSetup: DefineQueryOptions | (() => unknown),
 ): () => unknown {
   const setupFn
     = typeof optionsOrSetup === 'function'
