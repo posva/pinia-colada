@@ -608,7 +608,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   )
 
   /**
-   * Set the data of a query entry in the cache. Note this doesn't change the status of the query nor the `when` property of the entry. It assumes an already successfully fetched entry.
+   * Set the data of a query entry in the cache. It assumes an already successfully fetched entry.
    */
   const setQueryData = action(
     <TResult = unknown>(
