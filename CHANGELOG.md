@@ -1,3 +1,38 @@
+## 0.12.0 (2024-11-06)
+
+### ⚠ BREAKING CHANGES
+
+- `transformError` was never fully implemented so they are being removed and might come back if they is a real-word use case for them
+- If you were using the `delayLoadingRef` util, [use the `@pinia/colada-plugin-delay` instead](https://github.com/posva/pinia-colada/tree/main/plugins/delay).
+- Renaming `Error` to `defaultError` allows to differentiate the property from the existing global Error class. Upgrading should be straightforward.
+
+### Features
+
+- add initial delay plugin ([42c8760](https://github.com/posva/pinia-colada/commit/42c876047927b777b9e047b2aa8beae90407fbc2))
+- add track and untrack actions for plugins ([8902ba3](https://github.com/posva/pinia-colada/commit/8902ba3286f4a3a366c25fe0c7d1a27bbabdb3ed))
+- allow dynamic values for auto refetches ([63d2fd0](https://github.com/posva/pinia-colada/commit/63d2fd0284ed84c035a8eecbdbd2858ba918324f))
+- allow extending useQuery return ([ef06628](https://github.com/posva/pinia-colada/commit/ef066280baedfd155eb7f040d72a8f6ef0c8e771))
+- expose more types ([4447d6d](https://github.com/posva/pinia-colada/commit/4447d6d2af7f18f3b42073a96e9297f6b89ce6d1))
+- **plugins:** pass scope for added variables ([a3b666f](https://github.com/posva/pinia-colada/commit/a3b666fd8a16fd2ec81017cf928025889e8b5181))
+- work without the plugin ([696f88e](https://github.com/posva/pinia-colada/commit/696f88e353329b93155d648dfbe23367099a0d86))
+
+### Bug Fixes
+
+- avoid broken reactivity in defineQuery ([4c48abc](https://github.com/posva/pinia-colada/commit/4c48abcc1d3821ef98c1b57931c8d10d1667c620))
+- dedupe pinia colada ([6ace8e8](https://github.com/posva/pinia-colada/commit/6ace8e82dfbf0283a73121975669617f9d0fbe8c))
+- keep data if signal is aborted ([de5cde5](https://github.com/posva/pinia-colada/commit/de5cde5f2aded0c8a8eb11dce1ca0d1c3488ec2d))
+- pass onMutate context ([618312b](https://github.com/posva/pinia-colada/commit/618312b785ac56bad4518df44005cc5d4647e6a4)), closes [#95](https://github.com/posva/pinia-colada/issues/95)
+- remove queryCache from mutation hooks ([3f1119a](https://github.com/posva/pinia-colada/commit/3f1119acea9a79af332f95e870b85ad001e829cf))
+- run create in ssr too ([1a6fa4a](https://github.com/posva/pinia-colada/commit/1a6fa4abcc895061c6c1db9d5985eede007b8150))
+- **ssr:** throw on error in query ([58b7f69](https://github.com/posva/pinia-colada/commit/58b7f691c7270c83629aad9c4aebe28adc9beae5))
+- upgrade to new cache format ([03e1683](https://github.com/posva/pinia-colada/commit/03e1683f895168175dc93a6bc464b94daf35e69f))
+
+### Code Refactoring
+
+- **query:** remove unused transformError and setup options ([de0cb48](https://github.com/posva/pinia-colada/commit/de0cb48dd8a8f29406084fe523eb697ef1817523))
+- remove delayLoadingRef helper in favor of the plugins ([4c9b4cb](https://github.com/posva/pinia-colada/commit/4c9b4cbcd6387307ff4a7da826e5d8c948ee49cf))
+- rename the global `Error` property in `TypesConfig` to ([0021426](https://github.com/posva/pinia-colada/commit/002142694dece049b4c8521cbe8a9d082c50cdfb))
+
 ## 0.11.1 (2024-10-28)
 
 ### Features

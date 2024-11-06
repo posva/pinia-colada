@@ -1,3 +1,11 @@
+## [0.0.3](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.0.2...@pinia/colada-nuxt@0.0.3) (2024-11-06)
+
+### Bug Fixes
+
+- dedupe pinia colada ([6ace8e8](https://github.com/posva/pinia-colada/commit/6ace8e82dfbf0283a73121975669617f9d0fbe8c))
+- run create in ssr too ([1a6fa4a](https://github.com/posva/pinia-colada/commit/1a6fa4abcc895061c6c1db9d5985eede007b8150))
+- upgrade to new cache format ([03e1683](https://github.com/posva/pinia-colada/commit/03e1683f895168175dc93a6bc464b94daf35e69f))
+
 ## [0.0.2](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.0.1...@pinia/colada-nuxt@0.0.2) (2024-10-28)
 
 No changes.
