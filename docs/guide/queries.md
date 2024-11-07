@@ -18,7 +18,19 @@ import { defineComponent } from 'vue'
 const TodoItem = defineComponent({})
 // ---cut-end---
 
-const { data, status, asyncStatus } = useQuery({
+const {
+  // main query properties
+  state,
+  asyncStatus,
+  refresh,
+  refetch,
+  // convenient aliases
+  error,
+  data,
+  status,
+  isLoading,
+  isPending,
+} = useQuery({
   key: ['todos'],
   query: () => fetch('/api/todos').then((res) => res.json()),
 })
@@ -29,11 +41,11 @@ const { data, status, asyncStatus } = useQuery({
     <div v-if="asyncStatus === 'loading'">
       Loading...
     </div>
-    <div v-else-if="status === 'error'">
+    <div v-else-if="state.status === 'error'">
       Oops, an error happened...
     </div>
-    <div v-else>
-      <TodoItem v-for="todo in data" :key="todo.id" :todo="todo" />
+    <div v-else-if="state.data">
+      <TodoItem v-for="todo in state.data" :key="todo.id" :todo="todo" />
     </div>
   </main>
 </template>
@@ -42,11 +54,39 @@ const { data, status, asyncStatus } = useQuery({
 All queries require two properties:
 
 - A unique `key` that defines the query in the cache
-- A `query` function that retrieves (e.g. fetches) the data
+- A `query` function with no arguments that retrieves (e.g. fetches) the data
 
 `useQuery` accepts other options to configure its behavior. You can find more about the options in the docs or explore them by using auto-completion in your editor!
 
-What's great about queries is that they are automatically triggered **when needed**, **enabling a declarative approach that just works!** You can access the fetched data through the references returned by the composable (`data`), as well as other query state, such as its `status`, `error` and more. It also returns methods to manually trigger the query like `refresh()` and `refetch()`.
+What's great about queries is that they are automatically triggered **when needed**, **enabling a declarative approach that just works!**. That's why they don't take any parameters.
+
+Most of the time you will find yourself using just `state` and `asyncStatus` to render the UI based on the query's status (e.g. is it still fetching, is it refreshing, did it throw?, ...). Let's cover the basics of these properties:
+
+- `state`: state of the query. It contains the following properties:
+  - `data`: the data returned by the query. It automatically updates when the query is refetched.
+  - `error`: the error returned by the query. It's `null` if the query was successful.
+  - `status`: the data status of the query. It starts as `'pending'`, and then it changes to `'success'` or `'error'` depending on the outcome of the `query` function:
+
+    | status | data | error |
+    | ------ | ---- | ----- |
+    | `'pending'` | `undefined` | `null` |
+    | `'success'` | _defined_ | `null` |
+    | `'error'` | `undefined` or _defined_ | _defined_ |
+
+- `asyncStatus`: the async status of the query. It's either `'idle'` or `'loading'` if the query is currently being fetched.
+- `refresh()`: manually triggers the query deduplicates requests and reuses the cached data if it's still fresh.
+- `refetch()`: manually triggers the query, ignoring the cache and fetching the data again.
+- _For everything else, hover over the different properties in the code block above to see their types and documentation_ 😁.
+
+::: details `state.status`/`status` vs `asyncStatus` ?
+
+`state.status` (and `status`) is the status of the data itself, while `asyncStatus` is the status of the query call. The query `asyncStatus` is `'idle'` when the query is not fetching and `'loading'` when the query is fetching. While the `state.status` starts as `'pending'` and then becomes `'success'` if the query is successful, and `'error'` if the query fails.
+
+Technically, these two states could be combined into a single one but having them separate allows you to have more control over the UI and the logic of your application. For example, you might want to show a different loading message if the query is _pending_ (it hasn't ever resolved or rejected) or if it's _loading_ (it's currently fetching data independently from the current `state`).
+
+:::
+
+You can access the fetched data through the references returned by `useQuery()` (`data`), as well as other query state, such as its `status`, `error` and more. It also returns methods to manually trigger the query like `refresh()` and `refetch()`.
 
 ## Reusable Queries
 
@@ -86,14 +126,14 @@ import { ref } from 'vue'
 export const useFilteredTodos = defineQuery(() => { // [!code ++]
   // `search` is shared by all components using this query
   const search = ref('')
-  const { data, ...rest } = useQuery({
+  const { state, ...rest } = useQuery({
     key: ['todos', { search: search.value }],
     query: () => fetch(`/api/todos?filter=${search.value}`, { method: 'GET' }),
   })
   return {
     ...rest,
     // we can rename properties for convenience too
-    todoList: data,
+    todoList: state,
     search,
   }
 }) // [!code ++]
@@ -123,6 +163,12 @@ export const useTodos = defineQuery({
 })
 ```
 
+::: tip When to use `defineQuery()` over just `useQuery()`?
+
+If you need to reuse a query in multiple components, move the query to a separate file (e.g. `src/queries/todos.ts`) and use `defineQuery()` to define it. This will ensure that the query code isn't partially updated in your code base.
+
+:::
+
 ## Using External Properties in Queries
 
 Since queries are automatically triggered by Pinia Colada, the `query` function cannot accept parameters. However, you can directly use external properties like route params or search queries within the `query` function. To ensure proper caching, add these properties to the `key` as a function. A common example is using the `route` within the `query` function:
@@ -133,7 +179,7 @@ import { useRoute } from 'vue-router'
 import { useQuery } from '@pinia/colada'
 
 const route = useRoute()
-const { data, status } = useQuery({
+const { state } = useQuery({
   key: () => ['contacts', route.params.id as string],
   query: () =>
     fetch(`/api/contacts/${route.params.id}`).then((res) => res.json()),
@@ -358,6 +404,6 @@ defineQuery(() => {
 
 ::: tip
 
-If you are using Nuxt, you can simply replace the `ref()` with [Nuxt's `useState()`](https://nuxt.com/docs/api/composables/use-state).
+If you are using Nuxt, you can simply replace the `ref()` with [Nuxt's `useState()`](https://nuxt.com/docs/api/composables/use-state) instead of creating a store.
 
 :::
