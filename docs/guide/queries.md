@@ -30,6 +30,7 @@ const {
   status,
   isLoading,
   isPending,
+  isPlaceholderData,
 } = useQuery({
   key: ['todos'],
   query: () => fetch('/api/todos').then((res) => res.json()),
@@ -74,17 +75,19 @@ Most of the time you will find yourself using just `state` and `asyncStatus` to 
     | `'error'` | `undefined` or _defined_ | _defined_ |
 
 - `asyncStatus`: the async status of the query. It's either `'idle'` or `'loading'` if the query is currently being fetched.
+
+  ::: details `state.status`/`status` vs `asyncStatus` ?
+
+  `state.status` (and `status`) is the status of the data itself, while `asyncStatus` is the status of the query call. The query `asyncStatus` is `'idle'` when the query is not fetching and `'loading'` when the query is fetching. While the `state.status` starts as `'pending'` and then becomes `'success'` if the query is successful, and `'error'` if the query fails.
+
+  Technically, these two states could be combined into a single one but having them separate allows you to have more control over the UI and the logic of your application. For example, you might want to show a different loading message if the query is _pending_ (it hasn't ever resolved or rejected) or if it's _loading_ (it's currently fetching data independently from the current `state`).
+
+  :::
+
 - `refresh()`: manually triggers the query deduplicates requests and reuses the cached data if it's still fresh.
 - `refetch()`: manually triggers the query, ignoring the cache and fetching the data again.
+- `data`, `error`, `status`: are aliases for the properties in `state` for convenience and facilitating migration. `state` allows for [type narrowing in TypeScript](#typescript-narrowing-data-and-errors-type-with-status) but depending on your template usage, you might not need it so we simply provide both approaches for convenience.
 - _For everything else, hover over the different properties in the code block above to see their types and documentation_ 😁.
-
-::: details `state.status`/`status` vs `asyncStatus` ?
-
-`state.status` (and `status`) is the status of the data itself, while `asyncStatus` is the status of the query call. The query `asyncStatus` is `'idle'` when the query is not fetching and `'loading'` when the query is fetching. While the `state.status` starts as `'pending'` and then becomes `'success'` if the query is successful, and `'error'` if the query fails.
-
-Technically, these two states could be combined into a single one but having them separate allows you to have more control over the UI and the logic of your application. For example, you might want to show a different loading message if the query is _pending_ (it hasn't ever resolved or rejected) or if it's _loading_ (it's currently fetching data independently from the current `state`).
-
-:::
 
 You can access the fetched data through the references returned by `useQuery()` (`data`), as well as other query state, such as its `status`, `error` and more. It also returns methods to manually trigger the query like `refresh()` and `refetch()`.
 

@@ -10,7 +10,7 @@ Static keys are the simplest form of keys. They are just an array of serializabl
 <script setup lang="ts">
 import { useQuery } from '@pinia/colada'
 
-const { data, error } = useQuery({
+const { state } = useQuery({
   key: ['products'],
   query: () => getProducts(),
 })
@@ -36,7 +36,7 @@ import { useQuery } from '@pinia/colada'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
-const { data, error } = useQuery({
+const { state } = useQuery({
   key: () => ['products', route.params.id],
   query: () => getProductById(route.params.id),
 })

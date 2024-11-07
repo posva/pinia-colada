@@ -44,17 +44,23 @@ export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault>
   asyncStatus: ComputedRef<AsyncStatus>
 
   /**
-   * The last successful data resolved by the query.
+   * The last successful data resolved by the query. Alias for `state.value.data`.
+   *
+   * @see {@link state}
    */
   data: ShallowRef<TResult | undefined>
 
   /**
-   * The error rejected by the query.
+   * The error rejected by the query. Alias for `state.value.error`.
+   *
+   * @see {@link state}
    */
   error: ShallowRef<TError | null>
 
   /**
-   * The status of the query.
+   * The status of the query. Alias for `state.value.status`.
+   *
+   * @see {@link state}
    * @see {@link DataStateStatus}
    */
   status: ShallowRef<DataStateStatus>
@@ -70,7 +76,7 @@ export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault>
   isPlaceholderData: ComputedRef<boolean>
 
   /**
-   * Returns whether the request is currently fetching data.
+   * Returns whether the request is currently fetching data. Alias for `asyncStatus.value === 'loading'`
    */
   isLoading: ShallowRef<boolean>
 
