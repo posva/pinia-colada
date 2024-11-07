@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import fs from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
