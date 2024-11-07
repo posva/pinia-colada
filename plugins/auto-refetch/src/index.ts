@@ -26,8 +26,10 @@ export function PiniaColadaAutoRefetch(
       // We want refetch to happen only on the client
       if (!import.meta.client) return
 
+      const createMapKey = (options: UseQueryOptions) => toValue(options.key).join('/')
+
       const scheduleRefetch = (options: UseQueryOptions) => {
-        const key = toValue(options.key).join('/')
+        const key = createMapKey(options)
 
         // Clear any existing timeout for this key
         const existingTimeout = refetchTimeouts.get(key)
@@ -61,10 +63,9 @@ export function PiniaColadaAutoRefetch(
       // Trigger a fetch on creation to enable auto-refetch on initial load
       if (name === 'ensure') {
         const [entry] = args
+        if (!shouldScheduleRefetch(entry)) return
 
-        if (shouldScheduleRefetch(entry)) {
-          scheduleRefetch(entry)
-        }
+        scheduleRefetch(entry)
       }
 
       // Set up auto-refetch on every fetch
@@ -73,8 +74,8 @@ export function PiniaColadaAutoRefetch(
 
         after(async () => {
           if (!entry.options) return
-
           if (!shouldScheduleRefetch(entry.options)) return
+
           scheduleRefetch(entry.options)
         })
       }
@@ -82,7 +83,9 @@ export function PiniaColadaAutoRefetch(
       // Clean up timeouts when entry is removed
       if (name === 'remove') {
         const [entry] = args
-        const key = entry.key.join('/')
+        if (!entry.options) return
+
+        const key = createMapKey(entry.options)
         const timeout = refetchTimeouts.get(key)
         if (timeout) {
           clearTimeout(timeout)
