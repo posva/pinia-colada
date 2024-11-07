@@ -4,12 +4,17 @@ Pinia Colada relies on Pinia for server side rendering. This means that you shou
 
 On top of that, Pinia Colada relies on some custom data structures that requires special serialization. This is handled automatically in the [Nuxt module](../nuxt.md) but if you are using a custom SSR setup, you will need to handle this yourself by serializing and reviving the cache tree.
 
+You can check the [source code of the Nuxt module](https://github.com/posva/pinia-colada/blob/main/nuxt/src/runtime/plugin.ts) for inspiration
+
+## Serialization
+
 If you use [devalue](https://github.com/Rich-Harris/devalue), you can follow their documentation [for custom types](https://github.com/Rich-Harris/devalue#custom-types). It should look something like this:
 
 ```ts
 import devalue from 'devalue'
 import { markRaw } from 'vue'
-import { TreeMapNode, serializeTreeMap, reviveTreeMap } from '@pinia/colada'
+import { TreeMapNode, serializeTreeMap, hydrateQueryCache } from '@pinia/colada'
+
 const stringified = devalue.stringify(pinia.state.value, {
   PiniaColada_TreeMapNode: (data: unknown) =>
     data instanceof TreeMapNode && serializeTreeMap(data),
@@ -17,14 +22,19 @@ const stringified = devalue.stringify(pinia.state.value, {
 
 const revivedData = devalue.parse(stringified, {
   PiniaColada_TreeMapNode: (data: ReturnType<typeof serializeTreeMap>) =>
-    // markRaw is recommended for the tree map
-    markRaw(reviveTreeMap(data)),
+    // We will use a custom hydration function
+    data,
 })
+
+// we need to install Pinia and PiniaColada before hydrating the cache
+app.use(pinia)
+app.use(PiniaColada)
+hydrateQueryCache(useQueryCache(pinia), revivedData)
 ```
 
 ## Error Handling with SSR
 
-If you want to SSR errors, you will need to also handle their serialization
+Using devalue allows you to handle errors too. If you want to SSR errors, you will need to also handle their serialization
 
 ```ts
 import devalue from 'devalue'

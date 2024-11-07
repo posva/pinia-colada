@@ -159,7 +159,7 @@ Most of the time, using `mutate` should be easier to use as it catches any error
 
 ## Mutation state
 
-The mutation returns similar properties to queries, like `data`, `state`, `status`, `asyncStatus`, etc. However, mutations are, by default, not global.
+The mutation returns similar properties to queries, like `state`, `data`, `error`, `status`, `asyncStatus`, etc. However, mutations are, by default, not global.
 
 ## Hooks
 
