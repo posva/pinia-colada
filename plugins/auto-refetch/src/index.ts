@@ -1,9 +1,11 @@
-import type { PiniaColadaPlugin } from '@pinia/colada'
+import type { PiniaColadaPlugin, UseQueryOptions } from '@pinia/colada'
+import type { MaybeRefOrGetter } from 'vue'
+import { toValue } from 'vue'
 
 export interface PiniaColadaAutoRefetchOptions {
   /**
    * Whether to enable auto refresh by default.
-   * @default true
+   * @default false
    */
   enabled?: boolean
 }
@@ -14,7 +16,7 @@ export interface PiniaColadaAutoRefetchOptions {
 export function PiniaColadaAutoRefetch(
   options: PiniaColadaAutoRefetchOptions = {},
 ): PiniaColadaPlugin {
-  const { enabled = true } = options
+  const { enabled = false } = options
 
   return ({ queryCache }) => {
     // Keep track of active entries and their timeouts
@@ -24,32 +26,56 @@ export function PiniaColadaAutoRefetch(
       // We want refetch to happen only on the client
       if (!import.meta.client) return
 
-      // Handle fetch to set up auto-refetch
-      if (name === 'refresh') {
+      const scheduleRefetch = (options: UseQueryOptions) => {
+        const key = toValue(options.key).join('/')
+
+        // Clear any existing timeout for this key
+        const existingTimeout = refetchTimeouts.get(key)
+        if (existingTimeout) {
+          clearTimeout(existingTimeout)
+        }
+
+        // Schedule next refetch
+        const timeout = setTimeout(() => {
+          if (options) {
+            const entry = queryCache.getEntries({ key: toValue(options.key) })?.[0]
+            if (entry) {
+              queryCache.refresh(entry).catch(console.error)
+            }
+            refetchTimeouts.delete(key)
+          }
+        }, options.staleTime)
+
+        refetchTimeouts.set(key, timeout)
+      }
+
+      /**
+       * Whether to schedule a refetch for the given entry
+       */
+      const shouldScheduleRefetch = (options: UseQueryOptions) => {
+        const queryEnabled = options.autoRefetch ?? enabled
+        const staleTime = options.staleTime
+        return queryEnabled && staleTime
+      }
+
+      // Trigger a fetch on creation to enable auto-refetch on initial load
+      if (name === 'ensure') {
         const [entry] = args
-        const key = entry.key.join('/')
+
+        if (shouldScheduleRefetch(entry)) {
+          scheduleRefetch(entry)
+        }
+      }
+
+      // Set up auto-refetch on every fetch
+      if (name === 'fetch') {
+        const [entry] = args
 
         after(async () => {
-          // Skip if auto-refetch is disabled or if the query has no stale time
-          const queryEnabled = entry.options?.autoRefetch ?? enabled
-          const staleTime = entry.options?.staleTime
-          if (!queryEnabled || !staleTime || !entry.active) return
+          if (!entry.options) return
 
-          // Clear any existing timeout for this key
-          const existingTimeout = refetchTimeouts.get(key)
-          if (existingTimeout) {
-            clearTimeout(existingTimeout)
-          }
-
-          // Schedule next refetch
-          const timeout = setTimeout(() => {
-            if (entry.active && entry.options) {
-              queryCache.refresh(entry).catch(console.error)
-              refetchTimeouts.delete(key)
-            }
-          }, staleTime)
-
-          refetchTimeouts.set(key, timeout)
+          if (!shouldScheduleRefetch(entry.options)) return
+          scheduleRefetch(entry.options)
         })
       }
 
@@ -73,6 +99,6 @@ declare module '@pinia/colada' {
     /**
      * Whether to automatically refresh this query when it becomes stale.
      */
-    autoRefetch?: boolean
+    autoRefetch?: MaybeRefOrGetter<boolean>
   }
 }
