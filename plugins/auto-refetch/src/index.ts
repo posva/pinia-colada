@@ -7,7 +7,7 @@ export interface PiniaColadaAutoRefetchOptions {
    * Whether to enable auto refresh by default.
    * @default false
    */
-  enabled?: boolean
+  autoRefetch?: boolean
 }
 
 /**
