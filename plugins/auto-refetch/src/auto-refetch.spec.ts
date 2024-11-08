@@ -102,7 +102,7 @@ describe('Auto Refetch plugin', () => {
     expect(query).toHaveBeenCalledTimes(1)
   })
 
-  it('cleans up timeouts when query is unmounted', async () => {
+  it('avoids refetching an unactive query', async () => {
     const { wrapper, query } = mountQuery({
       staleTime: 1000,
     })
