@@ -16,7 +16,7 @@ export interface PiniaColadaAutoRefetchOptions {
 export function PiniaColadaAutoRefetch(
   options: PiniaColadaAutoRefetchOptions = {},
 ): PiniaColadaPlugin {
-  const { enabled = false } = options
+  const { autoRefetch = false } = options
 
   return ({ queryCache }) => {
     // Keep track of active entries and their timeouts
@@ -55,9 +55,10 @@ export function PiniaColadaAutoRefetch(
        * Whether to schedule a refetch for the given entry
        */
       const shouldScheduleRefetch = (options: UseQueryOptions) => {
-        const queryEnabled = options.autoRefetch ?? enabled
+        if (!options) return false
+        const queryEnabled = options.autoRefetch ?? autoRefetch
         const staleTime = options.staleTime
-        return queryEnabled && staleTime
+        return Boolean(queryEnabled && staleTime)
       }
 
       // Trigger a fetch on creation to enable auto-refetch on initial load

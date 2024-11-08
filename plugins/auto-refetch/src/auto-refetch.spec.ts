@@ -43,7 +43,7 @@ describe('Auto Refetch plugin', () => {
           plugins: [
             createPinia(),
             [PiniaColada, {
-              plugins: [PiniaColadaAutoRefetch(pluginOptions)],
+              plugins: [PiniaColadaAutoRefetch({ autoRefetch: true, ...pluginOptions })],
               ...pluginOptions,
             }],
           ],
@@ -76,7 +76,7 @@ describe('Auto Refetch plugin', () => {
         staleTime: 1000,
       },
       {
-        enabled: false,
+        autoRefetch: false,
       },
     )
 
@@ -125,5 +125,36 @@ describe('Auto Refetch plugin', () => {
     vi.advanceTimersByTime(2000)
     await flushPromises()
     expect(query).toHaveBeenCalledTimes(1)
+  })
+
+  it('resets the stale timer when a new request occurs', async () => {
+    const { query } = mountQuery({
+      staleTime: 1000,
+    })
+
+    // Wait for initial query
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(1)
+
+    // Advance time partially (500ms)
+    vi.advanceTimersByTime(500)
+
+    // Manually trigger a new request
+    query.mockImplementationOnce(async () => 'new result')
+    await query()
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(2)
+
+    // Advance time to what would have been the original stale time (500ms more)
+    vi.advanceTimersByTime(500)
+    await flushPromises()
+    // Should not have triggered another request yet
+    expect(query).toHaveBeenCalledTimes(2)
+
+    // Advance to the new stale time (500ms more to reach full 1000ms from last request)
+    vi.advanceTimersByTime(500)
+    await flushPromises()
+    // Now it should have triggered another request
+    expect(query).toHaveBeenCalledTimes(3)
   })
 })
