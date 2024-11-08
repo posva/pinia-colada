@@ -70,7 +70,7 @@ describe('Auto Refetch plugin', () => {
     expect(query).toHaveBeenCalledTimes(2)
   })
 
-  it('respects disabled option globally', async () => {
+  it('respects enabled option globally', async () => {
     const { query } = mountQuery(
       {
         staleTime: 1000,
