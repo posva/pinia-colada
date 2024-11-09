@@ -282,7 +282,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           ext: START_EXT,
           options,
           get stale() {
-            return Date.now() >= this.when + this.options!.staleTime
+            return !this.when || Date.now() >= this.when + this.options!.staleTime
           },
           get active() {
             return this.deps.size > 0
@@ -810,7 +810,7 @@ export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
     ext: START_EXT,
     options,
     get stale() {
-      return Date.now() >= this.when + this.options!.staleTime
+      return !this.when || Date.now() >= this.when + this.options!.staleTime
     },
     get active() {
       return this.deps.size > 0
