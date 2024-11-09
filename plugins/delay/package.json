@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Delay async status in Pinia Colada",
   "author": {
     "name": "Eduardo San Martin Morote",

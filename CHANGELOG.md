@@ -1,3 +1,9 @@
+## 0.12.1 (2024-11-09)
+
+### Bug Fixes
+
+- staleTime of Infinity should still be stale ([#99](https://github.com/posva/pinia-colada/issues/99)) ([6873a6f](https://github.com/posva/pinia-colada/commit/6873a6f2043d5ffc678f41d4c71bdd2f1b329bf9))
+
 ## 0.12.0 (2024-11-06)
 
 ### ⚠ BREAKING CHANGES
@@ -37,8 +43,8 @@
 
 ### Features
 
-- allow refetch to throw on error ([f168b6c](https://github.com/posva/pinia-colada/commit/f168b6c7e39a8f6c93231dc77bc8e7a562ba807b))
-- allow setting data for un-existing queries ([5c3870c](https://github.com/posva/pinia-colada/commit/5c3870cbbffcae1f20b196c6659b3205ded594b7))
+- allow refetches to throw on erorr ([f168b6c](https://github.com/posva/pinia-colada/commit/f168b6c7e39a8f6c93231dc77bc8e7a562ba807b))
+- allow setting data for unexisting queries ([5c3870c](https://github.com/posva/pinia-colada/commit/5c3870cbbffcae1f20b196c6659b3205ded594b7))
 
 ### Bug Fixes
 
@@ -99,15 +105,15 @@
   replaced by directly invalidating queries in the cache with the
   `onSettled()` hook in `useMutation()`:
 
-  ```ts
-  const { mutate } = useMutation({
-    onSettled({ caches, vars: { id } }) {
-      caches.invalidateQueries({ key: ['contacts-search'] })
-      caches.invalidateQueries({ key: ['contacts', id] })
-    },
-    mutation: (contact) => patchContact(contact),
-  })
-  ```
+```ts
+const { mutate } = useMutation({
+  onSettled({ caches, vars: { id } }) {
+    caches.invalidateQueries({ key: ['contacts-search'] })
+    caches.invalidateQueries({ key: ['contacts', id] })
+  },
+  mutation: (contact) => patchContact(contact),
+})
+```
 
 ### Features
 
@@ -191,8 +197,9 @@
 - This feature splits up the `status` state into two
   different _status_ properties:
 
-  - `status` is now just for the data `'pending' | 'success' | 'error'`
-  - `queryStatus` tells if the query is still running or not with `'idle' | 'running'`
+* `status` is now just for the data `'pending' | 'success' | 'error'`
+* `queryStatus` tells if the query is still running or not with `'idle' |
+'running'`
 
 - `refetch`, `refresh` and similar methods now resolve
   the `state` property without rejecting. This is usually more convenient.
@@ -203,9 +210,9 @@
   directly using the cache store**.
   As a result a lot of the actions have been renamed
 
-  - refetch -> fetch
-  - invalidateEntry -> invalidate
-  - ensureEntry -> ensure
+* refetch -> fetch
+* invalidateEntry -> invalidate
+* ensureEntry -> ensure
 
 Their arguments have changed as well.
 
