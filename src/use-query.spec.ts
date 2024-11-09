@@ -263,6 +263,20 @@ describe('useQuery', () => {
 
       expect(query).toHaveBeenCalledTimes(2)
     })
+
+    it('does not fetch if staleTime is Infinity', async () => {
+      const { wrapper, query } = mountSimple({ staleTime: Infinity })
+
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+
+      // should not trigger a new fetch because staleTime is Infinity, even if so long time has passed
+      vi.advanceTimersByTime(24 * 60 * 60 * 1000)
+      wrapper.vm.refresh()
+      await flushPromises()
+
+      expect(query).toHaveBeenCalledTimes(1)
+    })
   })
 
   describe('gcTime', () => {
