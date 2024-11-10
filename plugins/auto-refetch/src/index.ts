@@ -1,4 +1,4 @@
-import type { PiniaColadaPlugin, UseQueryOptions } from '@pinia/colada'
+import type { PiniaColadaPlugin, UseQueryEntry, UseQueryOptions } from '@pinia/colada'
 import type { MaybeRefOrGetter } from 'vue'
 import { toValue } from 'vue'
 
@@ -9,6 +9,8 @@ export interface PiniaColadaAutoRefetchOptions {
    */
   autoRefetch?: boolean
 }
+
+const createMapKey = (options: UseQueryOptions) => toValue(options.key).join('/')
 
 /**
  * Plugin that automatically refreshes queries when they become stale
@@ -24,11 +26,9 @@ export function PiniaColadaAutoRefetch(
 
     queryCache.$onAction(({ name, args, after }) => {
       // We want refetch to happen only on the client
-      if (!import.meta.client) return
+      if (typeof document === 'undefined') return
 
-      const createMapKey = (options: UseQueryOptions) => toValue(options.key).join('/')
-
-      const scheduleRefetch = (options: UseQueryOptions) => {
+      function scheduleRefetch(options: UseQueryOptions) {
         const key = createMapKey(options)
 
         // Clear any existing timeout for this key
@@ -40,7 +40,9 @@ export function PiniaColadaAutoRefetch(
         // Schedule next refetch
         const timeout = setTimeout(() => {
           if (options) {
-            const entry = queryCache.getEntries({ key: toValue(options.key) })?.[0]
+            const entry: UseQueryEntry | undefined = queryCache.getEntries({
+              key: toValue(options.key),
+            })?.[0]
             if (entry) {
               queryCache.refresh(entry).catch(console.error)
             }
@@ -54,8 +56,7 @@ export function PiniaColadaAutoRefetch(
       /**
        * Whether to schedule a refetch for the given entry
        */
-      const shouldScheduleRefetch = (options: UseQueryOptions) => {
-        if (!options) return false
+      function shouldScheduleRefetch(options: UseQueryOptions) {
         const queryEnabled = options.autoRefetch ?? autoRefetch
         const staleTime = options.staleTime
         return Boolean(queryEnabled && staleTime)
@@ -63,10 +64,10 @@ export function PiniaColadaAutoRefetch(
 
       // Trigger a fetch on creation to enable auto-refetch on initial load
       if (name === 'ensure') {
-        const [entry] = args
-        if (!shouldScheduleRefetch(entry)) return
+        const [options] = args
+        if (!shouldScheduleRefetch(options)) return
 
-        scheduleRefetch(entry)
+        scheduleRefetch(options)
       }
 
       // Set up auto-refetch on every fetch
