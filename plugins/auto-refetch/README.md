@@ -35,7 +35,7 @@ You can customize the refetch behavior individually for each query with the `aut
 useQuery({
   key: ['todos'],
   query: getTodos,
-  autoRefetch: false, // disable auto refetch
+  autoRefetch: true, // override local autoRefetch
 })
 ```
 
