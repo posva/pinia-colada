@@ -24,7 +24,7 @@ import { PiniaColadaAutoRefetch } from '@pinia/colada-plugin-auto-refetch'
 app.use(PiniaColada, {
   // ...
   plugins: [
-    PiniaColadaAutoRefetch(),
+    PiniaColadaAutoRefetch({ autoRefetch: true }), // enable globally
   ],
 })
 ```
