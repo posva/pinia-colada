@@ -27,7 +27,6 @@ import type {
   DataStateStatus,
   DataState_Success,
 } from './data-state'
-import { EntryKey } from './entry-options'
 
 /**
  * Return type of `useQuery()`.
