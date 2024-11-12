@@ -21,21 +21,18 @@ export function PiniaColadaAutoRefetch(
   const { autoRefetch = false } = options
 
   return ({ queryCache }) => {
+    // Skip setting auto-refetch on the server
+    if (typeof document === 'undefined') return
+
     // Keep track of active entries and their timeouts
     const refetchTimeouts = new Map<string, NodeJS.Timeout>()
 
     queryCache.$onAction(({ name, args, after }) => {
-      // We want refetch to happen only on the client
-      if (typeof document === 'undefined') return
-
       function scheduleRefetch(options: UseQueryOptions) {
         const key = createMapKey(options)
 
-        // Clear any existing timeout for this key
-        const existingTimeout = refetchTimeouts.get(key)
-        if (existingTimeout) {
-          clearTimeout(existingTimeout)
-        }
+        // Always clear existing timeout first
+        clearExistingTimeout(key)
 
         // Schedule next refetch
         const timeout = setTimeout(() => {
@@ -43,7 +40,7 @@ export function PiniaColadaAutoRefetch(
             const entry: UseQueryEntry | undefined = queryCache.getEntries({
               key: toValue(options.key),
             })?.[0]
-            if (entry) {
+            if (entry && entry.active) {
               queryCache.refresh(entry).catch(console.error)
             }
             refetchTimeouts.delete(key)
@@ -53,11 +50,19 @@ export function PiniaColadaAutoRefetch(
         refetchTimeouts.set(key, timeout)
       }
 
+      function clearExistingTimeout(key: string) {
+        const existingTimeout = refetchTimeouts.get(key)
+        if (existingTimeout) {
+          clearTimeout(existingTimeout)
+          refetchTimeouts.delete(key)
+        }
+      }
+
       /**
        * Whether to schedule a refetch for the given entry
        */
       function shouldScheduleRefetch(options: UseQueryOptions) {
-        const queryEnabled = options.autoRefetch ?? autoRefetch
+        const queryEnabled = toValue(options.autoRefetch) ?? autoRefetch
         const staleTime = options.staleTime
         return Boolean(queryEnabled && staleTime)
       }
@@ -74,11 +79,20 @@ export function PiniaColadaAutoRefetch(
       if (name === 'fetch') {
         const [entry] = args
 
+        // Clear any existing timeout before scheduling a new one
+        if (entry.options) {
+          const key = createMapKey(entry.options)
+          clearExistingTimeout(key)
+        }
+
         after(async () => {
           if (!entry.options) return
           if (!shouldScheduleRefetch(entry.options)) return
 
-          scheduleRefetch(entry.options)
+          // Schedule new refetch only if the entry is still active
+          if (entry.active) {
+            scheduleRefetch(entry.options)
+          }
         })
       }
 
