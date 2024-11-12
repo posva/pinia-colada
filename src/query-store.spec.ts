@@ -125,4 +125,18 @@ describe('Query Cache store', () => {
       expect(onActionCreate).toHaveBeenCalledTimes(1)
     })
   })
+
+  it('prefetchs query', async () => {
+    const queryCache = useQueryCache()
+
+    queryCache.prefetch({
+      key: ['a'],
+      query: vi.fn().mockResolvedValueOnce(42),
+    })
+
+    await flushPromises()
+
+    const data = queryCache.getQueryData(['a'])
+    expect(data).toBe(42)
+  })
 })

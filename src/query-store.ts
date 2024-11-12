@@ -571,14 +571,28 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   )
 
   const prefetch = action(
-    <TResult, TError>(
-      entry: UseQueryEntry<TResult, TError>,
-      options?: Partial<UseQueryEntry<TResult, TError>['options']>,
-    ): Promise<DataState<TResult, TError>> => {
-      if (options && entry.options) {
-        entry.options = Object.assign(entry.options, options)
+    <TResult = unknown, TError = ErrorDefault>(
+      opts: UseQueryOptions<TResult, TError>,
+    ): Promise<DataState<unknown, unknown>> => {
+      const options: UseQueryOptionsWithDefaults<TResult, TError> = {
+        ...optionDefaults,
+        ...opts,
+      }
 
-        return fetch(entry)
+      const cacheKey = toValue(options.key).map(stringifyFlatObject)
+
+      let entry = caches.get(cacheKey) as
+        | UseQueryEntry
+        | undefined
+
+      // if the entry doesn't exist, we create it to set the data
+      // it cannot be refreshed or fetched since the options
+      // will be missing
+      if (!entry) {
+        caches.set(
+          cacheKey,
+          (entry = create(cacheKey, options)),
+        )
       }
 
       return fetch(entry)

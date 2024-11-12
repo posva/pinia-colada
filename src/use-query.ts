@@ -27,6 +27,7 @@ import type {
   DataStateStatus,
   DataState_Success,
 } from './data-state'
+import { EntryKey } from './entry-options'
 
 /**
  * Return type of `useQuery()`.
@@ -86,8 +87,6 @@ export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault>
    * @returns a promise that resolves when the refresh is done
    */
   refresh: (throwOnError?: boolean) => Promise<DataState<TResult, TError>>
-
-  prefetch: (options?: Partial<UseQueryOptions>) => void
 
   /**
    * Ignores fresh data and triggers a new fetch
@@ -169,9 +168,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
       // same as above
       (throwOnError as false | undefined) || errorCatcher,
     )
-  const prefetch = (options?: Partial<UseQueryOptionsWithDefaults>) => {
-    queryCache.prefetch(entry.value, options).catch(() => undefined)
-  }
+
   const isPlaceholderData = computed(
     () => entry.value.placeholderData != null && entry.value.state.value.status === 'pending',
   )
@@ -217,7 +214,6 @@ export function useQuery<TResult, TError = ErrorDefault>(
 
     refresh,
     refetch,
-    prefetch,
   } satisfies UseQueryReturn<TResult, TError>
 
   const hasCurrentInstance = getCurrentInstance()
