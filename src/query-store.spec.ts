@@ -129,6 +129,8 @@ describe('Query Cache store', () => {
   it('prefetchs query', async () => {
     const queryCache = useQueryCache()
 
+    expect(queryCache.getQueryData(['a'])).toBeUndefined()
+
     queryCache.prefetch({
       key: ['a'],
       query: vi.fn().mockResolvedValueOnce(42),
