@@ -95,6 +95,12 @@ You can access the fetched data through the references returned by `useQuery()` 
 
 While `useQuery()` can be directly called in components, we often need to reuse the same query across components or even add extra properties like consuming the route via `useRoute()` or passing a _search_ text to the API request. In those scenarios, it's more convenient to _define_ queries and reuse them where needed.
 
+<!--
+TODO: show example first, move explanation after within a details.
+Think about parameterized queries:
+  - the query
+ -->
+
 But why is this necessary? Can't we just create a regular composable for this?
 
 ```ts twoslash

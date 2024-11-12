@@ -1,6 +1,6 @@
 # Nuxt
 
-Pinia Colada has a nuxt module. Add it to your project with:
+Pinia Colada has a nuxt module. Add it to your project with **alongside `@pinia/colada`**:
 
 ```bash
 npx nuxi module add @pinia/colada-nuxt
@@ -9,7 +9,7 @@ npx nuxi module add @pinia/colada-nuxt
 Or manually by installing it and adding it to your `nuxt.config.ts`:
 
 ```bash
-npm install @pinia/colada-nuxt
+npm install @pinia/colada @pinia/colada-nuxt
 ```
 
 ```ts
