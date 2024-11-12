@@ -3,6 +3,7 @@
 Pinia Colada has a nuxt module. Add it to your project with **alongside `@pinia/colada`**:
 
 ```bash
+npm i @pinia/colada # replace npm with your package manager
 npx nuxi module add @pinia/colada-nuxt
 ```
 
