@@ -30,7 +30,7 @@ queryCache.$onAction(({ name, args }) => {
  */
 
 // the main chunk that should be modified
-const { state, refresh, refetch, prefetch } = useBasicQuery()
+const { state, refresh, refetch } = useBasicQuery()
 
 const dataId = ref('id 2')
 const dataFromRead = shallowRef()
@@ -46,9 +46,6 @@ function getData(key = ['id']) {
   </button>
   <button @click="refetch()">
     Refetch
-  </button>
-  <button @click="prefetch()">
-    Prefetch
   </button>
 
   <pre>{{ state }}</pre>
