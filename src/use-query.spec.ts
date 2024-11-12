@@ -155,23 +155,40 @@ describe('useQuery', () => {
     })
 
     it('should not refresh a valid prefetch request', async () => {
-      const { wrapper, query } = mountSimple(
-        {
-          enabled: false, // disables initial "fetch"
-          staleTime: 500,
-        },
-      )
+    const { wrapper, query } = mountSimple(
+      {
+        enabled: false, // disables initial "fetch"
+        staleTime: 500,
+      },
+    )
 
-      wrapper.vm.prefetch()
-      await flushPromises()
+    wrapper.vm.prefetch()
+    await flushPromises()
 
-      expect(wrapper.vm.data).toBe(42)
+    expect(wrapper.vm.data).toBe(42)
 
-      wrapper.vm.refresh()
+    wrapper.vm.refresh()
 
-      expect(query).toHaveBeenCalledOnce()
-    })
+    expect(query).toHaveBeenCalledOnce()
   })
+
+  it('should prefetch with options', async () => {
+    const { wrapper } = mountSimple(
+      {
+        enabled: false, // disables initial "fetch"
+        staleTime: 500,
+      },
+    )
+
+    wrapper.vm.prefetch({
+      query: vi.fn().mockResolvedValue(55),
+    })
+
+    await flushPromises()
+
+    expect(wrapper.vm.data).toBe(55)
+  })
+})
 
   describe('staleTime', () => {
     it('when refreshed, does not fetch again if staleTime has not been elapsed', async () => {

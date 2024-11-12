@@ -570,6 +570,21 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     },
   )
 
+  const prefetch = action(
+    <TResult, TError>(
+      entry: UseQueryEntry<TResult, TError>,
+      options?: Partial<UseQueryEntry<TResult, TError>['options']>,
+    ): Promise<DataState<TResult, TError>> => {
+      if (options && entry.options) {
+        entry.options = Object.assign(entry.options, options)
+
+        return fetch(entry)
+      }
+
+      return fetch(entry)
+    },
+  )
+
   /**
    * Cancels an entry's query if it's currently pending. This will effectively abort the `AbortSignal` of the query and any
    * pending request will be ignored.
@@ -672,6 +687,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     // Actions for entries
     invalidate,
     fetch,
+    prefetch,
     refresh,
     ensure,
     extend,

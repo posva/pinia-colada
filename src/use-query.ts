@@ -87,7 +87,7 @@ export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault>
    */
   refresh: (throwOnError?: boolean) => Promise<DataState<TResult, TError>>
 
-  prefetch: () => void
+  prefetch: (options?: Partial<UseQueryOptions>) => void
 
   /**
    * Ignores fresh data and triggers a new fetch
@@ -169,8 +169,8 @@ export function useQuery<TResult, TError = ErrorDefault>(
       // same as above
       (throwOnError as false | undefined) || errorCatcher,
     )
-  const prefetch = () => {
-    queryCache.fetch(entry.value).catch(() => undefined)
+  const prefetch = (options?: Partial<UseQueryOptionsWithDefaults>) => {
+    queryCache.prefetch(entry.value, options).catch(() => undefined)
   }
   const isPlaceholderData = computed(
     () => entry.value.placeholderData != null && entry.value.state.value.status === 'pending',
