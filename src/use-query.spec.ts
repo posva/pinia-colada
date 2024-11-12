@@ -124,6 +124,55 @@ describe('useQuery', () => {
     })
   })
 
+  describe('prefetch', () => {
+    it('uses prefetched data and skips fetch on mount', async () => {
+      const { wrapper } = mountSimple(
+        {
+          enabled: false, // disables initial "fetch"
+        },
+      )
+
+      wrapper.vm.prefetch()
+      await flushPromises()
+
+      expect(wrapper.vm.data).toBe(42)
+    })
+
+    it('prefetch should never throw', async () => {
+      const { wrapper, query } = mountSimple(
+        {
+          enabled: false, // disables initial "fetch"
+        },
+      )
+
+      query.mockRejectedValueOnce(new Error('ko'))
+
+      wrapper.vm.prefetch()
+
+      await flushPromises()
+
+      expect(wrapper.vm.data).not.toBe(42)
+    })
+
+    it('should not refresh a valid prefetch request', async () => {
+      const { wrapper, query } = mountSimple(
+        {
+          enabled: false, // disables initial "fetch"
+          staleTime: 500,
+        },
+      )
+
+      wrapper.vm.prefetch()
+      await flushPromises()
+
+      expect(wrapper.vm.data).toBe(42)
+
+      wrapper.vm.refresh()
+
+      expect(query).toHaveBeenCalledOnce()
+    })
+  })
+
   describe('staleTime', () => {
     it('when refreshed, does not fetch again if staleTime has not been elapsed', async () => {
       const { wrapper, query } = mountSimple({ staleTime: 1000 })

@@ -87,6 +87,8 @@ export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault>
    */
   refresh: (throwOnError?: boolean) => Promise<DataState<TResult, TError>>
 
+  prefetch: () => void
+
   /**
    * Ignores fresh data and triggers a new fetch
    * @param throwOnError - whether to throw an error if the fetch fails. Defaults to `false`
@@ -167,6 +169,9 @@ export function useQuery<TResult, TError = ErrorDefault>(
       // same as above
       (throwOnError as false | undefined) || errorCatcher,
     )
+  const prefetch = () => {
+    queryCache.fetch(entry.value).catch(() => undefined)
+  }
   const isPlaceholderData = computed(
     () => entry.value.placeholderData != null && entry.value.state.value.status === 'pending',
   )
@@ -180,7 +185,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
       : entry.value.state.value,
   )
 
-  // TODO: find a way to allow a custom implementation for the returned value
+  // TODO: find a way to allow a custom implementation for the returnraed value
   const extensions = {} as Record<string, any>
   for (const key in entry.value.ext) {
     extensions[key] = computed({
@@ -212,6 +217,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
 
     refresh,
     refetch,
+    prefetch,
   } satisfies UseQueryReturn<TResult, TError>
 
   const hasCurrentInstance = getCurrentInstance()
