@@ -573,7 +573,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   const prefetch = action(
     <TResult = unknown, TError = ErrorDefault>(
       opts: UseQueryOptions<TResult, TError>,
-    ): Promise<DataState<unknown, unknown>> => {
+    ): void => {
       const options: UseQueryOptionsWithDefaults<TResult, TError> = {
         ...optionDefaults,
         ...opts,
@@ -595,7 +595,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
         )
       }
 
-      return fetch(entry)
+      refresh(entry).then(() => undefined).catch(() => undefined)
     },
   )
 
