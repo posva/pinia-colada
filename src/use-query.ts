@@ -182,7 +182,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
       : entry.value.state.value,
   )
 
-  // TODO: find a way to allow a custom implementation for the returnraed value
+  // TODO: find a way to allow a custom implementation for the returned value
   const extensions = {} as Record<string, any>
   for (const key in entry.value.ext) {
     extensions[key] = computed({
