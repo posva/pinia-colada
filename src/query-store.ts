@@ -570,6 +570,10 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     },
   )
 
+  /**
+   * Preloads a query. Can only be called when including options.
+   * If provided `queryKey` already exists preload will refetch only if data is stale
+   */
   const prefetch = action(
     <TResult = unknown, TError = ErrorDefault>(
       opts: UseQueryOptions<TResult, TError>,
@@ -579,21 +583,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
         ...opts,
       }
 
-      const cacheKey = toValue(options.key).map(stringifyFlatObject)
-
-      let entry = caches.get(cacheKey) as
-        | UseQueryEntry
-        | undefined
-
-      // if the entry doesn't exist, we create it to set the data
-      // it cannot be refreshed or fetched since the options
-      // will be missing
-      if (!entry) {
-        caches.set(
-          cacheKey,
-          (entry = create(cacheKey, options)),
-        )
-      }
+      const entry = ensure<TResult, TError>(options)
 
       refresh(entry).then(() => undefined).catch(() => undefined)
     },

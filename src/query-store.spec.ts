@@ -141,4 +141,31 @@ describe('Query Cache store', () => {
     const data = queryCache.getQueryData(['a'])
     expect(data).toBe(42)
   })
+
+  it('correctly updates entry when prefetch', async () => {
+    const queryCache = useQueryCache()
+
+    // Create a mock function to simulate query resolution
+    const query = vi.fn()
+
+    query.mockResolvedValueOnce(55)
+    queryCache.prefetch({
+      key: ['update-prefetch'],
+      query,
+      staleTime: 0,
+    })
+
+    await flushPromises()
+    expect(queryCache.getQueryData(['update-prefetch'])).toBe(55)
+
+    query.mockResolvedValueOnce(42)
+    queryCache.prefetch({
+      key: ['update-prefetch'],
+      query,
+      staleTime: 0,
+    })
+
+    await flushPromises()
+    expect(queryCache.getQueryData(['update-prefetch'])).toBe(42)
+  })
 })
