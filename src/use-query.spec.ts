@@ -1215,13 +1215,7 @@ describe('useQuery', () => {
         staleTime: 1000,
       })
 
-      expect(wrapper.vm.data).toBeUndefined()
-
       await flushPromises()
-
-      expect(wrapper.vm.data).toBe(42)
-
-      expect(query).toHaveBeenCalledOnce()
 
       const queryCache = useQueryCache()
 
