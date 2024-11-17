@@ -1210,7 +1210,7 @@ describe('useQuery', () => {
   })
 
   describe('prefetchs query', () => {
-    it('should not prefetch a valid query', async () => {
+    it('should not prefetch a fresh query', async () => {
       const { wrapper, query } = mountSimple({
         staleTime: 1000,
       })
