@@ -1243,12 +1243,10 @@ describe('useQuery', () => {
 
       vi.advanceTimersByTime(1000)
 
-      queryCache.prefetch({
+      await queryCache.prefetch({
         key: ['key'],
         query,
       })
-
-      await flushPromises()
 
       expect(query).toHaveBeenCalledTimes(2)
     })
@@ -1264,12 +1262,10 @@ describe('useQuery', () => {
 
       expect(query).not.toHaveBeenCalled()
 
-      queryCache.prefetch({
+      await queryCache.prefetch({
         key: ['key'],
         query,
       })
-
-      await flushPromises()
 
       expect(query).toHaveBeenCalledOnce()
     })

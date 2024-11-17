@@ -11,7 +11,7 @@ import {
   shallowRef,
   toValue,
 } from 'vue'
-import { stringifyFlatObject, toValueWithArgs, warnOnce } from './utils'
+import { noop, stringifyFlatObject, toValueWithArgs, warnOnce } from './utils'
 import type { _UseQueryEntryNodeValueSerialized, UseQueryEntryNodeSerialized, EntryNodeKey } from './tree-map'
 import { appendSerializedNodeToTree, TreeMapNode } from './tree-map'
 import type { EntryKey } from './entry-options'
@@ -574,20 +574,12 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * Preloads a query. Can only be called when including options.
    * If provided `queryKey` already exists preload will refetch only if data is stale
    */
-  const prefetch = action(
-    <TResult = unknown, TError = ErrorDefault>(
+  const prefetch = <TResult = unknown, TError = ErrorDefault>(
       opts: UseQueryOptions<TResult, TError>,
-    ): void => {
-      const options: UseQueryOptionsWithDefaults<TResult, TError> = {
-        ...optionDefaults,
-        ...opts,
-      }
-
-      const entry = ensure<TResult, TError>(options)
-
-      refresh(entry).then(() => undefined).catch(() => undefined)
-    },
-  )
+    ): Promise<void> => refresh(ensure<TResult, TError>({
+      ...optionDefaults,
+      ...opts,
+    })).then(noop).catch(noop)
 
   /**
    * Cancels an entry's query if it's currently pending. This will effectively abort the `AbortSignal` of the query and any

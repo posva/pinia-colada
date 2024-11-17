@@ -131,12 +131,10 @@ describe('Query Cache store', () => {
 
     expect(queryCache.getQueryData(['a'])).toBeUndefined()
 
-    queryCache.prefetch({
+    await queryCache.prefetch({
       key: ['a'],
       query: vi.fn().mockResolvedValueOnce(42),
     })
-
-    await flushPromises()
 
     const data = queryCache.getQueryData(['a'])
     expect(data).toBe(42)
@@ -149,23 +147,21 @@ describe('Query Cache store', () => {
     const query = vi.fn()
 
     query.mockResolvedValueOnce(55)
-    queryCache.prefetch({
+    await queryCache.prefetch({
       key: ['update-prefetch'],
       query,
       staleTime: 0,
     })
 
-    await flushPromises()
     expect(queryCache.getQueryData(['update-prefetch'])).toBe(55)
 
     query.mockResolvedValueOnce(42)
-    queryCache.prefetch({
+    await queryCache.prefetch({
       key: ['update-prefetch'],
       query,
       staleTime: 0,
     })
 
-    await flushPromises()
     expect(queryCache.getQueryData(['update-prefetch'])).toBe(42)
   })
 })
