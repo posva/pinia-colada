@@ -1233,7 +1233,6 @@ describe('useQuery', () => {
       await flushPromises()
 
       expect(wrapper.vm.data).toBe(42)
-
       expect(query).toHaveBeenCalledOnce()
     })
 
