@@ -41,7 +41,6 @@ const { mutate: updateContact } = useMutation({
     queryCache.invalidateQueries({ key: ['contacts-search'] })
     queryCache.invalidateQueries({ key: ['contacts', id] })
   },
-
 })
 </script>
 

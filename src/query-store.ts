@@ -28,8 +28,7 @@ import type {
  * Allows defining extensions to the query entry that are returned by `useQuery()`.
  */
 // eslint-disable-next-line unused-imports/no-unused-vars
-export interface UseQueryEntryExtensions<TResult, TError> {
-}
+export interface UseQueryEntryExtensions<TResult, TError, TDataInitial extends TResult | undefined = TResult | undefined> {}
 
 /**
  * NOTE: Entries could be classes but the point of having all functions within the store is to allow plugins to hook
@@ -39,17 +38,17 @@ export interface UseQueryEntryExtensions<TResult, TError> {
 /**
  * A query entry in the cache.
  */
-export interface UseQueryEntry<TResult = unknown, TError = unknown> {
+export interface UseQueryEntry<TResult = unknown, TError = unknown, TDataInitial extends TResult | undefined = TResult | undefined> {
   /**
    * The state of the query. Contains the data, error and status.
    */
-  state: ShallowRef<DataState<TResult, TError>>
+  state: ShallowRef<DataState<TResult, TError, TDataInitial>>
 
   /**
    * A placeholder `data` that is initially shown while the query is loading for the first time. This will also show the
    * `status` as `success` until the query finishes loading (no matter the outcome).
    */
-  placeholderData: TResult | null | undefined
+  placeholderData: TDataInitial | null | undefined
 
   /**
    * The status of the query.
@@ -87,7 +86,7 @@ export interface UseQueryEntry<TResult = unknown, TError = unknown> {
     /**
      * The promise created by `queryCache.fetch` that is currently pending.
      */
-    refreshCall: Promise<DataState<TResult, TError>>
+    refreshCall: Promise<DataState<TResult, TError, TDataInitial>>
     /**
      * When was this `pending` object created.
      */
@@ -99,7 +98,7 @@ export interface UseQueryEntry<TResult = unknown, TError = unknown> {
    * `store.ensure()` sets this property. Note these options might be shared by multiple query entries when the key is
    * dynamic.
    */
-  options: UseQueryOptionsWithDefaults<TResult, TError> | null
+  options: UseQueryOptionsWithDefaults<TResult, TError, TDataInitial> | null
 
   /**
    * Whether the data is stale or not, requires `options.staleTime` to be set.
@@ -114,7 +113,7 @@ export interface UseQueryEntry<TResult = unknown, TError = unknown> {
   /**
    * Extensions to the query entry added by plugins.
    */
-  ext: UseQueryEntryExtensions<TResult, TError>
+  ext: UseQueryEntryExtensions<TResult, TError, TDataInitial>
 
   /**
    * Component `__hmrId` to track wrong usage of `useQuery` and warn the user.
@@ -224,7 +223,7 @@ type DefineQueryEntry = [entries: UseQueryEntry[], returnValue: unknown]
 export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ action }) => {
   // We have two versions of the cache, one that track changes and another that doesn't so the actions can be used
   // inside computed properties
-  const cachesRaw = new TreeMapNode<UseQueryEntry<unknown, unknown>>()
+  const cachesRaw = new TreeMapNode<UseQueryEntry<unknown, unknown, unknown>>()
   const caches = skipHydrate(shallowReactive(cachesRaw))
 
   // this version of the cache cannot be hydrated because it would miss all of the actions
@@ -244,18 +243,20 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   const optionDefaults = useQueryOptions()
 
   const create = action(
-    <TResult, TError>(
+    <TResult, TError, TDataInitial extends TResult | undefined>(
       key: EntryNodeKey[],
-      options: UseQueryOptionsWithDefaults<TResult, TError> | null = null,
-      initialData?: TResult,
+      options: UseQueryOptionsWithDefaults<TResult, TError, TDataInitial> | null = null,
+      initialData?: TDataInitial,
       error: TError | null = null,
       when: number = 0,
-    ): UseQueryEntry<TResult, TError> =>
+    ): UseQueryEntry<TResult, TError, TDataInitial> =>
       scope.run(() => {
-        const state = shallowRef<DataState<TResult, TError>>(
+        const state = shallowRef<DataState<TResult, TError, TDataInitial>>(
           // @ts-expect-error: to make the code shorter we are using one declaration instead of multiple ternaries
           {
-            data: initialData,
+            // NOTE: we could move the `initialData` parameter before `options` and make it required
+            // but that would force `create` call in `setQueryData` to pass an extra `undefined` argument
+            data: initialData as TDataInitial,
             error,
             status: error
               ? 'error'
@@ -266,7 +267,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
         )
         const asyncStatus = shallowRef<AsyncStatus>('idle')
         // we markRaw to avoid unnecessary vue traversal
-        return markRaw<UseQueryEntry<TResult, TError>>({
+        return markRaw<UseQueryEntry<TResult, TError, TDataInitial>>({
           key,
           state,
           placeholderData: null,
@@ -400,10 +401,10 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * @param key - the key of the query
    */
   const ensure = action(
-    <TResult = unknown, TError = ErrorDefault>(
-      opts: UseQueryOptions<TResult, TError>,
-    ): UseQueryEntry<TResult, TError> => {
-      const options: UseQueryOptionsWithDefaults<TResult, TError> = {
+    <TResult = unknown, TError = ErrorDefault, TDataInitial extends TResult | undefined = undefined>(
+      opts: UseQueryOptions<TResult, TError, TDataInitial>,
+    ): UseQueryEntry<TResult, TError, TDataInitial> => {
+      const options: UseQueryOptionsWithDefaults<TResult, TError, TDataInitial> = {
         ...optionDefaults,
         ...opts,
       }
@@ -416,7 +417,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       }
 
       // ensure the state
-      let entry = cachesRaw.get(key) as UseQueryEntry<TResult, TError> | undefined
+      let entry = cachesRaw.get(key) as UseQueryEntry<TResult, TError, TDataInitial> | undefined
       if (!entry) {
         cachesRaw.set(key, (entry = create(key, options, options.initialData?.())))
       }
@@ -486,9 +487,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * return the current data. Can only be called if the entry has been initialized with `useQuery()` and has options.
    */
   const refresh = action(
-    async <TResult, TError>(
-      entry: UseQueryEntry<TResult, TError>,
-    ): Promise<DataState<TResult, TError>> => {
+    async <TResult, TError, TDataInitial extends TResult | undefined>(
+      entry: UseQueryEntry<TResult, TError, TDataInitial>,
+    ): Promise<DataState<TResult, TError, TDataInitial>> => {
       if (process.env.NODE_ENV !== 'production' && !entry.options) {
         throw new Error(
           `"entry.refresh()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`,
@@ -507,9 +508,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * Fetch an entry. Ignores fresh data and triggers a new fetch. Can only be called if the entry has options.
    */
   const fetch = action(
-    async <TResult, TError>(
-      entry: UseQueryEntry<TResult, TError>,
-    ): Promise<DataState<TResult, TError>> => {
+    async <TResult, TError, TDataInitial extends TResult | undefined>(
+      entry: UseQueryEntry<TResult, TError, TDataInitial>,
+    ): Promise<DataState<TResult, TError, TDataInitial>> => {
       if (process.env.NODE_ENV !== 'production' && !entry.options) {
         throw new Error(
           `"entry.fetch()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`,
@@ -626,7 +627,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       if (!entry) {
         caches.set(
           cacheKey,
-          (entry = create<TResult, any>(cacheKey)),
+          (entry = create<TResult, any, TResult | undefined>(cacheKey)),
         )
       }
 
