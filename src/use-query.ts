@@ -28,15 +28,17 @@ import type {
   DataState_Success,
 } from './data-state'
 
+// TODO: Rename TResult to TData for consistency
+
 /**
  * Return type of `useQuery()`.
  */
-export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault>
-  extends UseQueryEntryExtensions<TResult, TError> {
+export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault, TDataInitial extends TResult | undefined = undefined>
+  extends UseQueryEntryExtensions<TResult, TError, TDataInitial> {
   /**
    * The state of the query. Contains its data, error, and status.
    */
-  state: ComputedRef<DataState<TResult, TError>>
+  state: ComputedRef<DataState<TResult, TError, TDataInitial>>
 
   /**
    * Status of the query. Becomes `'loading'` while the query is being fetched, is `'idle'` otherwise.
@@ -48,7 +50,7 @@ export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault>
    *
    * @see {@link state}
    */
-  data: ShallowRef<TResult | undefined>
+  data: ShallowRef<TResult | TDataInitial>
 
   /**
    * The error rejected by the query. Alias for `state.value.error`.
@@ -85,14 +87,14 @@ export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault>
    * @param throwOnError - whether to throw an error if the refresh fails. Defaults to `false`
    * @returns a promise that resolves when the refresh is done
    */
-  refresh: (throwOnError?: boolean) => Promise<DataState<TResult, TError>>
+  refresh: (throwOnError?: boolean) => Promise<DataState<TResult, TError, TDataInitial>>
 
   /**
    * Ignores fresh data and triggers a new fetch
    * @param throwOnError - whether to throw an error if the fetch fails. Defaults to `false`
    * @returns a promise that resolves when the fetch is done
    */
-  refetch: (throwOnError?: boolean) => Promise<DataState<TResult, TError>>
+  refetch: (throwOnError?: boolean) => Promise<DataState<TResult, TError, TDataInitial>>
 }
 
 /**
@@ -100,9 +102,9 @@ export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault>
  *
  * @param _options - The options of the query
  */
-export function useQuery<TResult, TError = ErrorDefault>(
-  _options: UseQueryOptions<TResult, TError>,
-): UseQueryReturn<TResult, TError> {
+export function useQuery<TResult, TError = ErrorDefault, TDataInitial extends TResult | undefined = undefined>(
+  _options: UseQueryOptions<TResult, TError, TDataInitial>,
+): UseQueryReturn<TResult, TError, TDataInitial> {
   const queryCache = useQueryCache()
   const optionDefaults = useQueryOptions()
   // const effect = (getActivePinia() as any)._e as EffectScope
@@ -110,7 +112,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
   const options = {
     ...optionDefaults,
     ..._options,
-  } satisfies UseQueryOptionsWithDefaults<TResult, TError>
+  } satisfies UseQueryOptionsWithDefaults<TResult, TError, TDataInitial>
   const { refetchOnMount, refetchOnReconnect, refetchOnWindowFocus, enabled } = options
 
   // warn against using the same key for different functions
@@ -150,7 +152,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
     }
   }
 
-  const entry = computed(() => queryCache.ensure<TResult, TError>(options))
+  const entry = computed(() => queryCache.ensure<TResult, TError, TDataInitial>(options))
 
   // adapter that returns the entry state
   const errorCatcher = () => entry.value.state.value
@@ -170,7 +172,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
   const isPlaceholderData = computed(
     () => entry.value.placeholderData != null && entry.value.state.value.status === 'pending',
   )
-  const state = computed<DataState<TResult, TError>>(() =>
+  const state = computed<DataState<TResult, TError, TDataInitial>>(() =>
     isPlaceholderData.value
       ? ({
           status: 'success',
@@ -198,7 +200,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
   }
 
   const queryReturn = {
-    ...(extensions as UseQueryEntryExtensions<TResult, TError>),
+    ...(extensions as UseQueryEntryExtensions<TResult, TError, TDataInitial>),
     state,
 
     status: computed(() => state.value.status),
@@ -212,7 +214,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
 
     refresh,
     refetch,
-  } satisfies UseQueryReturn<TResult, TError>
+  } satisfies UseQueryReturn<TResult, TError, TDataInitial>
 
   const hasCurrentInstance = getCurrentInstance()
   const currentEffect = getCurrentDefineQueryEffect() || getCurrentScope()
@@ -254,8 +256,7 @@ export function useQuery<TResult, TError = ErrorDefault>(
         entry.placeholderData = toValueWithArgs(
           options.placeholderData,
           previousEntry?.state.value.data,
-          // remove the void from possible values
-        ) as TResult | null | undefined
+        )
       }
       if (!isActive) return
       if (previousEntry) {

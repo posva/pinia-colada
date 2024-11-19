@@ -144,22 +144,46 @@ describe('useQuery type inference', () => {
     })
   })
 
-  it('allows nullish and void returns in placeholderData', () => {
-    useQuery({
+  it('infers the initial type from placeholderData as a function', () => {
+    const { state, data } = useQuery({
+      key: ['id'],
       query: async () => 42,
-      key: ['foo'],
-      placeholderData: () => {
-        return null
-      },
+      placeholderData: () => 42,
     })
+    expectTypeOf(data.value).toBeNumber()
+    expectTypeOf(state.value.data).toBeNumber()
+  })
 
-    useQuery({
+  it('infers the initialy type when placeholderData returns undefined', () => {
+    const { state, data } = useQuery({
+      key: ['id'],
       query: async () => 42,
-      key: ['foo'],
-      placeholderData: () => {
-        // no return
+      placeholderData: (n) => {
+        if (n) return n
       },
     })
+    expectTypeOf(data.value).toEqualTypeOf<number | undefined>()
+    expectTypeOf(state.value.data).toEqualTypeOf<number | undefined>()
+  })
+
+  it('infers the initial type from placeholderData as a value', () => {
+    const { state, data } = useQuery({
+      key: ['id'],
+      query: async () => 42,
+      placeholderData: 42,
+    })
+    expectTypeOf(data.value).toBeNumber()
+    expectTypeOf(state.value.data).toBeNumber()
+  })
+
+  it('infers the initial type from initialData', () => {
+    const { state, data } = useQuery({
+      key: ['id'],
+      query: async () => 42,
+      initialData: () => 42,
+    })
+    expectTypeOf(data.value).toBeNumber()
+    expectTypeOf(state.value.data).toBeNumber()
   })
 })
 

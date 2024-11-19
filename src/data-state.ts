@@ -32,22 +32,22 @@ export interface DataState_Success<TResult>
   status: 'success'
 }
 
-export interface DataState_Error<TResult, TError>
-  extends _DataState_Base<TResult | undefined, TError> {
+export interface DataState_Error<TResult, TError, TDataInitial>
+  extends _DataState_Base<TResult | TDataInitial, TError> {
   status: 'error'
 }
 
-export interface DataState_Pending extends _DataState_Base<undefined, null> {
+export interface DataState_Pending<TDataInitial> extends _DataState_Base<TDataInitial, null> {
   status: 'pending'
 }
 
 /**
  * Possible states for data based on its status.
  */
-export type DataState<TResult, TError> =
+export type DataState<TResult, TError, TDataInitial = undefined> =
   | DataState_Success<TResult>
-  | DataState_Error<TResult, TError>
-  | DataState_Pending
+  | DataState_Error<TResult, TError, TDataInitial>
+  | DataState_Pending<TDataInitial>
 
 /**
  * The status of an async operation tied to pinia colada e.g. queries and mutations.

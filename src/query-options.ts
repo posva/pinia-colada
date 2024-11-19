@@ -75,8 +75,12 @@ export interface UseQueryFnContext {
  * }
  * ```
  */
-// eslint-disable-next-line unused-imports/no-unused-vars
-export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
+export interface UseQueryOptions<
+  TResult = unknown,
+  // eslint-disable-next-line unused-imports/no-unused-vars
+  TError = ErrorDefault,
+  TDataInitial extends TResult | undefined = TResult | undefined,
+> {
   /**
    * The key used to identify the query. Array of primitives **without** reactive values or a reactive array or getter.
    * It should be treaded as an array of dependencies of your queries, e.g. if you use the `route.params.id` property,
@@ -123,7 +127,7 @@ export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
    * The data which is initially set to the query while the query is loading for the first time.
    * Note: unlike with `placeholderData`, setting the initial data changes the state of the query (it will be set to `success`).
    */
-  initialData?: () => NoInfer<TResult>
+  initialData?: () => TDataInitial
 
   /**
    * A placeholder data that is initially shown while the query is loading for the first time. This will also show the
@@ -131,12 +135,10 @@ export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
    * `initialData`, the placeholder does not change the cache state.
    */
   placeholderData?:
-    | NoInfer<TResult>
+    | TDataInitial
     // NOTE: the generic here allows to make UseQueryOptions<T> assignable to UseQueryOptions<unknown>
     // https://www.typescriptlang.org/play/?#code/JYOwLgpgTgZghgYwgAgPIAczAPYgM4A8AKsgLzICuIA1iNgO4gB8yA3gFDLICOAXMgAoAlGRYAFKNgC2wPBGJNOydAH5eSrgHpNyABZwAbqADmyMLpRwoxilIjhkAIygQ41PMmBgNyAD6CBdBcjbAo8ABE4MDh+ADlsAEkQGGgFP0oQABMIGFAITJFSFniklKgFIR9tZCJdWWQDaDwcEGR6bCh3Kp1-AWISCAAPSCyPIiZA4JwwyOj+IhJ-KmzckHzCliJKgF92dlBIWEQUAFFwKABPYjIM2gZmNiVsTBa8fgwsXEJx9JAKABt-uxduwYFQEJ9WggAPr2MCXBQCZ6Qt5oF5fNL+P6AoT8M7wq4-DhcFxgChQVqsZDI17IXa7BBfMDIDzkNb0ZAAZQgYAI+MuE0qeAAdHBMpkBDC4ZcBMSuDx+HA8BcQAhBBtkAAWABMABofOh+AIQBrWgBCNkA-7IFTIVoAKmQ2uQ-E1wKElSAA
-    | (<T extends TResult>(
-        previousData: T | undefined,
-      ) => NoInfer<TResult> | null | undefined | void)
+    | (<T extends TResult>(previousData: T | undefined) => TDataInitial)
 
   /**
    * Whether to refetch the query when the component is mounted.
@@ -170,9 +172,10 @@ export const USE_QUERY_DEFAULTS = {
   enabled: true as MaybeRefOrGetter<boolean>,
 } satisfies UseQueryOptionsGlobal
 
-export type UseQueryOptionsWithDefaults<TResult = unknown, TError = ErrorDefault> = UseQueryOptions<
+export type UseQueryOptionsWithDefaults<TResult = unknown, TError = ErrorDefault, TDataInitial extends TResult | undefined = undefined> = UseQueryOptions<
   TResult,
-  TError
+  TError,
+  TDataInitial
 > &
   typeof USE_QUERY_DEFAULTS
 

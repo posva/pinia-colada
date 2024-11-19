@@ -26,8 +26,8 @@ describe('useQuery', () => {
 
   enableAutoUnmount(afterEach)
 
-  function mountSimple<TResult = number, TError = Error>(
-    options: Partial<UseQueryOptions<TResult>> = {},
+  function mountSimple<TResult = number, TError = Error, TDataInitial extends TResult | undefined = TResult | undefined>(
+    options: Partial<UseQueryOptions<TResult, TError, TDataInitial>> = {},
     mountOptions?: GlobalMountOptions,
   ) {
     const query = options.query
@@ -39,7 +39,7 @@ describe('useQuery', () => {
       defineComponent({
         render: () => null,
         setup() {
-          const useQueryResult = useQuery<TResult, TError>({
+          const useQueryResult = useQuery<TResult, TError, TDataInitial>({
             key: ['key'],
             ...options,
             // @ts-expect-error: generic unmatched but types work
@@ -446,10 +446,12 @@ describe('useQuery', () => {
       expect(wrapper.vm.isPlaceholderData).toBe(false)
     })
 
-    it('ignores the placeholderData if it returns a nullish value', async () => {
+    it('ignores the placeholderData if it returns undefined', async () => {
       const { wrapper } = mountSimple({
         query: async () => 42,
-        placeholderData: () => null,
+        placeholderData: () => {
+          return undefined
+        },
       })
 
       expect(wrapper.vm.data).toBe(undefined)
