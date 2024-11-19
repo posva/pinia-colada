@@ -1208,4 +1208,47 @@ describe('useQuery', () => {
       // No warnings!
     })
   })
+
+  it('select query data of a success query', async () => {
+    const { wrapper } = mountSimple({
+      select: () => '55',
+    })
+
+    await flushPromises()
+
+    expect(wrapper.vm.data).toBe('55')
+  })
+
+  it('select query data should be able to get initial data', async () => {
+    const { wrapper } = mountSimple({
+      select: (r) => `${r}55`,
+    })
+
+    await flushPromises()
+
+    expect(wrapper.vm.data).toBe('4255')
+  })
+
+  it('dont select query data of a error query', async () => {
+    const { wrapper } = mountSimple({
+      select: () => '55',
+      query: vi.fn().mockRejectedValueOnce(undefined),
+    })
+
+    await flushPromises()
+
+    expect(wrapper.vm.data).not.toBe('55')
+  })
+
+  it('should throw when select is invalid', async () => {
+    const { wrapper } = mountSimple({
+      select: () => {
+        throw new Error('Invalid select function')
+      },
+    })
+
+    await flushPromises()
+
+    expect(wrapper.vm.state.error).toBeInstanceOf(Error)
+  })
 })

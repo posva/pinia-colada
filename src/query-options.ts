@@ -155,6 +155,12 @@ export interface UseQueryOptions<TResult = unknown, TError = ErrorDefault> {
    * @default true
    */
   refetchOnReconnect?: MaybeRefOrGetter<_RefetchOnControl>
+
+  /**
+   * Transforms the query data to `TData`
+   * TODO: write better doc
+   */
+  select?: (data: NoInfer<TResult>) => NoInfer<TResult>
 }
 
 /**
