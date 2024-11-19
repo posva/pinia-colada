@@ -1219,7 +1219,7 @@ describe('useQuery', () => {
     expect(wrapper.vm.data).toBe('55')
   })
 
-  it('select query data should be able to get initial data', async () => {
+  it('select query data should be able to update the original data', async () => {
     const { wrapper } = mountSimple({
       select: (r) => `${r}55`,
     })
@@ -1250,5 +1250,18 @@ describe('useQuery', () => {
     await flushPromises()
 
     expect(wrapper.vm.state.error).toBeInstanceOf(Error)
+  })
+
+  // TODO discuss if it should or not
+  it('should not select initial data', async () => {
+    const { wrapper } = mountSimple({
+      initialData: () => '55',
+      select: (r) => `${r}55`,
+      refetchOnMount: false,
+    })
+
+    await flushPromises()
+
+    expect(wrapper.vm.data).toBe('55')
   })
 })

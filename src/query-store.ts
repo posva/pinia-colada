@@ -603,23 +603,29 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       state: DataState<NoInfer<TResult>, NoInfer<TError>>,
     ) => {
       entry.when = Date.now()
-
-      if (typeof entry.options?.select === 'function' && state.status === 'success') {
-        try {
-          entry.state.value = { ...state, data: entry.options.select(state.data) }
-        } catch (e) {
-          // TODO: check how to handle the error state
-          entry.state.value = {
-            status: 'error',
-            data: undefined,
-            error: e as TError,
-          }
-        }
-      } else {
-        entry.state.value = state
-      }
+      entry.state.value = parseSelectedData(entry.options?.select, state)
     },
   )
+
+  /**
+   * Initial handler for select
+   */
+  const parseSelectedData = <TResult, TError>(select: UseQueryOptions['select'],
+    // NOTE: NoInfer ensures correct inference of TResult and TError
+    state: DataState<NoInfer<TResult>, NoInfer<TError>>): DataState<NoInfer<TResult>, NoInfer<TError>> => {
+      if (typeof select !== 'function' || state.status !== 'success') return state
+
+      try {
+        return { ...state, data: select(state.data) }
+      } catch (e) {
+        // TODO: check how to handle the error state
+        return {
+          status: 'error',
+          data: undefined,
+          error: e,
+        }
+      }
+  }
 
   /**
    * Set the data of a query entry in the cache. It assumes an already successfully fetched entry.
