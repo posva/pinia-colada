@@ -254,7 +254,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       scope.run(() => {
         const state = shallowRef<DataState<TResult, TError>>(
           // @ts-expect-error: to make the code shorter we are using one declaration instead of multiple ternaries
-          {
+          parseSelectedData(options?.select, {
             data: initialData,
             error,
             status: error
@@ -262,7 +262,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
               : initialData !== undefined
                 ? 'success'
                 : 'pending',
-          },
+          }),
         )
         const asyncStatus = shallowRef<AsyncStatus>('idle')
         // we markRaw to avoid unnecessary vue traversal
@@ -608,26 +608,6 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   )
 
   /**
-   * Initial handler for select
-   */
-  const parseSelectedData = <TResult, TError>(select: UseQueryOptions['select'],
-    // NOTE: NoInfer ensures correct inference of TResult and TError
-    state: DataState<NoInfer<TResult>, NoInfer<TError>>): DataState<NoInfer<TResult>, NoInfer<TError>> => {
-      if (typeof select !== 'function' || state.status !== 'success') return state
-
-      try {
-        return { ...state, data: select(state.data) }
-      } catch (e) {
-        // TODO: check how to handle the error state
-        return {
-          status: 'error',
-          data: undefined,
-          error: e,
-        }
-      }
-  }
-
-  /**
    * Set the data of a query entry in the cache. It assumes an already successfully fetched entry.
    */
   const setQueryData = action(
@@ -802,7 +782,7 @@ export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
 ): UseQueryEntry<TResult, TError> {
   const state = shallowRef<DataState<TResult, TError>>(
     // @ts-expect-error: to make the code shorter we are using one declaration instead of multiple ternaries
-    {
+    parseSelectedData(options?.select, {
       data: initialData,
       error,
       status: error
@@ -810,7 +790,7 @@ export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
         : initialData !== undefined
           ? 'success'
           : 'pending',
-    },
+    }),
   )
   const asyncStatus = shallowRef<AsyncStatus>('idle')
   // we markRaw to avoid unnecessary vue traversal
@@ -858,4 +838,24 @@ export function hydrateQueryCache(
  */
 export function serializeQueryCache(queryCache: QueryCache): UseQueryEntryNodeSerialized[] {
   return serializeTreeMap(queryCache.caches)
+}
+
+/**
+ * Initial handler for select
+ */
+const parseSelectedData = <TResult, TError>(select: UseQueryOptions['select'],
+  // NOTE: NoInfer ensures correct inference of TResult and TError
+  state: DataState<NoInfer<TResult>, NoInfer<TError>>): DataState<NoInfer<TResult>, NoInfer<TError>> => {
+    if (typeof select !== 'function' || state.status !== 'success') return state
+
+    try {
+      return { ...state, data: select(state.data) }
+    } catch (e) {
+      // TODO: check how to handle the error state
+      return {
+        status: 'error',
+        data: undefined,
+        error: e,
+      }
+    }
 }

@@ -1253,7 +1253,7 @@ describe('useQuery', () => {
   })
 
   // TODO discuss if it should or not
-  it('should not select initial data', async () => {
+  it('should select initial data', async () => {
     const { wrapper } = mountSimple({
       initialData: () => '55',
       select: (r) => `${r}55`,
@@ -1262,6 +1262,6 @@ describe('useQuery', () => {
 
     await flushPromises()
 
-    expect(wrapper.vm.data).toBe('55')
+    expect(wrapper.vm.data).toBe('5555')
   })
 })
