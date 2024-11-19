@@ -1264,4 +1264,19 @@ describe('useQuery', () => {
 
     expect(wrapper.vm.data).toBe('5555')
   })
+
+  it('select should not update the query return', async () => {
+    const { wrapper: w1 } = mountSimple({
+      select: (r) => `${r}55`,
+      refetchOnMount: false,
+    })
+
+    const { wrapper: w2 } = mountSimple({
+      refetchOnMount: false,
+    })
+
+    await flushPromises()
+
+    expect(w1.vm.data).not.toBe(w2.vm.data)
+  })
 })
