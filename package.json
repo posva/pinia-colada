@@ -99,7 +99,7 @@
     }
   ],
   "devDependencies": {
-    "@antfu/eslint-config": "^3.9.1",
+    "@antfu/eslint-config": "^3.9.2",
     "@pinia/colada": "workspace:*",
     "@shikijs/vitepress-twoslash": "^1.23.1",
     "@size-limit/preset-small-lib": "^11.1.6",
