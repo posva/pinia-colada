@@ -1,6 +1,6 @@
 import { useQueryCache, PiniaColada, serializeTreeMap, type PiniaColadaOptions, hydrateQueryCache } from '@pinia/colada'
 import { markRaw } from 'vue'
-import { defineNuxtPlugin } from '#imports'
+import { defineNuxtPlugin } from '#app'
 import coladaOptions from '#build/colada.options'
 
 export default defineNuxtPlugin({

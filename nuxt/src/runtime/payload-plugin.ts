@@ -1,5 +1,5 @@
 import { TreeMapNode, serializeTreeMap } from '@pinia/colada'
-import { definePayloadPlugin, definePayloadReducer, definePayloadReviver } from '#imports'
+import { definePayloadPlugin, definePayloadReducer, definePayloadReviver } from '#app'
 
 /**
  * Handles Firestore Timestamps, GeoPoint, and other types that needs special handling for serialization.
