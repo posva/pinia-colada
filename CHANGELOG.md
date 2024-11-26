@@ -1,3 +1,13 @@
+## 0.13.0 (2024-11-26)
+
+### ⚠ BREAKING CHANGES
+
+- **types:** placeholderData no longer allows returning `null`, only `undefined`. This won't affect most use cases and enables better type inference.
+
+### Features
+
+- **types:** remove undefined with initialData and placeholderData ([#114](https://github.com/posva/pinia-colada/issues/114)) ([6e1863e](https://github.com/posva/pinia-colada/commit/6e1863e36ade989c439ed77deded47bc18eea2b3))
+
 ## 0.12.1 (2024-11-09)
 
 ### Bug Fixes
@@ -197,8 +207,8 @@ const { mutate } = useMutation({
 - This feature splits up the `status` state into two
   different _status_ properties:
 
-* `status` is now just for the data `'pending' | 'success' | 'error'`
-* `queryStatus` tells if the query is still running or not with `'idle' |
+- `status` is now just for the data `'pending' | 'success' | 'error'`
+- `queryStatus` tells if the query is still running or not with `'idle' |
 'running'`
 
 - `refetch`, `refresh` and similar methods now resolve
@@ -210,9 +220,9 @@ const { mutate } = useMutation({
   directly using the cache store**.
   As a result a lot of the actions have been renamed
 
-* refetch -> fetch
-* invalidateEntry -> invalidate
-* ensureEntry -> ensure
+- refetch -> fetch
+- invalidateEntry -> invalidate
+- ensureEntry -> ensure
 
 Their arguments have changed as well.
 
