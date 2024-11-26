@@ -127,7 +127,7 @@ async function main() {
     console.log(`\n${chalk.bold.blue('This is a dry run')}\n`)
   }
 
-  // NOTE: I'm unsure if this would mess up the changelog
+  // allow to select which packages
   const { pickedPackages } = await prompts({
     type: 'multiselect',
     name: 'pickedPackages',
