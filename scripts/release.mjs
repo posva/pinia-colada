@@ -5,12 +5,10 @@ import { fileURLToPath } from 'node:url'
 import minimist from 'minimist'
 import chalk from 'chalk'
 import semver from 'semver'
-import enquirer from 'enquirer'
+import prompts from '@posva/prompts'
 import { execa } from 'execa'
 import pSeries from 'p-series'
 import { globby } from 'globby'
-
-const { prompt } = enquirer
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -53,37 +51,37 @@ const EXPECTED_BRANCH = 'main'
 const MAIN_PKG_NAME = '@pinia/colada'
 
 /**
+ * @type {typeof execa}
+ */
+const run = (bin, args, opts = {}) => execa(bin, args, { stdio: 'inherit', ...opts })
+/**
  * @param bin {string}
- * @param args {string}
+ * @param args {string[]}
  * @param opts {import('execa').Options}
  */
-const run = (bin, args, opts = {}) =>
-  execa(bin, args, { stdio: 'inherit', ...opts })
 const dryRun = (bin, args, opts = {}) =>
   console.log(chalk.blue(`[dry-run] ${bin} ${args.join(' ')}`), opts)
 const runIfNotDry = isDryRun ? dryRun : run
-const step = (msg) => console.log(chalk.cyan(msg))
+
+/**
+ * @param msg {string[]}
+ */
+const step = (...msg) => console.log(chalk.cyan(...msg))
 
 async function main() {
   if (!skipCleanGitCheck) {
-    const isDirtyGit = !!(
-      await run('git', ['status', '--porcelain'], { stdio: 'pipe' })
-    ).stdout
+    const isDirtyGit = !!(await run('git', ['status', '--porcelain'], { stdio: 'pipe' })).stdout
 
     if (isDirtyGit) {
       console.log(chalk.red(`Git repo isn't clean.`))
       return
     }
 
-    const currentBranch = (
-      await run('git', ['branch', '--show-current'], { stdio: 'pipe' })
-    ).stdout
+    const currentBranch = (await run('git', ['branch', '--show-current'], { stdio: 'pipe' })).stdout
 
     if (currentBranch !== EXPECTED_BRANCH) {
       console.log(
-        chalk.red(
-          `You should be on branch "${EXPECTED_BRANCH}" but are on "${currentBranch}"`,
-        ),
+        chalk.red(`You should be on branch "${EXPECTED_BRANCH}" but are on "${currentBranch}"`),
       )
       return
     }
@@ -98,8 +96,7 @@ async function main() {
     )
 
     const isOutdatedGit = isOutdatedRE.test(
-      (await run('git', ['remote', 'show', 'origin'], { stdio: 'pipe' }))
-        .stdout,
+      (await run('git', ['remote', 'show', 'origin'], { stdio: 'pipe' })).stdout,
     )
 
     if (isOutdatedGit) {
@@ -131,23 +128,19 @@ async function main() {
   }
 
   // NOTE: I'm unsure if this would mess up the changelog
-  // const { pickedPackages } = await prompt({
-  //   type: 'multiselect',
-  //   name: 'pickedPackages',
-  //   messages: 'What packages do you want to release?',
-  //   choices: changedPackages.map((pkg) => pkg.name),
-  // })
+  const { pickedPackages } = await prompts({
+    type: 'multiselect',
+    name: 'pickedPackages',
+    message: 'What packages do you want to release?',
+    instructions: false,
+    min: 1,
+    choices: changedPackages.map((pkg) => ({ title: pkg.name, value: pkg.name, selected: true })),
+  })
 
-  const packagesToRelease = changedPackages
-  // const packagesToRelease = changedPackages.filter((pkg) =>
-  //   pickedPackages.includes(pkg.name)
-  // )
+  // const packagesToRelease = changedPackages
+  const packagesToRelease = changedPackages.filter((pkg) => pickedPackages.includes(pkg.name))
 
-  step(
-    `Ready to release ${packagesToRelease
-      .map(({ name }) => chalk.bold.white(name))
-      .join(', ')}`,
-  )
+  step(`Ready to release ${packagesToRelease.map(({ name }) => chalk.bold.white(name)).join(', ')}`)
 
   const pkgWithVersions = await pSeries(
     packagesToRelease.map(({ name, path, pkg }) => async () => {
@@ -163,31 +156,46 @@ async function main() {
         ...(preId ? ['prepatch', 'preminor', 'premajor', 'prerelease'] : []),
       ]
 
-      const { release } = await prompt({
+      const betaVersion = semver.inc(version, 'prerelease', 'beta')
+
+      const { release } = await prompts({
         type: 'select',
         name: 'release',
         message: `Select release type for ${chalk.bold.white(name)}`,
         choices: versionIncrements
-          .map((i) => `${i}: ${name} (${semver.inc(version, i, preId)})`)
+          .map((release) => {
+            const newVersion = semver.inc(version, release, preId)
+            return {
+              value: newVersion,
+              title: `${release}: ${name} (${newVersion})`,
+            }
+          })
           .concat(
             optionTag === 'beta'
-              ? [`beta: ${name} (${semver.inc(version, 'prerelease', 'beta')})`]
+              ? [
+                  {
+                    title: `beta: ${name} (${betaVersion})`,
+                    value: betaVersion,
+                  },
+                ]
               : [],
           )
-          .concat(['custom']),
+          .concat([{ value: 'custom', title: 'custom' }]),
       })
+
+      console.log(release)
 
       if (release === 'custom') {
         version = (
-          await prompt({
-            type: 'input',
+          await prompts({
+            type: 'text',
             name: 'version',
             message: `Input custom version (${chalk.bold.white(name)})`,
             initial: version,
           })
         ).version
       } else {
-        version = release.match(/\((.*)\)/)[1]
+        version = release
       }
 
       if (!semver.valid(version)) {
@@ -198,14 +206,11 @@ async function main() {
     }),
   )
 
-  const { yes: isReleaseConfirmed } = await prompt({
+  const { yes: isReleaseConfirmed } = await prompts({
     type: 'confirm',
     name: 'yes',
     message: `Releasing \n${pkgWithVersions
-      .map(
-        ({ name, version }) =>
-          `  · ${chalk.white(name)}: ${chalk.yellow.bold(`v${version}`)}`,
-      )
+      .map(({ name, version }) => `  · ${chalk.white(name)}: ${chalk.yellow.bold(`v${version}`)}`)
       .join('\n')}\nConfirm?`,
   })
 
@@ -251,21 +256,18 @@ async function main() {
         ],
         { cwd: pkg.path },
       )
-      await runIfNotDry(
-        `pnpm`,
-        ['exec', 'prettier', '--write', 'CHANGELOG.md'],
-        {
-          cwd: pkg.path,
-        },
-      )
+      await runIfNotDry(`pnpm`, ['exec', 'prettier', '--write', 'CHANGELOG.md'], {
+        cwd: pkg.path,
+      })
       // NOTE: pnpm publish automatically copies the LICENSE file
     }),
   )
 
-  const { yes: isChangelogCorrect } = await prompt({
+  const { yes: isChangelogCorrect } = await prompts({
     type: 'confirm',
     name: 'yes',
     message: 'Are the changelogs correct?',
+    initial: true,
   })
 
   if (!isChangelogCorrect) {
@@ -298,9 +300,7 @@ async function main() {
     await runIfNotDry('git', [
       'commit',
       '-m',
-      `release: ${pkgWithVersions
-        .map(({ name, version }) => `${name}@${version}`)
-        .join(' ')}`,
+      `release: ${pkgWithVersions.map(({ name, version }) => `${name}@${version}`).join(' ')}`,
     ])
   } else {
     console.log('No changes to commit.')
@@ -309,10 +309,7 @@ async function main() {
   step('\nCreating tags...')
   const versionsToPush = []
   for (const pkg of pkgWithVersions) {
-    const tagName
-      = pkg.name === MAIN_PKG_NAME
-        ? `v${pkg.version}`
-        : `${pkg.name}@${pkg.version}`
+    const tagName = pkg.name === MAIN_PKG_NAME ? `v${pkg.version}` : `${pkg.name}@${pkg.version}`
 
     versionsToPush.push(`refs/tags/${tagName}`)
     await runIfNotDry('git', ['tag', `${tagName}`])
@@ -334,7 +331,7 @@ async function main() {
 
 /**
  *
- * @param packageList {{ name: string; path: string; version: string, pkg: any }}
+ * @param packageList {{ name: string; path: string; version: string, pkg: any }[]}
  */
 async function updateVersions(packageList) {
   return Promise.all(
@@ -366,17 +363,9 @@ function updateDeps(pkg, depType, updatedPackages) {
     if (dep && updatedDep) {
       // skip any workspace reference, pnpm will handle it
       if (deps[dep].startsWith('workspace:')) {
-        console.log(
-          chalk.yellow.dim(
-            `${pkg.name} -> ${depType} -> ${dep}@${deps[dep]} (skipped)`,
-          ),
-        )
+        console.log(chalk.yellow.dim(`${pkg.name} -> ${depType} -> ${dep}@${deps[dep]} (skipped)`))
       } else {
-        console.log(
-          chalk.yellow(
-            `${pkg.name} -> ${depType} -> ${dep}@>=${updatedDep.version}`,
-          ),
-        )
+        console.log(chalk.yellow(`${pkg.name} -> ${depType} -> ${dep}@>=${updatedDep.version}`))
         deps[dep] = `>=${updatedDep.version}`
       }
     }
@@ -404,9 +393,7 @@ async function publishPackage(pkg) {
         stdio: 'pipe',
       },
     )
-    console.log(
-      chalk.green(`Successfully published ${pkg.name}@${pkg.version}`),
-    )
+    console.log(chalk.green(`Successfully published ${pkg.name}@${pkg.version}`))
   } catch (e) {
     if (e.stderr.match(/previously published/)) {
       console.log(chalk.red(`Skipping already published: ${pkg.name}`))
@@ -440,21 +427,13 @@ async function getLastTag(pkgName) {
 
     return stdout
   } catch (error) {
-    console.log(
-      chalk.dim(
-        `Couldn't get "${chalk.bold(pkgName)}" last tag, using first commit...`,
-      ),
-    )
+    console.log(chalk.dim(`Couldn't get "${chalk.bold(pkgName)}" last tag, using first commit...`))
 
     // 128 is the git exit code when there is nothing to describe
     if (error.exitCode !== 128) {
       console.error(error)
     }
-    const { stdout } = await run(
-      'git',
-      ['rev-list', '--max-parents=0', 'HEAD'],
-      { stdio: 'pipe' },
-    )
+    const { stdout } = await run('git', ['rev-list', '--max-parents=0', 'HEAD'], { stdio: 'pipe' })
     return stdout
   }
 }
@@ -473,13 +452,9 @@ async function getChangedPackages(...folders) {
         return null
       }
 
-      const pkg = JSON.parse(await fs.readFile(join(folder, 'package.json')))
+      const pkg = JSON.parse(await fs.readFile(join(folder, 'package.json'), 'utf-8'))
       if (pkg.private) {
-        console.warn(
-          chalk.dim(
-            `Skipping "${pkg.name}" as it has no changes since last release`,
-          ),
-        )
+        console.info(chalk.dim(`Skipping "${pkg.name}" it's private`))
         return null
       }
 
@@ -508,6 +483,7 @@ async function getChangedPackages(...folders) {
           start: lastTag,
         }
       } else {
+        console.warn(chalk.dim(`Skipping "${pkg.name}" as it has no changes since last release`))
         return null
       }
     }),
