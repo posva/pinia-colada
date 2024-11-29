@@ -34,6 +34,9 @@
   "dependencies": {
     "@nuxt/kit": "^3.14.1592"
   },
+  "peerDependencies": {
+    "@pinia/colada": "workspace:^"
+  },
   "devDependencies": {
     "@nuxt/devtools": "^1.6.1",
     "@nuxt/eslint-config": "^0.7.1",
