@@ -47,8 +47,35 @@ Flags:
 //   args.preId ||
 //   (semver.prerelease(currentVersion) && semver.prerelease(currentVersion)[0])
 const EXPECTED_BRANCH = 'main'
-// this package will use tags like v1.0.0 while the rest will use the full package name like @pinia/colada-nuxt@1.0.0
+// this package will use tags like v1.0.0 while the rest will use the full package name like @pinia/testing@1.0.0
 const MAIN_PKG_NAME = '@pinia/colada'
+// whether the main package is at the root of the mono repo or this is not a mono repo
+const IS_MAIN_PKG_ROOT = true
+// array of folders of packages to release
+const PKG_FOLDERS = [
+  // comment for multiline format
+  // @pinia/colada
+  join(__dirname, '..'),
+  // @pinia/colada-nuxt
+  join(__dirname, '../nuxt'),
+  // globby expects `/` even on windows
+  ...(await globby(join(__dirname, '../plugins/*').replace(/\\/g, '/'), {
+    onlyFiles: false,
+  })),
+]
+// files to add and commit after building a new version
+const FILES_TO_COMMIT = [
+  // comment for multiline format
+  'package.json',
+  'pnpm-lock.yaml',
+  'CHANGELOG.md',
+  // plugins
+  'plugins/*/package.json',
+  'plugins/*/CHANGELOG.md',
+  // nuxt
+  'nuxt/package.json',
+  'nuxt/CHANGELOG.md',
+]
 
 /**
  * @type {typeof execa}
@@ -59,7 +86,7 @@ const run = (bin, args, opts = {}) => execa(bin, args, { stdio: 'inherit', ...op
  * @param args {string[]}
  * @param opts {import('execa').Options}
  */
-const dryRun = (bin, args, opts = {}) =>
+const dryRun = async (bin, args, opts = {}) =>
   console.log(chalk.blue(`[dry-run] ${bin} ${args.join(' ')}`), opts)
 const runIfNotDry = isDryRun ? dryRun : run
 
@@ -105,18 +132,7 @@ async function main() {
     }
   }
 
-  const packagesFolders = [
-    // @pinia/colada
-    join(__dirname, '..'),
-    // @pinia/colada-nuxt
-    join(__dirname, '../nuxt'),
-    // globby expects `/` even on windows
-    ...(await globby(join(__dirname, '../plugins/*').replace(/\\/g, '/'), {
-      onlyFiles: false,
-    })),
-  ]
-
-  const changedPackages = await getChangedPackages(...packagesFolders)
+  const changedPackages = await getChangedPackages(...PKG_FOLDERS)
 
   if (!changedPackages.length) {
     console.log(chalk.red(`No packages have changed since last release`))
@@ -127,18 +143,27 @@ async function main() {
     console.log(`\n${chalk.bold.blue('This is a dry run')}\n`)
   }
 
-  // allow to select which packages
-  const { pickedPackages } = await prompts({
-    type: 'multiselect',
-    name: 'pickedPackages',
-    message: 'What packages do you want to release?',
-    instructions: false,
-    min: 1,
-    choices: changedPackages.map((pkg) => ({ title: pkg.name, value: pkg.name, selected: true })),
-  })
+  let packagesToRelease = changedPackages
 
-  // const packagesToRelease = changedPackages
-  const packagesToRelease = changedPackages.filter((pkg) => pickedPackages.includes(pkg.name))
+  // if there are more than one package, ask which ones to release
+  if (packagesToRelease.length > 1) {
+    // allow to select which packages
+    const { pickedPackages } = await prompts({
+      type: 'multiselect',
+      name: 'pickedPackages',
+      message: 'What packages do you want to release?',
+      instructions: false,
+      min: 1,
+      choices: changedPackages.map((pkg) => ({
+        title: pkg.name,
+        value: pkg.name,
+        selected: true,
+      })),
+    })
+
+    // const packagesToRelease = changedPackages
+    packagesToRelease = changedPackages.filter((pkg) => pickedPackages.includes(pkg.name))
+  }
 
   step(`Ready to release ${packagesToRelease.map(({ name }) => chalk.bold.white(name)).join(', ')}`)
 
@@ -206,6 +231,12 @@ async function main() {
     }),
   )
 
+  // put the main package first as others might depend on it
+  const mainPkgIndex = packagesToRelease.find(({ name }) => name === MAIN_PKG_NAME)
+  if (mainPkgIndex > 0) {
+    packagesToRelease.unshift(packagesToRelease.splice(mainPkgIndex, 1)[0])
+  }
+
   const { yes: isReleaseConfirmed } = await prompts({
     type: 'confirm',
     name: 'yes',
@@ -250,8 +281,7 @@ async function main() {
           changelogExists ? '1' : '0',
           '--commit-path',
           '.',
-          '--lerna-package',
-          pkg.name,
+          ...(pkg.name === MAIN_PKG_NAME && IS_MAIN_PKG_ROOT ? [] : ['--lerna-package', pkg.name]),
           ...(pkg.name === MAIN_PKG_NAME ? [] : ['--tag-prefix', `${pkg.name}@`]),
         ],
         { cwd: pkg.path },
@@ -285,18 +315,7 @@ async function main() {
   const { stdout } = await run('git', ['diff'], { stdio: 'pipe' })
   if (stdout) {
     step('\nCommitting changes...')
-    await runIfNotDry('git', [
-      'add',
-      'package.json',
-      'pnpm-lock.yaml',
-      'CHANGELOG.md',
-      // plugins
-      'plugins/*/package.json',
-      'plugins/*/CHANGELOG.md',
-      // nuxt
-      'nuxt/package.json',
-      'nuxt/CHANGELOG.md',
-    ])
+    await runIfNotDry('git', ['add', ...FILES_TO_COMMIT])
     await runIfNotDry('git', [
       'commit',
       '-m',
