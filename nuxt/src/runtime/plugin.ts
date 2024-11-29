@@ -23,6 +23,7 @@ export default defineNuxtPlugin({
       })
     }
     else if (nuxtApp.payload && nuxtApp.payload.pinia_colada) {
+      // we are inside of an injectable context so `useQueryCache()` works
       hydrateQueryCache(useQueryCache(pinia), nuxtApp.payload.pinia_colada)
     }
   },
