@@ -83,7 +83,7 @@ describe('useMutation', () => {
       },
     })
 
-    expect((async () => wrapper.vm.mutate())()).resolves.toBeUndefined()
+    await expect((async () => wrapper.vm.mutate())()).resolves.toBeUndefined()
     await flushPromises()
     expect(wrapper.vm.error).toEqual(new Error('foobar'))
   })
@@ -265,7 +265,7 @@ describe('useMutation', () => {
         onSettled,
       })
 
-      expect(wrapper.vm.mutateAsync()).rejects.toThrow()
+      await expect(wrapper.vm.mutateAsync()).rejects.toThrow()
       await flushPromises()
       expect(onSettled).toHaveBeenCalledWith(
         undefined,
