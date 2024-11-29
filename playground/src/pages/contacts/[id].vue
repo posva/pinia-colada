@@ -2,14 +2,12 @@
 import { useRoute } from 'vue-router/auto'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import ContactCard from '@/components/ContactCard.vue'
-import {
-  type Contact,
-  updateContact as _updateContact,
-  getContactById,
-} from '@/api/contacts'
+import { type Contact, updateContact as _updateContact, getContactById } from '@/api/contacts'
 
 const route = useRoute('/contacts/[id]')
 const queryCache = useQueryCache()
+
+// const isLoading = computed(() => queryCache.getEntries({ predicate: (entry) => entry.asyncStatus.value === 'loading' }))
 
 const {
   data: contact,
@@ -21,8 +19,7 @@ const {
 })
 
 const { mutate: updateContact } = useMutation({
-  mutation: (contact: Partial<Contact> & { id: number }) =>
-    _updateContact(contact),
+  mutation: (contact: Partial<Contact> & { id: number }) => _updateContact(contact),
 
   onMutate() {
     return { a: 2, b: 5 }
