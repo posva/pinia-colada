@@ -1,3 +1,9 @@
+## [0.0.4](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.0.3...@pinia/colada-nuxt@0.0.4) (2024-11-29)
+
+### Features
+
+- autoinstall pinia colada ([5df88ca](https://github.com/posva/pinia-colada/commit/5df88ca2a5337b0546d6b86db7d50e63db953e5d))
+
 ## [0.0.3](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.0.2...@pinia/colada-nuxt@0.0.3) (2024-11-06)
 
 ### Bug Fixes
