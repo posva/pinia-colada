@@ -98,6 +98,9 @@
       ]
     }
   ],
+  "peerDependencies": {
+    "pinia": "^2.2.6"
+  },
   "devDependencies": {
     "@antfu/eslint-config": "^3.9.2",
     "@pinia/colada": "workspace:*",
