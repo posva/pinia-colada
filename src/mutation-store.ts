@@ -9,6 +9,7 @@ import { isSameArray, stringifyFlatObject, toValueWithArgs } from './utils'
 import type {
   _ReduceContext,
   UseMutationOptions,
+  UseMutationReturn,
 } from './use-mutation'
 
 /**
@@ -58,6 +59,20 @@ export interface UseMutationEntry<
     deps?: Set<EffectScope | ComponentInternalInstance>
     skip?: boolean
   }
+}
+
+/**
+ * A multi mutation entry in the cache.
+ */
+interface UseMultiMutationEntry<
+  TResult = unknown,
+  TVars = unknown,
+  TError = unknown,
+  TContext extends Record<any, any> = _EmptyObject,
+> {
+  key?: EntryNodeKey[]
+  mutationOptions: UseMutationOptions<TResult, TVars, TError, TContext>
+  invocations: Map<string, UseMutationEntry<unknown, unknown, unknown, unknown>>
 }
 
 function createMutationEntry<
@@ -127,6 +142,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(
       const key
         = vars && toValueWithArgs(options.key, vars)?.map(stringifyFlatObject)
 
+      // Create new entry and if key or variables are given - cache it.
       if (!entry) {
         entry = createMutationEntry(options, key)
         if (key) {
@@ -138,9 +154,10 @@ export const useMutationCache = /* @__PURE__ */ defineStore(
         }
         return createMutationEntry(options, key)
       }
-      // reuse the entry when no key is provided
+
+      // Set the key if it was absent.
+      // If the key is different - create new entry.
       if (key) {
-        // update key
         if (!entry.key) {
           entry.key = key
         } else if (!isSameArray(entry.key, key)) {
@@ -158,6 +175,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(
         }
       }
 
+      // Reuse the entry by default.
       return entry
     }
 
@@ -180,6 +198,53 @@ export const useMutationCache = /* @__PURE__ */ defineStore(
 
       return defineMutationResult
     })
+
+    const multiMutationCachesRaw = new TreeMapNode<UseMutationEntry<unknown, unknown, unknown>>()
+    const multiMutationCaches = shallowReactive(multiMutationCachesRaw)
+
+    /**
+     * Ensures a query created with {@link useMultiMutation} is present in the cache. If it's not, it creates a new one.
+     * @param options
+     * @param vars
+     */
+    function ensureMultiMutation<
+      TResult = unknown,
+      TVars = unknown,
+      TError = unknown,
+      TContext extends Record<any, any> = Record<any, any>,
+    >(
+      options: UseMutationOptions<TResult, TVars, TError, TContext>,
+      vars: TVars,
+    ): UseMultiMutationEntry<TResult, TVars, TError, TContext> {
+      const key = vars
+        ? toValueWithArgs(options.key, vars)?.map(stringifyFlatObject)
+        : undefined
+
+      let entry = key ? multiMutationCaches.get(key) : undefined
+
+      if (!entry) {
+        entry = {
+          key,
+          mutationOptions: options,
+          invocations: new Map<string, UseMutationEntry<TResult, TVars, TError, TContext>>(),
+        }
+
+        if (key) {
+          multiMutationCaches.set(key, entry)
+        }
+
+        return entry
+      }
+
+      if (vars) {
+        const invocationKey = stringifyFlatObject(vars)
+        if (!entry.invocations.has(invocationKey)) {
+          entry.invocations.set(invocationKey, undefined as TResult)
+        }
+      }
+
+      return entry
+    }
 
     async function mutate<
       TResult = unknown,
@@ -273,6 +338,6 @@ export const useMutationCache = /* @__PURE__ */ defineStore(
       return currentData
     }
 
-    return { ensure, ensureDefinedMutation, caches, mutate }
+    return { ensure, ensureDefinedMutation, ensureMultiMutation, caches, mutate }
   },
 )
