@@ -1210,4 +1210,66 @@ describe('useQuery', () => {
       // No warnings!
     })
   })
+
+  describe('prefetchs query', () => {
+    it('should not prefetch a fresh query', async () => {
+      const { wrapper, query } = mountSimple({
+        staleTime: 1000,
+      })
+
+      await flushPromises()
+
+      const queryCache = useQueryCache()
+
+      queryCache.prefetch({
+        key: ['key'],
+        query,
+      })
+
+      await flushPromises()
+
+      expect(wrapper.vm.data).toBe(42)
+      expect(query).toHaveBeenCalledOnce()
+    })
+
+    it('should prefetch a stale query', async () => {
+      const queryCache = useQueryCache()
+
+      const { query } = mountSimple({
+        staleTime: 1000,
+      })
+
+      await flushPromises()
+
+      expect(query).toHaveBeenCalledOnce()
+
+      vi.advanceTimersByTime(1000)
+
+      await queryCache.prefetch({
+        key: ['key'],
+        query,
+      })
+
+      expect(query).toHaveBeenCalledTimes(2)
+    })
+
+    it('should prefetch a disabled query', async () => {
+      const queryCache = useQueryCache()
+
+      const { query } = mountSimple({
+        enabled: false,
+      })
+
+      await flushPromises()
+
+      expect(query).not.toHaveBeenCalled()
+
+      await queryCache.prefetch({
+        key: ['key'],
+        query,
+      })
+
+      expect(query).toHaveBeenCalledOnce()
+    })
+  })
 })

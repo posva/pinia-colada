@@ -125,4 +125,43 @@ describe('Query Cache store', () => {
       expect(onActionCreate).toHaveBeenCalledTimes(1)
     })
   })
+
+  it('prefetchs query', async () => {
+    const queryCache = useQueryCache()
+
+    expect(queryCache.getQueryData(['a'])).toBeUndefined()
+
+    await queryCache.prefetch({
+      key: ['a'],
+      query: vi.fn().mockResolvedValueOnce(42),
+    })
+
+    const data = queryCache.getQueryData(['a'])
+    expect(data).toBe(42)
+  })
+
+  it('correctly updates entry when prefetch', async () => {
+    const queryCache = useQueryCache()
+
+    // Create a mock function to simulate query resolution
+    const query = vi.fn()
+
+    query.mockResolvedValueOnce(55)
+    await queryCache.prefetch({
+      key: ['update-prefetch'],
+      query,
+      staleTime: 0,
+    })
+
+    expect(queryCache.getQueryData(['update-prefetch'])).toBe(55)
+
+    query.mockResolvedValueOnce(42)
+    await queryCache.prefetch({
+      key: ['update-prefetch'],
+      query,
+      staleTime: 0,
+    })
+
+    expect(queryCache.getQueryData(['update-prefetch'])).toBe(42)
+  })
 })
