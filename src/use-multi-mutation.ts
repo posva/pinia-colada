@@ -1,11 +1,9 @@
-import { useMutation, type UseMutationOptions, type UseMutationReturn } from './use-mutation'
+import type { UseMutationOptions } from './use-mutation'
 import type { ErrorDefault } from './types-extension'
 import type { _EmptyObject } from './utils'
 import { noop } from './utils'
-import type { ShallowRef } from 'vue'
-import type { DataState } from './data-state'
 import { useMutationCache, type UseMultiMutationEntry } from './mutation-store'
-import { shallowRef } from 'vue'
+import { computed, shallowRef } from 'vue'
 
 /**
  * @example
@@ -31,21 +29,18 @@ import { shallowRef } from 'vue'
  * console.log(data('item-1'))
  * console.log(error('item-1'))
  *
- * reset('item-1')
- * clearKey('item-1')
+ * forget('item-2')
+ * reset()
+ *
  */
 
 export function useMultiMutation<TResult, TVars = void, TError = ErrorDefault, TContext extends Record<any, any> = _EmptyObject>(
-  options: Omit<UseMutationOptions<TResult, TVars, TError>, 'key'>,
+  options: UseMutationOptions<TResult, TVars, TError, TContext>,
 ) {
   const mutationCache = useMutationCache()
   const entry = shallowRef<UseMultiMutationEntry<TResult, TVars, TError, TContext>>(
     mutationCache.ensureMultiMutation(options),
   )
-
-  function forget(invocationKey: string) {
-    entry.value.invocations.delete(invocationKey)
-  }
 
   function data(invocationKey: string) {
     return entry.value.invocations.get(invocationKey)?.state.value.data
@@ -63,14 +58,7 @@ export function useMultiMutation<TResult, TVars = void, TError = ErrorDefault, T
     if (!vars) {
       throw new Error('Mutation variables are required for multi-mutation.')
     }
-
-    const invocationEntry = mutationCache.ensure(
-      entry.value.mutationOptions,
-      entry.value.invocations.get(invocationKey),
-      vars,
-    )
-
-    entry.value.invocations.set(invocationKey, invocationEntry)
+    const invocationEntry = mutationCache.addInvocation(entry.value, invocationKey, options, vars)
     return mutationCache.mutate(invocationEntry, vars)
   }
 
@@ -78,28 +66,16 @@ export function useMultiMutation<TResult, TVars = void, TError = ErrorDefault, T
     mutateAsync(invocationKey, vars).catch(noop)
   }
 
-  function reset(invocationKey?: string) {
-    if (invocationKey) {
-      const invocationEntry = entry.value.invocations.get(invocationKey)
-      if (invocationEntry) {
-        invocationEntry.state.value = {
-          status: 'pending',
-          data: undefined,
-          error: null,
-        }
-        invocationEntry.asyncStatus.value = 'idle'
-      }
-    } else {
-      entry.value.invocations.forEach((invocationEntry) => {
-        invocationEntry.state.value = {
-          status: 'pending',
-          data: undefined,
-          error: null,
-        }
-        invocationEntry.asyncStatus.value = 'idle'
-      })
-    }
+  function forget(invocationKey: string) {
+    mutationCache.removeInvocation(entry.value, invocationKey)
   }
+
+  // TODO: do all resets in mutation-store.
+  function reset() {
+    entry.value.invocations.clear()
+  }
+
+  // const variables = computed(() => entry.value.recentMutation.vars)
 
   return {
     data,

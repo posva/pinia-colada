@@ -11,7 +11,7 @@ import { type _Awaitable, type _EmptyObject, noop } from './utils'
  * @see {@link EntryKey}
  * @internal
  */
-type _MutationKey<TVars> = EntryKey | ((vars: TVars) => EntryKey)
+export type _MutationKey<TVars> = EntryKey | ((vars: TVars) => EntryKey)
 
 /**
  * Removes the nullish types from the context type to make `A & TContext` work instead of yield `never`.
