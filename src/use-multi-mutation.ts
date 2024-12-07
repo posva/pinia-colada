@@ -28,8 +28,7 @@ import { computed, shallowRef } from 'vue'
  *
  * console.log(data('item-1'))
  * console.log(error('item-1'))
- *
- * forget('item-2')
+ * remove('item-2')
  * reset()
  *
  */
@@ -41,7 +40,6 @@ export function useMultiMutation<TResult, TVars = void, TError = ErrorDefault, T
   const entry = shallowRef<UseMultiMutationEntry<TResult, TVars, TError, TContext>>(
     mutationCache.ensureMultiMutation(options),
   )
-  console.log(entry.value)
 
   function data(invocationKey: string) {
     return entry.value.invocations.get(invocationKey)?.state.value.data
@@ -56,9 +54,22 @@ export function useMultiMutation<TResult, TVars = void, TError = ErrorDefault, T
   }
 
   async function mutateAsync(invocationKey: string, vars: TVars): Promise<TResult> {
+    // Todo: properly throw error in the onError hook.
     if (!vars) {
-      throw new Error('Mutation variables are required for multi-mutation.')
+      const error = new Error('Mutation variables are required for multi-mutation.')
+
+      // Call the `onError` hook if it's defined
+      if (entry.value.recentMutation.options?.onError) {
+        entry.value.recentMutation.options.onError(
+          error as TError,
+          undefined as TVars,
+          {},
+        )
+      }
+
+      throw error
     }
+
     const invocationEntry = mutationCache.addInvocation(entry.value, invocationKey, options, vars)
     return mutationCache.mutate(invocationEntry, vars)
   }
@@ -67,13 +78,12 @@ export function useMultiMutation<TResult, TVars = void, TError = ErrorDefault, T
     mutateAsync(invocationKey, vars).catch(noop)
   }
 
-  function forget(invocationKey: string) {
+  function remove(invocationKey: string) {
     mutationCache.removeInvocation(entry.value, invocationKey)
   }
 
-  // TODO: do all resets in mutation-store.
   function reset() {
-    entry.value.invocations.clear()
+    mutationCache.removeInvocation(entry.value)
   }
 
   // const variables = computed(() => entry.value.recentMutation.vars)
@@ -85,6 +95,6 @@ export function useMultiMutation<TResult, TVars = void, TError = ErrorDefault, T
     mutate,
     mutateAsync,
     reset,
-    forget,
+    remove,
   }
 }
