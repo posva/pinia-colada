@@ -41,6 +41,7 @@ export function useMultiMutation<TResult, TVars = void, TError = ErrorDefault, T
   const entry = shallowRef<UseMultiMutationEntry<TResult, TVars, TError, TContext>>(
     mutationCache.ensureMultiMutation(options),
   )
+  console.log(entry.value)
 
   function data(invocationKey: string) {
     return entry.value.invocations.get(invocationKey)?.state.value.data

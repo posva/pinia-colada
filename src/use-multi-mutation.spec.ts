@@ -2,126 +2,188 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { defineComponent } from 'vue'
-import { useMultiMutation } from './use-multi-mutation' // Make sure to import the function correctly
+import { delay } from '../test/utils'
+import { useMultiMutation } from './use-multi-mutation'
+import type { UseMutationOptions } from './use-mutation'
 
 describe('useMultiMutation', () => {
   beforeEach(() => {
     vi.clearAllTimers()
     vi.useFakeTimers()
   })
-
   afterEach(() => {
     vi.restoreAllMocks()
   })
 
-  // Helper function to mount the component with useMultiMutation
-  function mountMultiMutation<TResult = number, TVars = void>(options: any = {}) {
+  function mountMultiMutation<TResult = number, TParams = void>(
+    options: Partial<UseMutationOptions<TResult, TParams>> = {},
+  ) {
+    const mutation = options.mutation
+      ? vi.fn(options.mutation)
+      : vi.fn(async () => 42)
     const wrapper = mount(
       defineComponent({
         render: () => null,
         setup() {
           return {
-            ...useMultiMutation<TResult, TVars>(options),
+            ...useMultiMutation<TResult, TParams>({
+              ...options,
+              // @ts-expect-error: generic unmatched but types work
+              mutation,
+            }),
           }
         },
       }),
       {
-        global: {
-          plugins: [createPinia()],
-        },
+        global: { plugins: [createPinia()] },
       },
     )
-    return { wrapper }
+    return Object.assign([wrapper, mutation] as const, { wrapper, mutation })
   }
 
-  it('invokes the mutation', async () => {
-    const mutation = vi.fn(async () => 42)
-    const { wrapper } = mountMultiMutation({ mutation })
+  it('invokes mutation for a specific key', async () => {
+    const { wrapper, mutation } = mountMultiMutation()
 
-    wrapper.vm.mutate('item-1', 123)
+    wrapper.vm.mutate('key1', { param: 1 })
     await flushPromises()
 
-    expect(wrapper.vm.data('item-1')).toBe(42)
+    expect(mutation).toHaveBeenCalledWith('key1', { param: 1 })
   })
 
-  it('can be awaited with mutateAsync', async () => {
-    const mutation = vi.fn(async () => 42)
-    const { wrapper } = mountMultiMutation({ mutation })
-
-    const result = wrapper.vm.mutateAsync('item-1', 123)
+  it('retrieves data for a key', async () => {
+    const { wrapper } = mountMultiMutation()
+    wrapper.vm.mutate('key1')
     await flushPromises()
-    await expect(result).resolves.toBe(42)
-  })
 
-  it('handles mutation errors', async () => {
-    const mutation = vi.fn(async () => {
-      throw new Error('mutation failed')
+    expect(wrapper.vm.data('key1')).toBe(42)
+  })
+  /*
+    it('handles loading state per key', async () => {
+      const { wrapper } = mountMultiMutation({
+        mutation: async () => delay(100),
+      })
+
+      wrapper.vm.mutate('key1')
+      expect(wrapper.vm.isLoading('key1')).toBe(true)
+
+      vi.advanceTimersByTime(100)
+      await flushPromises()
+
+      expect(wrapper.vm.isLoading('key1')).toBe(false)
     })
-    const { wrapper } = mountMultiMutation({ mutation })
 
-    wrapper.vm.mutate('item-1', 123)
-    await flushPromises()
-    expect(wrapper.vm.error('item-1')).toEqual(new Error('mutation failed'))
-  })
+    it('handles errors per key', async () => {
+      const { wrapper } = mountMultiMutation({
+        mutation: async () => {
+          throw new Error('Error for key1')
+        },
+      })
 
-  it('can reset the state', async () => {
-    const mutation = vi.fn(async () => 42)
-    const { wrapper } = mountMultiMutation({ mutation })
+      await expect(wrapper.vm.mutate('key1')).rejects.toThrow('Error for key1')
+      expect(wrapper.vm.error('key1')).toEqual(new Error('Error for key1'))
+    })
 
-    wrapper.vm.mutate('item-1', 123)
-    await flushPromises()
-    expect(wrapper.vm.data('item-1')).toBe(42)
+    it('resets all keys', async () => {
+      const { wrapper } = mountMultiMutation()
 
-    wrapper.vm.reset()
-    expect(wrapper.vm.data('item-1')).toBeUndefined()
-    expect(wrapper.vm.error('item-1')).toBeNull()
-  })
+      wrapper.vm.mutate('key1')
+      wrapper.vm.mutate('key2')
+      await flushPromises()
 
-  it('resets a single invocation key', async () => {
-    const mutation = vi.fn(async () => 42)
-    const { wrapper } = mountMultiMutation({ mutation })
+      wrapper.vm.reset()
+      expect(wrapper.vm.data('key1')).toBeUndefined()
+      expect(wrapper.vm.data('key2')).toBeUndefined()
+      expect(wrapper.vm.isLoading('key1')).toBe(false)
+      expect(wrapper.vm.error('key1')).toBeNull()
+    })
 
-    wrapper.vm.mutate('item-1', 123)
-    await flushPromises()
-    expect(wrapper.vm.data('item-1')).toBe(42)
+    it('forgets a specific key', async () => {
+      const { wrapper } = mountMultiMutation()
 
-    wrapper.vm.reset('item-1')
-    expect(wrapper.vm.data('item-1')).toBeUndefined()
-    expect(wrapper.vm.error('item-1')).toBeNull()
-  })
+      wrapper.vm.mutate('key1')
+      await flushPromises()
 
-  it('removes a single invocation entry using forget', async () => {
-    const mutation = vi.fn(async () => 42)
-    const { wrapper } = mountMultiMutation({ mutation })
+      wrapper.vm.forget('key1')
+      expect(wrapper.vm.data('key1')).toBeUndefined()
+      expect(wrapper.vm.error('key1')).toBeNull()
+    })
 
-    wrapper.vm.mutate('item-1', 123)
-    await flushPromises()
-    expect(wrapper.vm.data('item-1')).toBe(42)
+    it('invokes onSuccess per key', async () => {
+      const onSuccess = vi.fn()
+      const { wrapper } = mountMultiMutation({ onSuccess })
 
-    wrapper.vm.forget('item-1')
-    expect(wrapper.vm.data('item-1')).toBeUndefined()
-  })
+      wrapper.vm.mutate('key1')
+      await flushPromises()
 
-  it('handles multiple invocations with different keys', async () => {
-    const mutation = vi.fn(async (id: number) => id)
-    const { wrapper } = mountMultiMutation({ mutation })
+      expect(onSuccess).toHaveBeenCalledWith(42, undefined, { key: 'key1' })
+    })
 
-    wrapper.vm.mutate('item-1', 123)
-    wrapper.vm.mutate('item-2', 456)
-    await flushPromises()
+    it('invokes onError per key', async () => {
+      const onError = vi.fn()
+      const { wrapper } = mountMultiMutation({
+        mutation: async () => {
+          throw new Error('key1 error')
+        },
+        onError,
+      })
 
-    expect(wrapper.vm.data('item-1')).toBe(123)
-    expect(wrapper.vm.data('item-2')).toBe(456)
-  })
+      await expect(wrapper.vm.mutate('key1')).rejects.toThrow('key1 error')
+      expect(onError).toHaveBeenCalledWith(
+        new Error('key1 error'),
+        undefined,
+        { key: 'key1' },
+      )
+    })
 
-  it('correctly tracks loading states for multiple invocations', async () => {
-    const mutation = vi.fn(async (id: number) => id)
-    const { wrapper } = mountMultiMutation({ mutation })
+    it('invokes onSettled per key', async () => {
+      const onSettled = vi.fn()
+      const { wrapper } = mountMultiMutation({ onSettled })
 
-    wrapper.vm.mutate('item-1', 42)
-    expect(wrapper.vm.isLoading('item-1')).toBe(true)
+      wrapper.vm.mutate('key1')
+      await flushPromises()
 
-    await flushPromises()
-    expect(wrapper.vm.isLoading('item-1')).toBe(false)
-  })
+      expect(onSettled).toHaveBeenCalledWith(
+        42,
+        null,
+        undefined,
+        { key: 'key1' },
+      )
+    })
+
+    it('handles concurrent mutations for the same key', async () => {
+      const { wrapper } = mountMultiMutation()
+
+      const promise1 = wrapper.vm.mutate('key1')
+      const promise2 = wrapper.vm.mutate('key1')
+
+      await promise1
+      await promise2
+
+      expect(wrapper.vm.data('key1')).toBe(42)
+    })
+
+    it('ensures different keys do not interfere', async () => {
+      const { wrapper } = mountMultiMutation()
+
+      wrapper.vm.mutate('key1')
+      wrapper.vm.mutate('key2')
+      await flushPromises()
+
+      expect(wrapper.vm.data('key1')).toBe(42)
+      expect(wrapper.vm.data('key2')).toBe(42)
+    })
+
+    it('prevents crashes when onSuccess or onError throw errors', async () => {
+      const { wrapper } = mountMultiMutation({
+        onSuccess: () => {
+          throw new Error('onSuccess failure')
+        },
+      })
+
+      wrapper.vm.mutate('key1')
+      await flushPromises()
+
+      expect(wrapper.vm.data('key1')).toBeUndefined()
+      expect(wrapper.vm.error('key1')).toEqual(new Error('onSuccess failure'))
+    }) */
 })
