@@ -1,5 +1,5 @@
 import type { ComponentInternalInstance, EffectScope, ShallowRef } from 'vue'
-import { reactive, getCurrentScope, shallowReactive, shallowRef } from 'vue'
+import { getCurrentScope, shallowReactive, shallowRef } from 'vue'
 import type { AsyncStatus, DataState } from './data-state'
 import type { EntryNodeKey } from './tree-map'
 import { defineStore } from 'pinia'
@@ -307,7 +307,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(
 
     function removeInvocation<TResult, TVars, TError, TContext extends Record<any, any> = _EmptyObject>(
       entry: UseMultiMutationEntry<TResult, TVars, TError, TContext>,
-      invocationKey?: string,
+      invocationKey?: string | number,
     ): void {
       if (invocationKey) {
         entry.invocations.delete(invocationKey)

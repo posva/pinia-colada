@@ -1,9 +1,32 @@
 <script lang="ts" setup>
-import { useContactSearch } from '@/composables/contacts'
+import { useContactSearch, useContactsRemoval } from '@/composables/contacts'
 import { useDebugData } from '@pinia/colada-plugin-debug'
+import { useQueryCache } from '@pinia/colada'
+import type { Contact } from '@/api/contacts'
+
+const queryCache = useQueryCache()
 
 const { data: searchResult, asyncStatus, searchText } = useContactSearch()
-
+const { mutate: removeContact } = useContactsRemoval(
+  {
+    onMutate(contactId) {
+      const oldContacts = queryCache.getQueryData<Array<Contact>>(['contacts']) || []
+      const updatedContacts = oldContacts.filter((contact) => contact.id !== contactId)
+      queryCache.setQueryData(['contacts'], updatedContacts)
+      queryCache.cancelQueries({ key: ['contact', contactId] })
+      return { oldContacts }
+    },
+    onError(err, contactId, { oldContacts }) {
+      if (oldContacts) {
+        queryCache.setQueryData(['contacts'], oldContacts)
+      }
+      console.error(`Failed to remove contact with ID: ${contactId}`, err)
+    },
+    onSettled(_data, _error) {
+      queryCache.invalidateQueries({ key: ['contacts'] })
+    },
+  },
+)
 const debugData = useDebugData()
 
 // TODO: tip in tests if they are reading data, error or other as they are computed properties, on the server they won't
@@ -41,12 +64,12 @@ const debugData = useDebugData()
           <!-- NOTE: ensure no fetch is done on client while hydrating or this will cause
            a Hydration mismatch -->
           <div v-if="asyncStatus === 'loading'">
-            <span class="spinner" /><span> Fetching...</span>
+            <span class="spinner"/><span> Fetching...</span>
           </div>
         </form>
 
         <ul>
-          <li v-for="contact in searchResult?.results" :key="contact.id">
+          <li class="flex" v-for="contact in searchResult?.results" :key="contact.id" >
             <RouterLink
               :to="{
                 name: '/contacts/[id]',
@@ -60,11 +83,17 @@ const debugData = useDebugData()
               >
               {{ contact.firstName }} {{ contact.lastName }}
             </RouterLink>
+            <button
+              class="ml-auto -mr-36"
+              @click="removeContact(`key-${contact.id}`, contact.id)"
+            >
+              Delete
+            </button>
           </li>
         </ul>
       </div>
 
-      <RouterView />
+      <RouterView/>
     </div>
   </main>
 </template>

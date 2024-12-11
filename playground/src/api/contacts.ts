@@ -123,3 +123,17 @@ export function searchContacts(
       results: (await res.json()) as Contact[],
     }))
 }
+
+/**
+ * Delete a contact by its id.
+ *
+ * @param id - The id of the contact to delete
+ * @param options - Optional request options
+ * @returns A promise that resolves when the contact is deleted
+ */
+export async function deleteContactById(
+  id: string | number,
+  options?: Options<'json'>,
+): Promise<void> {
+  return contacts.delete(`/${id}`, options)
+}

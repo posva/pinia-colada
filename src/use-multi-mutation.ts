@@ -3,7 +3,8 @@ import type { ErrorDefault } from './types-extension'
 import type { _EmptyObject } from './utils'
 import { noop } from './utils'
 import { useMutationCache, type UseMultiMutationEntry } from './mutation-store'
-import { computed, shallowRef } from 'vue'
+import { shallowRef } from 'vue'
+import type { EntryNodeKey } from './tree-map'
 
 /**
  * @example
@@ -53,19 +54,16 @@ export function useMultiMutation<TResult, TVars = void, TError = ErrorDefault, T
     return entry.value.invocations.get(invocationKey)?.state.value.error
   }
 
-  async function mutateAsync(invocationKey: string, vars: TVars): Promise<TResult> {
+  async function mutateAsync(invocationKey: EntryNodeKey, vars: TVars): Promise<TResult> {
     // Todo: properly throw error in the onError hook.
     if (!vars) {
       const error = new Error('Mutation variables are required for multi-mutation.')
 
-      // Call the `onError` hook if it's defined
-      if (entry.value.recentMutation.options?.onError) {
-        entry.value.recentMutation.options.onError(
-          error as TError,
-          undefined as TVars,
-          {},
-        )
-      }
+      entry.value.recentMutation.options.onError?.(
+        error as TError,
+        undefined as TVars,
+        {},
+      )
 
       throw error
     }
@@ -74,11 +72,11 @@ export function useMultiMutation<TResult, TVars = void, TError = ErrorDefault, T
     return mutationCache.mutate(invocationEntry, vars)
   }
 
-  function mutate(invocationKey: string, vars: TVars) {
+  function mutate(invocationKey: EntryNodeKey, vars: TVars) {
     mutateAsync(invocationKey, vars).catch(noop)
   }
 
-  function remove(invocationKey: string) {
+  function remove(invocationKey: EntryNodeKey) {
     mutationCache.removeInvocation(entry.value, invocationKey)
   }
 
