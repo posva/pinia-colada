@@ -1,8 +1,15 @@
 <script lang="ts" setup>
-import { useContactSearch, useContactsRemoval } from '@/composables/contacts'
+import { useContactCreation, useContactSearch, useContactsRemoval } from '@/composables/contacts'
 import { useDebugData } from '@pinia/colada-plugin-debug'
 import { useQueryCache } from '@pinia/colada'
 import type { Contact } from '@/api/contacts'
+import { faker } from '@faker-js/faker'
+import { ref } from 'vue'
+
+interface IPaginated<T> {
+  results: T
+  total: number
+}
 
 const queryCache = useQueryCache()
 
@@ -10,23 +17,62 @@ const { data: searchResult, asyncStatus, searchText } = useContactSearch()
 const { mutate: removeContact } = useContactsRemoval(
   {
     onMutate(contactId) {
-      const oldContacts = queryCache.getQueryData<Array<Contact>>(['contacts']) || []
+      const oldContacts = queryCache.getQueryData<IPaginated<Array<Contact>>>(['contacts-search', { searchText: searchText.value }])?.results || []
+      console.log(oldContacts)
       const updatedContacts = oldContacts.filter((contact) => contact.id !== contactId)
-      queryCache.setQueryData(['contacts'], updatedContacts)
-      queryCache.cancelQueries({ key: ['contact', contactId] })
+      queryCache.setQueryData(['contacts-search', { searchText: searchText.value }], updatedContacts)
       return { oldContacts }
     },
     onError(err, contactId, { oldContacts }) {
       if (oldContacts) {
-        queryCache.setQueryData(['contacts'], oldContacts)
+        queryCache.setQueryData(['contacts-search', { searchText: searchText.value }], oldContacts)
       }
       console.error(`Failed to remove contact with ID: ${contactId}`, err)
     },
     onSettled(_data, _error) {
-      queryCache.invalidateQueries({ key: ['contacts'] })
+      queryCache.invalidateQueries({ key: ['contacts-search'] })
     },
   },
 )
+const { mutate: createContact } = useContactCreation({
+  onMutate(newContactData) {
+    const oldContacts = queryCache.getQueryData<IPaginated<Array<Contact>>>(['contacts-search', { searchText: searchText.value }])?.results || []
+    const optimisticContact: Contact = {
+      ...newContactData,
+      id: Math.floor(Math.random() * 1000000),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+    queryCache.setQueryData(['contacts-search', { searchText: searchText.value }], [...oldContacts, optimisticContact])
+    return { oldContacts, optimisticContact }
+  },
+  onError(err, _newContactData, { oldContacts }) {
+    if (oldContacts) {
+      queryCache.setQueryData(['contacts-search', { searchText: searchText.value }], oldContacts)
+    }
+    console.error('Failed to create contact', err)
+  },
+  onSettled(_data, _error, _variables, { optimisticContact }) {
+    if (optimisticContact) {
+      queryCache.invalidateQueries({ key: ['contacts-search'] })
+    }
+  },
+})
+
+const creationKeyCount = ref(1)
+
+function generateRandomContact() {
+  const firstName = faker.person.firstName()
+  const lastName = faker.person.lastName()
+  return {
+    firstName,
+    lastName,
+    bio: faker.person.bio(),
+    photoURL: `https://i.pravatar.cc/150?u=${firstName}${lastName}`,
+    isFavorite: faker.datatype.boolean(),
+  }
+}
+
 const debugData = useDebugData()
 
 // TODO: tip in tests if they are reading data, error or other as they are computed properties, on the server they won't
@@ -52,8 +98,8 @@ const debugData = useDebugData()
       <p>Refetching entries: {{ debugData.refetchingEntries.size }}</p>
     </details>
 
-    <div class="gap-4 contacts-search md:flex">
-      <div>
+    <div class="gap-4 contacts-search">
+      <div class="flex flex-col">
         <form class="space-x-2" @submit.prevent>
           <input
             v-model="searchText"
@@ -64,12 +110,19 @@ const debugData = useDebugData()
           <!-- NOTE: ensure no fetch is done on client while hydrating or this will cause
            a Hydration mismatch -->
           <div v-if="asyncStatus === 'loading'">
-            <span class="spinner"/><span> Fetching...</span>
+            <span class="spinner" /><span> Fetching...</span>
           </div>
         </form>
 
+        <button
+          class="my-4 ml-auto"
+          @click="createContact(`key-${creationKeyCount++}`, generateRandomContact())"
+        >
+          Generate contact
+        </button>
+
         <ul>
-          <li class="flex" v-for="contact in searchResult?.results" :key="contact.id" >
+          <li v-for="contact in searchResult?.results" :key="contact.id" class="flex">
             <RouterLink
               :to="{
                 name: '/contacts/[id]',
@@ -84,7 +137,7 @@ const debugData = useDebugData()
               {{ contact.firstName }} {{ contact.lastName }}
             </RouterLink>
             <button
-              class="ml-auto -mr-36"
+              class="ml-auto"
               @click="removeContact(`key-${contact.id}`, contact.id)"
             >
               Delete
@@ -93,7 +146,7 @@ const debugData = useDebugData()
         </ul>
       </div>
 
-      <RouterView/>
+      <RouterView />
     </div>
   </main>
 </template>
