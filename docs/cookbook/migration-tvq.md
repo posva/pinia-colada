@@ -30,5 +30,26 @@ Most of the sensible defaults from `@tanstack/vue-query` are kept in `@pinia/col
 
 | TanStack Vue Query Equivalent | Pinia Colada | Comment |
 |---|---|---|
-| `refetch({ cancelRefetch: false })` | `refresh()` | See [Refetching Queries](../guide/queries.md#Refetching-Queries)|
-| `refetch({ throwOnError: true })` | `refetch(true)` | Same for `refresh()` |
+| `refetch({ cancelRefetch: false })` | `refresh()` | See [Refetching Queries](../guide/queries.md#Refetching-Queries) |
+| `refetch({ throwOnError: true })` | `refetch(true)` | Same for `refresh()`  |
+
+## Differences in philosophy
+
+These differences are a bit more subtle and span across multiple layers of the library.
+
+### Structural sharing
+
+TanStack implements a few rendering optimizations that are crucial in React but unnecessary in Vue. Pinia Colada does not implement these optimizations and instead relies on Vue's great reactivity system. The most notable difference is [Structural sharing](https://tanstack.com/query/latest/docs/framework/react/guides/render-optimizations#structural-sharing) which is explained in their React docs but barely mentioned in the Vue docs. In short, TanStack query partially updates parts of the object based on what is changed. This means that if your query returns the same data as before and you use a watcher on the data, it will not trigger the watcher. **This is not the case in Pinia Colada** as it uses [Shallow Refs](https://vuejs.org/api/reactivity-advanced.html#shallowref) to store data to get the best performance and simply replaces the value after each successful query. In Vue apps, this is rarely a problem, but if it is, you will need to avoid the watcher code by comparing the values yourself:
+
+```ts
+const { data } = useQuery({
+  key: ['todos'],
+  query: fetchTodos,
+})
+
+watch(data, (newData, oldData) => {
+  if (!isSameData(newData, oldData)) {
+    // do something with the new data
+  }
+})
+```
