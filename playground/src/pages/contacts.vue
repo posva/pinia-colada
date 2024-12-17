@@ -1,10 +1,10 @@
 <script lang="ts" setup>
+import { ref } from 'vue'
+import { faker } from '@faker-js/faker'
 import { useContactCreation, useContactSearch, useContactsRemoval } from '@/composables/contacts'
 import { useDebugData } from '@pinia/colada-plugin-debug'
 import { useQueryCache } from '@pinia/colada'
 import type { Contact } from '@/api/contacts'
-import { faker } from '@faker-js/faker'
-import { ref } from 'vue'
 
 interface IPaginated<T> {
   results: T
@@ -14,11 +14,11 @@ interface IPaginated<T> {
 const queryCache = useQueryCache()
 
 const { data: searchResult, asyncStatus, searchText } = useContactSearch()
+
 const { mutate: removeContact } = useContactsRemoval(
   {
     onMutate(contactId) {
       const oldContacts = queryCache.getQueryData<IPaginated<Array<Contact>>>(['contacts-search', { searchText: searchText.value }])?.results || []
-      console.log(oldContacts)
       const updatedContacts = oldContacts.filter((contact) => contact.id !== contactId)
       queryCache.setQueryData(['contacts-search', { searchText: searchText.value }], updatedContacts)
       return { oldContacts }
@@ -34,7 +34,8 @@ const { mutate: removeContact } = useContactsRemoval(
     },
   },
 )
-const { mutate: createContact } = useContactCreation({
+
+const { mutate: createContact, data: createdContactsMemo, remove: clearCreationKey } = useContactCreation({
   onMutate(newContactData) {
     const oldContacts = queryCache.getQueryData<IPaginated<Array<Contact>>>(['contacts-search', { searchText: searchText.value }])?.results || []
     const optimisticContact: Contact = {
@@ -56,12 +57,18 @@ const { mutate: createContact } = useContactCreation({
     if (optimisticContact) {
       queryCache.invalidateQueries({ key: ['contacts-search'] })
     }
+    refetchContactsMemo()
   },
 })
 
-const creationKeyCount = ref(1)
+const creationKeyCount = ref(0)
+const contactsMemo = ref(createdContactsMemo())
 
-function generateRandomContact() {
+const refetchContactsMemo = () => {
+  contactsMemo.value = createdContactsMemo()
+}
+
+const generateRandomContact = () => {
   const firstName = faker.person.firstName()
   const lastName = faker.person.lastName()
   return {
@@ -110,7 +117,7 @@ const debugData = useDebugData()
           <!-- NOTE: ensure no fetch is done on client while hydrating or this will cause
            a Hydration mismatch -->
           <div v-if="asyncStatus === 'loading'">
-            <span class="spinner" /><span> Fetching...</span>
+            <span class="spinner"/><span> Fetching...</span>
           </div>
         </form>
 
@@ -144,9 +151,34 @@ const debugData = useDebugData()
             </button>
           </li>
         </ul>
+
+        <p> Creation history </p>
+
+        <ul>
+          <li v-for="contact in contactsMemo" :key="contact.data.id" class="flex">
+            <div>
+              <img
+                v-if="contact.data.photoURL"
+                :src="contact.data.photoURL"
+                class="inline-block w-8 rounded-full"
+                alt=""
+              />
+              {{ contact.data.firstName }} {{ contact.data.lastName }}
+            </div>
+            <button
+              class="ml-auto"
+              @click="() => {
+                clearCreationKey(contact.key)
+                refetchContactsMemo()
+              }"
+            >
+              Clear key
+            </button>
+          </li>
+        </ul>
       </div>
 
-      <RouterView />
+      <RouterView/>
     </div>
   </main>
 </template>

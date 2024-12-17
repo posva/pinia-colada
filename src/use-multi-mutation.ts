@@ -9,7 +9,7 @@ import type { EntryNodeKey } from './tree-map'
 /**
  * @example
  * ```ts
- * const { data, isLoading, error, mutate, reset, clearKey } = useMultiMutation({
+ * const { data, isLoading, error, mutate, reset, remove } = useMultiMutation({
  *   mutation: async (id: number) => {
  *     return await api.deleteItem(id)
  *   },
@@ -42,15 +42,20 @@ export function useMultiMutation<TResult, TVars = void, TError = ErrorDefault, T
     mutationCache.ensureMultiMutation(options),
   )
 
-  function data(invocationKey: string) {
-    return entry.value.invocations.get(invocationKey)?.state.value.data
+  function data(invocationKey?: EntryNodeKey) {
+    if (!invocationKey) {
+      return Array.from(entry.value.invocations.entries())
+        .map(([key, entry]) => ({ key, data: entry.state?.value?.data }))
+        .filter(({ data }) => data !== undefined)
+    }
+    return entry.value.invocations.get(invocationKey)?.state?.value?.data
   }
 
-  function isLoading(invocationKey: string) {
+  function isLoading(invocationKey: EntryNodeKey) {
     return entry.value.invocations.get(invocationKey)?.asyncStatus.value === 'loading'
   }
 
-  function error(invocationKey: string) {
+  function error(invocationKey: EntryNodeKey) {
     return entry.value.invocations.get(invocationKey)?.state.value.error
   }
 
