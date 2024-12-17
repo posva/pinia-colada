@@ -169,6 +169,7 @@ export function useQuery<TResult, TError = ErrorDefault, TDataInitial extends TR
       // same as above
       (throwOnError as false | undefined) || errorCatcher,
     )
+
   const isPlaceholderData = computed(
     () => entry.value.placeholderData != null && entry.value.state.value.status === 'pending',
   )
