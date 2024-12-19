@@ -8,6 +8,7 @@ export {
   type UseMutationReturn,
 } from './use-mutation'
 export { defineMutation } from './define-mutation'
+export { useMultiMutation } from './use-multi-mutation'
 
 export { useQuery, type UseQueryReturn } from './use-query'
 export { defineQuery } from './define-query'
