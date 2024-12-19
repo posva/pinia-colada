@@ -224,6 +224,46 @@ describe('defineQuery', () => {
       })
       expect(spy).toHaveBeenCalledTimes(1)
     })
+
+    it('does not trigger if mounted multiple times while enabled is false', async () => {
+      const spy = vi.fn(async () => 'ko')
+      const useDefinedQuery = defineQuery({
+        enabled: false,
+        key: ['id'],
+        query: spy,
+      })
+
+      const pinia = createPinia()
+
+      const Comp1 = defineComponent({
+        setup() {
+          useDefinedQuery()
+          return {}
+        },
+        template: `<div></div>`,
+      })
+      const Comp2 = defineComponent({
+        setup() {
+          useDefinedQuery()
+          return {}
+        },
+        template: `<div></div>`,
+      })
+
+      mount(Comp1, {
+        global: {
+          plugins: [pinia, PiniaColada],
+        },
+      })
+      mount(Comp2, {
+        global: {
+          plugins: [pinia, PiniaColada],
+        },
+      })
+      await flushPromises()
+
+      expect(spy).toHaveBeenCalledTimes(0)
+    })
   })
 
   describe('outside of components', () => {

@@ -26,7 +26,11 @@ describe('useQuery', () => {
 
   enableAutoUnmount(afterEach)
 
-  function mountSimple<TResult = number, TError = Error, TDataInitial extends TResult | undefined = TResult | undefined>(
+  function mountSimple<
+    TResult = number,
+    TError = Error,
+    TDataInitial extends TResult | undefined = TResult | undefined,
+  >(
     options: Partial<UseQueryOptions<TResult, TError, TDataInitial>> = {},
     mountOptions?: GlobalMountOptions,
   ) {
@@ -220,10 +224,7 @@ describe('useQuery', () => {
 
     it('refresh reuses a pending request even if the staleTime has been elapsed', async () => {
       const pinia = createPinia()
-      const { wrapper, query } = mountSimple(
-        { staleTime: 0 },
-        { plugins: [pinia] },
-      )
+      const { wrapper, query } = mountSimple({ staleTime: 0 }, { plugins: [pinia] })
       // should not trigger a new fetch because staleTime has not passed
       vi.advanceTimersByTime(10)
       wrapper.vm.refresh()
@@ -569,10 +570,7 @@ describe('useQuery', () => {
   })
 
   describe('refresh data', () => {
-    function mountDynamicKey<
-      TResult = { id: number, when: number },
-      TError = Error,
-    >(
+    function mountDynamicKey<TResult = { id: number, when: number }, TError = Error>(
       options: Partial<UseQueryOptions<TResult>> & { initialId?: number } = {},
       mountOptions?: GlobalMountOptions,
     ) {
@@ -847,7 +845,7 @@ describe('useQuery', () => {
       const entry = queryCache.getEntries({ key: ['key'] })[0]
       expect(entry).toBeDefined()
       expect(entry.pending?.abortController.signal).toBe(signal)
-     entry.pending?.abortController.abort(new Error('from test'))
+      entry.pending?.abortController.abort(new Error('from test'))
 
       resolve()
       await flushPromises()
@@ -1039,9 +1037,7 @@ describe('useQuery', () => {
     })
 
     it('avoids fetching if initial data is fresh', async () => {
-      const pinia = createHydratedCache(
-        [createSerializedTreeNodeEntry('key', 2, null, Date.now())],
-      )
+      const pinia = createHydratedCache([createSerializedTreeNodeEntry('key', 2, null, Date.now())])
 
       const { wrapper, query } = mountSimple(
         // 1s stale time
@@ -1084,7 +1080,9 @@ describe('useQuery', () => {
     it.todo('initialData is ignored if there is already data in the cache')
 
     it('refreshes the data even with initial values after staleTime is elapsed', async () => {
-      const pinia = createHydratedCache([createSerializedTreeNodeEntry('key', 60, null, Date.now())])
+      const pinia = createHydratedCache([
+        createSerializedTreeNodeEntry('key', 60, null, Date.now()),
+      ])
       const { wrapper, query } = mountSimple(
         {
           staleTime: 100,

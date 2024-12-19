@@ -12,10 +12,18 @@ import {
   toValue,
 } from 'vue'
 import { stringifyFlatObject, toValueWithArgs, warnOnce } from './utils'
-import type { _UseQueryEntryNodeValueSerialized, UseQueryEntryNodeSerialized, EntryNodeKey } from './tree-map'
+import type {
+  _UseQueryEntryNodeValueSerialized,
+  UseQueryEntryNodeSerialized,
+  EntryNodeKey,
+} from './tree-map'
 import { appendSerializedNodeToTree, TreeMapNode } from './tree-map'
 import type { EntryKey } from './entry-options'
-import { useQueryOptions, type UseQueryOptions, type UseQueryOptionsWithDefaults } from './query-options'
+import {
+  useQueryOptions,
+  type UseQueryOptions,
+  type UseQueryOptionsWithDefaults,
+} from './query-options'
 import type { ErrorDefault } from './types-extension'
 import type {
   AsyncStatus,
@@ -27,8 +35,14 @@ import type {
 /**
  * Allows defining extensions to the query entry that are returned by `useQuery()`.
  */
-// eslint-disable-next-line unused-imports/no-unused-vars
-export interface UseQueryEntryExtensions<TResult, TError, TDataInitial extends TResult | undefined = TResult | undefined> {}
+
+export interface UseQueryEntryExtensions<
+  TResult,
+  /* eslint-disable-next-line unused-imports/no-unused-vars */
+  TError,
+  /* eslint-disable-next-line unused-imports/no-unused-vars */
+  TDataInitial extends TResult | undefined = TResult | undefined,
+> {}
 
 /**
  * NOTE: Entries could be classes but the point of having all functions within the store is to allow plugins to hook
@@ -38,7 +52,11 @@ export interface UseQueryEntryExtensions<TResult, TError, TDataInitial extends T
 /**
  * A query entry in the cache.
  */
-export interface UseQueryEntry<TResult = unknown, TError = unknown, TDataInitial extends TResult | undefined = TResult | undefined> {
+export interface UseQueryEntry<
+  TResult = unknown,
+  TError = unknown,
+  TDataInitial extends TResult | undefined = TResult | undefined,
+> {
   /**
    * The state of the query. Contains the data, error and status.
    */
@@ -187,10 +205,11 @@ export const START_EXT = {}
  */
 export const queryEntry_toJSON: <TResult, TError>(
   entry: UseQueryEntry<TResult, TError>,
-) => _UseQueryEntryNodeValueSerialized<TResult, TError> = ({
-  state: { value },
+) => _UseQueryEntryNodeValueSerialized<TResult, TError> = ({ state: { value }, when }) => [
+  value.data,
+  value.error,
   when,
-}) => [value.data, value.error, when]
+]
 // TODO: errors are not serializable by default. We should provide a way to serialize custom errors and, by default provide one that serializes the name and message
 
 /**
@@ -235,7 +254,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     if (!hasInjectionContext()) {
       warnOnce(
         `useQueryCache() was called outside of an injection context (component setup, store, navigation guard) You will get a warning about "inject" being used incorrectly from Vue. Make sure to use it only in allowed places.\n`
-        + `See https://vuejs.org/guide/reusability/composables.html#usage-restrictions`,
+          + `See https://vuejs.org/guide/reusability/composables.html#usage-restrictions`,
       )
     }
   }
@@ -289,8 +308,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
             return this.deps.size > 0
           },
         })
-      })!
-    ,
+      })!,
   )
 
   // keep track of the entry being defined so we can add the queries in ensure
@@ -316,7 +334,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       // if the entry already exists, we know the queries inside
       // we should consider as if they are activated again
       for (const queryEntry of defineQueryEntry[0]) {
-        if (queryEntry.options?.refetchOnMount) {
+        if (queryEntry.options?.refetchOnMount && toValue(queryEntry.options.enabled)) {
           if (toValue(queryEntry.options.refetchOnMount) === 'always') {
             fetch(queryEntry)
           } else {
@@ -329,7 +347,10 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     return defineQueryEntry
   })
 
-  function track(entry: UseQueryEntry, effect: EffectScope | ComponentInternalInstance | null | undefined) {
+  function track(
+    entry: UseQueryEntry,
+    effect: EffectScope | ComponentInternalInstance | null | undefined,
+  ) {
     if (!effect) return
     entry.deps.add(effect)
     clearTimeout(entry.gcTimeout)
@@ -401,7 +422,11 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * @param key - the key of the query
    */
   const ensure = action(
-    <TResult = unknown, TError = ErrorDefault, TDataInitial extends TResult | undefined = undefined>(
+    <
+      TResult = unknown,
+      TError = ErrorDefault,
+      TDataInitial extends TResult | undefined = undefined,
+    >(
       opts: UseQueryOptions<TResult, TError, TDataInitial>,
     ): UseQueryEntry<TResult, TError, TDataInitial> => {
       const options: UseQueryOptionsWithDefaults<TResult, TError, TDataInitial> = {
@@ -696,9 +721,7 @@ export type QueryCache = ReturnType<typeof useQueryCache>
  * @param root - root node of the tree
  * @returns Array representation of the tree
  */
-export function serializeTreeMap(
-  root: TreeMapNode<UseQueryEntry>,
-): UseQueryEntryNodeSerialized[] {
+export function serializeTreeMap(root: TreeMapNode<UseQueryEntry>): UseQueryEntryNodeSerialized[] {
   return root.children ? [...root.children.entries()].map(_serialize) : []
 }
 
@@ -729,9 +752,7 @@ export const serialize = serializeTreeMap
  * @param raw - array af values created with {@link serializeTreeMap}
  * @deprecated Not needed anymore the query cache handles reviving the map, only the serialization is needed.
  */
-export function reviveTreeMap(
-  raw: UseQueryEntryNodeSerialized[] = [],
-): TreeMapNode<UseQueryEntry> {
+export function reviveTreeMap(raw: UseQueryEntryNodeSerialized[] = []): TreeMapNode<UseQueryEntry> {
   const root = new TreeMapNode<UseQueryEntry>()
 
   for (const entry of raw) {
