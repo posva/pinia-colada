@@ -78,9 +78,9 @@ const { mutate } = useMutation({
     const oldTodoList = queryCache.getQueryData<TodoItem[]>(['todos'])
     // keep track of the new todo item
     const newTodoItem: TodoItem = {
-        text,
-        // we need to fill every required field
-        id: crypto.randomUUID(),
+      text,
+      // we need to fill every required field
+      id: crypto.randomUUID(),
 
     }
     // create a copy of the current todo list with the new todo

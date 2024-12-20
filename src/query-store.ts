@@ -42,7 +42,7 @@ export interface UseQueryEntryExtensions<
   TError,
   /* eslint-disable-next-line unused-imports/no-unused-vars */
   TDataInitial extends TResult | undefined = TResult | undefined,
-> { }
+> {}
 
 /**
  * NOTE: Entries could be classes but the point of having all functions within the store is to allow plugins to hook

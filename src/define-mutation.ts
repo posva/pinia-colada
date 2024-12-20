@@ -57,12 +57,12 @@ export function defineMutation<T>(setup: () => T): () => T
 export function defineMutation(
   optionsOrSetup: UseMutationOptions | (() => unknown),
 ): () => unknown {
-      const setupFn = typeof optionsOrSetup === 'function'
+  const setupFn = typeof optionsOrSetup === 'function'
     ? optionsOrSetup
     : () => useMutation(optionsOrSetup)
-    return () => {
-      // TODO: provide a way to clean them up `mutationCache.clear()`
-      const mutationCache = useMutationCache()
-      return mutationCache.ensureDefinedMutation(setupFn)
-    }
+  return () => {
+    // TODO: provide a way to clean them up `mutationCache.clear()`
+    const mutationCache = useMutationCache()
+    return mutationCache.ensureDefinedMutation(setupFn)
+  }
 }

@@ -15,26 +15,21 @@ import { IS_CLIENT, toValueWithArgs, useEventListener } from './utils'
 import type { UseQueryEntry, UseQueryEntryExtensions } from './query-store'
 import { useQueryCache } from './query-store'
 import { useQueryOptions } from './query-options'
-import type {
-  UseQueryOptions,
-  UseQueryOptionsWithDefaults,
-} from './query-options'
+import type { UseQueryOptions, UseQueryOptionsWithDefaults } from './query-options'
 import type { ErrorDefault } from './types-extension'
 import { getCurrentDefineQueryEffect } from './define-query'
-import type {
-  AsyncStatus,
-  DataState,
-  DataStateStatus,
-  DataState_Success,
-} from './data-state'
+import type { AsyncStatus, DataState, DataStateStatus, DataState_Success } from './data-state'
 
 // TODO: Rename TResult to TData for consistency
 
 /**
  * Return type of `useQuery()`.
  */
-export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault, TDataInitial extends TResult | undefined = undefined>
-  extends UseQueryEntryExtensions<TResult, TError, TDataInitial> {
+export interface UseQueryReturn<
+  TResult = unknown,
+  TError = ErrorDefault,
+  TDataInitial extends TResult | undefined = undefined,
+> extends UseQueryEntryExtensions<TResult, TError, TDataInitial> {
   /**
    * The state of the query. Contains its data, error, and status.
    */
@@ -102,7 +97,11 @@ export interface UseQueryReturn<TResult = unknown, TError = ErrorDefault, TDataI
  *
  * @param _options - The options of the query
  */
-export function useQuery<TResult, TError = ErrorDefault, TDataInitial extends TResult | undefined = undefined>(
+export function useQuery<
+  TResult,
+  TError = ErrorDefault,
+  TDataInitial extends TResult | undefined = undefined,
+>(
   _options: UseQueryOptions<TResult, TError, TDataInitial>,
 ): UseQueryReturn<TResult, TError, TDataInitial> {
   const queryCache = useQueryCache()
@@ -186,14 +185,14 @@ export function useQuery<TResult, TError = ErrorDefault, TDataInitial extends TR
   const extensions = {} as Record<string, any>
   for (const key in entry.value.ext) {
     extensions[key] = computed({
-      get: () =>
-      toValue(entry.value.ext[key as keyof UseQueryEntryExtensions<TResult, TError>]),
+      get: () => toValue(entry.value.ext[key as keyof UseQueryEntryExtensions<TResult, TError>]),
       set(value) {
         const target = entry.value.ext[key as keyof UseQueryEntryExtensions<TResult, TError>]
         if (isRef(target)) {
-          (target as Ref).value = value
+          ;(target as Ref).value = value
         } else {
-          (entry.value.ext[key as keyof UseQueryEntryExtensions<TResult, TError>] as unknown) = value
+          ;(entry.value.ext[key as keyof UseQueryEntryExtensions<TResult, TError>] as unknown)
+            = value
         }
       },
     })
@@ -303,10 +302,7 @@ export function useQuery<TResult, TError = ErrorDefault, TDataInitial extends TR
   if (IS_CLIENT) {
     if (refetchOnWindowFocus) {
       useEventListener(document, 'visibilitychange', () => {
-        if (
-          document.visibilityState === 'visible'
-          && toValue(enabled)
-        ) {
+        if (document.visibilityState === 'visible' && toValue(enabled)) {
           if (toValue(refetchOnWindowFocus) === 'always') {
             refetch()
           } else {

@@ -332,7 +332,7 @@ const {
   // ...
   refresh,
   refetch,
- } = useQuery({
+} = useQuery({
   // ...
   // ---cut-start---
   key: ['user-info'],

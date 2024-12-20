@@ -13,7 +13,7 @@ import { createPinia } from 'pinia'
 describe('SSR', () => {
   function renderApp<TResult = number, TError = Error>({
     options = {},
-      appSetup,
+    appSetup,
   }: {
     options?: Partial<UseQueryOptions<TResult>>
     appSetup?: () => void

@@ -87,12 +87,12 @@ describe('Query Cache store', () => {
   })
 
   it('can get entries by key with initial state', () => {
-      const pinia = getActivePinia()!
-      pinia.state.value[QUERY_STORE_ID] = {
-        caches: [['key', [60, null, Date.now()]]] satisfies UseQueryEntryNodeSerialized[],
-      }
-      const queryCache = useQueryCache(pinia)
-      queryCache.getEntries({ key: ['key'] })
+    const pinia = getActivePinia()!
+    pinia.state.value[QUERY_STORE_ID] = {
+      caches: [['key', [60, null, Date.now()]]] satisfies UseQueryEntryNodeSerialized[],
+    }
+    const queryCache = useQueryCache(pinia)
+    queryCache.getEntries({ key: ['key'] })
   })
 
   describe('plugins', () => {

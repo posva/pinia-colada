@@ -27,6 +27,15 @@ export default antfu(
       'perfectionist/sort-named-imports': 'off',
       'perfectionist/sort-exports': 'off',
       'unused-imports/no-unused-imports': 'warn',
+      // NOTE: initially came from 'eslint-plugin-import-newlines' but the indent is off
+      // since I preffer the one added by prettier
+      //  'import-newlines/enforce': [
+      //   'error',
+      //   {
+      //     'max-len': 100,
+      //     'items': 3,
+      //   },
+      // ],
     },
   },
   {

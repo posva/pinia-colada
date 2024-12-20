@@ -150,9 +150,9 @@ export default defineConfig({
     },
 
     carbonAds: {
-          code: 'CEBICK3I',
-          placement: 'routervuejsorg',
-        },
+      code: 'CEBICK3I',
+      placement: 'routervuejsorg',
+    },
 
     nav: [
       {
