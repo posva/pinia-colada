@@ -280,7 +280,11 @@ async function main() {
           '-r',
           changelogExists ? '1' : '0',
           '--commit-path',
-          '.',
+          // in the case of a mono repo with the main package at the root
+          // using `.` would add all the changes of all packages
+          ...(pkg.name === MAIN_PKG_NAME && IS_MAIN_PKG_ROOT
+            ? [join(pkg.path, 'src'), join(pkg.path, 'package.json')]
+            : ['.']),
           ...(pkg.name === MAIN_PKG_NAME && IS_MAIN_PKG_ROOT ? [] : ['--lerna-package', pkg.name]),
           ...(pkg.name === MAIN_PKG_NAME ? [] : ['--tag-prefix', `${pkg.name}@`]),
         ],
