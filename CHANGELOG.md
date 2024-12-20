@@ -1,3 +1,9 @@
+## [0.13.1](https://github.com/posva/pinia-colada/compare/v0.13.0...v0.13.1) (2024-12-20)
+
+### Bug Fixes
+
+- do not run disabled defined queries on mount ([a85ac9f](https://github.com/posva/pinia-colada/commit/a85ac9fc756cd678ddff45308a06d14ae55b700d)), closes [#138](https://github.com/posva/pinia-colada/issues/138)
+
 ## 0.13.0 (2024-11-26)
 
 ### ⚠ BREAKING CHANGES
