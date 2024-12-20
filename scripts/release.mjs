@@ -426,7 +426,6 @@ async function publishPackage(pkg) {
  * Get the last tag published for a package or null if there are no tags
  *
  * @param {string} pkgName - package name
- * @returns {string} the last tag or full commit hash
  */
 async function getLastTag(pkgName) {
   try {
@@ -502,7 +501,9 @@ async function getChangedPackages(...folders) {
           start: lastTag,
         }
       } else {
-        console.warn(chalk.dim(`Skipping "${pkg.name}" as it has no changes since last release`))
+        console.warn(
+          chalk.dim(`Skipping "${pkg.name}" as it has no changes since last release (${lastTag})`),
+        )
         return null
       }
     }),
