@@ -42,7 +42,7 @@ export interface UseQueryEntryExtensions<
   TError,
   /* eslint-disable-next-line unused-imports/no-unused-vars */
   TDataInitial extends TResult | undefined = TResult | undefined,
-> {}
+> { }
 
 /**
  * NOTE: Entries could be classes but the point of having all functions within the store is to allow plugins to hook
@@ -254,7 +254,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     if (!hasInjectionContext()) {
       warnOnce(
         `useQueryCache() was called outside of an injection context (component setup, store, navigation guard) You will get a warning about "inject" being used incorrectly from Vue. Make sure to use it only in allowed places.\n`
-          + `See https://vuejs.org/guide/reusability/composables.html#usage-restrictions`,
+        + `See https://vuejs.org/guide/reusability/composables.html#usage-restrictions`,
       )
     }
   }
@@ -641,7 +641,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       key: EntryKey,
       data: TResult | ((oldData: TResult | undefined) => TResult),
     ) => {
-        const cacheKey = key.map(stringifyFlatObject)
+      const cacheKey = key.map(stringifyFlatObject)
       let entry = caches.get(cacheKey) as
         | UseQueryEntry<TResult>
         | undefined
