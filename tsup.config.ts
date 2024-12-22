@@ -5,8 +5,12 @@ const commonOptions = {
   sourcemap: true,
   format: ['cjs', 'esm'],
   external: ['vue', 'pinia', '@pinia/colada'],
-  dts: true,
   target: 'esnext',
+  dts: {
+    compilerOptions: {
+      composite: false,
+    },
+  },
 } satisfies Options
 
 export default defineConfig([
