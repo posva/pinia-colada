@@ -112,8 +112,7 @@ export function useFilteredTodos() {
   const search = ref('')
   const query = useQuery({
     key: () => ['todos', search.value],
-    query: () =>
-      fetch(`/api/todos?search=${search.value}`).then((res) => res.json()),
+    query: () => fetch(`/api/todos?search=${search.value}`).then((res) => res.json()),
   })
   return { search, ...query }
 }
@@ -371,10 +370,13 @@ defineQuery(() => {
   if (import.meta.env.SSR) {
     search.value = fetchSomeInitialValue()
   }
+  const query = useQuery({
+    key: ['todos', search.value],
+    query: () => fetch(`/api/todos?search=${search.value}`).then((res) => res.json()),
+  })
   return {
     search,
-    query: () =>
-      fetch(`/api/todos?search=${search.value}`).then((res) => res.json()),
+    ...query,
   }
 })
 ```
@@ -403,10 +405,13 @@ defineQuery(() => {
   if (import.meta.env.SSR) {
     search.value = getInitialValue()
   }
+  const query = useQuery({
+    key: ['todos', search.value],
+    query: () => fetch(`/api/todos?search=${search.value}`).then((res) => res.json()),
+  })
   return {
     search,
-    query: () =>
-      fetch(`/api/todos?search=${search.value}`).then((res) => res.json()),
+    ...query,
   }
 })
 ```
