@@ -1,16 +1,6 @@
 {
   "contacts": [
     {
-      "id": "1",
-      "firstName": "Anna",
-      "lastName": "Naas",
-      "bio": "Loves ananás juice",
-      "photoURL": "https://i.pravatar.cc/150?u=anna",
-      "isFavorite": true,
-      "createdAt": "2023-01-15T08:00:00.000Z",
-      "updatedAt": "2023-10-20T14:30:00.000Z"
-    },
-    {
       "id": "2",
       "firstName": "Eduardo",
       "lastName": "Pinia",
@@ -41,14 +31,36 @@
       "updatedAt": "2023-08-15T11:55:00.000Z"
     },
     {
-      "id": "5",
-      "firstName": "Pine",
-      "lastName": "Apples",
-      "bio": "I grow on a plant, not on a tree.",
-      "photoURL": "https://i.pravatar.cc/150?u=multi-flowers",
+      "firstName": "Mollie",
+      "lastName": "Cummerata",
+      "bio": "mouser fan  ⚓",
+      "photoURL": "https://i.pravatar.cc/150?u=MollieCummerata",
+      "isFavorite": false,
+      "id": "x5UcCh_"
+    },
+    {
+      "firstName": "Tyrel",
+      "lastName": "Baumbach",
+      "bio": "charm fan  🥝",
+      "photoURL": "https://i.pravatar.cc/150?u=TyrelBaumbach",
+      "isFavorite": false,
+      "id": "pJTX2_w"
+    },
+    {
+      "firstName": "Mariah",
+      "lastName": "Swaniawski",
+      "bio": "leader",
+      "photoURL": "https://i.pravatar.cc/150?u=MariahSwaniawski",
       "isFavorite": true,
-      "createdAt": "2023-07-12T15:15:00.000Z",
-      "updatedAt": "2023-11-01T18:40:00.000Z"
+      "id": "2QMZUeJ"
+    },
+    {
+      "firstName": "Ottilie",
+      "lastName": "Volkman",
+      "bio": "disadvantage devotee, activist",
+      "photoURL": "https://i.pravatar.cc/150?u=OttilieVolkman",
+      "isFavorite": true,
+      "id": "L0kl5yq"
     }
   ],
   "products": [
