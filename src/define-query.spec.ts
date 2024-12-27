@@ -143,6 +143,40 @@ describe('defineQuery', () => {
       expect(spy).toHaveBeenCalledTimes(2)
     })
 
+    it('triggers as many times as it is mounted', async () => {
+      const spy = vi.fn(async () => 'ko')
+      const useDefinedQuery = defineQuery({
+        key: ['id'],
+        query: spy,
+      })
+
+      const pinia = createPinia()
+
+      const Comp1 = defineComponent({
+        setup() {
+          useDefinedQuery()
+          return {}
+        },
+        template: `<div></div>`,
+      })
+
+      const mountedComponent = mount(Comp1, {
+        global: {
+          plugins: [pinia, PiniaColada],
+        },
+      })
+      mountedComponent.unmount()
+      mount(Comp1, {
+        global: {
+          plugins: [pinia, PiniaColada],
+        },
+      })
+
+      await flushPromises()
+
+      expect(spy).toHaveBeenCalledTimes(2)
+    })
+
     it('refetches if refetchOnMount is always', async () => {
       const spy = vi.fn(async () => {
         return 'todos'
