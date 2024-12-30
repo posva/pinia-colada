@@ -24,7 +24,7 @@ export interface PiniaColadaOptions extends UseQueryOptionsGlobal {
  * Plugin that installs the Query and Mutation plugins alongside some extra plugins.
  *
  * @see {@link QueryPlugin} to only install the Query plugin.
- * @see {@link MutationPlugin} to only install the Query plugin.
+ * @see {@link MutationPlugin} to only install the Mutation plugin.
  *
  * @param app - Vue App
  * @param options - Pinia Colada options
