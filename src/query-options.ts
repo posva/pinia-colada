@@ -173,12 +173,11 @@ export const USE_QUERY_DEFAULTS = {
   enabled: true as MaybeRefOrGetter<boolean>,
 } satisfies UseQueryOptionsGlobal
 
-export type UseQueryOptionsWithDefaults<TResult = unknown, TError = ErrorDefault, TDataInitial extends TResult | undefined = undefined> = UseQueryOptions<
-  TResult,
-  TError,
-  TDataInitial
-> &
-  typeof USE_QUERY_DEFAULTS
+export type UseQueryOptionsWithDefaults<
+  TResult = unknown,
+  TError = ErrorDefault,
+  TDataInitial extends TResult | undefined = undefined,
+> = UseQueryOptions<TResult, TError, TDataInitial> & typeof USE_QUERY_DEFAULTS
 
 /**
  * Global default options for `useQuery()`.
@@ -193,4 +192,5 @@ export const USE_QUERY_OPTIONS_KEY: InjectionKey<UseQueryOptionsGlobalDefaults>
  * Injects the global query options.
  * @internal
  */
-export const useQueryOptions = (): UseQueryOptionsGlobalDefaults => inject(USE_QUERY_OPTIONS_KEY, USE_QUERY_DEFAULTS)
+export const useQueryOptions = (): UseQueryOptionsGlobalDefaults =>
+  inject(USE_QUERY_OPTIONS_KEY, USE_QUERY_DEFAULTS)
