@@ -12,8 +12,7 @@ on:
 
   push:
     branches:
-      - '**'
-      - '!renovate/**'
+      - main
     tags:
       - '!**'
     paths-ignore:
