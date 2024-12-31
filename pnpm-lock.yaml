@@ -54,8 +54,8 @@ importers:
         specifier: ^14.0.2
         version: 14.0.2
       happy-dom:
-        specifier: ^15.11.6
-        version: 15.11.6
+        specifier: ^16.2.6
+        version: 16.2.6
       lint-staged:
         specifier: ^15.2.10
         version: 15.2.10
@@ -97,7 +97,7 @@ importers:
         version: 1.5.0(@algolia/client-search@5.10.2)(@types/node@22.9.3)(change-case@5.4.4)(fuse.js@7.0.0)(postcss@8.4.49)(search-insights@2.17.2)(terser@5.36.0)(typescript@5.6.3)
       vitest:
         specifier: ^2.1.5
-        version: 2.1.5(@types/node@22.9.3)(@vitest/ui@2.1.5)(happy-dom@15.11.6)(terser@5.36.0)
+        version: 2.1.5(@types/node@22.9.3)(@vitest/ui@2.1.5)(happy-dom@16.2.6)(terser@5.36.0)
       vue:
         specifier: ^3.5.13
         version: 3.5.13(typescript@5.6.3)
@@ -3623,6 +3623,10 @@ packages:
 
   happy-dom@15.11.6:
     resolution: {integrity: sha512-elX7iUTu+5+3b2+NGQc0L3eWyq9jKhuJJ4GpOMxxT/c2pg9O3L5H3ty2VECX0XXZgRmmRqXyOK8brA2hDI6LsQ==}
+    engines: {node: '>=18.0.0'}
+
+  happy-dom@16.2.6:
+    resolution: {integrity: sha512-pl9wpbvThd2BGptDW/DbeZgCVjjFJAe1+rGJ4SdXd1nLhGngaklpGohKlX6bSJwLH8vSi4VDhQsC2Mqa6eiyhg==}
     engines: {node: '>=18.0.0'}
 
   has-flag@4.0.0:
@@ -8287,7 +8291,7 @@ snapshots:
       std-env: 3.8.0
       test-exclude: 7.0.1
       tinyrainbow: 1.2.0
-      vitest: 2.1.5(@types/node@22.9.3)(@vitest/ui@2.1.5)(happy-dom@15.11.6)(terser@5.36.0)
+      vitest: 2.1.5(@types/node@22.9.3)(@vitest/ui@2.1.5)(happy-dom@16.2.6)(terser@5.36.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -8297,7 +8301,7 @@ snapshots:
       eslint: 9.17.0(jiti@2.4.0)
     optionalDependencies:
       typescript: 5.6.3
-      vitest: 2.1.5(@types/node@22.9.3)(@vitest/ui@2.1.5)(happy-dom@15.11.6)(terser@5.36.0)
+      vitest: 2.1.5(@types/node@22.9.3)(@vitest/ui@2.1.5)(happy-dom@16.2.6)(terser@5.36.0)
 
   '@vitest/expect@2.1.5':
     dependencies:
@@ -10247,6 +10251,12 @@ snapshots:
   happy-dom@15.11.6:
     dependencies:
       entities: 4.5.0
+      webidl-conversions: 7.0.0
+      whatwg-mimetype: 3.0.0
+    optional: true
+
+  happy-dom@16.2.6:
+    dependencies:
       webidl-conversions: 7.0.0
       whatwg-mimetype: 3.0.0
 
@@ -13315,6 +13325,43 @@ snapshots:
       '@types/node': 22.9.3
       '@vitest/ui': 2.1.5(vitest@2.1.5)
       happy-dom: 15.11.6
+    transitivePeerDependencies:
+      - less
+      - lightningcss
+      - msw
+      - sass
+      - sass-embedded
+      - stylus
+      - sugarss
+      - supports-color
+      - terser
+
+  vitest@2.1.5(@types/node@22.9.3)(@vitest/ui@2.1.5)(happy-dom@16.2.6)(terser@5.36.0):
+    dependencies:
+      '@vitest/expect': 2.1.5
+      '@vitest/mocker': 2.1.5(vite@5.4.11(@types/node@22.9.3)(terser@5.36.0))
+      '@vitest/pretty-format': 2.1.5
+      '@vitest/runner': 2.1.5
+      '@vitest/snapshot': 2.1.5
+      '@vitest/spy': 2.1.5
+      '@vitest/utils': 2.1.5
+      chai: 5.1.2
+      debug: 4.4.0(supports-color@9.4.0)
+      expect-type: 1.1.0
+      magic-string: 0.30.13
+      pathe: 1.1.2
+      std-env: 3.8.0
+      tinybench: 2.9.0
+      tinyexec: 0.3.1
+      tinypool: 1.0.1
+      tinyrainbow: 1.2.0
+      vite: 5.4.11(@types/node@22.9.3)(terser@5.36.0)
+      vite-node: 2.1.5(@types/node@22.9.3)(terser@5.36.0)
+      why-is-node-running: 2.3.0
+    optionalDependencies:
+      '@types/node': 22.9.3
+      '@vitest/ui': 2.1.5(vitest@2.1.5)
+      happy-dom: 16.2.6
     transitivePeerDependencies:
       - less
       - lightningcss

@@ -117,7 +117,7 @@
     "eslint": "^9.17.0",
     "execa": "^9.5.1",
     "globby": "^14.0.2",
-    "happy-dom": "^15.11.6",
+    "happy-dom": "^16.2.6",
     "lint-staged": "^15.2.10",
     "minimist": "^1.2.8",
     "p-series": "^3.0.0",
