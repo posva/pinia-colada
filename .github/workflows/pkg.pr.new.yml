@@ -3,6 +3,8 @@ name: Publish Any Commit
 on:
   pull_request:
     branches: main
+    branches-ignore:
+      - 'renovate/**'
     paths-ignore:
       - 'docs/**'
       - 'playground/**'
@@ -11,6 +13,8 @@ on:
   push:
     branches:
       - '**'
+    branches-ignore:
+      - 'renovate/**'
     tags:
       - '!**'
     paths-ignore:
