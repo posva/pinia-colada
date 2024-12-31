@@ -387,7 +387,7 @@ Instead, you will need to ensure the `search` state is serialized from the serve
 import { defineStore, storeToRefs } from 'pinia'
 // ---cut-start---
 import 'vite/client'
-import { defineQuery } from '@pinia/colada'
+import { defineQuery, useQuery } from '@pinia/colada'
 import { ref } from 'vue'
 function getInitialValue() {
   return 'initial value'
