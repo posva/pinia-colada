@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - main
-      - '!renovate/**'
     paths-ignore:
       - 'docs/**'
       - 'playground/**'
@@ -22,6 +21,7 @@ on:
 
 jobs:
   build:
+    if: "!startsWith(github.event.pull_request.title, 'renovate/')"
     runs-on: ubuntu-latest
 
     steps:

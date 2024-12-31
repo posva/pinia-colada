@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - main
-      - '!renovate/**'
     paths-ignore:
       - 'docs/**'
       - 'scripts/**'
@@ -14,6 +13,7 @@ permissions:
 
 jobs:
   autofix:
+    if: "!startsWith(github.event.pull_request.title, 'renovate/')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
