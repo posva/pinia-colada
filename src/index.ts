@@ -25,6 +25,7 @@ export type {
   DataStateStatus,
 } from './data-state'
 export {
+  type RefetchOnControl,
   type UseQueryOptions,
   type UseQueryOptionsWithDefaults,
 } from './query-options'

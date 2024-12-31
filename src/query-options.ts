@@ -3,9 +3,10 @@ import type { EntryKey } from './entry-options'
 import type { ErrorDefault } from './types-extension'
 
 /**
- * `true` refetch if data is stale (refresh()), `false` never refetch, 'always' always refetch.
+ * Possible values for `refetchOnMount`, `refetchOnWindowFocus`, and `refetchOnReconnect`.
+ * `true` refetches if data is stale (calles `refresh()`), `false` never refetches, `'always'` always refetches.
  */
-export type _RefetchOnControl = boolean | 'always'
+export type RefetchOnControl = boolean | 'always'
 
 /**
  * Options for queries that can be globally overridden.
@@ -33,19 +34,19 @@ export interface UseQueryOptionsGlobal {
    * Whether to refetch the query when the component is mounted.
    * @default true
    */
-  refetchOnMount?: MaybeRefOrGetter<_RefetchOnControl>
+  refetchOnMount?: MaybeRefOrGetter<RefetchOnControl>
 
   /**
    * Whether to refetch the query when the window regains focus.
    * @default true
    */
-  refetchOnWindowFocus?: MaybeRefOrGetter<_RefetchOnControl>
+  refetchOnWindowFocus?: MaybeRefOrGetter<RefetchOnControl>
 
   /**
    * Whether to refetch the query when the network reconnects.
    * @default true
    */
-  refetchOnReconnect?: MaybeRefOrGetter<_RefetchOnControl>
+  refetchOnReconnect?: MaybeRefOrGetter<RefetchOnControl>
 }
 
 /**
@@ -144,19 +145,19 @@ export interface UseQueryOptions<
    * Whether to refetch the query when the component is mounted.
    * @default true
    */
-  refetchOnMount?: MaybeRefOrGetter<_RefetchOnControl>
+  refetchOnMount?: MaybeRefOrGetter<RefetchOnControl>
 
   /**
    * Whether to refetch the query when the window regains focus.
    * @default true
    */
-  refetchOnWindowFocus?: MaybeRefOrGetter<_RefetchOnControl>
+  refetchOnWindowFocus?: MaybeRefOrGetter<RefetchOnControl>
 
   /**
    * Whether to refetch the query when the network reconnects.
    * @default true
    */
-  refetchOnReconnect?: MaybeRefOrGetter<_RefetchOnControl>
+  refetchOnReconnect?: MaybeRefOrGetter<RefetchOnControl>
 }
 
 /**
