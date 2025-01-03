@@ -31,7 +31,6 @@ jobs:
       - run: pnpm run size
       - run: pnpm run build:plugins
       # avoid updating deps that do not build docs
-      # TODO: move to a different job with a different filter
       - run: pnpm run docs:build
 
       - uses: codecov/codecov-action@v5
