@@ -60,7 +60,7 @@ export default antfu(
     },
   },
   {
-    files: ['.github/workflows/**/*.yaml'],
+    files: ['.github/workflows/**/*.yml'],
     rules: {
       'yaml/plain-scalar': 'off',
     },
