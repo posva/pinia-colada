@@ -13,6 +13,7 @@
     "type-check": "vue-tsc --build --force"
   },
   "dependencies": {
+    "@faker-js/faker": "^9.3.0",
     "@headlessui/vue": "^1.7.23",
     "@heroicons/vue": "^2.2.0",
     "@pinia/colada": "workspace:*",
