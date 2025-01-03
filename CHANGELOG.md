@@ -1,3 +1,9 @@
+## [0.13.2](https://github.com/posva/pinia-colada/compare/v0.13.1...v0.13.2) (2025-01-03)
+
+### Bug Fixes
+
+- **defineQuery:** inject globals ([2307daf](https://github.com/posva/pinia-colada/commit/2307daf3998763e1253b97460b7f1dd3ed87270c)), closes [#145](https://github.com/posva/pinia-colada/issues/145)
+
 ## [0.13.1](https://github.com/posva/pinia-colada/compare/v0.13.0...v0.13.1) (2024-12-20)
 
 ### Bug Fixes
