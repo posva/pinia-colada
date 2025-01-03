@@ -59,4 +59,10 @@ export default antfu(
       'unicorn/consistent-function-scoping': 'off',
     },
   },
+  {
+    files: ['.github/workflows/**/*.yaml'],
+    rules: {
+      'yaml/plain-scalar': 'off',
+    },
+  },
 )

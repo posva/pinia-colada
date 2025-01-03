@@ -4,20 +4,30 @@ on:
   pull_request:
     branches:
       - main
-    paths-ignore:
-      - 'docs/**'
-      - 'playground/**'
-      - 'packages/nuxt/playground/**'
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'tsup.config.ts'
+      - 'plugins/*/src/**'
+      - 'plugins/*/package.json'
+      - 'plugins/*/tsup.config.ts'
+      - 'nuxt/src/**'
+      - 'nuxt/package.json'
 
   push:
     branches:
       - main
     tags:
       - '!**'
-    paths-ignore:
-      - 'docs/**'
-      - 'playground/**'
-      - 'packages/nuxt/playground/**'
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'tsup.config.ts'
+      - 'plugins/*/src/**'
+      - 'plugins/*/package.json'
+      - 'plugins/*/tsup.config.ts'
+      - 'nuxt/src/**'
+      - 'nuxt/package.json'
 
 jobs:
   build:
