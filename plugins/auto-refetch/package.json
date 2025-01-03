@@ -1,0 +1,71 @@
+{
+  "name": "@pinia/colada-plugin-auto-refetch",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "0.0.1",
+  "description": "Automatically refetch queries when they become stale in Pinia Colada",
+  "author": {
+    "name": "Yusuf Mansur Ozer",
+    "email": "ymansurozer@gmail.com"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/posva/pinia-colada/plugins/auto-refetch#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/posva/pinia-colada.git"
+  },
+  "bugs": {
+    "url": "https://github.com/posva/pinia-colada/issues"
+  },
+  "keywords": [
+    "pinia",
+    "plugin",
+    "data",
+    "fetching",
+    "query",
+    "mutation",
+    "cache",
+    "layer",
+    "refetch"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": {
+        "import": "./dist/index.d.ts",
+        "require": "./dist/index.d.cts"
+      },
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/*",
+        "./*"
+      ]
+    }
+  },
+  "files": [
+    "LICENSE",
+    "README.md",
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s --commit-path . -l @pinia/colada-plugin-auto-refetch -r 1",
+    "test": "vitest --ui"
+  },
+  "peerDependencies": {
+    "@pinia/colada": "workspace:^"
+  },
+  "devDependencies": {
+    "@pinia/colada": "workspace:^"
+  }
+}
