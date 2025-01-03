@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import type { App } from 'vue'
-import { createApp, defineComponent, effectScope, ref } from 'vue'
+import { createApp, defineComponent, effectScope, inject, provide, ref } from 'vue'
 import { defineQuery } from './define-query'
 import { useQuery } from './use-query'
 import type { UseQueryOptions } from './query-options'
@@ -80,6 +80,40 @@ describe('defineQuery', () => {
     expect(todoList).toBe(returnedValues.todoList)
     expect(todoFilter).toBe(useTodoList().todoFilter)
     expect(todoFilter).toBe(returnedValues.todoFilter)
+  })
+
+  it('injects from app not from parent component', () => {
+    const useData = defineQuery(() => {
+      const value = inject('injected', 'ko')
+      expect(value).toBe('ok')
+      return { value }
+    })
+    const Injector = defineComponent({
+      template: '<p>child</p>',
+      setup() {
+        return { ...useData() }
+      },
+    })
+    mount(
+      {
+        template: '<Injector />',
+        components: { Injector },
+        setup() {
+          provide('injected', 'ko-component')
+          return {}
+        },
+      },
+      {
+        global: {
+          plugins: [createPinia(), PiniaColada],
+          provide: {
+            injected: 'ok',
+          },
+        },
+      },
+    )
+
+    expect(useData().value).toBe('ok')
   })
 
   describe('refetchOnMount', () => {

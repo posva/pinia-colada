@@ -1,5 +1,6 @@
-import { defineStore, skipHydrate } from 'pinia'
+import { defineStore, getActivePinia, skipHydrate } from 'pinia'
 import {
+  type App,
   type ComponentInternalInstance,
   type EffectScope,
   type ShallowRef,
@@ -249,6 +250,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   // and plugins won't be able to hook into entry creation and fetching
   // this allows use to attach reactive effects to the scope later on
   const scope = getCurrentScope()!
+  const app: App<unknown>
+    // @ts-expect-error: internal
+    = getActivePinia()!._a
 
   if (process.env.NODE_ENV !== 'production') {
     if (!hasInjectionContext()) {
@@ -326,8 +330,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     if (!defineQueryEntry) {
       // create the entry first
       currentDefineQueryEntry = defineQueryEntry = [[], null]
-      // then run it s oit can add the queries to the entry
-      defineQueryEntry[1] = scope.run(fn)
+      // then run it so it can add the queries to the entry
+      // we use the app context for injections and the scope for effects
+      defineQueryEntry[1] = app.runWithContext(() => scope.run(fn)!)
       currentDefineQueryEntry = null
       defineQueryMap.set(fn, defineQueryEntry)
     } else {
