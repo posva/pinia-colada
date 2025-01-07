@@ -13,6 +13,7 @@ export const useContactSearch = defineQuery(() => {
     // avoids displaying the "Loading..." too quickly
     // makes your app look more responsive
     delay: 200,
+    refetchInterval: 15000,
   })
   return { ...query, searchText }
 })
