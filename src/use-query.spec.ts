@@ -567,6 +567,45 @@ describe('useQuery', () => {
       })
       expect(cache.getQueryData(['id'])).toBe(42)
     })
+
+    it('uses the placeholderData immediately after changing the key', async () => {
+      const key = ref(1)
+      const placeholderData = { data: 'ok' }
+      const { wrapper } = mountSimple({
+        key: () => [key.value],
+        query: async () => ({ data: 'done' }),
+        placeholderData,
+      })
+
+      await flushPromises()
+
+      key.value++
+      await nextTick()
+      expect(wrapper.vm.data).toBe(placeholderData)
+      await flushPromises()
+      expect(wrapper.vm.data).not.toBe(placeholderData)
+      key.value++
+      expect(wrapper.vm.data).toBe(placeholderData)
+    })
+
+    // NOTE: same as above but added for regression testing
+    // https://github.com/posva/pinia-colada/issues/154
+    it('uses the placeholderData even if the query is invalidated after after changing the key', async () => {
+      const key = ref(1)
+      const placeholderData = { data: 'ok' }
+      const { wrapper } = mountSimple({
+        key: () => ['common', key.value],
+        query: async () => ({ data: 'done' }),
+        placeholderData,
+      })
+      const queryCache = useQueryCache()
+
+      await flushPromises()
+
+      key.value++
+      queryCache.invalidateQueries({ key: ['common'] })
+      expect(wrapper.vm.data).toBe(placeholderData)
+    })
   })
 
   describe('refresh data', () => {

@@ -268,7 +268,11 @@ export function useQuery<
 
       if (toValue(enabled)) refresh()
     },
-    { immediate: true },
+    {
+      immediate: true,
+      // We need to set the placeholderData immediately to avoid an undefined value
+      flush: 'sync',
+    },
   )
 
   // avoid adding a watcher if enabled cannot change
