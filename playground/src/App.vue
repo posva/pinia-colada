@@ -19,6 +19,10 @@
         <RouterLink to="/hmr-tests">
           HMR tests
         </RouterLink>
+        |
+        <RouterLink to="/bug-reports">
+          Bug reports
+        </RouterLink>
       </nav>
     </div>
   </header>
