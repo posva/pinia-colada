@@ -17,7 +17,7 @@ hero:
       link: /quick-start
     - theme: alt
       text: Demo
-      link: https://stackblitz.com/github/piniajs/example-vue-3-vite
+      link: https://stackblitz.com/github/posva/pinia-colada-example
     - theme: cta mastering-pinia
       text: ' '
       link: https://masteringpinia.com
