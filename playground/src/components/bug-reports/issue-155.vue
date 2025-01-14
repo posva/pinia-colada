@@ -42,9 +42,9 @@ const { data } = useQuery({
 <template>
   <div>
     <h1>SubComponent</h1>
-    <br />
+    <br>
     Key: {{ key }}
-    <br />
+    <br>
     Data: {{ data }}
   </div>
 </template>

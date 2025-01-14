@@ -42,6 +42,7 @@ export default antfu(
     files: ['playground/**/*'],
     rules: {
       'no-console': 'off',
+      'vue/require-v-for-key': 'off',
     },
   },
   {
