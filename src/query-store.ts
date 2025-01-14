@@ -776,7 +776,7 @@ export function reviveTreeMap(raw: UseQueryEntryNodeSerialized[] = []): TreeMapN
 }
 
 /**
- * @deprecated
+ * @deprecated only used by {@link reviveTreeMap}
  */
 function appendToTree(
   parent: TreeMapNode<UseQueryEntry>,

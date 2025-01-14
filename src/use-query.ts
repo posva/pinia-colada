@@ -11,7 +11,7 @@ import {
   toValue,
   watch,
 } from 'vue'
-import { IS_CLIENT, toValueWithArgs, useEventListener } from './utils'
+import { IS_CLIENT, useEventListener } from './utils'
 import type { UseQueryEntry, UseQueryEntryExtensions } from './query-store'
 import { useQueryCache } from './query-store'
 import { useQueryOptions } from './query-options'
