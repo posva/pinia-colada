@@ -1,3 +1,10 @@
+## [0.13.3](https://github.com/posva/pinia-colada/compare/v0.13.2...v0.13.3) (2025-01-14)
+
+### Bug Fixes
+
+- **query:** always use `placeholderData` ([4c6a3f7](https://github.com/posva/pinia-colada/commit/4c6a3f78f33d7984c8cadbb7c259324364e5956e)), closes [#154](https://github.com/posva/pinia-colada/issues/154)
+- **query:** avoid creating entries after unmounting ([e2ff278](https://github.com/posva/pinia-colada/commit/e2ff27894c3c578b0676281cd224a75e20638304)), closes [#155](https://github.com/posva/pinia-colada/issues/155)
+
 ## [0.13.2](https://github.com/posva/pinia-colada/compare/v0.13.1...v0.13.2) (2025-01-03)
 
 ### Bug Fixes
