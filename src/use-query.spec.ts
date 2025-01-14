@@ -4,7 +4,7 @@ import type { UseQueryOptions } from './query-options'
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createApp, defineComponent, nextTick, ref } from 'vue'
+import { computed, createApp, defineComponent, nextTick, ref, type PropType } from 'vue'
 import { mockWarn } from '../test/mock-warn'
 import { createSerializedTreeNodeEntry, delay, isSpy, promiseWithResolvers } from '../test/utils'
 import { PiniaColada } from './pinia-colada'
@@ -995,6 +995,66 @@ describe('useQuery', () => {
     await flushPromises()
 
     expect(query).toHaveBeenCalledTimes(2)
+  })
+
+  it('should not create entries while unmounting', async () => {
+    const NestedComp = defineComponent({
+      props: {
+        queryKey: {
+          type: Object as PropType<{ key: string }>,
+          required: true,
+        },
+      },
+      render: () => 'child',
+      setup(props) {
+        const key = computed(() => [props.queryKey.key])
+        const useQueryResult = useQuery({
+          key,
+          query: async () => 'ok',
+        })
+        return {
+          ...useQueryResult,
+        }
+      },
+    })
+
+    const wrapper = mount(
+      defineComponent({
+        components: { NestedComp },
+        template: `
+        <div>
+          <NestedComp v-if="queryKey.key" :queryKey="queryKey" />
+        </div>
+`,
+        setup() {
+          const queryKey = ref<{ key: string | undefined }>({ key: 'key' })
+          return {
+            queryKey,
+          }
+        },
+      }),
+      {
+        global: {
+          plugins: [createPinia(), PiniaColada],
+        },
+      },
+    )
+    const queryCache = useQueryCache()
+
+    await flushPromises()
+    expect(wrapper.text()).toBe('child')
+    let entries = queryCache.getEntries()
+    expect(entries.length).toBe(1)
+
+    // changing the key unmounts the nested component
+    // but it should not create a new entry
+    wrapper.vm.queryKey.key = undefined
+    entries = queryCache.getEntries()
+    expect(entries.length).toBe(1)
+    await flushPromises()
+    expect(wrapper.text()).toBe('')
+    entries = queryCache.getEntries()
+    expect(entries.length).toBe(1)
   })
 
   describe('shared state', () => {

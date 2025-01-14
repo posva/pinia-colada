@@ -433,6 +433,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       TDataInitial extends TResult | undefined = undefined,
     >(
       opts: UseQueryOptions<TResult, TError, TDataInitial>,
+      previousEntry?: UseQueryEntry<TResult, TError, TDataInitial>,
     ): UseQueryEntry<TResult, TError, TDataInitial> => {
       const options: UseQueryOptionsWithDefaults<TResult, TError, TDataInitial> = {
         ...optionDefaults,
@@ -450,6 +451,13 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       let entry = cachesRaw.get(key) as UseQueryEntry<TResult, TError, TDataInitial> | undefined
       if (!entry) {
         cachesRaw.set(key, (entry = create(key, options, options.initialData?.())))
+        // the placeholderData is only used if the entry is initially loading
+        if (options.placeholderData && entry.state.value.status === 'pending') {
+          entry.placeholderData = toValueWithArgs(
+            options.placeholderData,
+            previousEntry?.state.value.data,
+          )
+        }
       }
 
       // warn against using the same key for different functions

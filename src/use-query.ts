@@ -151,7 +151,15 @@ export function useQuery<
     }
   }
 
-  const entry = computed(() => queryCache.ensure<TResult, TError, TDataInitial>(options))
+  // This plain variable is not reactive and allows us to use the currentEntry
+  // without triggering watchers and creating entries. It is used during
+  // unmounting and mounting
+  let lastEntry: UseQueryEntry<TResult, TError, TDataInitial>
+  const entry = computed(
+    () => (lastEntry = queryCache.ensure<TResult, TError, TDataInitial>(options, lastEntry)),
+  )
+  // we compute the entry here and reuse this across
+  lastEntry = entry.value
 
   // adapter that returns the entry state
   const errorCatcher = () => entry.value.state.value
@@ -183,7 +191,7 @@ export function useQuery<
 
   // TODO: find a way to allow a custom implementation for the returned value
   const extensions = {} as Record<string, any>
-  for (const key in entry.value.ext) {
+  for (const key in lastEntry.ext) {
     extensions[key] = computed({
       get: () => toValue(entry.value.ext[key as keyof UseQueryEntryExtensions<TResult, TError>]),
       set(value) {
@@ -231,18 +239,18 @@ export function useQuery<
   if (hasCurrentInstance) {
     onMounted(() => {
       isActive = true
-      queryCache.track(entry.value, hasCurrentInstance)
+      queryCache.track(lastEntry, hasCurrentInstance)
     })
     onUnmounted(() => {
       // remove instance from Set of refs
-      queryCache.untrack(entry.value, hasCurrentInstance, queryCache)
+      queryCache.untrack(lastEntry, hasCurrentInstance, queryCache)
     })
   } else {
     isActive = true
     if (currentEffect) {
-      queryCache.track(entry.value, currentEffect)
+      queryCache.track(lastEntry, currentEffect)
       onScopeDispose(() => {
-        queryCache.untrack(entry.value, currentEffect, queryCache)
+        queryCache.untrack(lastEntry, currentEffect, queryCache)
       })
     }
   }
@@ -250,13 +258,6 @@ export function useQuery<
   watch(
     entry,
     (entry, previousEntry) => {
-      // the placeholderData is only used if the entry is initially loading
-      if (options.placeholderData && entry.state.value.status === 'pending') {
-        entry.placeholderData = toValueWithArgs(
-          options.placeholderData,
-          previousEntry?.state.value.data,
-        )
-      }
       if (!isActive) return
       if (previousEntry) {
         queryCache.untrack(previousEntry, hasCurrentInstance, queryCache)
@@ -266,12 +267,11 @@ export function useQuery<
       queryCache.track(entry, hasCurrentInstance)
       queryCache.track(entry, currentEffect)
 
+      // TODO: does this trigger after unmount?
       if (toValue(enabled)) refresh()
     },
     {
       immediate: true,
-      // We need to set the placeholderData immediately to avoid an undefined value
-      flush: 'sync',
     },
   )
 
