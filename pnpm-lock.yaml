@@ -248,6 +248,12 @@ importers:
         specifier: workspace:^
         version: link:../..
 
+  plugins/refetch-interval:
+    devDependencies:
+      '@pinia/colada':
+        specifier: workspace:^
+        version: link:../..
+
   plugins/retry:
     devDependencies:
       '@pinia/colada':
