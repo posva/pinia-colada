@@ -23,9 +23,7 @@ describe('useMutation', () => {
   ) {
     const mutation = options.mutation
       ? vi.fn(options.mutation)
-      : vi.fn(async () => {
-          return 42
-        })
+      : vi.fn(async () => 42)
     const wrapper = mount(
       defineComponent({
         render: () => null,

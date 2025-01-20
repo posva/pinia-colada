@@ -1,12 +1,13 @@
 import type { ComponentInternalInstance, EffectScope, ShallowRef } from 'vue'
+import { getCurrentScope, shallowReactive, shallowRef } from 'vue'
 import type { AsyncStatus, DataState } from './data-state'
 import type { EntryNodeKey } from './tree-map'
 import { defineStore } from 'pinia'
-import { getCurrentScope, shallowReactive, shallowRef } from 'vue'
 import { TreeMapNode } from './tree-map'
 import type { _EmptyObject } from './utils'
 import { isSameArray, stringifyFlatObject, toValueWithArgs } from './utils'
 import type {
+  _MutationKey,
   _ReduceContext,
   UseMutationOptions,
 } from './use-mutation'
@@ -60,17 +61,65 @@ export interface UseMutationEntry<
   }
 }
 
-function createMutationEntry<
+/**
+ * A multi mutation entry in the cache.
+ */
+export interface UseMultiMutationEntry<
+  TResult = unknown,
+  TVars = unknown,
+  TError = unknown,
+  TContext extends Record<any, any> = _EmptyObject,
+> {
+  key?: EntryNodeKey[]
+  recentMutation: UseMutationEntry<TResult, TVars, TError, TContext>
+  invocations: Map<EntryNodeKey, UseMutationEntry<TResult, TVars, TError, TContext>>
+}
+
+/**
+ * Helper to generate a unique key for the entry.
+ */
+function generateKey<TVars>(
+  key: _MutationKey<TVars> | undefined,
+  vars: TVars,
+): Array<string> | undefined {
+  return key ? toValueWithArgs(key, vars).map(stringifyFlatObject) : undefined
+}
+
+function createMultiMutationEntryCached<
   TResult = unknown,
   TVars = unknown,
   TError = unknown,
   TContext extends Record<any, any> = _EmptyObject,
 >(
   options: UseMutationOptions<TResult, TVars, TError, TContext>,
-  key: EntryNodeKey[] | undefined,
+  key?: EntryNodeKey[] | undefined,
+  cache?: TreeMapNode,
+  vars?: TVars,
+): UseMultiMutationEntry<TResult, TVars, TError, TContext> {
+  const entry = {
+    key,
+    recentMutation: createMutationEntryCached(options, key, undefined, vars),
+    invocations: new Map(),
+  }
+
+  if (cache && key) {
+    cache.set(key, entry)
+  }
+  return entry
+}
+
+function createMutationEntryCached<
+  TResult = unknown,
+  TVars = unknown,
+  TError = unknown,
+  TContext extends Record<any, any> = _EmptyObject,
+>(
+  options: UseMutationOptions<TResult, TVars, TError, TContext>,
+  key?: EntryNodeKey[] | undefined,
+  cache?: TreeMapNode,
   vars?: TVars,
 ): UseMutationEntry<TResult, TVars, TError, TContext> {
-  return {
+  const entry = {
     state: shallowRef<DataState<TResult, TError>>({
       status: 'pending',
       data: undefined,
@@ -83,6 +132,12 @@ function createMutationEntry<
     options,
     pending: null,
   }
+
+  if (cache && key) {
+    cache.set(key, entry)
+  }
+
+  return entry
 }
 
 export const useMutationCache = /* @__PURE__ */ defineStore(
@@ -124,11 +179,16 @@ export const useMutationCache = /* @__PURE__ */ defineStore(
       entry?: UseMutationEntry<TResult, TVars, TError, TContext>,
       vars?: NoInfer<TVars>,
     ): UseMutationEntry<TResult, TVars, TError, TContext> {
-      const key
-        = vars && toValueWithArgs(options.key, vars)?.map(stringifyFlatObject)
+      const key = generateKey(options.key, vars as TVars)
 
+      // If no key is defined, reuse the current entry or create one without caching.
+      if (!key) {
+        return entry || createMutationEntryCached(options)
+      }
+
+      // Initialize entry.
       if (!entry) {
-        entry = createMutationEntry(options, key)
+        const entry = createMutationEntryCached(options, key, caches, vars)
         if (key) {
           caches.set(
             key,
@@ -136,28 +196,31 @@ export const useMutationCache = /* @__PURE__ */ defineStore(
             entry,
           )
         }
-        return createMutationEntry(options, key)
-      }
-      // reuse the entry when no key is provided
-      if (key) {
-        // update key
+        return entry
+      } else {
+        // Edge cases protection.
+        // Assign the key to the entry if it was undefined previously and cache this entry.
         if (!entry.key) {
           entry.key = key
-        } else if (!isSameArray(entry.key, key)) {
-          entry = createMutationEntry(
-            options,
-            key,
-            // the type NonNullable<TVars> is not assignable to TVars
-            vars as TVars,
-          )
           caches.set(
             key,
             // @ts-expect-error: function types with generics are incompatible
             entry,
           )
+        } else if (!isSameArray(entry.key, key)) {
+          // If the key is different, create and cache a new entry. TODO: previous mutations is stale.
+          entry = createMutationEntryCached(options, key, multiMutationCaches, vars)
+          if (key) {
+            caches.set(
+              key,
+              // @ts-expect-error: function types with generics are incompatible
+              entry,
+            )
+          }
         }
       }
 
+      // Reuse the existing entry by default.
       return entry
     }
 
@@ -180,6 +243,78 @@ export const useMutationCache = /* @__PURE__ */ defineStore(
 
       return defineMutationResult
     })
+
+    const multiMutationCachesRaw = new TreeMapNode<UseMultiMutationEntry>()
+    const multiMutationCaches = shallowReactive(multiMutationCachesRaw)
+
+    /**
+     * Ensures a query created with {@link useMultiMutation} is present in the cache. If it's not, it creates a new one.
+     * @param options
+     * @param entry
+     * @param vars
+     */
+    function ensureMultiMutation<
+      TResult = unknown,
+      TVars = unknown,
+      TError = unknown,
+      TContext extends Record<any, any> = Record<any, any>,
+    >(
+      options: UseMutationOptions<TResult, TVars, TError, TContext>,
+      entry?: UseMultiMutationEntry<TResult, TVars, TError, TContext>,
+      vars?: TVars,
+    ): UseMultiMutationEntry<TResult, TVars, TError, TContext> {
+      const key = generateKey(options.key, vars as TVars)
+
+      // If no key is defined, reuse the current entry or create one without caching.
+      if (!key) {
+        return entry || createMultiMutationEntryCached(options)
+      }
+
+      // Given entry prevails given key.
+      if (entry) {
+        // Edge case protection.
+        // If the key is different, recreate the entry.
+        if (!entry.key || !isSameArray(entry.key, key)) {
+          entry = createMultiMutationEntryCached(options, key)
+          // TODO: Entry with the old key is stale.
+        }
+      } else {
+        entry = createMultiMutationEntryCached(options, key)
+      }
+
+      return entry
+    }
+
+    function addInvocation<TResult, TVars, TError, TContext extends Record<any, any> = _EmptyObject>(
+      entry: UseMultiMutationEntry<TResult, TVars, TError, TContext>,
+      invocationKey: EntryNodeKey,
+      options: UseMutationOptions<TResult, TVars, TError, TContext>,
+      vars: TVars,
+    ): UseMutationEntry<TResult, TVars, TError, TContext> {
+      const invocationEntry = createMutationEntryCached(
+        options,
+        [invocationKey],
+        undefined,
+        vars,
+      )
+      // Override invocation if same key is given.
+      entry.invocations.set(invocationKey, invocationEntry)
+      // Update recentMutation for tracking
+      entry.recentMutation = invocationEntry
+
+      return invocationEntry
+    }
+
+    function removeInvocation<TResult, TVars, TError, TContext extends Record<any, any> = _EmptyObject>(
+      entry: UseMultiMutationEntry<TResult, TVars, TError, TContext>,
+      invocationKey?: string | number,
+    ): void {
+      if (invocationKey) {
+        entry.invocations.delete(invocationKey)
+      } else {
+        entry.invocations.clear()
+      }
+    }
 
     async function mutate<
       TResult = unknown,
@@ -273,6 +408,6 @@ export const useMutationCache = /* @__PURE__ */ defineStore(
       return currentData
     }
 
-    return { ensure, ensureDefinedMutation, caches, mutate }
+    return { ensure, ensureDefinedMutation, ensureMultiMutation, caches, removeInvocation, addInvocation, mutate }
   },
 )
