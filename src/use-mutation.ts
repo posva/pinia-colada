@@ -3,8 +3,10 @@ import type { AsyncStatus, DataState, DataStateStatus } from './data-state'
 import type { EntryKey } from './entry-options'
 import type { ErrorDefault } from './types-extension'
 import { computed, shallowRef } from 'vue'
-import { useMutationCache, type UseMutationEntry } from './mutation-store'
-import { type _Awaitable, type _EmptyObject, noop } from './utils'
+import { useMutationCache } from './mutation-store'
+import type { UseMutationEntry } from './mutation-store'
+import { noop } from './utils'
+import type { _Awaitable, _EmptyObject } from './utils'
 
 /**
  * Valid keys for a mutation. Similar to query keys.

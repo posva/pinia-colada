@@ -1,4 +1,5 @@
-import { type Options, mande } from 'mande'
+import { mande } from 'mande'
+import type { Options } from 'mande'
 
 export const contacts = mande('http://localhost:7777/contacts', {})
 

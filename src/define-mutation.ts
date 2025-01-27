@@ -1,10 +1,10 @@
 import { useMutationCache } from './mutation-store'
 import type { ErrorDefault } from './types-extension'
 import {
-  type UseMutationOptions,
-  type UseMutationReturn,
+
   useMutation,
 } from './use-mutation'
+import type { UseMutationOptions, UseMutationReturn } from './use-mutation'
 import type { _EmptyObject } from './utils'
 
 /**

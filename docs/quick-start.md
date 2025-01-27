@@ -171,7 +171,8 @@ Mutations allow us to **modify** data on the server and notify related queries s
 <script setup lang="ts">
 // @moduleResolution: bundler
 import { useMutation } from '@pinia/colada'
-import { type Contact, patchContact } from '@/api/contacts'
+import { patchContact } from '@/api/contacts'
+import type { Contact } from '@/api/contacts'
 import ContactDetail from '@/components/ContactDetail.vue'
 
 const {
@@ -199,7 +200,8 @@ import LoadingIndicator from '@/components/LoadingIndicator.vue'
 // ---cut-end---
 // @moduleResolution: bundler
 import { useMutation, useQueryCache } from '@pinia/colada'
-import { type Contact, patchContact } from '@/api/contacts'
+import { patchContact } from '@/api/contacts'
+import type { Contact } from '@/api/contacts'
 import ContactDetail from '@/components/ContactDetail.vue'
 
 const props = defineProps<{ contact: Contact }>()

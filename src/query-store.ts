@@ -1,9 +1,6 @@
 import { defineStore, getActivePinia, skipHydrate } from 'pinia'
 import {
-  type App,
-  type ComponentInternalInstance,
-  type EffectScope,
-  type ShallowRef,
+
   getCurrentInstance,
   getCurrentScope,
   hasInjectionContext,
@@ -12,6 +9,7 @@ import {
   shallowRef,
   toValue,
 } from 'vue'
+import type { App, ComponentInternalInstance, EffectScope, ShallowRef } from 'vue'
 import { stringifyFlatObject, toValueWithArgs, warnOnce } from './utils'
 import type {
   _UseQueryEntryNodeValueSerialized,
@@ -22,9 +20,9 @@ import { appendSerializedNodeToTree, TreeMapNode } from './tree-map'
 import type { EntryKey } from './entry-options'
 import {
   useQueryOptions,
-  type UseQueryOptions,
-  type UseQueryOptionsWithDefaults,
+
 } from './query-options'
+import type { UseQueryOptions, UseQueryOptionsWithDefaults } from './query-options'
 import type { ErrorDefault } from './types-extension'
 import type {
   AsyncStatus,
