@@ -197,6 +197,34 @@ const { state } = useQuery({
 
 Each unique `key` generates a new query entry in the cache. When you switch back to a previously cached entry, it reuses the cached data, avoiding unnecessary network requests. This enhances your application's performance and responsiveness, making navigations feel instant ✨.
 
+## Pausing queries
+
+It's possible to temporarily disable a query, like pausing it. This is crucial when some of the data used to query is required but not always present. The most common example is using a _param_ or _query_ from the route within a `defineQuery()`:
+
+```ts
+export const useCurrentDeck = defineQuery(() => {
+  const route = useRoute()
+  const result = useQuery({
+    key: () => ['decks', Number(route.params.deckId)],
+    query() {
+      return fetch(`/api/decks?deckId=${route.params.deckId}`)
+    },
+    // only enable the query when we are on /decks/some-deck-id
+    enabled: () => 'deckId' in route.params,
+  })
+
+  return {
+    ...result,
+  }
+})
+```
+
+Since this query can be used in multiple components, it's important to pause it when the `deckId` is not present in the route. This way, the query won't be triggered when the `deckId` is not present, avoiding invalid network requests while keeping the data alive.
+
+::: warning
+This is also valid for any _global_ query, e.g. a query within a store. Since stores are never destroyed, the query will continuously watch the `key` and refresh when needed. Most of the time, it's a bad idea to consume a query within a store, as it will make the query _immortal_. If you need to use the data from the store, you can instead, [consume the query cache with `useQueryCache()`](../advanced/query-cache.md).
+:::
+
 ## TypeScript: Narrowing `data` and `error`'s type with `status`
 
 When using `status` to conditionally render different UI states, you can use the `state` property returned by `useQuery()` which groups the `status`, `data`, and `error` properties into a single object. This way, TypeScript can narrow down the type of `data` and `error` correctly:
