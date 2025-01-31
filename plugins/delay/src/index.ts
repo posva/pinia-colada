@@ -3,7 +3,7 @@
  */
 import type { ShallowRef } from 'vue'
 import { customRef, shallowRef } from 'vue'
-import type { PiniaColadaPlugin, AsyncStatus } from '@pinia/colada'
+import { type PiniaColadaPlugin, type AsyncStatus, toCacheKey } from '@pinia/colada'
 
 /**
  * Options for the {@link PiniaColadaDelay} plugin.

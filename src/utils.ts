@@ -118,7 +118,7 @@ export function stringifyFlatObject(obj: _ObjectFlat | _JSONPrimitive): string {
 }
 
 /**
- * Creates a {@link QueryCache['caches']} key from an entry's {@link UseQueryOptions['key']}.
+ * Creates a {@link QueryCache}'s `caches` key from an entry's {@link UseQueryOptions#key}.
  * @param key - key of the entry
  */
 export const toCacheKey = (key: EntryKey): EntryNodeKey[] => key.map(stringifyFlatObject)

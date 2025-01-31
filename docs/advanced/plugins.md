@@ -1,4 +1,4 @@
-## Plugins
+# Plugins
 
 ::: warning
 
@@ -31,4 +31,14 @@ export function PiniaColadaDebugPlugin(
     })
   }
 }
+```
+
+## Cache Keys
+
+The cache keys are used to identify queries in the cache. The `key` passed to queries get serialized deterministically with the `toCacheKey()` function. You can use this function in plugins if you needed:
+
+```ts twoslash
+import { toCacheKey } from '@pinia/colada'
+
+const key = toCacheKey(['users', 1, { type: 'friends' }])
 ```
