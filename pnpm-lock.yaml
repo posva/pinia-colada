@@ -233,6 +233,12 @@ importers:
         specifier: workspace:^
         version: link:../..
 
+  plugins/auto-refetch:
+    devDependencies:
+      '@pinia/colada':
+        specifier: workspace:^
+        version: link:../..
+
   plugins/cache-persister:
     devDependencies:
       '@pinia/colada':
