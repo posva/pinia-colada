@@ -7,6 +7,8 @@ import {
   markRaw,
   shallowRef,
   toValue,
+  triggerRef,
+  watch,
   type App,
   type ComponentInternalInstance,
   type EffectScope,
@@ -239,24 +241,20 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   // We have two versions of the cache, one that track changes and another that doesn't so the actions can be used
   // inside computed properties
   const cachesRaw = new TreeMapNode<UseQueryEntry<unknown, unknown, unknown>>()
-  let triggerCache!: () => void
-  const caches = skipHydrate(
-    customRef(
-      (track, trigger) =>
-        (triggerCache = trigger) && {
-          // eslint-disable-next-line no-sequences
-          get: () => (track(), cachesRaw),
-          set:
-            process.env.NODE_ENV !== 'production'
-              ? () => {
-                  console.error(
-                    `[@pinia/colada]: The query cache instance cannot be set directly, it must be modified. This will fail in production.`,
-                  )
-                }
-              : noop,
-        },
-    ),
-  )
+  const caches = skipHydrate(shallowRef(cachesRaw))
+
+  if (process.env.NODE_ENV !== 'production') {
+    watch(
+      () => caches.value !== cachesRaw,
+      (isDifferent) => {
+        if (isDifferent) {
+          console.error(
+            `[@pinia/colada] The query cache cannot be directly set, it must be modified only. This will fail on production`,
+          )
+        }
+      },
+    )
+  }
 
   // this version of the cache cannot be hydrated because it would miss all of the actions
   // and plugins won't be able to hook into entry creation and fetching
@@ -463,7 +461,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
             previousEntry?.state.value.data,
           )
         }
-        triggerCache()
+        triggerRef(caches)
       }
 
       // warn against using the same key for different functions
@@ -674,7 +672,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
         ...(entry.state.value as DataState_Success<TResult>),
         data: toValueWithArgs(data, entry.state.value.data),
       })
-      triggerCache()
+      triggerRef(caches)
     },
   )
 
@@ -692,7 +690,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
      */
     (entry: UseQueryEntry) => {
       cachesRaw.delete(entry.key)
-      triggerCache()
+      triggerRef(caches)
     },
   )
 
