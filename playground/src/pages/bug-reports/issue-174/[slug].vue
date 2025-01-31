@@ -6,7 +6,7 @@ import { useRoute } from 'vue-router'
 
 const route = useRoute('/bug-reports/issue-174/[slug]')
 
-const { state, refresh, asyncStatus } = usePage()
+const { state, asyncStatus } = usePage()
 // await refresh();
 // const { state, asyncStatus } = useQuery({
 //   key: () => ["pages", route.params.slug as string],
