@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { usePage } from '@/queries/issue-174'
-import { useQueryCache } from '@pinia/colada'
+import { toCacheKey, useQueryCache } from '@pinia/colada'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
@@ -29,7 +29,15 @@ const queryCache = useQueryCache()
     } */
 
 const entryOne = computed(() => {
-  return queryCache.getEntries({ key: ['pages', 'page1'] }).at(0)
+  const entry = queryCache.getEntries({ key: ['pages', 'page1'] }).at(0)
+  return (
+    entry && {
+      state: entry.state,
+      active: entry.active,
+      depSize: entry.deps.size,
+      gcTimeout: entry.gcTimeout,
+    }
+  )
 })
 const entryTwo = computed(() => {
   return queryCache.getEntries({ key: ['pages', 'page2'] }).at(0)
@@ -45,14 +53,7 @@ const entryTwo = computed(() => {
     <hr>
 
     entryOne:
-    <pre v-if="entryOne">
-active: {{ entryOne.active }}
-gcTimeout: {{ entryOne.gcTimeout }}
-state: {{ entryOne.state }}
-deps size: {{ entryOne.deps.size }}
-when: {{ entryOne.when }}
-stale: {{ entryOne.stale }}
-    </pre>
+    <pre v-if="entryOne">{{ entryOne }}</pre>
     entryTwo:
     <pre v-if="entryTwo">
 active: {{ entryTwo.active }}

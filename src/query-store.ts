@@ -1,10 +1,10 @@
 import { defineStore, getActivePinia, skipHydrate } from 'pinia'
 import {
+  customRef,
   getCurrentInstance,
   getCurrentScope,
   hasInjectionContext,
   markRaw,
-  shallowReactive,
   shallowRef,
   toValue,
   type App,
@@ -26,7 +26,7 @@ import type {
 } from './tree-map'
 import { appendSerializedNodeToTree, TreeMapNode } from './tree-map'
 import type { ErrorDefault } from './types-extension'
-import { toCacheKey, toValueWithArgs, warnOnce } from './utils'
+import { noop, toCacheKey, toValueWithArgs, warnOnce } from './utils'
 
 /**
  * Allows defining extensions to the query entry that are returned by `useQuery()`.
@@ -239,7 +239,24 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   // We have two versions of the cache, one that track changes and another that doesn't so the actions can be used
   // inside computed properties
   const cachesRaw = new TreeMapNode<UseQueryEntry<unknown, unknown, unknown>>()
-  const caches = skipHydrate(shallowReactive(cachesRaw))
+  let triggerCache!: () => void
+  const caches = skipHydrate(
+    customRef(
+      (track, trigger) =>
+        (triggerCache = trigger) && {
+          // eslint-disable-next-line no-sequences
+          get: () => (track(), cachesRaw),
+          set:
+            process.env.NODE_ENV !== 'production'
+              ? () => {
+                  console.error(
+                    `[@pinia/colada]: The query cache instance cannot be set directly, it must be modified. This will fail in production.`,
+                  )
+                }
+              : noop,
+        },
+    ),
+  )
 
   // this version of the cache cannot be hydrated because it would miss all of the actions
   // and plugins won't be able to hook into entry creation and fetching
@@ -391,7 +408,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * @param filters - filters to apply to the entries
    */
   const getEntries = action((filters: UseQueryEntryFilter = {}): UseQueryEntry[] => {
-    const node = filters.key ? caches.find(toCacheKey(filters.key)) : caches
+    const node = filters.key ? caches.value.find(toCacheKey(filters.key)) : caches.value
 
     if (!node) return []
 
@@ -434,8 +451,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
         )
       }
 
-      // ensure the state
+      // Since ensure() is called within a computed, we cannot let Vue track cache, so we use the raw version instead
       let entry = cachesRaw.get(key) as UseQueryEntry<TResult, TError, TDataInitial> | undefined
+      // ensure the state
       if (!entry) {
         cachesRaw.set(key, (entry = create(key, options, options.initialData?.())))
         // the placeholderData is only used if the entry is initially loading
@@ -445,6 +463,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
             previousEntry?.state.value.data,
           )
         }
+        triggerCache()
       }
 
       // warn against using the same key for different functions
@@ -640,13 +659,13 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       data: TResult | ((oldData: TResult | undefined) => TResult),
     ) => {
       const cacheKey = toCacheKey(key)
-      let entry = caches.get(cacheKey) as UseQueryEntry<TResult> | undefined
+      let entry = cachesRaw.get(cacheKey) as UseQueryEntry<TResult> | undefined
 
       // if the entry doesn't exist, we create it to set the data
       // it cannot be refreshed or fetched since the options
       // will be missing
       if (!entry) {
-        caches.set(cacheKey, (entry = create<TResult, any, TResult | undefined>(cacheKey)))
+        cachesRaw.set(cacheKey, (entry = create<TResult, any, TResult | undefined>(cacheKey)))
       }
 
       setEntryState(entry, {
@@ -655,6 +674,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
         ...(entry.state.value as DataState_Success<TResult>),
         data: toValueWithArgs(data, entry.state.value.data),
       })
+      triggerCache()
     },
   )
 
@@ -663,14 +683,17 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * @param key - the key of the query
    */
   function getQueryData<TResult = unknown>(key: EntryKey): TResult | undefined {
-    return caches.get(toCacheKey(key))?.state.value.data as TResult | undefined
+    return caches.value.get(toCacheKey(key))?.state.value.data as TResult | undefined
   }
 
   const remove = action(
     /**
      * Removes a query entry from the cache.
      */
-    (entry: UseQueryEntry) => caches.delete(entry.key),
+    (entry: UseQueryEntry) => {
+      cachesRaw.delete(entry.key)
+      triggerCache()
+    },
   )
 
   return {
