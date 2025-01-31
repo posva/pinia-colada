@@ -20,7 +20,7 @@ const DEFAULT_OPTIONS = {
   entryPoints: [
     path.resolve(__dirname, '../src/index.ts'),
     path.resolve(__dirname, '../plugins/retry/src/index.ts'),
-    // path.resolve(__dirname, '../src/plugins/persist-pending-queries.ts'),
+    path.resolve(__dirname, '../plugins/auto-refetch/src/index.ts'),
   ],
 
   // markdown plugin
