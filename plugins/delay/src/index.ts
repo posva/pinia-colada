@@ -1,9 +1,10 @@
-/**
- * @module @pinia/colada/plugins/delay
- */
 import type { ShallowRef } from 'vue'
 import { customRef, shallowRef } from 'vue'
-import { type PiniaColadaPlugin, type AsyncStatus, toCacheKey } from '@pinia/colada'
+import type { PiniaColadaPlugin, AsyncStatus } from '@pinia/colada'
+
+/**
+ * @module @pinia/colada-plugin-delay
+ */
 
 /**
  * Options for the {@link PiniaColadaDelay} plugin.
