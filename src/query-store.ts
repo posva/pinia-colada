@@ -1,9 +1,5 @@
 import { defineStore, getActivePinia, skipHydrate } from 'pinia'
 import {
-  type App,
-  type ComponentInternalInstance,
-  type EffectScope,
-  type ShallowRef,
   getCurrentInstance,
   getCurrentScope,
   hasInjectionContext,
@@ -11,27 +7,26 @@ import {
   shallowReactive,
   shallowRef,
   toValue,
+  type App,
+  type ComponentInternalInstance,
+  type EffectScope,
+  type ShallowRef,
 } from 'vue'
-import { stringifyFlatObject, toValueWithArgs, warnOnce } from './utils'
-import type {
-  _UseQueryEntryNodeValueSerialized,
-  UseQueryEntryNodeSerialized,
-  EntryNodeKey,
-} from './tree-map'
-import { appendSerializedNodeToTree, TreeMapNode } from './tree-map'
+import type { AsyncStatus, DataState, DataState_Success, DataStateStatus } from './data-state'
 import type { EntryKey } from './entry-options'
 import {
   useQueryOptions,
   type UseQueryOptions,
   type UseQueryOptionsWithDefaults,
 } from './query-options'
-import type { ErrorDefault } from './types-extension'
 import type {
-  AsyncStatus,
-  DataState,
-  DataStateStatus,
-  DataState_Success,
-} from './data-state'
+  _UseQueryEntryNodeValueSerialized,
+  EntryNodeKey,
+  UseQueryEntryNodeSerialized,
+} from './tree-map'
+import { appendSerializedNodeToTree, TreeMapNode } from './tree-map'
+import type { ErrorDefault } from './types-extension'
+import { toCacheKey, toValueWithArgs, warnOnce } from './utils'
 
 /**
  * Allows defining extensions to the query entry that are returned by `useQuery()`.
@@ -258,7 +253,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     if (!hasInjectionContext()) {
       warnOnce(
         `useQueryCache() was called outside of an injection context (component setup, store, navigation guard) You will get a warning about "inject" being used incorrectly from Vue. Make sure to use it only in allowed places.\n`
-        + `See https://vuejs.org/guide/reusability/composables.html#usage-restrictions`,
+          + `See https://vuejs.org/guide/reusability/composables.html#usage-restrictions`,
       )
     }
   }
@@ -382,43 +377,35 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   /**
    * Invalidates and refetches (in parallel) all active queries in the cache that match the filters.
    */
-  const invalidateQueries = action(
-    (filters?: UseQueryEntryFilter): Promise<unknown> => {
-      return Promise.all(
-        getEntries(filters).map((entry) => {
-          invalidate(entry)
-          return entry.active && fetch(entry)
-        }),
-      )
-    },
-  )
+  const invalidateQueries = action((filters?: UseQueryEntryFilter): Promise<unknown> => {
+    return Promise.all(
+      getEntries(filters).map((entry) => {
+        invalidate(entry)
+        return entry.active && fetch(entry)
+      }),
+    )
+  })
 
   /**
    * Returns all the entries in the cache that match the filters.
    * @param filters - filters to apply to the entries
    */
-  const getEntries = action(
-    (filters: UseQueryEntryFilter = {}): UseQueryEntry[] => {
-      const node = filters.key
-        ? cachesRaw.find(filters.key.map(stringifyFlatObject))
-        : cachesRaw
+  const getEntries = action((filters: UseQueryEntryFilter = {}): UseQueryEntry[] => {
+    const node = filters.key ? caches.find(toCacheKey(filters.key)) : caches
 
-      if (!node) return []
+    if (!node) return []
 
-      return (
-        filters.exact ? (node.value ? [node.value] : []) : [...node]
-      ).filter((entry) => {
-        if (filters.stale != null) return entry.stale === filters.stale
-        if (filters.active != null) return entry.active === filters.active
-        if (filters.status) {
-          return entry.state.value.status === filters.status
-        }
-        if (filters.predicate) return filters.predicate(entry)
+    return (filters.exact ? (node.value ? [node.value] : []) : [...node]).filter((entry) => {
+      if (filters.stale != null) return entry.stale === filters.stale
+      if (filters.active != null) return entry.active === filters.active
+      if (filters.status) {
+        return entry.state.value.status === filters.status
+      }
+      if (filters.predicate) return filters.predicate(entry)
 
-        return true
-      })
-    },
-  )
+      return true
+    })
+  })
 
   /**
    * Ensures a query entry is present in the cache. If it's not, it creates a new one. The resulting entry is required
@@ -439,7 +426,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
         ...optionDefaults,
         ...opts,
       }
-      const key = toValue(options.key).map(stringifyFlatObject)
+      const key = toCacheKey(toValue(options.key))
 
       if (process.env.NODE_ENV !== 'production' && key.length === 0) {
         throw new Error(
@@ -625,11 +612,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * Cancels queries if they are currently pending. This will effectively abort the `AbortSignal` of the query and any
    * pending request will be ignored.
    */
-  const cancelQueries = action(
-    (filters?: UseQueryEntryFilter, reason?: unknown) => {
-      getEntries(filters).forEach((entry) => cancel(entry, reason))
-    },
-  )
+  const cancelQueries = action((filters?: UseQueryEntryFilter, reason?: unknown) => {
+    getEntries(filters).forEach((entry) => cancel(entry, reason))
+  })
 
   /**
    * Sets the state of a query entry in the cache. This action is called every time the cache state changes and can be
@@ -654,19 +639,14 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       key: EntryKey,
       data: TResult | ((oldData: TResult | undefined) => TResult),
     ) => {
-      const cacheKey = key.map(stringifyFlatObject)
-      let entry = caches.get(cacheKey) as
-        | UseQueryEntry<TResult>
-        | undefined
+      const cacheKey = toCacheKey(key)
+      let entry = caches.get(cacheKey) as UseQueryEntry<TResult> | undefined
 
       // if the entry doesn't exist, we create it to set the data
       // it cannot be refreshed or fetched since the options
       // will be missing
       if (!entry) {
-        caches.set(
-          cacheKey,
-          (entry = create<TResult, any, TResult | undefined>(cacheKey)),
-        )
+        caches.set(cacheKey, (entry = create<TResult, any, TResult | undefined>(cacheKey)))
       }
 
       setEntryState(entry, {
@@ -683,7 +663,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * @param key - the key of the query
    */
   function getQueryData<TResult = unknown>(key: EntryKey): TResult | undefined {
-    return caches.get(key.map(stringifyFlatObject))?.state.value.data as TResult | undefined
+    return caches.get(toCacheKey(key))?.state.value.data as TResult | undefined
   }
 
   const remove = action(
@@ -820,11 +800,7 @@ export function createQueryEntry<TResult = unknown, TError = ErrorDefault>(
     {
       data: initialData,
       error,
-      status: error
-        ? 'error'
-        : initialData !== undefined
-          ? 'success'
-          : 'pending',
+      status: error ? 'error' : initialData !== undefined ? 'success' : 'pending',
     },
   )
   const asyncStatus = shallowRef<AsyncStatus>('idle')

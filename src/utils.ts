@@ -6,6 +6,10 @@ import {
   getCurrentScope,
   onScopeDispose,
 } from 'vue'
+import type { EntryKey } from './entry-options'
+import type { EntryNodeKey } from './tree-map'
+import type { QueryCache } from './query-store'
+import type { UseQueryOptions } from './query-options'
 
 /**
  * Adds an event listener to Window that is automatically removed on scope dispose.
@@ -112,6 +116,12 @@ export function stringifyFlatObject(obj: _ObjectFlat | _JSONPrimitive): string {
     ? JSON.stringify(obj, Object.keys(obj).sort())
     : String(obj)
 }
+
+/**
+ * Creates a {@link QueryCache['caches']} key from an entry's {@link UseQueryOptions['key']}.
+ * @param key - key of the entry
+ */
+export const toCacheKey = (key: EntryKey): EntryNodeKey[] => key.map(stringifyFlatObject)
 
 /**
  * Merges two types when the second one can be null | undefined. Allows to safely use the returned type for { ...a,
