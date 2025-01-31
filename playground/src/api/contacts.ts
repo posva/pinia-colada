@@ -45,20 +45,16 @@ export async function getContactById(
  * Create a new contact.
  *
  * @param contact - The contact to create
+ * @param options - Optional request options
  * @returns the created contact
  */
 export function createContact(
-  contact: Omit<ContactInfo, 'photoURL'>,
+  contact: Omit<ContactInfo, 'id' | 'updatedAt' | 'createdAt'>,
   options?: Options<'json'>,
 ) {
   return contacts.post<Contact>(
     '/',
-    {
-      photoURL: `https://i.pravatar.cc/150?u=${contact.firstName}${contact.lastName}`,
-      ...contact,
-      registeredAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
+    contact,
     options,
   )
 }
@@ -92,10 +88,11 @@ export function patchContact(
  * Search the contacts database.
  *
  * @param searchText - the text to search for
- * @param options - search, page, number per page, and other filtering options
- * @param options.page - the page number to retrieve
- * @param options.perPage - the number of items to retrieve per page
- * @param options.filterInfo - any other filtering options
+ * @param payload - search, page, number per page, and other filtering options
+ * @param payload.page - the page number to retrieve
+ * @param payload.perPage - the number of items to retrieve per page
+ * @param payload.filterInfo - any other filtering options
+ * @param options - Optional request options
  * @returns an object with the total of results and an array with at most `perPage` (defaults to 10) elements in it
  */
 export function searchContacts(
@@ -122,4 +119,18 @@ export function searchContacts(
       total: Number(res.headers.get('x-total-count')) || 0,
       results: (await res.json()) as Contact[],
     }))
+}
+
+/**
+ * Delete a contact by its id.
+ *
+ * @param id - The id of the contact to delete
+ * @param options - Optional request options
+ * @returns A promise that resolves when the contact is deleted
+ */
+export async function deleteContactById(
+  id: string | number,
+  options?: Options<'json'>,
+): Promise<void> {
+  return contacts.delete(`/${id}`, options)
 }
