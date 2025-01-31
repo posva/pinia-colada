@@ -4,7 +4,13 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const bugLinks = router
   .getRoutes()
-  .filter((route) => route.name && route.path.includes('bug-reports/'))
+  .filter(
+    (route) =>
+      route.name
+      && route.path.includes('bug-reports/')
+      // should ignore nested pages from bug-reports/
+      && route.path.split('/').length === 3,
+  )
   .map((route) => ({ name: route.name! }))
 console.log(bugLinks)
 </script>
@@ -14,7 +20,7 @@ console.log(bugLinks)
 
   <ul>
     <li v-for="link in bugLinks">
-      <RouterLink v-slot="{ href }" :to="link">
+      <RouterLink v-slot="{ href }" :to="link as any">
         {{ href }}
       </RouterLink>
     </li>
