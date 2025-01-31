@@ -1,4 +1,5 @@
 /**
+ * Pinia Colada
  * @module @pinia/colada
  */
 export { defineMutation } from './define-mutation'

@@ -1,7 +1,11 @@
-import type { PiniaColadaPluginContext } from '@pinia/colada'
 /**
+ * Pinia Colada Retry plugin.
+ *
+ * Adds the ability to retry failed queries.
+ *
  * @module @pinia/colada-plugin-retry
  */
+import type { PiniaColadaPluginContext } from '@pinia/colada'
 
 /**
  * Options for the Pinia Colada Retry plugin.

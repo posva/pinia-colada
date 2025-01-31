@@ -1,9 +1,13 @@
-import type { PiniaColadaPlugin, UseQueryEntry, UseQueryOptions } from '@pinia/colada'
-import { toValue } from 'vue'
-
 /**
+ * Pinia Colada Auto Refetch plugin.
+ *
+ * Automatically refreshes queries when they become stale.
+ *
  * @module @pinia/colada-plugin-auto-refetch
  */
+
+import type { PiniaColadaPlugin, UseQueryEntry, UseQueryOptions } from '@pinia/colada'
+import { toValue } from 'vue'
 
 /**
  * Options for the auto-refetch plugin.
