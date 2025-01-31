@@ -409,10 +409,7 @@ describe('defineQuery', () => {
           }),
           {
             global: {
-              plugins: [
-                ...(mountOptions?.plugins || [createPinia()]),
-                PiniaColada,
-              ],
+              plugins: [...(mountOptions?.plugins || [createPinia()]), PiniaColada],
             },
           },
         )
@@ -427,10 +424,10 @@ describe('defineQuery', () => {
         expect(cache.getQueryData(['todos'])).toBe('todos')
 
         wrapper.unmount()
-        await vi.advanceTimersByTime(999)
+        vi.advanceTimersByTime(999)
         // still there
         expect(cache.getQueryData(['todos'])).toBe('todos')
-        await vi.advanceTimersByTime(1)
+        vi.advanceTimersByTime(1)
         expect(cache.getQueryData(['todos'])).toBeUndefined()
       })
 
@@ -449,23 +446,23 @@ describe('defineQuery', () => {
         expect(cache.getQueryData(['todos'])).toBe('todos')
 
         w1.unmount()
-        await vi.advanceTimersByTime(999)
+        vi.advanceTimersByTime(999)
         // still there
         expect(cache.getQueryData(['todos'])).toBe('todos')
 
         // create new component
         const w2 = mountSimple(options, { plugins: [pinia] })
 
-        await vi.advanceTimersByTime(1)
+        vi.advanceTimersByTime(1)
         // still there
         expect(cache.getQueryData(['todos'])).toBe('todos')
         // check that gcTime doesn't impact it
-        await vi.advanceTimersByTime(1000)
+        vi.advanceTimersByTime(1000)
         expect(cache.getQueryData(['todos'])).toBe('todos')
         w2.unmount()
-        await vi.advanceTimersByTime(999)
+        vi.advanceTimersByTime(999)
         expect(cache.getQueryData(['todos'])).toBe('todos')
-        await vi.advanceTimersByTime(1)
+        vi.advanceTimersByTime(1)
         expect(cache.getQueryData(['todos'])).toBeUndefined()
       })
 
@@ -559,10 +556,10 @@ describe('defineQuery', () => {
           expect(cache.getQueryData(['todos'])).toBe('todos')
 
           scope.stop()
-          await vi.advanceTimersByTime(999)
+          vi.advanceTimersByTime(999)
           // still there
           expect(cache.getQueryData(['todos'])).toBe('todos')
-          await vi.advanceTimersByTime(1)
+          vi.advanceTimersByTime(1)
           expect(cache.getQueryData(['todos'])).toBeUndefined()
         })
       })
@@ -577,23 +574,23 @@ describe('defineQuery', () => {
           expect(cache.getQueryData(['todos'])).toBe('todos')
 
           scope1.stop()
-          await vi.advanceTimersByTime(999)
+          vi.advanceTimersByTime(999)
           // still there
           expect(cache.getQueryData(['todos'])).toBe('todos')
 
           const scope2 = effectScope()
           scope2.run(useTodoList)
 
-          await vi.advanceTimersByTime(1)
+          vi.advanceTimersByTime(1)
           // still there
           expect(cache.getQueryData(['todos'])).toBe('todos')
           // check that gcTime doesn't impact it
-          await vi.advanceTimersByTime(1000)
+          vi.advanceTimersByTime(1000)
           expect(cache.getQueryData(['todos'])).toBe('todos')
           scope2.stop()
-          await vi.advanceTimersByTime(999)
+          vi.advanceTimersByTime(999)
           expect(cache.getQueryData(['todos'])).toBe('todos')
-          await vi.advanceTimersByTime(1)
+          vi.advanceTimersByTime(1)
           expect(cache.getQueryData(['todos'])).toBeUndefined()
         })
       })
