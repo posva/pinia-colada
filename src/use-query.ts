@@ -192,12 +192,13 @@ export function useQuery<
   // TODO: find a way to allow a custom implementation for the returned value
   const extensions = {} as Record<string, any>
   for (const key in lastEntry.ext) {
-    extensions[key] = computed({
-      get: () => toValue(entry.value.ext[key as keyof UseQueryEntryExtensions<TResult, TError>]),
+    extensions[key] = computed<unknown>({
+      get: () =>
+        toValue<unknown>(entry.value.ext[key as keyof UseQueryEntryExtensions<TResult, TError>]),
       set(value) {
         const target = entry.value.ext[key as keyof UseQueryEntryExtensions<TResult, TError>]
         if (isRef(target)) {
-          ;(target as Ref).value = value
+          ;(target as Ref | ShallowRef).value = value
         } else {
           ;(entry.value.ext[key as keyof UseQueryEntryExtensions<TResult, TError>] as unknown)
             = value
