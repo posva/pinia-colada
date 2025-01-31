@@ -1,7 +1,13 @@
 import type { PiniaColadaPlugin, UseQueryEntry, UseQueryOptions } from '@pinia/colada'
-import type { MaybeRefOrGetter } from 'vue'
 import { toValue } from 'vue'
 
+/**
+ * @module @pinia/colada-plugin-auto-refetch
+ */
+
+/**
+ * Options for the auto-refetch plugin.
+ */
 export interface PiniaColadaAutoRefetchOptions {
   /**
    * Whether to enable auto refresh by default.
@@ -10,7 +16,10 @@ export interface PiniaColadaAutoRefetchOptions {
   autoRefetch?: boolean
 }
 
-const createMapKey = (options: UseQueryOptions) => toValue(options.key).join('/')
+/**
+ * To store timeouts in the entry extensions.
+ */
+const refetchTimeoutKey = Symbol()
 
 /**
  * Plugin that automatically refreshes queries when they become stale
@@ -24,40 +33,28 @@ export function PiniaColadaAutoRefetch(
     // Skip setting auto-refetch on the server
     if (typeof document === 'undefined') return
 
-    // Keep track of active entries and their timeouts
-    const refetchTimeouts = new Map<string, NodeJS.Timeout>()
+    function scheduleRefetch(entry: UseQueryEntry, options: UseQueryOptions) {
+      if (!entry.active) return
+
+      // Always clear existing timeout first
+      clearTimeout(entry.ext[refetchTimeoutKey])
+
+      // Schedule next refetch
+      const timeout = setTimeout(() => {
+        if (options) {
+          const entry: UseQueryEntry | undefined = queryCache.getEntries({
+            key: toValue(options.key),
+          })?.[0]
+          if (entry && entry.active) {
+            queryCache.refresh(entry).catch(console.error)
+          }
+        }
+      }, options.staleTime)
+
+      entry.ext[refetchTimeoutKey] = timeout
+    }
 
     queryCache.$onAction(({ name, args, after }) => {
-      function scheduleRefetch(options: UseQueryOptions) {
-        const key = createMapKey(options)
-
-        // Always clear existing timeout first
-        clearExistingTimeout(key)
-
-        // Schedule next refetch
-        const timeout = setTimeout(() => {
-          if (options) {
-            const entry: UseQueryEntry | undefined = queryCache.getEntries({
-              key: toValue(options.key),
-            })?.[0]
-            if (entry && entry.active) {
-              queryCache.refresh(entry).catch(console.error)
-            }
-            refetchTimeouts.delete(key)
-          }
-        }, options.staleTime)
-
-        refetchTimeouts.set(key, timeout)
-      }
-
-      function clearExistingTimeout(key: string) {
-        const existingTimeout = refetchTimeouts.get(key)
-        if (existingTimeout) {
-          clearTimeout(existingTimeout)
-          refetchTimeouts.delete(key)
-        }
-      }
-
       /**
        * Whether to schedule a refetch for the given entry
        */
@@ -70,9 +67,10 @@ export function PiniaColadaAutoRefetch(
       // Trigger a fetch on creation to enable auto-refetch on initial load
       if (name === 'ensure') {
         const [options] = args
-        if (!shouldScheduleRefetch(options)) return
-
-        scheduleRefetch(options)
+        after((entry) => {
+          if (!shouldScheduleRefetch(options)) return
+          scheduleRefetch(entry, options)
+        })
       }
 
       // Set up auto-refetch on every fetch
@@ -80,33 +78,20 @@ export function PiniaColadaAutoRefetch(
         const [entry] = args
 
         // Clear any existing timeout before scheduling a new one
-        if (entry.options) {
-          const key = createMapKey(entry.options)
-          clearExistingTimeout(key)
-        }
+        clearTimeout(entry.ext[refetchTimeoutKey])
 
         after(async () => {
           if (!entry.options) return
           if (!shouldScheduleRefetch(entry.options)) return
 
-          // Schedule new refetch only if the entry is still active
-          if (entry.active) {
-            scheduleRefetch(entry.options)
-          }
+          scheduleRefetch(entry, entry.options)
         })
       }
 
       // Clean up timeouts when entry is removed
       if (name === 'remove') {
         const [entry] = args
-        if (!entry.options) return
-
-        const key = createMapKey(entry.options)
-        const timeout = refetchTimeouts.get(key)
-        if (timeout) {
-          clearTimeout(timeout)
-          refetchTimeouts.delete(key)
-        }
+        clearTimeout(entry.ext[refetchTimeoutKey])
       }
     })
   }
@@ -114,10 +99,15 @@ export function PiniaColadaAutoRefetch(
 
 // Add types for the new option
 declare module '@pinia/colada' {
-  interface UseQueryOptions {
+  // eslint-disable-next-line unused-imports/no-unused-vars
+  interface UseQueryOptions<TResult, TError> extends PiniaColadaAutoRefetchOptions {}
+
+  // eslint-disable-next-line unused-imports/no-unused-vars
+  interface UseQueryEntryExtensions<TResult, TError> {
     /**
-     * Whether to automatically refresh this query when it becomes stale.
+     * Used to store the timeout for the auto-refetch plugin.
+     * @internal
      */
-    autoRefetch?: MaybeRefOrGetter<boolean>
+    [refetchTimeoutKey]?: ReturnType<typeof setTimeout>
   }
 }
