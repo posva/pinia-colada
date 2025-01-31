@@ -1,3 +1,10 @@
+## [0.13.4](https://github.com/posva/pinia-colada/compare/v0.13.3...v0.13.4) (2025-01-31)
+
+### Features
+
+- **plugins:** toCacheKey ([542e15e](https://github.com/posva/pinia-colada/commit/542e15e607ddc1f9878694452d1283e18759c696))
+- **types:** expose QueryCache ([fb4c647](https://github.com/posva/pinia-colada/commit/fb4c647846eef6c9f8b2c70febf4e4df9edebc36))
+
 ## [0.13.3](https://github.com/posva/pinia-colada/compare/v0.13.2...v0.13.3) (2025-01-14)
 
 ### Bug Fixes
