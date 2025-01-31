@@ -8,6 +8,7 @@ import VueDevTools from 'vite-plugin-vue-devtools'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
+    //
     VueRouter(),
     Vue(),
     VueDevTools(),
@@ -15,9 +16,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
-      '@pinia/colada': fileURLToPath(
-        new URL('../src/index.ts', import.meta.url),
-      ),
+      '@pinia/colada': fileURLToPath(new URL('../src/index.ts', import.meta.url)),
       '@pinia/colada-plugin-retry': fileURLToPath(
         new URL('../plugins/retry/src/index.ts', import.meta.url),
       ),
