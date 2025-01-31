@@ -1,11 +1,10 @@
 import {
-  type MaybeRefOrGetter,
-  type Ref,
-  type ShallowRef,
+
   computed,
   getCurrentScope,
   onScopeDispose,
 } from 'vue'
+import type { MaybeRefOrGetter, Ref, ShallowRef } from 'vue'
 
 /**
  * Adds an event listener to Window that is automatically removed on scope dispose.

@@ -2,12 +2,12 @@
  * @vitest-environment happy-dom
  */
 import {
-  type UseMutationOptions,
-  type UseQueryOptions,
+
   PiniaColada,
   useMutation,
   useQuery,
 } from '@pinia/colada'
+import type { UseMutationOptions, UseQueryOptions } from '@pinia/colada'
 import type { GlobalMountOptions } from '../../../test/utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'

@@ -5,10 +5,11 @@ import { HeartIcon } from '@heroicons/vue/24/outline'
 import { useMutation, useQuery } from '@pinia/colada'
 import { useRoute } from 'vue-router/auto'
 import {
-  type ProductListItem,
+
   changeProductAvailability,
   getProductById,
 } from '@/api/products'
+import type { ProductListItem } from '@/api/products'
 import { delay } from '@/api/utils'
 
 const route = useRoute('/ecom/item/[id]')

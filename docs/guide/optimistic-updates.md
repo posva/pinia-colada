@@ -10,7 +10,8 @@ Here is a **complete example** of an optimistic update for the details of a cont
 
 ```ts twoslash
 import { useMutation, useQueryCache } from '@pinia/colada'
-import { patchContact, type Contact } from '@/api/contacts'
+import { patchContact } from '@/api/contacts'
+import type { Contact } from '@/api/contacts'
 
 const queryCache = useQueryCache()
 const { mutate } = useMutation({
@@ -68,7 +69,8 @@ Here is a **complete example** of an optimistic update of a list of todos when c
 
 ```ts twoslash
 import { useMutation, useQueryCache } from '@pinia/colada'
-import { type TodoItem, createTodo } from './api/todos'
+import { createTodo } from './api/todos'
+import type { TodoItem } from './api/todos'
 
 const queryCache = useQueryCache()
 const { mutate } = useMutation({

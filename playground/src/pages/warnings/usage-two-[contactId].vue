@@ -3,10 +3,11 @@ import { useRoute } from 'vue-router/auto'
 import { useMutation, useQuery } from '@pinia/colada'
 import ContactCard from '@/components/ContactCard.vue'
 import {
-  type Contact,
+
   updateContact as _updateContact,
   getContactById,
 } from '@/api/contacts'
+import type { Contact } from '@/api/contacts'
 
 const route = useRoute('/warnings/usage-two-[contactId]')
 

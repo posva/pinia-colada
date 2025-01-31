@@ -1,9 +1,10 @@
 import {
-  type EffectScope,
+
   getCurrentInstance,
   getCurrentScope,
   onScopeDispose,
 } from 'vue'
+import type { EffectScope } from 'vue'
 import type { UseQueryOptions } from './query-options'
 import { useQueryCache } from './query-store'
 import type { ErrorDefault } from './types-extension'
