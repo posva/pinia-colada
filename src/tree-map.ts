@@ -111,7 +111,13 @@ export class TreeMapNode<T = unknown> {
 export function appendSerializedNodeToTree<T>(
   parent: TreeMapNode<T>,
   [key, value, children]: UseQueryEntryNodeSerialized,
-  createNodeValue: (key: EntryNodeKey[], options?: UseQueryOptionsWithDefaults<unknown, unknown> | null, initialData?: unknown, error?: unknown | null, when?: number) => T,
+  createNodeValue: (
+    key: EntryNodeKey[],
+    options?: UseQueryOptionsWithDefaults<unknown, unknown> | null,
+    initialData?: unknown,
+    error?: unknown | null,
+    when?: number,
+  ) => T,
   parentKey: EntryNodeKey[] = [],
 ) {
   parent.children ??= new Map()
@@ -176,10 +182,7 @@ export type UseQueryEntryNodeSerialized = [
 export function entryNodeSize(node: TreeMapNode): number {
   return (
     (node.children?.size ?? 0)
-    + [...(node.children?.values() || [])].reduce(
-      (acc, child) => acc + entryNodeSize(child),
-      0,
-    )
+    + [...(node.children?.values() || [])].reduce((acc, child) => acc + entryNodeSize(child), 0)
   )
 }
 
@@ -218,19 +221,13 @@ function printTreeMap(
       treeStr += `${`${parentPre}${hasNext ? '├' : '└'}${`─${(children?.size ?? 0) > 0 ? '┬' : ''}`} `}${key}${child.value != null ? ` · ${String(child.value)}` : ''}\n`
 
       if (children) {
-        treeStr += printTreeMap(
-          children,
-          level + 1,
-          `${parentPre}${hasNext ? '│' : ' '} `,
-        )
+        treeStr += printTreeMap(children, level + 1, `${parentPre}${hasNext ? '│' : ' '} `)
       }
     }
   } else {
     const children = tree.children
     treeStr = `${String(
-      typeof tree.value === 'object' && tree.value
-        ? JSON.stringify(tree.value)
-        : '<root>',
+      typeof tree.value === 'object' && tree.value ? JSON.stringify(tree.value) : '<root>',
     )}\n`
     if (children) {
       treeStr += printTreeMap(children, level + 1)
