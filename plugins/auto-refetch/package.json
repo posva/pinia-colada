@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Automatically refetch queries when they become stale in Pinia Colada",
   "author": {
     "name": "Yusuf Mansur Ozer",
