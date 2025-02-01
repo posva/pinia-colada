@@ -7,7 +7,7 @@
  */
 
 import type { PiniaColadaPlugin, UseQueryEntry, UseQueryOptions } from '@pinia/colada'
-import { toValue } from 'vue'
+import { toValue, type MaybeRefOrGetter } from 'vue'
 
 /**
  * Options for the auto-refetch plugin.
@@ -17,7 +17,7 @@ export interface PiniaColadaAutoRefetchOptions {
    * Whether to enable auto refresh by default.
    * @default false
    */
-  autoRefetch?: boolean
+  autoRefetch?: MaybeRefOrGetter<boolean>
 }
 
 /**
