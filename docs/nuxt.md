@@ -1,6 +1,6 @@
 # Nuxt
 
-Pinia Colada has a nuxt module. Add it to your project with **alongside `@pinia/colada`**:
+Pinia Colada has a Nuxt module. Add it to your project with **alongside `@pinia/colada`**:
 
 ```bash
 npm i @pinia/colada # replace npm with your package manager
@@ -44,6 +44,10 @@ export default {
 ```
 
 These option will get passed to the `PiniaColada` Vue plugin. This allows you to add options like [plugins](./guide/installation.md#Plugins)
+
+## SSR
+
+In order to properly handle SSR, it is recommended to use [Data Loaders](https://uvr.esm.is/data-loaders/nuxt.html) instead of `await` + Suspense. See [pinia-colada#174](https://github.com/posva/pinia-colada/issues/174) for more details.
 
 ## Error Handling with SSR
 
