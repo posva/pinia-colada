@@ -52,6 +52,7 @@ export default antfu(
       'unused-imports/no-unused-imports': 'off',
       'no-console': 'off',
       'node/handle-callback-err': 'off',
+      'vue/require-v-for-key': 'off',
     },
   },
   {
