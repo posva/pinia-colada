@@ -59,3 +59,5 @@ export { type _Awaitable, type _EmptyObject, type _MaybeArray, toCacheKey } from
 export type { TypesConfig } from './types-extension'
 
 export type { PiniaColadaPlugin, PiniaColadaPluginContext } from './plugins'
+
+export { useInfiniteQuery, type UseInfiniteQueryOptions } from './infinite-query'
