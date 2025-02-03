@@ -12,6 +12,10 @@
           Contacts
         </RouterLink>
         |
+        <RouterLink to="/cat-facts">
+          Cat Facts
+        </RouterLink>
+        |
         <RouterLink to="/warnings">
           Warnings
         </RouterLink>
