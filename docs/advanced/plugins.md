@@ -99,7 +99,7 @@ declare module '@pinia/colada' {
 
   interface UseQueryEntryExtensions<TResult, TError> {
     /**
-     * Timestamp of the last time the data was updated.
+     * Time stamp of the last time the data was updated.
      */
     dataUpdatedAt: ShallowRef<number>
   }
