@@ -17,9 +17,7 @@ interface MyOptions {
   foo?: string
 }
 
-export function PiniaColadaDebugPlugin(
-  options: MyOptions = {},
-): PiniaColadaPlugin {
+export function PiniaColadaDebugPlugin(options: MyOptions = {}): PiniaColadaPlugin {
   return ({ queryCache, pinia }) => {
     queryCache.$onAction(({ name, args }) => {
       if (name === 'setQueryData') {
@@ -41,4 +39,69 @@ The cache keys are used to identify queries in the cache. The `key` passed to qu
 import { toCacheKey } from '@pinia/colada'
 
 const key = toCacheKey(['users', 1, { type: 'friends' }])
+```
+
+## Examples
+
+Here are some practical examples you can learn from.
+
+### Adding a `dataUpdatedAt` property to queries
+
+This plugin adds a `dataUpdatedAt` property to queries that represents the last time the data was updated. Most of the time this can be achieved at the component level where the query is used with a watcher:
+
+```ts
+const { data: contact } = useQuery({
+  // ...
+})
+const dataUpdatedAt = ref<number>()
+watch(
+  () => contact.value,
+  () => {
+    dataUpdatedAt.value = Date.now()
+  },
+)
+```
+
+If you need to use this very often, you might as well crate a plugin:
+
+```ts twoslash
+import type { PiniaColadaPlugin } from '@pinia/colada'
+import { shallowRef, type ShallowRef } from 'vue'
+
+/**
+ * Adds a `dataUpdatedAt` property to queries that represents the last time the
+ * data was updated.
+ */
+export function PiniaColadaDataUpdatedAtPlugin(): PiniaColadaPlugin {
+  return ({ queryCache, scope }) => {
+    queryCache.$onAction(({ name, after, args }) => {
+      if (name === 'create') {
+        after((entry) => {
+          // all effects must be created within the scope
+          scope.run(() => {
+            entry.ext.dataUpdatedAt = shallowRef<number>(entry.when)
+          })
+        })
+      } else if (name === 'setEntryState') {
+        const [entry] = args
+        after(() => {
+          entry.ext.dataUpdatedAt.value = entry.when
+        })
+      } else {
+        // ...
+      }
+    })
+  }
+}
+
+// Add the property to the types
+declare module '@pinia/colada' {
+
+  interface UseQueryEntryExtensions<TResult, TError> {
+    /**
+     * Timestamp of the last time the data was updated.
+     */
+    dataUpdatedAt: ShallowRef<number>
+  }
+}
 ```
