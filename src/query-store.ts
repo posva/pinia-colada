@@ -70,7 +70,8 @@ export interface UseQueryEntry<
   asyncStatus: ShallowRef<AsyncStatus>
 
   /**
-   * When was this data fetched the last time in ms
+   * When was this data set in the entry for the last time in ms. It can also
+   * be 0 if the entry has been invalidated.
    */
   when: number
 
