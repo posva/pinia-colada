@@ -389,6 +389,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     if (!effect || !entry.deps.has(effect)) return
 
     entry.deps.delete(effect)
+    triggerCache()
+
     if (entry.deps.size > 0 || !entry.options) return
     clearTimeout(entry.gcTimeout)
     // avoid setting a timeout with false, Infinity or NaN
