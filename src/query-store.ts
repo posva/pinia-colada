@@ -378,7 +378,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     entry: UseQueryEntry,
     effect: EffectScope | ComponentInternalInstance | undefined | null,
   ) {
-    if (!effect) return
+    // avoid clearing an existing timeout
+    if (!effect || !entry.deps.has(effect)) return
 
     entry.deps.delete(effect)
     if (entry.deps.size > 0 || !entry.options) return
