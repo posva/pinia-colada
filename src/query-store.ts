@@ -351,15 +351,19 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     } else {
       // if the entry already exists, we know the queries inside
       // we should consider as if they are activated again
-      for (const queryEntry of defineQueryEntry[0]) {
-        if (queryEntry.options?.refetchOnMount && toValue(queryEntry.options.enabled)) {
-          if (toValue(queryEntry.options.refetchOnMount) === 'always') {
-            fetch(queryEntry)
+      defineQueryEntry[0] = defineQueryEntry[0].map((oldEntry) => {
+        // the entries' key might have change (e.g. Nuxt navigation)
+        // so we need to ensure them again
+        const entry = oldEntry.options ? ensure(oldEntry.options, oldEntry) : oldEntry
+        if (entry.options?.refetchOnMount && toValue(entry.options.enabled)) {
+          if (toValue(entry.options.refetchOnMount) === 'always') {
+            fetch(entry)
           } else {
-            refresh(queryEntry)
+            refresh(entry)
           }
         }
-      }
+        return entry
+      })
     }
 
     return defineQueryEntry
@@ -371,7 +375,10 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   ) {
     if (!effect) return
     entry.deps.add(effect)
+    // clearTimeout ignores anything that isn't a timerId
     clearTimeout(entry.gcTimeout)
+    entry.gcTimeout = undefined
+    triggerCache()
   }
 
   function untrack(
