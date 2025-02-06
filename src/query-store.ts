@@ -377,7 +377,6 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   function untrack(
     entry: UseQueryEntry,
     effect: EffectScope | ComponentInternalInstance | undefined | null,
-    store: ReturnType<typeof useQueryCache>,
   ) {
     if (!effect) return
 
@@ -387,7 +386,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     // avoid setting a timeout with false, Infinity or NaN
     if ((Number.isFinite as (val: unknown) => val is number)(entry.options.gcTime)) {
       entry.gcTimeout = setTimeout(() => {
-        store.remove(entry)
+        remove(entry)
       }, entry.options.gcTime)
     }
   }

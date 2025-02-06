@@ -100,7 +100,7 @@ export function defineQuery(
       })
       onScopeDispose(() => {
         entries.forEach((entry) => {
-          queryCache.untrack(entry, currentScope, queryCache)
+          queryCache.untrack(entry, currentScope)
         })
       })
     }

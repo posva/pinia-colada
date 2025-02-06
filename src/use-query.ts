@@ -244,14 +244,14 @@ export function useQuery<
     })
     onUnmounted(() => {
       // remove instance from Set of refs
-      queryCache.untrack(lastEntry, hasCurrentInstance, queryCache)
+      queryCache.untrack(lastEntry, hasCurrentInstance)
     })
   } else {
     isActive = true
     if (currentEffect) {
       queryCache.track(lastEntry, currentEffect)
       onScopeDispose(() => {
-        queryCache.untrack(lastEntry, currentEffect, queryCache)
+        queryCache.untrack(lastEntry, currentEffect)
       })
     }
   }
@@ -261,8 +261,8 @@ export function useQuery<
     (entry, previousEntry) => {
       if (!isActive) return
       if (previousEntry) {
-        queryCache.untrack(previousEntry, hasCurrentInstance, queryCache)
-        queryCache.untrack(previousEntry, currentEffect, queryCache)
+        queryCache.untrack(previousEntry, hasCurrentInstance)
+        queryCache.untrack(previousEntry, currentEffect)
       }
       // track the current effect and component
       queryCache.track(entry, hasCurrentInstance)
