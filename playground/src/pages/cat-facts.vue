@@ -71,7 +71,9 @@ watch(loadMoreEl, (el) => {
         {{ fact }}
       </blockquote>
 
-      <p v-if="facts.data.nextPage" ref="load-more">Loading more...</p>
+      <p v-if="facts.data.nextPage" ref="load-more">
+        Loading more...
+      </p>
     </template>
   </div>
 </template>
