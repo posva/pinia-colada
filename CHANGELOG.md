@@ -1,3 +1,16 @@
+## [0.13.5](https://github.com/posva/pinia-colada/compare/v0.13.4...v0.13.5) (2025-02-06)
+
+### Features
+
+- add experimental useInfiniteQuery ([0a958e6](https://github.com/posva/pinia-colada/commit/0a958e661c54eac7db25904a7a4ec1090332e1e3))
+
+### Bug Fixes
+
+- avoid clearing timeouts early ([bf7ef2f](https://github.com/posva/pinia-colada/commit/bf7ef2fe2b9ef341d754b151121df16146b8dace))
+- correctly track new define queries when switching pages ([f9eeec1](https://github.com/posva/pinia-colada/commit/f9eeec1ef6f9ae49a6b867f5cd09a286a9119404))
+- make the cache watchable ([cf30e68](https://github.com/posva/pinia-colada/commit/cf30e6834eb55d0fafe9498d2bf7f88f84902f9a))
+- trigger updates on untrack ([91e497a](https://github.com/posva/pinia-colada/commit/91e497a259e48bb7e2842d3d8e5686f03e82408d))
+
 ## [0.13.4](https://github.com/posva/pinia-colada/compare/v0.13.3...v0.13.4) (2025-01-31)
 
 ### Features
