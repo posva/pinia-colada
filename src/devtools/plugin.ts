@@ -1,0 +1,283 @@
+import { addCustomTab, setupDevtoolsPlugin } from '@vue/devtools-api'
+import { watch, type App } from 'vue'
+import DevtoolsPanel from './DevtoolsPane.vue?raw'
+import type { Pinia } from 'pinia'
+import { useQueryCache } from '../query-store'
+import type { DataStateStatus } from 'src/data-state'
+
+const QUERY_INSPECTOR_ID = 'pinia-colada-queries'
+const ID_SEPARATOR = '\0'
+
+export function addDevtools(app: App, pinia: Pinia) {
+  const queryCache = useQueryCache(pinia)
+
+  setupDevtoolsPlugin(
+    {
+      id: 'dev.esm.pinia-colada',
+      app,
+      label: 'Pinia Colada',
+      packageName: 'pinia-colada',
+      homepage: 'https://pinia-colada.esm.dev/',
+      logo: 'https://pinia-colada.esm.dev/logo.svg',
+      componentStateTypes: [],
+    },
+    (api) => {
+      api.addInspector({
+        id: QUERY_INSPECTOR_ID,
+        label: 'Pinia Queries',
+        icon: 'storage',
+        noSelectionText: 'Select a query entry to inspect it',
+        treeFilterPlaceholder: 'Filter query entries',
+        stateFilterPlaceholder: 'Find within the query entry',
+        actions: [
+          {
+            icon: 'refresh',
+            action: async () => {
+              api.sendInspectorTree(QUERY_INSPECTOR_ID)
+              api.sendInspectorState(QUERY_INSPECTOR_ID)
+            },
+            tooltip: 'Sync',
+          },
+        ],
+      })
+
+      let stopWatcher = () => {}
+
+      api.on.getInspectorState((payload) => {
+        if (payload.app !== app) return
+        if (payload.inspectorId === QUERY_INSPECTOR_ID) {
+          const entry = queryCache.getEntries({
+            key: payload.nodeId.split(ID_SEPARATOR),
+            exact: true,
+          })[0]
+          if (!entry) {
+            payload.state = {
+              Error: [
+                {
+                  key: 'error',
+                  value: new Error(`Query entry ${payload.nodeId} not found`),
+                  editable: false,
+                },
+              ],
+            }
+            return
+          }
+
+          stopWatcher()
+          stopWatcher = watch(
+            () => [entry.state.value, entry.asyncStatus.value],
+            () => {
+              api.sendInspectorState(QUERY_INSPECTOR_ID)
+            },
+          )
+
+          const state = entry.state.value
+
+          payload.state = {
+            state: [
+              { key: 'data', value: state.data, editable: true },
+              { key: 'error', value: state.error, editable: true },
+              { key: 'status', value: state.status, editable: true },
+              { key: 'asyncStatus', value: entry.asyncStatus.value, editable: true },
+            ],
+            entry: [
+              { key: 'key', value: entry.key, editable: false },
+              { key: 'options', value: entry.options, editable: true },
+            ],
+          }
+        }
+      })
+
+      api.on.editInspectorState((payload) => {
+        if (payload.app !== app) return
+        if (payload.inspectorId === QUERY_INSPECTOR_ID) {
+          console.log(payload)
+          const entry = queryCache.getEntries({
+            key: payload.nodeId.split(ID_SEPARATOR),
+            exact: true,
+          })[0]
+          if (!entry) return
+          const path = payload.path.slice()
+          console.log(path, entry)
+          // if (path[0] === 'asyncStatus') {
+          //   path.push('value')
+          // } else if (path[0] === 'state') {
+          //   path.splice(1, 0, 'value')
+          // }
+          payload.set(entry, path, payload.state.value)
+          api.sendInspectorState(QUERY_INSPECTOR_ID)
+        }
+      })
+
+      const QUERY_FILTER_RE = /\b(active|inactive|stale|fresh|exact)\b/gi
+
+      api.on.getInspectorTree((payload) => {
+        if (payload.app !== app) return
+
+        if (payload.inspectorId === QUERY_INSPECTOR_ID) {
+          const filters = payload.filter.match(QUERY_FILTER_RE)
+          // strip the filters from the query
+          const filter = (
+            filters ? payload.filter.replace(QUERY_FILTER_RE, '') : payload.filter
+          ).trim()
+
+          const active = filters?.includes('active')
+            ? true
+            : filters?.includes('inactive')
+              ? false
+              : undefined
+          const stale = filters?.includes('stale')
+            ? true
+            : filters?.includes('fresh')
+              ? false
+              : undefined
+
+          payload.rootNodes = queryCache
+            .getEntries({
+              active,
+              stale,
+              exact: filters?.includes('exact'),
+              predicate(entry) {
+                if (filter) {
+                  // TODO: fuzzy match between entry.key.join('/') and the filter
+                  return entry.key.some((key) => String(key).includes(filter))
+                }
+                return true
+              },
+            })
+            .map((entry) => {
+              const id = entry.key.join(ID_SEPARATOR)
+              const label = entry.key.join('/')
+              const asyncStatus = entry.asyncStatus.value
+              const state = entry.state.value
+
+              const tags: InspectorNodeTag[] = [
+                ASYNC_STATUS_TAG[asyncStatus],
+                STATUS_TAG[state.status],
+                // useful for testing colors
+                // ASYNC_STATUS_TAG.idle,
+                // ASYNC_STATUS_TAG.fetching,
+                // STATUS_TAG.pending,
+                // STATUS_TAG.success,
+                // STATUS_TAG.error,
+              ]
+              if (!entry.active) {
+                tags.push({
+                  label: 'inactive',
+                  textColor: 0,
+                  backgroundColor: 0xAAAAAA,
+                  tooltip: 'The query is not being used anywhere',
+                })
+              }
+              return {
+                id,
+                label,
+                name: label,
+                tags,
+              }
+            })
+        }
+      })
+
+      queryCache.$onAction(({ name, after, onError }) => {
+        if (
+          name === 'invalidate' // includes cancel
+          || name === 'fetch' // includes refresh
+          || name === 'setEntryState' // includes set data
+          || name === 'cancelQueries'
+          || name === 'remove'
+          || name === 'untrack'
+          || name === 'track'
+          || name === 'ensure' // includes create
+        ) {
+          console.log('action', name)
+          api.sendInspectorTree(QUERY_INSPECTOR_ID)
+          api.sendInspectorState(QUERY_INSPECTOR_ID)
+          after(() => {
+            api.sendInspectorTree(QUERY_INSPECTOR_ID)
+            api.sendInspectorState(QUERY_INSPECTOR_ID)
+          })
+          onError(() => {
+            api.sendInspectorTree(QUERY_INSPECTOR_ID)
+            api.sendInspectorState(QUERY_INSPECTOR_ID)
+          })
+        }
+      })
+
+      // update the devtools too
+      api.notifyComponentUpdate()
+      api.sendInspectorTree(QUERY_INSPECTOR_ID)
+      api.sendInspectorState(QUERY_INSPECTOR_ID)
+    },
+  )
+
+  addCustomTab({
+    name: 'pinia-colada',
+    title: 'Pinia Colada',
+    icon: 'https://pinia-colada.esm.dev/logo.svg',
+    view: {
+      type: 'sfc',
+      sfc: DevtoolsPanel,
+      // type: 'vnode',
+      // vnode: h('p', ['hello world']),
+      // vnode: createVNode(DevtoolsPanel),
+    },
+    category: 'modules',
+  })
+
+  window.addEventListener('message', (event) => {
+    const data = event.data
+    if (data != null && typeof data === 'object' && data.id === 'pinia-colada-devtools') {
+      console.log('message', event)
+    }
+  })
+}
+
+interface InspectorNodeTag {
+  label: string
+  textColor: number
+  backgroundColor: number
+  tooltip?: string
+}
+
+/**
+ * Tags for the different states of a query
+ */
+const STATUS_TAG: Record<DataStateStatus, InspectorNodeTag> = {
+  pending: {
+    label: 'pending',
+    textColor: 0,
+    backgroundColor: 0xFF9D23,
+    tooltip: `The query hasn't resolved yet`,
+  },
+  success: {
+    label: 'success',
+    textColor: 0,
+    backgroundColor: 0x16C47F,
+    tooltip: 'The query resolved successfully',
+  },
+  error: {
+    label: 'error',
+    textColor: 0,
+    backgroundColor: 0xF93827,
+    tooltip: 'The query rejected with an error',
+  },
+}
+
+/**
+ * Tags for the different states of a query
+ */
+const ASYNC_STATUS_TAG: Record<string, InspectorNodeTag> = {
+  idle: {
+    label: 'idle',
+    textColor: 0,
+    backgroundColor: 0xAAAAAA,
+    tooltip: 'The query is not fetching',
+  },
+  fetching: {
+    label: 'fetching',
+    textColor: 0xFFFFFF,
+    backgroundColor: 0x578FCA,
+    tooltip: 'The query is currently fetching',
+  },
+}
