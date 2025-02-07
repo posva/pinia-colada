@@ -45,7 +45,9 @@ describe('Query Cache store', () => {
       const queryCache = useQueryCache()
       createEntries([['a'], ['b'], ['a', 'a']])
       expect(queryCache.getEntries({ exact: true, key: ['a'] })).toHaveLength(1)
-      expect(queryCache.getEntries({ exact: true, key: ['a', 'a'] })).toMatchObject([{ key: ['a', 'a'] }])
+      expect(queryCache.getEntries({ exact: true, key: ['a', 'a'] })).toMatchObject([
+        { key: ['a', 'a'] },
+      ])
     })
 
     it('filters based on predicate', () => {
@@ -75,6 +77,28 @@ describe('Query Cache store', () => {
       expect(queryCache.getEntries({ status: 'error' })).toHaveLength(0)
       expect(queryCache.getEntries({ status: 'success' })).toHaveLength(3)
       expect(queryCache.getEntries({ status: 'pending' })).toHaveLength(0)
+    })
+
+    it('filters based on multiple statuses', async () => {
+      const queryCache = useQueryCache()
+      createEntries([['a'], ['b'], ['a', 'a']])
+      expect(
+        queryCache.getEntries({
+          status: 'pending',
+          predicate(entry) {
+            return entry.key[0] === 'a'
+          },
+        }),
+      ).toHaveLength(2)
+
+      expect(
+        queryCache.getEntries({
+          status: 'success',
+          predicate(entry) {
+            return entry.key[0] === 'a'
+          },
+        }),
+      ).toHaveLength(0)
     })
   })
 
