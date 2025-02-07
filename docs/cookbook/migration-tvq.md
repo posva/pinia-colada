@@ -28,12 +28,13 @@ Most of the sensible defaults from `@tanstack/vue-query` are kept in `@pinia/col
 
 ## API Differences
 
-| TanStack Vue Query Equivalent       | Pinia Colada        | Comment                                                                                                                                                               |
-| ----------------------------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `refetch({ cancelRefetch: false })` | `refresh()`         | See [Refetching Queries](../guide/queries.md#Refetching-Queries)                                                                                                      |
-| `refetch({ throwOnError: true })`   | `refetch(true)`     | Same for `refresh()`                                                                                                                                                  |
-| `useQuery({ select })`              | none                | Use a `computed()` or write the logic within `query` instead. [See this discussion](https://github.com/posva/pinia-colada/discussions/113#discussioncomment-11311927) |
-| `useQuery({ refetchInterval })`     | Auto Refetch plugin | Use the [`@pinia/colada-plugin-auto-refetch`](https://github.com/posva/pinia-colada/tree/main/plugins/auto-refetch)                                                   |
+| TanStack Vue Query Equivalent       | Pinia Colada                    | Comment                                                                                                                                                               |
+| ----------------------------------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `refetch({ cancelRefetch: false })` | `refresh()`                     | See [Refetching Queries](../guide/queries.md#Refetching-Queries)                                                                                                      |
+| `refetch({ throwOnError: true })`   | `refetch(true)`                 | Same for `refresh()`                                                                                                                                                  |
+| `useQuery({ select })`              | none                            | Use a `computed()` or write the logic within `query` instead. [See this discussion](https://github.com/posva/pinia-colada/discussions/113#discussioncomment-11311927) |
+| `useQuery({ refetchInterval })`     | Auto Refetch plugin             | Use the [`@pinia/colada-plugin-auto-refetch`](https://github.com/posva/pinia-colada/tree/main/plugins/auto-refetch)                                                   |
+| `useQuery().dataUpdatedAt`          | Custom plugin or component code | [Custom plugin](../advanced/plugins.md#Adding-a-dataUpdatedAt-property-to-queries)                                                                                    |
 
 ## Differences in philosophy
 
