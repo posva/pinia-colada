@@ -36,6 +36,18 @@ Most of the sensible defaults from `@tanstack/vue-query` are kept in `@pinia/col
 | `useQuery({ refetchInterval })`     | Auto Refetch plugin             | Use the [`@pinia/colada-plugin-auto-refetch`](https://github.com/posva/pinia-colada/tree/main/plugins/auto-refetch)                                                   |
 | `useQuery().dataUpdatedAt`          | Custom plugin or component code | [Custom plugin](../advanced/plugins.md#Adding-a-dataUpdatedAt-property-to-queries)                                                                                    |
 
+### Using `ref` and `computed` in `queryKey`
+
+In Pinia Colada, `key` cannot **contain** a `computed` or `ref`, instead, it expects the key to be of type [`MaybeRefOrGetter`](https://vuejs.org/api/utility-types.html#maybereforgetter). In general, it simplifies keys handling and the function syntax is just so easy to use:
+
+```ts
+useQuery({
+  queryKey: ['todos', { page: computed(() => route.query.id) }], // [!code --]
+  key: () => ['todos', { page: route.query.page }], // [!code ++]
+  // ...
+})
+```
+
 ## Differences in philosophy
 
 These differences are a bit more subtle and span across multiple layers of the library.
