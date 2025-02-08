@@ -24,6 +24,9 @@ importers:
       '@shikijs/vitepress-twoslash':
         specifier: ^2.2.0
         version: 2.2.0(@nuxt/kit@3.15.4(magicast@0.3.5)(rollup@4.32.1))(typescript@5.6.3)
+      '@size-limit/esbuild-why':
+        specifier: ^11.1.6
+        version: 11.1.6(size-limit@11.1.6)
       '@size-limit/preset-small-lib':
         specifier: ^11.1.6
         version: 11.1.6(size-limit@11.1.6)
@@ -32,7 +35,7 @@ importers:
         version: 22.12.0
       '@vitejs/plugin-vue':
         specifier: ^5.2.1
-        version: 5.2.1(vite@6.0.11(@types/node@22.12.0)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.7.0))(vue@3.5.13(typescript@5.6.3))
+        version: 5.2.1(vite@5.4.14(@types/node@22.12.0)(lightningcss@1.29.1)(terser@5.37.0))(vue@3.5.13(typescript@5.6.3))
       '@vitest/coverage-v8':
         specifier: ^3.0.4
         version: 3.0.4(vitest@3.0.4)
@@ -1786,6 +1789,12 @@ packages:
     resolution: {integrity: sha512-tlqY9xq5ukxTUZBmoOp+m61cqwQD5pHJtFY3Mn8CA8ps6yghLH/Hw8UPdqg4OLmFW3IFlcXnQNmo/dh8HzXYIQ==}
     engines: {node: '>=18'}
 
+  '@size-limit/esbuild-why@11.1.6':
+    resolution: {integrity: sha512-JcfVgq9gOj1Vb9/QteI1uVToNsJH3yM1eQm8fJ/H+yjQV3u4QFbheslcbRxVxf5rxCITyyGd4UeSlqDBj67SXg==}
+    engines: {node: ^18.0.0 || >=20.0.0}
+    peerDependencies:
+      size-limit: 11.1.6
+
   '@size-limit/esbuild@11.1.6':
     resolution: {integrity: sha512-0nBKYSxeRjUVCVoCkWZbmGkGBwpm0HdwHedWgxksBGxTKU0PjOMSHc3XTjKOrXBKXQzw90Ue0mgOd4n6zct9SA==}
     engines: {node: ^18.0.0 || >=20.0.0}
@@ -3104,6 +3113,11 @@ packages:
 
   es-module-lexer@1.6.0:
     resolution: {integrity: sha512-qqnD1yMU6tk/jnaMosogGySTZP8YtUgAffA9nMN+E/rjxcfRQ6IEk7IiozUjgxKoFHBGjTLnrHB/YC45r/59EQ==}
+
+  esbuild-visualizer@0.6.0:
+    resolution: {integrity: sha512-oNK3JAhC7+re93VTtUdWJKTDVnA2qXPAjCAoaw9OxEFUXztszw3kcaK46u1U790T8FdUBAWv6F9Xt59P8nJCVA==}
+    engines: {node: '>=18'}
+    hasBin: true
 
   esbuild@0.19.12:
     resolution: {integrity: sha512-aARqgq8roFBj054KvQr5f1sFu0D65G+miZRCuJyJ0G13Zwx7vRar5Zhn2tkQNzIXcBrNVsv/8stehpj+GAjgbg==}
@@ -8052,6 +8066,12 @@ snapshots:
 
   '@sindresorhus/merge-streams@4.0.0': {}
 
+  '@size-limit/esbuild-why@11.1.6(size-limit@11.1.6)':
+    dependencies:
+      esbuild-visualizer: 0.6.0
+      open: 10.1.0
+      size-limit: 11.1.6
+
   '@size-limit/esbuild@11.1.6(size-limit@11.1.6)':
     dependencies:
       esbuild: 0.24.2
@@ -9478,6 +9498,12 @@ snapshots:
   errx@0.1.0: {}
 
   es-module-lexer@1.6.0: {}
+
+  esbuild-visualizer@0.6.0:
+    dependencies:
+      open: 8.4.2
+      picomatch: 2.3.1
+      yargs: 17.7.2
 
   esbuild@0.19.12:
     optionalDependencies:

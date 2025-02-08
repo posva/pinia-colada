@@ -80,12 +80,23 @@
   },
   "size-limit": [
     {
+      "name": "useQuery only from source",
+      "path": "src/index.ts",
+      "import": "{ useQuery, PiniaColada }",
+      "ignore": [
+        "vue",
+        "pinia",
+        "@vue/devtools-api"
+      ]
+    },
+    {
       "name": "useQuery only",
       "path": "dist/index.js",
       "import": "{ useQuery, PiniaColada }",
       "ignore": [
         "vue",
-        "pinia"
+        "pinia",
+        "@vue/devtools-api"
       ]
     },
     {
@@ -94,7 +105,8 @@
       "import": "{ useQuery, PiniaColada, useMutation }",
       "ignore": [
         "vue",
-        "pinia"
+        "pinia",
+        "@vue/devtools-api"
       ]
     }
   ],
@@ -109,6 +121,7 @@
     "@pinia/colada": "workspace:*",
     "@posva/prompts": "^2.4.4",
     "@shikijs/vitepress-twoslash": "^2.2.0",
+    "@size-limit/esbuild-why": "^11.1.6",
     "@size-limit/preset-small-lib": "^11.1.6",
     "@types/node": "^22.12.0",
     "@vitejs/plugin-vue": "^5.2.1",

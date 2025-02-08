@@ -1,12 +1,20 @@
 import { addCustomTab, setupDevtoolsPlugin } from '@vue/devtools-api'
 import { watch, type App } from 'vue'
-import DevtoolsPanel from './DevtoolsPane.vue?raw'
+// import DevtoolsPanel from './DevtoolsPane.vue?raw'
 import type { Pinia } from 'pinia'
 import { useQueryCache } from '../query-store'
 import type { DataStateStatus } from '../data-state'
 
 const QUERY_INSPECTOR_ID = 'pinia-colada-queries'
 const ID_SEPARATOR = '\0'
+
+function debounce(fn: () => void, delay: number) {
+  let timeout: ReturnType<typeof setTimeout>
+  return () => {
+    clearTimeout(timeout)
+    timeout = setTimeout(fn, delay)
+  }
+}
 
 export function addDevtools(app: App, pinia: Pinia) {
   const queryCache = useQueryCache(pinia)
@@ -22,6 +30,11 @@ export function addDevtools(app: App, pinia: Pinia) {
       componentStateTypes: [],
     },
     (api) => {
+      const updateQueryInspectorTree = debounce(() => {
+        api.sendInspectorTree(QUERY_INSPECTOR_ID)
+        api.sendInspectorState(QUERY_INSPECTOR_ID)
+      }, 100)
+
       api.addInspector({
         id: QUERY_INSPECTOR_ID,
         label: 'Pinia Queries',
@@ -32,10 +45,7 @@ export function addDevtools(app: App, pinia: Pinia) {
         actions: [
           {
             icon: 'refresh',
-            action: async () => {
-              api.sendInspectorTree(QUERY_INSPECTOR_ID)
-              api.sendInspectorState(QUERY_INSPECTOR_ID)
-            },
+            action: updateQueryInspectorTree,
             tooltip: 'Sync',
           },
         ],
@@ -91,25 +101,18 @@ export function addDevtools(app: App, pinia: Pinia) {
       api.on.editInspectorState((payload) => {
         if (payload.app !== app) return
         if (payload.inspectorId === QUERY_INSPECTOR_ID) {
-          console.log(payload)
           const entry = queryCache.getEntries({
             key: payload.nodeId.split(ID_SEPARATOR),
             exact: true,
           })[0]
           if (!entry) return
           const path = payload.path.slice()
-          console.log(path, entry)
-          // if (path[0] === 'asyncStatus') {
-          //   path.push('value')
-          // } else if (path[0] === 'state') {
-          //   path.splice(1, 0, 'value')
-          // }
           payload.set(entry, path, payload.state.value)
           api.sendInspectorState(QUERY_INSPECTOR_ID)
         }
       })
 
-      const QUERY_FILTER_RE = /\b(active|inactive|stale|fresh|exact)\b/gi
+      const QUERY_FILTER_RE = /\b(active|inactive|stale|fresh|exact|loading|idle)\b/gi
 
       api.on.getInspectorTree((payload) => {
         if (payload.app !== app) return
@@ -131,6 +134,11 @@ export function addDevtools(app: App, pinia: Pinia) {
             : filters?.includes('fresh')
               ? false
               : undefined
+          const asyncStatus = filters?.includes('loading')
+            ? 'loading'
+            : filters?.includes('idle')
+              ? 'idle'
+              : undefined
 
           payload.rootNodes = queryCache
             .getEntries({
@@ -138,6 +146,8 @@ export function addDevtools(app: App, pinia: Pinia) {
               stale,
               exact: filters?.includes('exact'),
               predicate(entry) {
+                // filter out by asyncStatus
+                if (asyncStatus && entry.asyncStatus.value !== asyncStatus) return false
                 if (filter) {
                   // TODO: fuzzy match between entry.key.join('/') and the filter
                   return entry.key.some((key) => String(key).includes(filter))
@@ -184,23 +194,14 @@ export function addDevtools(app: App, pinia: Pinia) {
           name === 'invalidate' // includes cancel
           || name === 'fetch' // includes refresh
           || name === 'setEntryState' // includes set data
-          || name === 'cancelQueries'
           || name === 'remove'
           || name === 'untrack'
           || name === 'track'
           || name === 'ensure' // includes create
         ) {
-          console.log('action', name)
-          api.sendInspectorTree(QUERY_INSPECTOR_ID)
-          api.sendInspectorState(QUERY_INSPECTOR_ID)
-          after(() => {
-            api.sendInspectorTree(QUERY_INSPECTOR_ID)
-            api.sendInspectorState(QUERY_INSPECTOR_ID)
-          })
-          onError(() => {
-            api.sendInspectorTree(QUERY_INSPECTOR_ID)
-            api.sendInspectorState(QUERY_INSPECTOR_ID)
-          })
+          updateQueryInspectorTree()
+          after(updateQueryInspectorTree)
+          onError(updateQueryInspectorTree)
         }
       })
 
@@ -211,26 +212,28 @@ export function addDevtools(app: App, pinia: Pinia) {
     },
   )
 
-  addCustomTab({
-    name: 'pinia-colada',
-    title: 'Pinia Colada',
-    icon: 'https://pinia-colada.esm.dev/logo.svg',
-    view: {
-      type: 'sfc',
-      sfc: DevtoolsPanel,
-      // type: 'vnode',
-      // vnode: h('p', ['hello world']),
-      // vnode: createVNode(DevtoolsPanel),
-    },
-    category: 'modules',
-  })
+  // TODO: custom tab?
 
-  window.addEventListener('message', (event) => {
-    const data = event.data
-    if (data != null && typeof data === 'object' && data.id === 'pinia-colada-devtools') {
-      console.log('message', event)
-    }
-  })
+  // addCustomTab({
+  //   name: 'pinia-colada',
+  //   title: 'Pinia Colada',
+  //   icon: 'https://pinia-colada.esm.dev/logo.svg',
+  //   view: {
+  //     type: 'sfc',
+  //     sfc: DevtoolsPanel,
+  //     // type: 'vnode',
+  //     // vnode: h('p', ['hello world']),
+  //     // vnode: createVNode(DevtoolsPanel),
+  //   },
+  //   category: 'modules',
+  // })
+
+  // window.addEventListener('message', (event) => {
+  //   const data = event.data
+  //   if (data != null && typeof data === 'object' && data.id === 'pinia-colada-devtools') {
+  //     console.log('message', event)
+  //   }
+  // })
 }
 
 interface InspectorNodeTag {

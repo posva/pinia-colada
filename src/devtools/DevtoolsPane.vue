@@ -4,7 +4,6 @@ import { onMounted, ref } from 'vue'
 const count = ref(0)
 
 onMounted(async () => {
-  console.log('WEWEWE FROM_DEVTOOLS')
   const id = 'pinia-colada-devtools'
   window.top?.postMessage({ id, type: 'FROM_DEVTOOLS', payload: 'Hello from devtools' })
 })
@@ -13,8 +12,10 @@ onMounted(async () => {
 <template>
   <div class="h-full w-full flex flex-col items-center justify-center">
     <pre>{{ $route.fullPath }}</pre>
-    <div>HELLO {{ count }}</div>
-    <button class="btn" @click="count++">increment</button>
+    <div>{{ count }}</div>
+    <button class="btn" @click="count++">
+      increment
+    </button>
   </div>
 </template>
 

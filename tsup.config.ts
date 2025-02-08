@@ -4,7 +4,7 @@ const commonOptions = {
   // splitting: false,
   sourcemap: true,
   format: ['cjs', 'esm'],
-  external: ['vue', 'pinia', '@pinia/colada'],
+  external: ['vue', 'pinia', '@pinia/colada', '@vue/devtools-api'],
   target: 'esnext',
   dts: {
     compilerOptions: {
