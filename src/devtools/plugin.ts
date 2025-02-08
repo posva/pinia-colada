@@ -3,7 +3,7 @@ import { watch, type App } from 'vue'
 import DevtoolsPanel from './DevtoolsPane.vue?raw'
 import type { Pinia } from 'pinia'
 import { useQueryCache } from '../query-store'
-import type { DataStateStatus } from 'src/data-state'
+import type { DataStateStatus } from '../data-state'
 
 const QUERY_INSPECTOR_ID = 'pinia-colada-queries'
 const ID_SEPARATOR = '\0'
