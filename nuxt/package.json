@@ -38,7 +38,7 @@
     "@pinia/colada": "workspace:^"
   },
   "devDependencies": {
-    "@nuxt/devtools": "^1.6.1",
+    "@nuxt/devtools": "^2.0.0",
     "@nuxt/eslint-config": "^1.0.0",
     "@nuxt/module-builder": "^0.8.4",
     "@nuxt/schema": "^3.15.4",
