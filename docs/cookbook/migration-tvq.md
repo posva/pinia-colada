@@ -71,21 +71,19 @@ watch(data, (newData, oldData) => {
 
 ### Reusable queries
 
-Pinia Colada tries to reuse state as much as possible to reduce memory footprint and improve performance, so instead of passing shared options to `useQuery`, it encourages you [to use `defineQuery()`](/docs/guide/queries.md#reusable-queries) to encapsulates the shared logic. This patterns is even more powerful in Pinia Colada as it allows you to define custom logic and properties along the queries and reuse them across your components.
+Pinia Colada tries to reuse state as much as possible to reduce memory footprint and improve performance, so instead of passing shared options to `useQuery`, it encourages you [to use `defineQuery()`](/guide/queries.md#Reusable-Queries) to encapsulates the shared logic. This patterns is even more powerful in Pinia Colada as it allows you to define custom logic and properties along the queries and reuse them across your components.
 
 In its simplest form, you can reuse queries like this:
 
 ```ts
-export const options = {
-  // [!code --]
+export const options = { // [!code --]
   queryKey: ['list'], // [!code --]
   queryFn: getList, // [!code --]
 } // [!code --]
-export const useList = defineQuery({
-  // [!code ++]
+export const useList = defineQuery({ // [!code ++]
   key: ['list'], // [!code ++]
   query: getList, // [!code ++]
 }) // [!code ++]
 ```
 
-Check the [Reusable Queries](/docs/guide/queries.md#reusable-queries) section for more information.
+Check the [Reusable Queries](/guide/queries.md#Reusable-Queries) section for more information.
