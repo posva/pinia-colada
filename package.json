@@ -133,7 +133,7 @@
     "eslint": "^9.19.0",
     "execa": "^9.5.2",
     "globby": "^14.0.2",
-    "happy-dom": "^16.7.3",
+    "happy-dom": "^17.0.2",
     "lint-staged": "^15.4.3",
     "minimist": "^1.2.8",
     "p-series": "^3.0.0",
