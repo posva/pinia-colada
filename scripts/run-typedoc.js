@@ -5,7 +5,7 @@ import { Application, PageEvent, TSConfigReader } from 'typedoc'
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname)
 
-/** @satisfies {Partial<import('typedoc').TypeDocOptions> & Partial<import('typedoc-plugin-markdown').PluginOptions>} */
+/** @satisfies {Partial<import('typedoc').TypeDocOptions> & Partial<import('typedoc-plugin-markdown').PluginOptions> & { docsRoot?: string }} */
 const DEFAULT_OPTIONS = {
   name: 'API Documentation',
   cleanOutputDir: true,
@@ -27,11 +27,6 @@ const DEFAULT_OPTIONS = {
   entryFileName: 'index.md',
   hideBreadcrumbs: false,
   preserveAnchorCasing: true,
-  // pageTitleTemplates {},
-  // textContentMappings: {
-  //   'title.indexPage': 'API Reference',
-  //   'title.memberPage': '{name}',
-  // },
   // vitepress theme
   docsRoot: path.resolve(__dirname, '../docs'),
   indexFormat: 'table',
