@@ -5,6 +5,7 @@ import { defineConfig } from 'vitepress'
 import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
 import { extraFiles } from '../twoslash/files'
 import { ModuleKind, ModuleResolutionKind, ScriptTarget } from 'typescript'
+import typedocSidebar from '../../api/typedoc-sidebar.json'
 
 export const META_IMAGE = 'https://pinia-colada.esm.dev/social.png'
 export const META_URL = 'https://pinia-colada.esm.dev'
@@ -177,6 +178,12 @@ export default defineConfig({
     ],
 
     sidebar: {
+      '/api/': [
+        {
+          text: 'API',
+          items: typedocSidebar,
+        },
+      ],
       '/': [
         {
           text: 'Introduction',

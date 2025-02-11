@@ -15,8 +15,7 @@ const DEFAULT_OPTIONS = {
   tsconfig: path.resolve(__dirname, './typedoc.tsconfig.json'),
   categorizeByGroup: true,
   githubPages: false,
-  disableSources: true, // some links are in node_modules and it's ugly
-  plugin: ['typedoc-plugin-markdown'],
+  plugin: ['typedoc-plugin-markdown', 'typedoc-vitepress-theme'],
   entryPoints: [
     path.resolve(__dirname, '../src/index.ts'),
     path.resolve(__dirname, '../plugins/delay/src/index.ts'),
@@ -28,6 +27,16 @@ const DEFAULT_OPTIONS = {
   entryFileName: 'index.md',
   hideBreadcrumbs: false,
   preserveAnchorCasing: true,
+  // pageTitleTemplates {},
+  // textContentMappings: {
+  //   'title.indexPage': 'API Reference',
+  //   'title.memberPage': '{name}',
+  // },
+  // vitepress theme
+  docsRoot: path.resolve(__dirname, '../docs'),
+  indexFormat: 'table',
+  useCodeBlocks: true,
+  disableSources: true, // some links are in node_modules and it's ugly
   // fileExtension: '.md',
 }
 

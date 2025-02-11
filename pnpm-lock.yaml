@@ -96,6 +96,9 @@ importers:
       typedoc-plugin-markdown:
         specifier: ^4.4.1
         version: 4.4.1(typedoc@0.27.6(typescript@5.6.3))
+      typedoc-vitepress-theme:
+        specifier: ^1.1.2
+        version: 1.1.2(typedoc-plugin-markdown@4.4.1(typedoc@0.27.6(typescript@5.6.3)))
       typescript:
         specifier: ~5.6.0
         version: 5.6.3
@@ -5893,6 +5896,11 @@ packages:
     peerDependencies:
       typedoc: 0.27.x
 
+  typedoc-vitepress-theme@1.1.2:
+    resolution: {integrity: sha512-hQvCZRr5uKDqY1bRuY1+eNTNn6d4TE4OP5pnw65Y7WGgajkJW9X1/lVJK2UJpcwCmwkdjw1QIO49H9JQlxWhhw==}
+    peerDependencies:
+      typedoc-plugin-markdown: '>=4.4.0'
+
   typedoc@0.27.6:
     resolution: {integrity: sha512-oBFRoh2Px6jFx366db0lLlihcalq/JzyCVp7Vaq1yphL/tbgx2e+bkpkCgJPunaPvPwoTOXSwasfklWHm7GfAw==}
     engines: {node: '>= 18'}
@@ -8457,7 +8465,7 @@ snapshots:
       sirv: 3.0.0
       tinyglobby: 0.2.10
       tinyrainbow: 2.0.0
-      vitest: 3.0.4(@types/debug@4.1.12)(@types/node@22.12.0)(@vitest/ui@3.0.4)(happy-dom@16.7.3)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.7.0)
+      vitest: 3.0.4(@types/debug@4.1.12)(@types/node@22.12.0)(@vitest/ui@3.0.4)(happy-dom@17.0.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.7.0)
 
   '@vitest/utils@3.0.4':
     dependencies:
@@ -12874,6 +12882,10 @@ snapshots:
     dependencies:
       typedoc: 0.27.6(typescript@5.6.3)
 
+  typedoc-vitepress-theme@1.1.2(typedoc-plugin-markdown@4.4.1(typedoc@0.27.6(typescript@5.6.3))):
+    dependencies:
+      typedoc-plugin-markdown: 4.4.1(typedoc@0.27.6(typescript@5.6.3))
+
   typedoc@0.27.6(typescript@5.6.3):
     dependencies:
       '@gerrit0/mini-shiki': 1.27.2
@@ -13373,6 +13385,7 @@ snapshots:
       - terser
       - tsx
       - yaml
+    optional: true
 
   vitest@3.0.4(@types/debug@4.1.12)(@types/node@22.12.0)(@vitest/ui@3.0.4)(happy-dom@17.0.2)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.7.0):
     dependencies:
