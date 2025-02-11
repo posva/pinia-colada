@@ -369,6 +369,14 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     return defineQueryEntry
   })
 
+  /**
+   * Tracks an effect or component that uses a query.
+   *
+   * @param entry - the entry of the query
+   * @param effect - the effect or component to untrack
+   *
+   * @see {@link untrack}
+   */
   function track(
     entry: UseQueryEntry,
     effect: EffectScope | ComponentInternalInstance | null | undefined,
@@ -381,6 +389,14 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     triggerCache()
   }
 
+  /**
+   * Untracks an effect or component that uses a query.
+   *
+   * @param entry - the entry of the query
+   * @param effect - the effect or component to untrack
+   *
+   * @see {@link track}
+   */
   function untrack(
     entry: UseQueryEntry,
     effect: EffectScope | ComponentInternalInstance | undefined | null,
@@ -402,7 +418,27 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   }
 
   /**
-   * Invalidates and refetches (in parallel) all active queries in the cache that match the filters.
+   * Invalidates, cancel, and refetches (in parallel) all active queries in the
+   * cache that match the filters. If you need to further control which queries
+   * are invalidated, canceled, and/or refetched, you can use the filters, you
+   * can direcly call {@link invalidate} on {@link getEntries}:
+   *
+   * ```ts
+   * // instead of doing
+   * await queryCache.invalidateQueries(filters)
+   * await Promise.all(queryCache.getEntries(filters).map(entry => {
+   *   queryCache.invalidate(entry)
+   *   // this is the default behavior of invalidateQueries
+   *   // return entry.active && queryCache.fetch(entry)
+   *   // here to refetch everything, even non active queries
+   *   return queryCache.fetch(entry)
+   * })
+   * ```
+   *
+   * @param filters - filters to apply to the entries
+   *
+   * @see {@link invalidate}
+   * @see {@link cancel}
    */
   const invalidateQueries = action((filters?: UseQueryEntryFilter): Promise<unknown> => {
     return Promise.all(
@@ -415,6 +451,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
 
   /**
    * Returns all the entries in the cache that match the filters.
+   *
    * @param filters - filters to apply to the entries
    */
   const getEntries = action((filters: UseQueryEntryFilter = {}): UseQueryEntry[] => {
@@ -440,7 +477,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * Ensures a query entry is present in the cache. If it's not, it creates a new one. The resulting entry is required
    * to call other methods like {@link fetch}, {@link refresh}, or {@link invalidate}.
    *
-   * @param key - the key of the query
+   * @param opts - options to create the query
+   * @param previousEntry - the previous entry that was associated with the same options
    */
   const ensure = action(
     <
@@ -522,14 +560,19 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
 
   /**
    * Action called when an entry is ensured for the first time to allow plugins to extend it.
+   *
+   * @param _entry - the entry of the query to extend
    */
   const extend = action(
     <TResult = unknown, TError = ErrorDefault>(_entry: UseQueryEntry<TResult, TError>) => {},
   )
 
   /**
-   * Invalidates a query entry
+   * Invalidates and cancels a query entry. It effectively sets the `when` property to `0` and {@link cancel | cancels} the pending request.
+   *
    * @param entry - the entry of the query to invalidate
+   *
+   * @see {@link cancel}
    */
   const invalidate = action((entry: UseQueryEntry) => {
     // will force a fetch next time
@@ -541,6 +584,10 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   /**
    * Ensures the current data is fresh. If the data is stale or if the status is 'error', calls {@link fetch}, if not
    * return the current data. Can only be called if the entry has been initialized with `useQuery()` and has options.
+   *
+   * @param entry - the entry of the query to refresh
+   *
+   * @see {@link fetch}
    */
   const refresh = action(
     async <TResult, TError, TDataInitial extends TResult | undefined>(
@@ -562,6 +609,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
 
   /**
    * Fetch an entry. Ignores fresh data and triggers a new fetch. Can only be called if the entry has options.
+   *
+   * @param entry - the entry of the query to fetch
    */
   const fetch = action(
     async <TResult, TError, TDataInitial extends TResult | undefined>(
@@ -630,6 +679,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   /**
    * Cancels an entry's query if it's currently pending. This will effectively abort the `AbortSignal` of the query and any
    * pending request will be ignored.
+   *
+   * @param entry - the entry of the query to cancel
+   * @param reason - the reason passed to the abort controller
    */
   const cancel = action((entry: UseQueryEntry, reason?: unknown) => {
     entry.pending?.abortController.abort(reason)
@@ -642,14 +694,24 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   /**
    * Cancels queries if they are currently pending. This will effectively abort the `AbortSignal` of the query and any
    * pending request will be ignored.
+   *
+   * @param filters - filters to apply to the entries
+   * @param reason - the reason passed to the abort controller
+   *
+   * @see {@link cancel}
    */
   const cancelQueries = action((filters?: UseQueryEntryFilter, reason?: unknown) => {
     getEntries(filters).forEach((entry) => cancel(entry, reason))
   })
 
   /**
-   * Sets the state of a query entry in the cache. This action is called every time the cache state changes and can be
-   * used by plugins to detect changes.
+   * Sets the state of a query entry in the cache and updates the
+   * {@link UseQueryEntry['pending']['when'] | `when` property}. This action is
+   * called every time the cache state changes and can be used by plugins to
+   * detect changes.
+   *
+   * @param entry - the entry of the query to set the state
+   * @param state - the new state of the entry
    */
   const setEntryState = action(
     <TResult, TError>(
@@ -664,6 +726,11 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
 
   /**
    * Set the data of a query entry in the cache. It assumes an already successfully fetched entry.
+   *
+   * @param key - the key of the query
+   * @param data - the new data to set
+   *
+   * @see {@link setEntryState}
    */
   const setQueryData = action(
     <TResult = unknown>(
@@ -692,12 +759,18 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
 
   /**
    * Gets the data of a query entry in the cache based on the key of the query.
+   *
    * @param key - the key of the query
    */
   function getQueryData<TResult = unknown>(key: EntryKey): TResult | undefined {
     return caches.value.get(toCacheKey(key))?.state.value.data as TResult | undefined
   }
 
+  /**
+   * Removes a query entry from the cache.
+   *
+   * @param entry - the entry of the query to remove
+   */
   const remove = action(
     /**
      * Removes a query entry from the cache.
