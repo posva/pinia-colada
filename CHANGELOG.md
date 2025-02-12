@@ -1,3 +1,13 @@
+## [0.13.6](https://github.com/posva/pinia-colada/compare/v0.13.5...v0.13.6) (2025-02-12)
+
+### Features
+
+- add devtools ([43912aa](https://github.com/posva/pinia-colada/commit/43912aa939e0fa343aa4e26b58f7807cc5ec6ab5))
+
+### Bug Fixes
+
+- apply multiple filters to getEntries ([da5b00c](https://github.com/posva/pinia-colada/commit/da5b00ce7e41746fe27bdc940770ca26a057e7c2))
+
 ## [0.13.5](https://github.com/posva/pinia-colada/compare/v0.13.4...v0.13.5) (2025-02-06)
 
 ### Features
