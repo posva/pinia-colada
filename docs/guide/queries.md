@@ -171,12 +171,6 @@ export const useTodos = defineQuery({
 })
 ```
 
-::: danger
-
-Nuxt renders the application twice with a different `useRoute()` to handle Suspense and requires extra handling. See [this page](../nuxt.md#SSR).
-
-:::
-
 ::: tip When to use `defineQuery()` over just `useQuery()`?
 
 If you need to reuse a query in multiple components, move the query to a separate file (e.g. `src/queries/todos.ts`) and use `defineQuery()` to define it. This will ensure that the query code isn't partially updated in your code base.

@@ -47,7 +47,7 @@ These option will get passed to the `PiniaColada` Vue plugin. This allows you to
 
 ## SSR
 
-In order to properly handle SSR, it is recommended to use [Data Loaders](https://uvr.esm.is/data-loaders/nuxt.html) instead of `await` + Suspense. See [pinia-colada#174](https://github.com/posva/pinia-colada/issues/174) for more details.
+Pinia Colada supports SSR out of the box. You can also combine it with [Data Loaders](https://uvr.esm.is/data-loaders/nuxt.html) instead of `await` + Suspense for an even better data fetching experience.
 
 ## Error Handling with SSR
 
