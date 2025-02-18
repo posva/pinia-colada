@@ -136,10 +136,8 @@ export const useMutationCache = /* @__PURE__ */ defineStore(
             entry,
           )
         }
-        return createMutationEntry(options, key)
-      }
-      // reuse the entry when no key is provided
-      if (key) {
+      } else if (key) {
+        // reuse the entry when no key is provided
         // update key
         if (!entry.key) {
           entry.key = key
