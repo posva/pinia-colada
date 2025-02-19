@@ -16,8 +16,7 @@ import { markRaw } from 'vue'
 import { TreeMapNode, serializeTreeMap, hydrateQueryCache } from '@pinia/colada'
 
 const stringified = devalue.stringify(pinia.state.value, {
-  PiniaColada_TreeMapNode: (data: unknown) =>
-    data instanceof TreeMapNode && serializeTreeMap(data),
+  PiniaColada_TreeMapNode: (data: unknown) => data instanceof TreeMapNode && serializeTreeMap(data),
 })
 
 const revivedData = devalue.parse(stringified, {
@@ -32,6 +31,23 @@ app.use(PiniaColada)
 hydrateQueryCache(useQueryCache(pinia), revivedData)
 ```
 
+## Lazy queries
+
+By passing the `enabled` option we can control whether the query should be executed or not. This is useful in many scenarios, for example, when you want to avoid fetching data on the server side.
+
+```ts
+import { useQuery } from '@pinia/colada'
+
+useQuery({
+  key: ['restaurants', { search: true }],
+  query: () => findRestaurants(),
+  // could also be `!import.meta.env.SSR` in Vite environments
+  enabled: typeof document !== 'undefined',
+})
+```
+
+This will prevent the query from being executed and awaited on the server side.
+
 ## Error Handling with SSR
 
 Using devalue allows you to handle errors too. If you want to SSR errors, you will need to also handle their serialization
@@ -41,8 +57,7 @@ import devalue from 'devalue'
 import { MyError } from '~/errors'
 
 const stringified = devalue.stringify(error, {
-  MyError: (data: unknown) =>
-    data instanceof MyError && [data.message, data.customData],
+  MyError: (data: unknown) => data instanceof MyError && [data.message, data.customData],
 })
 
 const revivedData = devalue.parse(stringified, {
