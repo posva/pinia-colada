@@ -444,7 +444,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     return Promise.all(
       getEntries(filters).map((entry) => {
         invalidate(entry)
-        return entry.active && fetch(entry)
+        return entry.active && entry.options?.enabled && fetch(entry)
       }),
     )
   })
