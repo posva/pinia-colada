@@ -120,7 +120,7 @@
     "@antfu/eslint-config": "^3.12.0",
     "@pinia/colada": "workspace:*",
     "@posva/prompts": "^2.4.4",
-    "@shikijs/vitepress-twoslash": "^2.2.0",
+    "@shikijs/vitepress-twoslash": "^3.1.0",
     "@size-limit/esbuild-why": "^11.1.6",
     "@size-limit/preset-small-lib": "^11.1.6",
     "@types/node": "^22.12.0",
