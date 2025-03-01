@@ -1010,6 +1010,19 @@ describe('useQuery', () => {
     expect(query).not.toHaveBeenCalled()
   })
 
+  it('should not invalidate query when enabled function returns false', async () => {
+    const { query } = mountSimple({ enabled: () => false })
+    const queryCache = useQueryCache()
+
+    await flushPromises()
+    expect(query).not.toHaveBeenCalled()
+
+    queryCache.invalidateQueries({ key: ['key'] })
+    await flushPromises()
+
+    expect(query).not.toHaveBeenCalled()
+  })
+
   it('should not create entries while unmounting', async () => {
     const NestedComp = defineComponent({
       props: {
