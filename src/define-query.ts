@@ -1,9 +1,5 @@
-import {
-  type EffectScope,
-  getCurrentInstance,
-  getCurrentScope,
-  onScopeDispose,
-} from 'vue'
+import { getCurrentInstance, getCurrentScope, onScopeDispose } from 'vue'
+import type { EffectScope } from 'vue'
 import type { UseQueryOptions } from './query-options'
 import { useQueryCache } from './query-store'
 import type { ErrorDefault } from './types-extension'
@@ -20,8 +16,8 @@ let currentDefineQueryEffect: undefined | EffectScope
  * Options to define a query with `defineQuery()`. Similar to {@link UseQueryOptions} but disallows reactive values as
  * `defineQuery()` is used outside of an effect scope.
  */
-export interface DefineQueryOptions<TResult = unknown, TError = ErrorDefault> extends _RemoveMaybeRef<UseQueryOptions<TResult, TError>> {
-}
+export interface DefineQueryOptions<TResult = unknown, TError = ErrorDefault>
+  extends _RemoveMaybeRef<UseQueryOptions<TResult, TError>> {}
 
 // NOTE: no setter because it cannot be set outside of defineQuery()
 
@@ -72,20 +68,15 @@ export function defineQuery<TResult, TError = ErrorDefault>(
  * ```
  */
 export function defineQuery<T>(setup: () => T): () => T
-export function defineQuery(
-  optionsOrSetup: DefineQueryOptions | (() => unknown),
-): () => unknown {
+export function defineQuery(optionsOrSetup: DefineQueryOptions | (() => unknown)): () => unknown {
   const setupFn
-    = typeof optionsOrSetup === 'function'
-      ? optionsOrSetup
-      : () => useQuery(optionsOrSetup)
+    = typeof optionsOrSetup === 'function' ? optionsOrSetup : () => useQuery(optionsOrSetup)
 
   return () => {
     const queryCache = useQueryCache()
     // preserve any current effect to account for nested usage of these functions
     const previousEffect = currentDefineQueryEffect
-    const currentScope
-      = getCurrentInstance() || (currentDefineQueryEffect = getCurrentScope())
+    const currentScope = getCurrentInstance() || (currentDefineQueryEffect = getCurrentScope())
 
     const [entries, ret] = queryCache.ensureDefinedQuery(setupFn)
     // NOTE: most of the time this should be set, so maybe we should show a dev warning

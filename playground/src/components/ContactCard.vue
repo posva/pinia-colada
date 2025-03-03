@@ -7,9 +7,7 @@ const emit = defineEmits<{
   (e: 'update:contact', newContact: Contact): void
 }>()
 
-const fullName = computed(
-  () => `${props.contact.firstName} ${props.contact.lastName}`,
-)
+const fullName = computed(() => `${props.contact.firstName} ${props.contact.lastName}`)
 
 const isEditing = ref(false)
 const copy = ref<Contact | null>(null)
@@ -38,47 +36,22 @@ function randomizeAvatar() {
 <template>
   <div class="space-y-6">
     <div v-if="isEditing && copy" class="flex flex-col items-center mx-auto">
-      <img
-        :key="copy.photoURL"
-        class="w-40 h-40 mx-auto rounded-full"
-        :src="copy.photoURL"
-      >
+      <img :key="copy.photoURL" class="w-40 h-40 mx-auto rounded-full" :src="copy.photoURL">
       <button class="mt-1" @click="randomizeAvatar">
         Randomize photo
       </button>
     </div>
-    <img
-      v-else
-      class="w-40 h-40 mx-auto rounded-full"
-      :src="contact.photoURL"
-    >
+    <img v-else class="w-40 h-40 mx-auto rounded-full" :src="contact.photoURL">
 
     <div class="space-y-2">
       <div class="space-y-1 font-medium leading-6 text-center">
-        <form
-          v-if="copy"
-          class="flex flex-col max-w-md mx-auto"
-          @submit.prevent="saveEdits()"
-        >
+        <form v-if="copy" class="flex flex-col max-w-md mx-auto" @submit.prevent="saveEdits()">
           <label for="contact-edit-first-name"> First Name </label>
-          <input
-            id="contact-edit-first-name"
-            v-model="copy.firstName"
-            type="text"
-          >
+          <input id="contact-edit-first-name" v-model="copy.firstName" type="text">
           <label for="contact-edit-last-name"> Last Name </label>
-          <input
-            id="contact-edit-last-name"
-            v-model="copy.lastName"
-            type="text"
-          >
+          <input id="contact-edit-last-name" v-model="copy.lastName" type="text">
           <label for="contact-edit-bio"> Bio: </label>
-          <textarea
-            id="contact-edit-bio"
-            v-model="copy.bio"
-            cols="30"
-            rows="5"
-          />
+          <textarea id="contact-edit-bio" v-model="copy.bio" cols="30" rows="5" />
 
           <hr>
 

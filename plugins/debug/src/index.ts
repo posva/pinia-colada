@@ -37,10 +37,7 @@ export function PiniaColadaDebugPlugin(): PiniaColadaPlugin {
       if (name === 'fetch' || name === 'refresh') {
         const [entry] = args
         await tick()
-        if (
-          entry.asyncStatus.value === 'loading'
-          || entry.state.value.status === 'pending'
-        ) {
+        if (entry.asyncStatus.value === 'loading' || entry.state.value.status === 'pending') {
           debugData.addRefetchingEntry(entry)
           showMessage('🔄', 'refetch', `[${entry.key.join(', ')}]`, entry)
 
@@ -56,22 +53,12 @@ export function PiniaColadaDebugPlugin(): PiniaColadaPlugin {
               )
             } else {
               debugData.totalSuccess++
-              showMessage(
-                '✅',
-                'refetch',
-                `[${entry.key.join(', ')}]`,
-                entry.state.value.data,
-              )
+              showMessage('✅', 'refetch', `[${entry.key.join(', ')}]`, entry.state.value.data)
             }
           })
 
           onError((error) => {
-            showMessage(
-              'error',
-              'Unexpected Error',
-              `[${entry.key.join(', ')}]`,
-              error,
-            )
+            showMessage('error', 'Unexpected Error', `[${entry.key.join(', ')}]`, error)
           })
         }
       } else if (name === 'setQueryData') {
@@ -85,13 +72,7 @@ export function PiniaColadaDebugPlugin(): PiniaColadaPlugin {
   }
 }
 
-export type LogeMessageType =
-  | 'debug'
-  | 'info'
-  | 'warn'
-  | 'error'
-  | 'trace'
-  | 'log'
+export type LogeMessageType = 'debug' | 'info' | 'warn' | 'error' | 'trace' | 'log'
 
 const LOG_MESSAGES_COLOR: Partial<Record<string, string>> = {
   info: 'background: #bfdbfe; color: #1e1e1e',
@@ -146,10 +127,7 @@ function applyTextStyles(text: string) {
       })
       return `%c\`${text}\`%c`
     })
-  return [
-    newText,
-    ...styles.sort((a, b) => a.pos - b.pos).flatMap((s) => s.style),
-  ]
+  return [newText, ...styles.sort((a, b) => a.pos - b.pos).flatMap((s) => s.style)]
 }
 
 /**
@@ -167,11 +145,7 @@ export function showMessage(
   ...messages: any[]
 ) {
   // only keep errors and warns in tests
-  if (
-    process.env.NODE_ENV !== 'development'
-    && type !== 'error'
-    && type !== 'warn'
-  ) {
+  if (process.env.NODE_ENV !== 'development' && type !== 'error' && type !== 'warn') {
     return
   }
 
@@ -223,8 +197,7 @@ export function showMessage(
       if (m === '```') {
         activeStyle = ''
       } else if (m.startsWith('```')) {
-        activeStyle
-          += 'background-color: black; color: palegreen; padding: 0.5em; width: 100%;'
+        activeStyle += 'background-color: black; color: palegreen; padding: 0.5em; width: 100%;'
       }
     }
   })

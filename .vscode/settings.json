@@ -1,10 +1,5 @@
 {
-  "cSpell.words": [
-    "Colada",
-    "pinia",
-    "Pinia",
-    "twoslash"
-  ],
+  "cSpell.words": ["Colada", "pinia", "Pinia", "twoslash"],
   // Enable the ESlint flat config support
   "eslint.experimental.useFlatConfig": true,
   // Disable the default formatter, use eslint instead

@@ -30,9 +30,7 @@ const cart = useBasket()
       <div class="flex justify-between">
         <div>
           <h3>
-            <a class="font-medium text-gray-700 hover:text-gray-800">{{
-              product.name
-            }}</a>
+            <a class="font-medium text-gray-700 hover:text-gray-800">{{ product.name }}</a>
           </h3>
           <div class="text-sm text-gray-500">
             {{ product.color }}
@@ -51,10 +49,7 @@ const cart = useBasket()
             :value="0"
             class="bg-transparent max-w-full rounded-md border border-transparent p-1.5 text-left text-base font-medium leading-5 text-gray-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
             @change="
-              cart.setItemQuantity(
-                product.id,
-                Number(($event.target as HTMLInputElement).value),
-              )
+              cart.setItemQuantity(product.id, Number(($event.target as HTMLInputElement).value))
             "
           >
             <option value="0">

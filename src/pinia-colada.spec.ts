@@ -34,10 +34,7 @@ describe('PiniaColada', () => {
     const pinia = createPinia()
     const wrapper = mount(MyComponent, {
       global: {
-        plugins: [
-          pinia,
-          [PiniaColada, options],
-        ],
+        plugins: [pinia, [PiniaColada, options]],
       },
     })
 

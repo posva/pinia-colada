@@ -54,12 +54,15 @@ describe('Delay Loading plugin', () => {
       return 'ok'
     })
 
-    const { wrapper } = factory({
-      plugins: [PiniaColadaDelay({})],
-    }, {
-      key: ['key'],
-      query,
-    })
+    const { wrapper } = factory(
+      {
+        plugins: [PiniaColadaDelay({})],
+      },
+      {
+        key: ['key'],
+        query,
+      },
+    )
 
     expect(wrapper.vm.asyncStatus).toBe('idle')
 
@@ -80,13 +83,16 @@ describe('Delay Loading plugin', () => {
       return 'ok'
     })
 
-    const { wrapper } = factory({
-      plugins: [PiniaColadaDelay()],
-    }, {
-      key: ['key'],
-      query,
-      delay: false,
-    })
+    const { wrapper } = factory(
+      {
+        plugins: [PiniaColadaDelay()],
+      },
+      {
+        key: ['key'],
+        query,
+        delay: false,
+      },
+    )
 
     expect(wrapper.vm.asyncStatus).toBe('loading')
 

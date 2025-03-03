@@ -15,8 +15,7 @@ const router = useRouter()
         v-for="route of router
           .getRoutes()
           .filter((r) => r.path.startsWith('/hmr-tests'))
-          .sort((a, b) => a.path.length - b.path.length)
-        "
+          .sort((a, b) => a.path.length - b.path.length)"
         :key="route.name || route.path"
       >
         <RouterLink v-slot="{ href }" :to="route.path">

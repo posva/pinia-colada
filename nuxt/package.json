@@ -38,15 +38,15 @@
     "@pinia/colada": "workspace:^"
   },
   "devDependencies": {
-    "@nuxt/devtools": "^1.6.1",
-    "@nuxt/eslint-config": "^1.0.0",
+    "@nuxt/devtools": "^2.1.1",
+    "@nuxt/eslint-config": "^1.1.0",
     "@nuxt/module-builder": "^0.8.4",
     "@nuxt/schema": "^3.15.4",
     "@nuxt/test-utils": "^3.17.1",
     "@pinia/colada": "workspace:*",
     "@pinia/nuxt": "^0.10.1",
     "nuxt": "^3.15.4",
-    "typescript": "~5.6.0",
+    "typescript": "~5.8.2",
     "vue-tsc": "^2.2.8"
   }
 }

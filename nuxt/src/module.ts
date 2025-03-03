@@ -1,12 +1,6 @@
 import { existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import {
-  addImports,
-  addPlugin,
-  addTemplate,
-  createResolver,
-  defineNuxtModule,
-} from '@nuxt/kit'
+import { addImports, addPlugin, addTemplate, createResolver, defineNuxtModule } from '@nuxt/kit'
 
 export default defineNuxtModule<never>({
   meta: {
@@ -41,10 +35,7 @@ export default defineNuxtModule<never>({
     addTemplate({
       filename: 'colada.options.mjs',
       getContents() {
-        if (
-          !existsSync(coladaOptionsPath + '.ts')
-          && !existsSync(coladaOptionsPath + '.js')
-        ) {
+        if (!existsSync(coladaOptionsPath + '.ts') && !existsSync(coladaOptionsPath + '.js')) {
           return 'export default {}'
         }
 

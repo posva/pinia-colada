@@ -189,8 +189,7 @@ describe('useMutation type inference', () => {
             // @ts-expect-error: foo doesn't exist
             foo: _foo,
           },
-        ) {
-        },
+        ) {},
         onError(
           _d,
           _v,
@@ -198,8 +197,7 @@ describe('useMutation type inference', () => {
             // @ts-expect-error: foo doesn't exist
             foo: _foo,
           },
-        ) {
-        },
+        ) {},
         onSettled(
           _d,
           _e,
@@ -208,8 +206,7 @@ describe('useMutation type inference', () => {
             // @ts-expect-error: foo doesn't exist
             foo: _foo,
           },
-        ) {
-        },
+        ) {},
       })
     })
   })

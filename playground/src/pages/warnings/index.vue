@@ -14,15 +14,11 @@ const contactId = computed(() => {
 
 <template>
   <nav>
-    <RouterLink
-      :to="{ name: '/warnings/duped-[contactId]', params: { contactId } }"
-    >
+    <RouterLink :to="{ name: '/warnings/duped-[contactId]', params: { contactId } }">
       Duplicated usage within component
     </RouterLink>
     |
-    <RouterLink
-      :to="{ name: '/warnings/usage-one-[contactId]', params: { contactId } }"
-    >
+    <RouterLink :to="{ name: '/warnings/usage-one-[contactId]', params: { contactId } }">
       Duplicated usage across components
     </RouterLink>
   </nav>

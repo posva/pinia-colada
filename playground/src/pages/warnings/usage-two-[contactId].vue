@@ -2,23 +2,23 @@
 import { useRoute } from 'vue-router/auto'
 import { useMutation, useQuery } from '@pinia/colada'
 import ContactCard from '@/components/ContactCard.vue'
-import {
-  type Contact,
-  updateContact as _updateContact,
-  getContactById,
-} from '@/api/contacts'
+import { updateContact as _updateContact, getContactById } from '@/api/contacts'
+import type { Contact } from '@/api/contacts'
 
 const route = useRoute('/warnings/usage-two-[contactId]')
 
-const { data: contact, error, asyncStatus } = useQuery({
+const {
+  data: contact,
+  error,
+  asyncStatus,
+} = useQuery({
   key: () => ['contacts', route.params.contactId],
   query: ({ signal }) => getContactById(route.params.contactId, { signal }),
 })
 
 const { mutate: updateContact } = useMutation({
   invalidateKeys: ({ id }) => [['contacts-search'], ['contacts', id]],
-  mutation: (contact: Partial<Contact> & { id: number }) =>
-    _updateContact(contact),
+  mutation: (contact: Partial<Contact> & { id: number }) => _updateContact(contact),
 })
 </script>
 

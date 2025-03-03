@@ -1,10 +1,7 @@
 import { useMutationCache } from './mutation-store'
 import type { ErrorDefault } from './types-extension'
-import {
-  type UseMutationOptions,
-  type UseMutationReturn,
-  useMutation,
-} from './use-mutation'
+import { useMutation } from './use-mutation'
+import type { UseMutationOptions, UseMutationReturn } from './use-mutation'
 import type { _EmptyObject } from './utils'
 
 /**
@@ -57,9 +54,8 @@ export function defineMutation<T>(setup: () => T): () => T
 export function defineMutation(
   optionsOrSetup: UseMutationOptions | (() => unknown),
 ): () => unknown {
-  const setupFn = typeof optionsOrSetup === 'function'
-    ? optionsOrSetup
-    : () => useMutation(optionsOrSetup)
+  const setupFn
+    = typeof optionsOrSetup === 'function' ? optionsOrSetup : () => useMutation(optionsOrSetup)
   return () => {
     // TODO: provide a way to clean them up `mutationCache.clear()`
     const mutationCache = useMutationCache()

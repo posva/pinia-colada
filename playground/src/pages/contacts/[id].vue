@@ -2,7 +2,8 @@
 import { useRoute } from 'vue-router/auto'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import ContactCard from '@/components/ContactCard.vue'
-import { type Contact, updateContact as _updateContact, getContactById } from '@/api/contacts'
+import { updateContact as _updateContact, getContactById } from '@/api/contacts'
+import type { Contact } from '@/api/contacts'
 
 const route = useRoute('/contacts/[id]')
 const queryCache = useQueryCache()

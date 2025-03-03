@@ -14,14 +14,9 @@ const { data: items } = useQuery({
 
 const products = ref([])
 
-const itemsList = computed(() =>
-  items.value?.filter((item) => cart.itemCount[item.id] > 0),
-)
+const itemsList = computed(() => items.value?.filter((item) => cart.itemCount[item.id] > 0))
 const totalPrice = computed(() =>
-  itemsList.value?.reduce(
-    (acc, product) => acc + product.price * cart.itemCount[product.id],
-    0,
-  ),
+  itemsList.value?.reduce((acc, product) => acc + product.price * cart.itemCount[product.id], 0),
 )
 </script>
 
@@ -39,9 +34,7 @@ const totalPrice = computed(() =>
       <template v-for="product in itemsList" :key="product.id">
         <BasketDetails :product="product" />
       </template>
-      <div
-        class="flex items-center justify-between pt-4 border-t border-gray-200"
-      >
+      <div class="flex items-center justify-between pt-4 border-t border-gray-200">
         <dt class="text-base font-medium text-gray-900">
           Order total
         </dt>

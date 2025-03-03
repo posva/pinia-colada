@@ -4,11 +4,8 @@ import { StarIcon } from '@heroicons/vue/20/solid'
 import { HeartIcon } from '@heroicons/vue/24/outline'
 import { useMutation, useQuery } from '@pinia/colada'
 import { useRoute } from 'vue-router/auto'
-import {
-  type ProductListItem,
-  changeProductAvailability,
-  getProductById,
-} from '@/api/products'
+import { changeProductAvailability, getProductById } from '@/api/products'
+import type { ProductListItem } from '@/api/products'
 import { delay } from '@/api/utils'
 
 const route = useRoute('/ecom/item/[id]')
@@ -78,14 +75,9 @@ const { mutate: bookProduct } = useMutation({
 
 <template>
   <div v-if="item" class="bg-white">
-    <div
-      class="max-w-2xl px-4 py-16 mx-auto sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8"
-    >
+    <div class="max-w-2xl px-4 py-16 mx-auto sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
       <div class="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-8">
-        <img
-          :src="item?.imageSrc"
-          class="object-cover object-center w-full h-full sm:rounded-lg"
-        >
+        <img :src="item?.imageSrc" class="object-cover object-center w-full h-full sm:rounded-lg">
 
         <!-- Product info -->
         <div class="px-4 mt-10 sm:mt-16 sm:px-0 lg:mt-0">
@@ -113,9 +105,7 @@ const { mutate: bookProduct } = useMutation({
                   v-for="rating in [0, 1, 2, 3, 4]"
                   :key="rating"
                   class="flex-shrink-0 w-5 h-5"
-                  :class="[
-                    item?.rating > rating ? 'text-indigo-500' : 'text-gray-300',
-                  ]"
+                  :class="[item?.rating > rating ? 'text-indigo-500' : 'text-gray-300']"
                   aria-hidden="true"
                 />
               </div>
@@ -130,10 +120,7 @@ const { mutate: bookProduct } = useMutation({
               Description
             </h3>
 
-            <div
-              class="space-y-6 text-base text-gray-700"
-              v-html="item?.description"
-            />
+            <div class="space-y-6 text-base text-gray-700" v-html="item?.description" />
           </div>
 
           <div>Availability: {{ itemAvailability }}</div>

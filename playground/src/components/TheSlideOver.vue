@@ -1,11 +1,5 @@
 <script setup lang="ts">
-import {
-  Dialog,
-  DialogPanel,
-  DialogTitle,
-  TransitionChild,
-  TransitionRoot,
-} from '@headlessui/vue'
+import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import { XMarkIcon } from '@heroicons/vue/24/outline'
 
 const emit = defineEmits(['close'])
@@ -19,9 +13,7 @@ const open = defineModel<boolean>('open', { default: false })
 
       <div class="fixed inset-0 overflow-hidden">
         <div class="absolute inset-0 overflow-hidden">
-          <div
-            class="fixed inset-y-0 right-0 flex max-w-full pl-10 pointer-events-none"
-          >
+          <div class="fixed inset-y-0 right-0 flex max-w-full pl-10 pointer-events-none">
             <TransitionChild
               as="template"
               enter="transform transition ease-in-out duration-500 sm:duration-700"
@@ -32,14 +24,10 @@ const open = defineModel<boolean>('open', { default: false })
               leave-to="translate-x-full"
             >
               <DialogPanel class="w-screen max-w-md pointer-events-auto">
-                <div
-                  class="flex flex-col h-full py-6 overflow-y-scroll bg-white shadow-xl"
-                >
+                <div class="flex flex-col h-full py-6 overflow-y-scroll bg-white shadow-xl">
                   <div class="px-4 sm:px-6">
                     <div class="flex items-start justify-between">
-                      <DialogTitle
-                        class="text-base font-semibold leading-6 text-gray-900"
-                      >
+                      <DialogTitle class="text-base font-semibold leading-6 text-gray-900">
                         Basket
                       </DialogTitle>
                       <div class="flex items-center ml-3 h-7">

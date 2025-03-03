@@ -4,14 +4,8 @@
     "baseUrl": ".",
     "rootDir": ".",
     "paths": {
-      "@pinia/colada": [
-        "./src/index.ts"
-      ]
+      "@pinia/colada": ["./src/index.ts"]
     }
   },
-  "include": [
-    "src/**/*",
-    "plugins/*/src/**/*",
-    "test/**/*"
-  ]
+  "include": ["src/**/*", "plugins/*/src/**/*", "test/**/*"]
 }

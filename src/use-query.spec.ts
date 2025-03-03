@@ -4,7 +4,8 @@ import type { UseQueryOptions } from './query-options'
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { computed, createApp, defineComponent, nextTick, ref, type PropType } from 'vue'
+import { computed, createApp, defineComponent, nextTick, ref } from 'vue'
+import type { PropType } from 'vue'
 import { mockWarn } from '../test/mock-warn'
 import { createSerializedTreeNodeEntry, delay, isSpy, promiseWithResolvers } from '../test/utils'
 import { PiniaColada } from './pinia-colada'
@@ -549,18 +550,30 @@ describe('useQuery', () => {
       expect(w1.vm.data).toBe(24)
 
       const cache = useQueryCache(pinia)
-      expect(cache.getEntries({
-        key: ['id'],
-      }).at(0)?.state.value).toEqual({
+      expect(
+        cache
+          .getEntries({
+            key: ['id'],
+          })
+          .at(0)
+?.state
+.value,
+      ).toEqual({
         status: 'pending',
         data: undefined,
         error: null,
       })
       expect(cache.getQueryData(['id'])).toBe(undefined)
       await flushPromises()
-      expect(cache.getEntries({
-        key: ['id'],
-      }).at(0)?.state.value).toEqual({
+      expect(
+        cache
+          .getEntries({
+            key: ['id'],
+          })
+          .at(0)
+?.state
+.value,
+      ).toEqual({
         status: 'success',
         data: 42,
         error: null,
@@ -649,10 +662,7 @@ describe('useQuery', () => {
         {
           global: {
             ...mountOptions,
-            plugins: [
-              ...(mountOptions?.plugins || [createPinia()]),
-              PiniaColada,
-            ],
+            plugins: [...(mountOptions?.plugins || [createPinia()]), PiniaColada],
           },
         },
       )
@@ -723,10 +733,7 @@ describe('useQuery', () => {
       expect(query).toHaveBeenCalledTimes(1)
       vi.advanceTimersByTime(100)
 
-      mountDynamicKey(
-        { initialId: 0, staleTime: 10, query },
-        { plugins: [pinia] },
-      )
+      mountDynamicKey({ initialId: 0, staleTime: 10, query }, { plugins: [pinia] })
       await flushPromises()
       // called because data is stale
       expect(query).toHaveBeenCalledTimes(2)
@@ -1113,18 +1120,9 @@ describe('useQuery', () => {
     it('order in object keys does not matter', async () => {
       const pinia = createPinia()
       const query = vi.fn().mockResolvedValue(42)
-      mountSimple(
-        { key: ['todos', { id: 5, a: true, b: 'hello' }], query },
-        { plugins: [pinia] },
-      )
-      mountSimple(
-        { key: ['todos', { a: true, id: 5, b: 'hello' }], query },
-        { plugins: [pinia] },
-      )
-      mountSimple(
-        { key: ['todos', { id: 5, a: true, b: 'hello' }], query },
-        { plugins: [pinia] },
-      )
+      mountSimple({ key: ['todos', { id: 5, a: true, b: 'hello' }], query }, { plugins: [pinia] })
+      mountSimple({ key: ['todos', { a: true, id: 5, b: 'hello' }], query }, { plugins: [pinia] })
+      mountSimple({ key: ['todos', { id: 5, a: true, b: 'hello' }], query }, { plugins: [pinia] })
       await flushPromises()
 
       const cacheClient = useQueryCache()

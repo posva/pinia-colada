@@ -1,4 +1,5 @@
-import { type InjectionKey, type MaybeRefOrGetter, inject } from 'vue'
+import { inject } from 'vue'
+import type { InjectionKey, MaybeRefOrGetter } from 'vue'
 import type { EntryKey } from './entry-options'
 import type { ErrorDefault } from './types-extension'
 

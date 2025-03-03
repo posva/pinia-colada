@@ -99,16 +99,10 @@ describe('useMutation', () => {
     expect(onMutate).not.toHaveBeenCalled()
     wrapper.vm.mutate({ a: 24, b: 42 })
     expect(onMutate).toHaveBeenCalledTimes(1)
-    expect(onMutate).toHaveBeenLastCalledWith(
-      { a: 24, b: 42 },
-      expect.objectContaining({}),
-    )
+    expect(onMutate).toHaveBeenLastCalledWith({ a: 24, b: 42 }, expect.objectContaining({}))
     wrapper.vm.mutateAsync({ a: 0, b: 1 })
     expect(onMutate).toHaveBeenCalledTimes(2)
-    expect(onMutate).toHaveBeenLastCalledWith(
-      { a: 0, b: 1 },
-      expect.objectContaining({}),
-    )
+    expect(onMutate).toHaveBeenLastCalledWith({ a: 0, b: 1 }, expect.objectContaining({}))
   })
 
   it('invokes the "onError" hook if mutation throws', async () => {
@@ -123,11 +117,7 @@ describe('useMutation', () => {
     expect(onError).not.toHaveBeenCalled()
     wrapper.vm.mutate(24)
     await flushPromises()
-    expect(onError).toHaveBeenCalledWith(
-      new Error('24'),
-      24,
-      expect.objectContaining({}),
-    )
+    expect(onError).toHaveBeenCalledWith(new Error('24'), 24, expect.objectContaining({}))
   })
 
   it('invokes the "onError" hook if onMutate throws', async () => {
@@ -200,11 +190,7 @@ describe('useMutation', () => {
 
     wrapper.vm.mutate()
     await flushPromises()
-    expect(onSuccess).toHaveBeenCalledWith(
-      42,
-      undefined,
-      expect.objectContaining({}),
-    )
+    expect(onSuccess).toHaveBeenCalledWith(42, undefined, expect.objectContaining({}))
   })
 
   it('skips setting the data if "onSuccess" throws', async () => {
@@ -248,12 +234,7 @@ describe('useMutation', () => {
 
       wrapper.vm.mutate()
       await flushPromises()
-      expect(onSettled).toHaveBeenCalledWith(
-        42,
-        undefined,
-        undefined,
-        expect.objectContaining({}),
-      )
+      expect(onSettled).toHaveBeenCalledWith(42, undefined, undefined, expect.objectContaining({}))
     })
 
     it('on error', async () => {

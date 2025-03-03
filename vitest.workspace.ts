@@ -6,7 +6,9 @@ import fs from 'node:fs'
 const pluginsProjects = globbySync('./plugins/*', { onlyDirectories: true })
   .map((dir) => {
     try {
-      const pkg = JSON.parse(fs.readFileSync(fileURLToPath(new URL(`${dir}/package.json`, import.meta.url)), 'utf-8'))
+      const pkg = JSON.parse(
+        fs.readFileSync(fileURLToPath(new URL(`${dir}/package.json`, import.meta.url)), 'utf-8'),
+      )
       return {
         name: pkg.name,
         root: dir,

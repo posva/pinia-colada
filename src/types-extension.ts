@@ -21,7 +21,6 @@ export interface TypesConfig {
  * The default error type used.
  * @internal
  */
-export type ErrorDefault =
-  TypesConfig extends Record<'defaultError', infer E> ? E : Error
+export type ErrorDefault = TypesConfig extends Record<'defaultError', infer E> ? E : Error
 
 // TODO: meta to add properties?

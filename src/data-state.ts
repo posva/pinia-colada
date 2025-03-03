@@ -27,8 +27,7 @@ export interface _DataState_Base<TResult, TError> {
   status: DataStateStatus
 }
 
-export interface DataState_Success<TResult>
-  extends _DataState_Base<TResult, null> {
+export interface DataState_Success<TResult> extends _DataState_Base<TResult, null> {
   status: 'success'
 }
 

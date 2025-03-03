@@ -32,12 +32,7 @@ const debugData = useDebugData()
     <div class="gap-4 contacts-search md:flex">
       <div>
         <form class="space-x-2" @submit.prevent>
-          <input
-            v-model="searchText"
-            autofocus
-            type="search"
-            placeholder="Eduardo"
-          >
+          <input v-model="searchText" autofocus type="search" placeholder="Eduardo">
           <!-- NOTE: ensure no fetch is done on client while hydrating or this will cause
            a Hydration mismatch -->
           <div v-if="asyncStatus === 'loading'">

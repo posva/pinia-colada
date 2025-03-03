@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { factsApi, type CatFacts } from '@/api/cat-facts'
+import { factsApi } from '@/api/cat-facts'
+import type { CatFacts } from '@/api/cat-facts'
 import { useInfiniteQuery } from '@pinia/colada'
 import { onWatcherCleanup, useTemplateRef, watch } from 'vue'
 

@@ -83,7 +83,7 @@ export class TreeMapNode<T = unknown> {
   /**
    * Iterates over the node values if not null or undefined and all its children. Goes in depth first order. Allows a `for (const of node)` loop.
    */
-  *[Symbol.iterator](): IterableIterator<T> {
+  * [Symbol.iterator](): IterableIterator<T> {
     if (this.value != null) {
       yield this.value
     }

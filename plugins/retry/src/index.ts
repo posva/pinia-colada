@@ -40,9 +40,7 @@ const RETRY_OPTIONS_DEFAULTS = {
     return time
   },
   retry: (count) => {
-    console.log(
-      `🔄 Retrying ${'🟨'.repeat(count + 1)}${'⬜️'.repeat(2 - count)}`,
-    )
+    console.log(`🔄 Retrying ${'🟨'.repeat(count + 1)}${'⬜️'.repeat(2 - count)}`)
     return count < 2
   },
 } satisfies Required<RetryOptions>
@@ -110,13 +108,10 @@ export function PiniaColadaRetry(
           }
 
           const shouldRetry
-            = typeof retry === 'number'
-              ? retry > entry.retryCount
-              : retry(entry.retryCount, error)
+            = typeof retry === 'number' ? retry > entry.retryCount : retry(entry.retryCount, error)
 
           if (shouldRetry) {
-            const delayTime
-              = typeof delay === 'function' ? delay(entry.retryCount) : delay
+            const delayTime = typeof delay === 'function' ? delay(entry.retryCount) : delay
             entry.timeoutId = setTimeout(() => {
               // NOTE: we could add some default error handler
               isInternalCall = true

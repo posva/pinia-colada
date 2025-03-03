@@ -7,7 +7,8 @@
  */
 
 import type { PiniaColadaPlugin, UseQueryEntry, UseQueryOptions } from '@pinia/colada'
-import { toValue, type MaybeRefOrGetter } from 'vue'
+import { toValue } from 'vue'
+import type { MaybeRefOrGetter } from 'vue'
 
 /**
  * Options for the auto-refetch plugin.

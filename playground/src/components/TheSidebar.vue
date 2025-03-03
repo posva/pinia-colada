@@ -49,9 +49,7 @@ const navigation = [
                 >
                   <ChevronRightIcon
                     class="h-5 w-5 shrink-0"
-                    :class="[
-                      open ? 'rotate-90 text-gray-500' : 'text-gray-400',
-                    ]"
+                    :class="[open ? 'rotate-90 text-gray-500' : 'text-gray-400']"
                     aria-hidden="true"
                   />
                   {{ item.name }}
@@ -62,9 +60,7 @@ const navigation = [
                       as="a"
                       :href="subItem.href"
                       class="block rounded-md py-2 pr-2 pl-9 text-sm leading-6 text-gray-700"
-                      :class="[
-                        subItem.current ? 'bg-gray-50' : 'hover:bg-gray-50',
-                      ]"
+                      :class="[subItem.current ? 'bg-gray-50' : 'hover:bg-gray-50']"
                     >
                       {{ subItem.name }}
                     </DisclosureButton>

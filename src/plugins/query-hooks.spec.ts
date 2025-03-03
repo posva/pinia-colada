@@ -19,10 +19,7 @@ describe('Query Hooks plugin', () => {
 
   enableAutoUnmount(afterEach)
 
-  function factory(
-    options: PiniaColadaOptions,
-    queryOptions?: UseQueryOptions,
-  ) {
+  function factory(options: PiniaColadaOptions, queryOptions?: UseQueryOptions) {
     const pinia = createPinia()
     const wrapper = mount(
       defineComponent({
@@ -74,11 +71,7 @@ describe('Query Hooks plugin', () => {
       status: 'success',
       error: null,
     })
-    expect(onSettled).toHaveBeenCalledWith(
-      42,
-      null,
-      expect.objectContaining({}),
-    )
+    expect(onSettled).toHaveBeenCalledWith(42, null, expect.objectContaining({}))
     expect(onSettled.mock.calls[0][2]?.state?.value).toMatchObject({
       data: 42,
       status: 'success',
@@ -114,10 +107,7 @@ describe('Query Hooks plugin', () => {
     expect(onSettled).toHaveBeenCalledTimes(1)
     expect(onError).toHaveBeenCalledTimes(1)
 
-    expect(onError).toHaveBeenCalledWith(
-      new Error('oops'),
-      expect.objectContaining({}),
-    )
+    expect(onError).toHaveBeenCalledWith(new Error('oops'), expect.objectContaining({}))
     expect(onSettled).toHaveBeenCalledWith(
       undefined,
       new Error('oops'),

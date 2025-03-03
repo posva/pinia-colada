@@ -29,41 +29,39 @@ That's it! You can now use Pinia Colada in your Nuxt app ✨
 <details>
   <summary>Local development</summary>
 
-  ```bash
-  # Install dependencies
-  pnpm install
+```bash
+# Install dependencies
+pnpm install
 
-  # Generate type stubs
-  pnpm run dev:prepare
+# Generate type stubs
+pnpm run dev:prepare
 
-  # Develop with the playground
-  pnpm run dev
+# Develop with the playground
+pnpm run dev
 
-  # Build the playground
-  pnpm run dev:build
+# Build the playground
+pnpm run dev:build
 
-  # Run ESLint
-  pnpm run lint
+# Run ESLint
+pnpm run lint
 
-  # Run Vitest
-  pnpm run test
-  pnpm run test:watch
+# Run Vitest
+pnpm run test
+pnpm run test:watch
 
-  # Release new version
-  pnpm run release
-  ```
+# Release new version
+pnpm run release
+```
 
 </details>
 
 <!-- Badges -->
+
 [npm-version-src]: https://img.shields.io/npm/v/@pinia/colada-nuxt/latest.svg?style=flat&colorA=020420&colorB=00DC82
 [npm-version-href]: https://npmjs.com/package/@pinia/colada-nuxt
-
 [npm-downloads-src]: https://img.shields.io/npm/dm/@pinia/colada-nuxt.svg?style=flat&colorA=020420&colorB=00DC82
 [npm-downloads-href]: https://npmjs.com/package/@pinia/colada-nuxt
-
 [license-src]: https://img.shields.io/npm/l/@pinia/colada-nuxt.svg?style=flat&colorA=020420&colorB=00DC82
 [license-href]: https://npmjs.com/package/@pinia/colada-nuxt
-
 [nuxt-src]: https://img.shields.io/badge/Nuxt-020420?logo=nuxt.js
 [nuxt-href]: https://nuxt.com

@@ -1,5 +1,6 @@
 import { addCustomTab, setupDevtoolsPlugin } from '@vue/devtools-api'
-import { watch, type App } from 'vue'
+import { watch } from 'vue'
+import type { App } from 'vue'
 // import DevtoolsPanel from './DevtoolsPane.vue?raw'
 import type { Pinia } from 'pinia'
 import { useQueryCache } from '../query-store'

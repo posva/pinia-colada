@@ -2,3 +2,6 @@
 command = "pnpm run build && pnpm run docs:build"
 ignore = "./scripts/docs-check.sh"
 publish = "docs/.vitepress/dist"
+
+[context.production.environment]
+NODE_VERSION = "22"

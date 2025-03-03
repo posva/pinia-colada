@@ -7,18 +7,12 @@ import {
   markRaw,
   shallowRef,
   toValue,
-  type App,
-  type ComponentInternalInstance,
-  type EffectScope,
-  type ShallowRef,
 } from 'vue'
+import type { App, ComponentInternalInstance, EffectScope, ShallowRef } from 'vue'
 import type { AsyncStatus, DataState, DataState_Success, DataStateStatus } from './data-state'
 import type { EntryKey } from './entry-options'
-import {
-  useQueryOptions,
-  type UseQueryOptions,
-  type UseQueryOptionsWithDefaults,
-} from './query-options'
+import { useQueryOptions } from './query-options'
+import type { UseQueryOptions, UseQueryOptionsWithDefaults } from './query-options'
 import type {
   _UseQueryEntryNodeValueSerialized,
   EntryNodeKey,
@@ -294,11 +288,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
             // but that would force `create` call in `setQueryData` to pass an extra `undefined` argument
             data: initialData as TDataInitial,
             error,
-            status: error
-              ? 'error'
-              : initialData !== undefined
-                ? 'success'
-                : 'pending',
+            status: error ? 'error' : initialData !== undefined ? 'success' : 'pending',
           },
         )
         const asyncStatus = shallowRef<AsyncStatus>('idle')

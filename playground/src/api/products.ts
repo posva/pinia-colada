@@ -1,4 +1,5 @@
-import { type Options, mande } from 'mande'
+import { mande } from 'mande'
+import type { Options } from 'mande'
 
 export const products = mande('http://localhost:7777/products', {})
 
@@ -7,16 +8,14 @@ export const products = mande('http://localhost:7777/products', {})
  */
 export async function getAllProducts(options?: Options<'json'>) {
   // await new Promise(resolve => setTimeout(resolve, 2000))
-  return (await products.get<ProductListItem[]>('/', options)).map(
-    (product) => ({
-      id: product.id,
-      name: product.name,
-      color: product.color,
-      imagesrc: product.imageSrc,
-      price: product.price,
-      availability: product.availability,
-    }),
-  )
+  return (await products.get<ProductListItem[]>('/', options)).map((product) => ({
+    id: product.id,
+    name: product.name,
+    color: product.color,
+    imagesrc: product.imageSrc,
+    price: product.price,
+    availability: product.availability,
+  }))
 }
 
 /**

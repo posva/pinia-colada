@@ -1,4 +1,5 @@
-import { type Options, mande } from 'mande'
+import { mande } from 'mande'
+import type { Options } from 'mande'
 
 export const contacts = mande('http://localhost:7777/contacts', {})
 
@@ -31,10 +32,7 @@ export async function getAllContacts(options?: Options<'json'>) {
  *
  * @param id id of the contact
  */
-export async function getContactById(
-  id: string | number,
-  options?: Options<'json'>,
-) {
+export async function getContactById(id: string | number, options?: Options<'json'>) {
   if (Math.random() > 0.75) {
     throw new Error('Failed to fetch')
   }
@@ -47,10 +45,7 @@ export async function getContactById(
  * @param contact - The contact to create
  * @returns the created contact
  */
-export function createContact(
-  contact: Omit<ContactInfo, 'photoURL'>,
-  options?: Options<'json'>,
-) {
+export function createContact(contact: Omit<ContactInfo, 'photoURL'>, options?: Options<'json'>) {
   return contacts.post<Contact>(
     '/',
     {
@@ -82,9 +77,7 @@ export function updateContact(
  * @param contact - The contact to update
  * @returns the updated contact
  */
-export function patchContact(
-  contact: Partial<ContactInfo> & { id: number },
-): Promise<Contact> {
+export function patchContact(contact: Partial<ContactInfo> & { id: number }): Promise<Contact> {
   return contacts.patch<Contact, 'json'>(`/${contact.id}`, contact)
 }
 
@@ -110,16 +103,16 @@ export function searchContacts(
   } & Partial<Contact> = {},
   options?: Options<'response'>,
 ): Promise<{ total: number, results: Contact[] }> {
-  const query: Record<string, string | null | undefined | number | boolean>
-    = filterInfo as Record<string, string | boolean | number | null>
+  const query: Record<string, string | null | undefined | number | boolean> = filterInfo as Record<
+    string,
+    string | boolean | number | null
+  >
   if (searchText) query.q = searchText
   if (page) query._page = page
   if (perPage) query._limit = perPage
 
-  return contacts
-    .get('/', { query, responseAs: 'response', ...options })
-    .then(async (res) => ({
-      total: Number(res.headers.get('x-total-count')) || 0,
-      results: (await res.json()) as Contact[],
-    }))
+  return contacts.get('/', { query, responseAs: 'response', ...options }).then(async (res) => ({
+    total: Number(res.headers.get('x-total-count')) || 0,
+    results: (await res.json()) as Contact[],
+  }))
 }

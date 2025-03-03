@@ -38,7 +38,7 @@
     "json-server": "0.17.4",
     "npm-run-all2": "^7.0.2",
     "tailwindcss": "^4.0.9",
-    "typescript": "~5.6.0",
+    "typescript": "~5.8.2",
     "unplugin-vue-router": "^0.11.2",
     "vite": "^6.2.0",
     "vite-plugin-vue-devtools": "^7.7.2",

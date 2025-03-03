@@ -22,9 +22,7 @@ export function mockWarn() {
     toHaveBeenWarned(received: string | RegExp) {
       asserted.set(received.toString(), received)
       const passed = warn.mock.calls.some((args) =>
-        typeof received === 'string'
-          ? args[0].includes(received)
-          : received.test(args[0]),
+        typeof received === 'string' ? args[0].includes(received) : received.test(args[0]),
       )
       if (passed) {
         return {
@@ -45,9 +43,7 @@ export function mockWarn() {
       asserted.set(received.toString(), received)
       const lastCall = warn.mock.calls[warn.mock.calls.length - 1][0]
       const passed
-        = typeof received === 'string'
-          ? lastCall.includes(received)
-          : received.test(lastCall)
+        = typeof received === 'string' ? lastCall.includes(received) : received.test(lastCall)
       if (passed) {
         return {
           pass: true,
@@ -68,9 +64,7 @@ export function mockWarn() {
       let found = 0
       warn.mock.calls.forEach((args) => {
         const isFound
-          = typeof received === 'string'
-            ? args[0].includes(received)
-            : received.test(args[0])
+          = typeof received === 'string' ? args[0].includes(received) : received.test(args[0])
         if (isFound) {
           found++
         }
@@ -79,14 +73,12 @@ export function mockWarn() {
       if (found === n) {
         return {
           pass: true,
-          message: () =>
-            `expected "${received}" to have been warned ${n} times.`,
+          message: () => `expected "${received}" to have been warned ${n} times.`,
         }
       } else {
         return {
           pass: false,
-          message: () =>
-            `expected "${received}" to have been warned ${n} times but got ${found}.`,
+          message: () => `expected "${received}" to have been warned ${n} times but got ${found}.`,
         }
       }
     },

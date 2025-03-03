@@ -1,13 +1,15 @@
 <script lang="ts" setup>
 import { useRoute } from 'vue-router/auto'
 import { useQuery } from '@pinia/colada'
-import {
-  getContactById,
-} from '@/api/contacts'
+import { getContactById } from '@/api/contacts'
 
 const route = useRoute('/warnings/duped-[contactId]')
 
-const { data: contact, error, asyncStatus } = useQuery({
+const {
+  data: contact,
+  error,
+  asyncStatus,
+} = useQuery({
   key: () => ['contacts', route.params.contactId],
   query: ({ signal }) => getContactById(route.params.contactId, { signal }),
 })

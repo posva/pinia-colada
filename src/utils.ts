@@ -1,11 +1,5 @@
-import {
-  type MaybeRefOrGetter,
-  type Ref,
-  type ShallowRef,
-  computed,
-  getCurrentScope,
-  onScopeDispose,
-} from 'vue'
+import { computed, getCurrentScope, onScopeDispose } from 'vue'
+import type { MaybeRefOrGetter, Ref, ShallowRef } from 'vue'
 import type { EntryKey } from './entry-options'
 import type { EntryNodeKey } from './tree-map'
 import type { QueryCache } from './query-store'
@@ -58,9 +52,7 @@ export type _MaybeArray<T> = T | T[]
  * `defineMutation()`.
  * @internal
  */
-export type _MaybeFunction<T, Args extends any[] = []> =
-  | T
-  | ((...args: Args) => T)
+export type _MaybeFunction<T, Args extends any[] = []> = T | ((...args: Args) => T)
 
 /**
  * Transforms a value or a function that returns a value to a value.
@@ -71,9 +63,7 @@ export function toValueWithArgs<T, Args extends any[]>(
   valFn: T | ((...args: Args) => T),
   ...args: Args
 ): T {
-  return typeof valFn === 'function'
-    ? (valFn as (...args: Args) => T)(...args)
-    : valFn
+  return typeof valFn === 'function' ? (valFn as (...args: Args) => T)(...args) : valFn
 }
 
 /**
@@ -112,9 +102,7 @@ export interface _ObjectFlat {
  * @param obj - object to stringify
  */
 export function stringifyFlatObject(obj: _ObjectFlat | _JSONPrimitive): string {
-  return obj && typeof obj === 'object'
-    ? JSON.stringify(obj, Object.keys(obj).sort())
-    : String(obj)
+  return obj && typeof obj === 'object' ? JSON.stringify(obj, Object.keys(obj).sort()) : String(obj)
 }
 
 /**
@@ -128,10 +116,7 @@ export const toCacheKey = (key: EntryKey): EntryNodeKey[] => key.map(stringifyFl
  * ...undefined, ...null }
  * @internal
  */
-export type _MergeObjects<Obj, MaybeNull> = MaybeNull extends
-  | undefined
-  | null
-  | void
+export type _MergeObjects<Obj, MaybeNull> = MaybeNull extends undefined | null | void
   ? Obj
   : _Simplify<Obj & MaybeNull>
 

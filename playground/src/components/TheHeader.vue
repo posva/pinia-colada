@@ -13,10 +13,7 @@ const open = ref(false)
 </script>
 
 <template>
-  <nav
-    class="flex items-center justify-between p-6 mx-auto lg:px-8"
-    aria-label="Global"
-  >
+  <nav class="flex items-center justify-between p-6 mx-auto lg:px-8" aria-label="Global">
     <div class="flex lg:flex-1">
       <RouterLink to="/" class="-m-1.5 p-1.5">
         <HomeIcon class="w-6 h-6" aria-hidden="true" />
@@ -41,10 +38,7 @@ const open = ref(false)
       <a href="/about"> A propos </a>
     </div>
     <div class="hidden lg:flex lg:flex-1 lg:justify-end">
-      <button
-        class="text-sm font-semibold leading-6 text-gray-900"
-        @click="open = true"
-      >
+      <button class="text-sm font-semibold leading-6 text-gray-900" @click="open = true">
         Basket<span aria-hidden="true">&rarr;</span>
       </button>
     </div>

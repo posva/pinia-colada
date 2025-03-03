@@ -10,5 +10,8 @@ export default definePayloadPlugin(() => {
   })
 
   // we let pinia colada handle the revive
-  definePayloadReviver('PiniaColada_TreeMapNode', (data: ReturnType<typeof serializeTreeMap>) => data)
+  definePayloadReviver(
+    'PiniaColada_TreeMapNode',
+    (data: ReturnType<typeof serializeTreeMap>) => data,
+  )
 })

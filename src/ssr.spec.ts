@@ -18,7 +18,11 @@ describe('SSR', () => {
     options?: Partial<UseQueryOptions<TResult>>
     appSetup?: () => void
   } = {}) {
-    const query = options.query ? (isSpy(options.query) ? options.query : vi.fn(options.query)) : vi.fn(async () => 42)
+    const query = options.query
+      ? isSpy(options.query)
+        ? options.query
+        : vi.fn(options.query)
+      : vi.fn(async () => 42)
 
     const InnerComp = defineComponent({
       render: () => null,

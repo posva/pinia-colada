@@ -66,7 +66,8 @@ If you need to use this very often, you might as well crate a plugin:
 
 ```ts twoslash
 import type { PiniaColadaPlugin } from '@pinia/colada'
-import { shallowRef, type ShallowRef } from 'vue'
+import { shallowRef } from 'vue'
+import type { ShallowRef } from 'vue'
 
 /**
  * Adds a `dataUpdatedAt` property to queries that represents the last time the
