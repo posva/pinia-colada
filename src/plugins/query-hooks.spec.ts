@@ -66,13 +66,13 @@ describe('Query Hooks plugin', () => {
     expect(onSettled).toHaveBeenCalledTimes(1)
     expect(onError).not.toHaveBeenCalled()
     expect(onSuccess).toHaveBeenCalledWith(42, expect.objectContaining({}))
-    expect(onSuccess.mock.calls[0][1]?.state?.value).toMatchObject({
+    expect(onSuccess.mock.calls[0]?.[1]?.state?.value).toMatchObject({
       data: 42,
       status: 'success',
       error: null,
     })
     expect(onSettled).toHaveBeenCalledWith(42, null, expect.objectContaining({}))
-    expect(onSettled.mock.calls[0][2]?.state?.value).toMatchObject({
+    expect(onSettled.mock.calls[0]?.[2]?.state?.value).toMatchObject({
       data: 42,
       status: 'success',
       error: null,
@@ -114,12 +114,12 @@ describe('Query Hooks plugin', () => {
       expect.objectContaining({}),
     )
 
-    expect(onError.mock.calls[0][1]?.state?.value).toMatchObject({
+    expect(onError.mock.calls[0]?.[1]?.state?.value).toMatchObject({
       data: undefined,
       status: 'error',
       error: new Error('oops'),
     })
-    expect(onSettled.mock.calls[0][2]?.state?.value).toMatchObject({
+    expect(onSettled.mock.calls[0]?.[2]?.state?.value).toMatchObject({
       data: undefined,
       status: 'error',
       error: new Error('oops'),

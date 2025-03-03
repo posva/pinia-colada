@@ -1,10 +1,10 @@
-import { addCustomTab, setupDevtoolsPlugin } from '@vue/devtools-api'
+import { setupDevtoolsPlugin } from '@vue/devtools-api'
 import { watch } from 'vue'
 import type { App } from 'vue'
 // import DevtoolsPanel from './DevtoolsPane.vue?raw'
 import type { Pinia } from 'pinia'
 import { useQueryCache } from '../query-store'
-import type { DataStateStatus } from '../data-state'
+import type { AsyncStatus, DataStateStatus } from '../data-state'
 
 const QUERY_INSPECTOR_ID = 'pinia-colada-queries'
 const ID_SEPARATOR = '\0'
@@ -271,14 +271,14 @@ const STATUS_TAG: Record<DataStateStatus, InspectorNodeTag> = {
 /**
  * Tags for the different states of a query
  */
-const ASYNC_STATUS_TAG: Record<string, InspectorNodeTag> = {
+const ASYNC_STATUS_TAG: Record<AsyncStatus, InspectorNodeTag> = {
   idle: {
     label: 'idle',
     textColor: 0,
     backgroundColor: 0xAAAAAA,
     tooltip: 'The query is not fetching',
   },
-  fetching: {
+  loading: {
     label: 'fetching',
     textColor: 0xFFFFFF,
     backgroundColor: 0x578FCA,

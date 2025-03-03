@@ -173,7 +173,11 @@ export const useTodos = defineQuery({
 
 ::: tip When to use `defineQuery()` over just `useQuery()`?
 
+If you find yourself with the same query (same `key` value) used in multiple components that are also mounted at the same time, you **must** use `defineQuery()`. This will ensure that the query is shared among all components.
+
 If you need to reuse a query in multiple components, move the query to a separate file (e.g. `src/queries/todos.ts`) and use `defineQuery()` to define it. This will ensure that the query code isn't partially updated in your code base.
+
+If you need to define custom parameters **that aren't global**, you don't need to do anything special, create a custom composable instead and call `useQuery()` within it.
 
 :::
 

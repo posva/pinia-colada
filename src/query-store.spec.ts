@@ -107,6 +107,7 @@ describe('Query Cache store', () => {
     queryCache.setQueryData(['a'], 'ok')
     const [entry] = queryCache.getEntries({ key: ['a'] })
     expect(entry).toBeDefined()
+    if (!entry) throw new Error('ko')
     expect(entry.state.value.data).toBe('ok')
   })
 

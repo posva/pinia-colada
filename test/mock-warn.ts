@@ -41,7 +41,7 @@ export function mockWarn() {
 
     toHaveBeenWarnedLast(received: string | RegExp) {
       asserted.set(received.toString(), received)
-      const lastCall = warn.mock.calls[warn.mock.calls.length - 1][0]
+      const lastCall = warn.mock.calls.at(-1)?.[0]
       const passed
         = typeof received === 'string' ? lastCall.includes(received) : received.test(lastCall)
       if (passed) {

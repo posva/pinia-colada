@@ -5,6 +5,7 @@
     "moduleResolution": "Bundler",
     "types": ["node"],
     "strict": true,
+    "noUncheckedIndexedAccess": true,
     "noEmit": true,
     // TSUP issue https://github.com/egoist/tsup/issues/571
     // "composite": true,

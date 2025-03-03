@@ -890,6 +890,7 @@ describe('useQuery', () => {
       const queryCache = useQueryCache()
       const entry = queryCache.getEntries({ key: ['key'] })[0]
       expect(entry).toBeDefined()
+      if (!entry) throw new Error('ko')
       expect(entry.pending?.abortController.signal).toBe(signal)
       entry.pending?.abortController.abort(new Error('from test'))
 
@@ -913,6 +914,7 @@ describe('useQuery', () => {
       const queryCache = useQueryCache()
       const entry = queryCache.getEntries({ key: ['key'] })[0]
       expect(entry).toBeDefined()
+      if (!entry) throw new Error('ko')
       entry.pending?.abortController.abort(new Error('from test'))
       resolve()
 
@@ -934,6 +936,7 @@ describe('useQuery', () => {
     const queryCache = useQueryCache()
     const entry = queryCache.getEntries({ key: ['key'] })[0]
     expect(entry).toBeDefined()
+    if (!entry) throw new Error('ko')
     queryCache.cancel(entry)
 
     vi.advanceTimersByTime(100)
@@ -954,6 +957,7 @@ describe('useQuery', () => {
     const queryCache = useQueryCache()
     const entry = queryCache.getEntries({ key: ['key'] })[0]
     expect(entry).toBeDefined()
+    if (!entry) throw new Error('ko')
     queryCache.cancel(entry)
 
     vi.advanceTimersByTime(100)
@@ -978,9 +982,10 @@ describe('useQuery', () => {
     const queryCache = useQueryCache()
     const entry = queryCache.getEntries({ key: ['key'] })[0]
     expect(entry).toBeDefined()
+    if (!entry) throw new Error('ko')
     expect(entry.stale).toBe(false)
-    queryCache.refresh(entry)
-    queryCache.cancel(entry)
+    queryCache.refresh(entry!)
+    queryCache.cancel(entry!)
 
     await flushPromises()
     expect(entry.stale).toBe(false)
@@ -1267,50 +1272,69 @@ describe('useQuery', () => {
 
     it.todo('can safelist other global properties not to warn')
 
-    it('warns if the same key is used with different options while mounting different components', async () => {
+    it.todo(
+      'warns if the same key is used with different options while mounting different components',
+      async () => {
+        const pinia = createPinia()
+        mountSimple(
+          { key: ['id'], query: async () => 24 },
+          {
+            plugins: [pinia],
+          },
+        )
+        mountSimple(
+          { key: ['id'], query: async () => 42 },
+          {
+            plugins: [pinia],
+          },
+        )
+
+        await flushPromises()
+
+        expect(
+          /The same query key \[id\] was used with different query functions/,
+        ).toHaveBeenWarned()
+      },
+    )
+
+    // https://github.com/posva/pinia-colada/issues/192
+    it('does not warn when repeating the query in composables', async () => {
       const pinia = createPinia()
-      mountSimple(
-        { key: ['id'], query: async () => 24 },
-        {
-          plugins: [pinia],
+      function useMyQuery(id: () => number) {
+        return useQuery({ key: () => ['id', id()], query: async () => 42 })
+      }
+      const Component = defineComponent({
+        props: {
+          id: {
+            type: Number,
+            required: true,
+          },
         },
-      )
-      mountSimple(
-        { key: ['id'], query: async () => 42 },
-        {
-          plugins: [pinia],
+        render: () => null,
+        setup(props) {
+          useMyQuery(() => props.id)
+          return {}
         },
-      )
+      })
+
+      mount(Component, {
+        props: { id: 5 },
+        global: {
+          plugins: [pinia, PiniaColada],
+        },
+      }).unmount()
 
       await flushPromises()
 
-      expect(/The same query key \[id\] was used with different query functions/).toHaveBeenWarned()
-    })
-
-    // this is for data loaders
-    it('warns if the same key is used twice with different functions in the same component', async () => {
-      const pinia = createPinia()
-      mount(
-        defineComponent({
-          render: () => null,
-          __hmrId: 'some-id',
-          setup() {
-            // wrong usage
-            useQuery({ key: ['id'], query: async () => 42 })
-            useQuery({ key: ['id'], query: async () => 42 })
-            return {}
-          },
-        }),
-        {
-          global: {
-            plugins: [pinia, PiniaColada],
-          },
+      mount(Component, {
+        props: { id: 5 },
+        global: {
+          plugins: [pinia, PiniaColada],
         },
-      )
+      })
 
       await flushPromises()
-
-      expect(/The same query key \[id\] was used with different query functions/).toHaveBeenWarned()
+      // No warnings!
     })
 
     it('does not warn if the same key is used during HMR', async () => {

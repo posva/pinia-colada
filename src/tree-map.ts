@@ -32,7 +32,7 @@ export class TreeMapNode<T = unknown> {
       this.value = value
     } else {
       // this.children ??= new Map<EntryNodeKey,
-      const [top, ...otherKeys] = keys
+      const [top, ...otherKeys] = keys as [top: EntryNodeKey, ...otherKeys: EntryNodeKey[]]
       const node: TreeMapNode<T> | undefined = this.children?.get(top)
       if (node) {
         node.set(otherKeys, value)
@@ -52,7 +52,7 @@ export class TreeMapNode<T = unknown> {
     if (keys.length === 0) {
       return this
     } else {
-      const [top, ...otherKeys] = keys
+      const [top, ...otherKeys] = keys as [top: EntryNodeKey, ...otherKeys: EntryNodeKey[]]
       return this.children?.get(top)?.find(otherKeys)
     }
   }
@@ -73,9 +73,9 @@ export class TreeMapNode<T = unknown> {
    */
   delete(keys: EntryNodeKey[]) {
     if (keys.length === 1) {
-      this.children?.delete(keys[0])
+      this.children?.delete(keys[0]!)
     } else {
-      const [top, ...otherKeys] = keys
+      const [top, ...otherKeys] = keys as [top: EntryNodeKey, ...otherKeys: EntryNodeKey[]]
       this.children?.get(top)?.delete(otherKeys)
     }
   }

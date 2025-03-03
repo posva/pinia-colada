@@ -114,42 +114,9 @@ export function useQuery<
   } satisfies UseQueryOptionsWithDefaults<TResult, TError, TDataInitial>
   const { refetchOnMount, refetchOnReconnect, refetchOnWindowFocus, enabled } = options
 
-  // warn against using the same key for different functions
-  // this only applies outside of HMR since during HMR, the `useQuery()` will be called
-  // when remounting the component and it's essential to update the options.
-  // in other scenarios, it's a mistake
-  if (process.env.NODE_ENV !== 'production') {
-    const currentInstance = getCurrentInstance()
-    if (currentInstance) {
-      const entry: UseQueryEntry | undefined = queryCache.getEntries({
-        exact: true,
-        key: toValue(options.key),
-      })[0]
-      const currentQueryFn = entry?.options?.query
-
-      onMounted(() => {
-        // if this entry existed before and we are not doing HMR, the user is probably using the same key in different
-        // places with the same query
-        if (
-          // the query function is different
-          currentQueryFn != null
-          && entry.options != null
-          && currentQueryFn !== options.query
-          // skip definedQuery and let them check on their own
-          && !entry?.__hmr?.skip
-          // we are not in HMR, so this update comes from a different component
-          && (!('__hmrId' in currentInstance.type)
-            || currentInstance.type.__hmrId !== entry.__hmr?.id
-            // it comes from the same component but duplicated, maybe data loaders + useQuery
-            || entry.deps.has(currentInstance))
-        ) {
-          console.warn(
-            `The same query key [${entry.key.join(', ')}] was used with different query functions. This might lead to unexpected behavior.\nSee https://pinia-colada.esm.dev/guide/queries.html#Reusable-Queries for more information.`,
-          )
-        }
-      })
-    }
-  }
+  // NOTE: here we used to check if the same key was previously called with a different query
+  // but it ended up creating too many false positives and was removed. We could add it back
+  // to at least warn against the cases shown in https://pinia-colada.esm.dev/guide/queries.html#Reusable-Queries
 
   // This plain variable is not reactive and allows us to use the currentEntry
   // without triggering watchers and creating entries. It is used during

@@ -531,8 +531,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
         }
       }
 
-      // technically we don't need to set this every time but it's shorter than entry.options ??= options and the check
-      // in useQuery already catches possible problems
+      // we set it every time to ensure we are using up to date key getters and others options
       entry.options = options
 
       // extend the entry with plugins the first time only
