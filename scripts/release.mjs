@@ -486,6 +486,7 @@ async function getChangedPackages(...folders) {
         'git',
         [
           'diff',
+          '--name-only',
           lastTag,
           '--',
           // apparently {src,package.json} doesn't work
@@ -497,6 +498,14 @@ async function getChangedPackages(...folders) {
       )
 
       if (hasChanges) {
+        const changedFiles = hasChanges.split('\n').filter(Boolean)
+        console.log(
+          chalk.dim.blueBright(
+            `Found ${changedFiles.length} changed files in "${pkg.name}" since last release (${lastTag})`,
+          ),
+        )
+        console.log(chalk.dim(`"${changedFiles.join('", "')}"`))
+
         return {
           path: folder,
           name: pkg.name,
