@@ -1,3 +1,10 @@
+## [0.13.7](https://github.com/posva/pinia-colada/compare/v0.13.6...v0.13.7) (2025-03-04)
+
+### Bug Fixes
+
+- queryCache should not invalidate query when it disabled ([#204](https://github.com/posva/pinia-colada/issues/204)) ([e12f98c](https://github.com/posva/pinia-colada/commit/e12f98c4cf1a3f9bb1e9f156159ad4e0eed1e45b))
+- **warn:** avoid repeated queries warn ([0fbe29a](https://github.com/posva/pinia-colada/commit/0fbe29af54bd09ed754eff5728831ea027ce4c5c)), closes [#192](https://github.com/posva/pinia-colada/issues/192)
+
 ## [0.13.6](https://github.com/posva/pinia-colada/compare/v0.13.5...v0.13.6) (2025-02-12)
 
 ### Features
