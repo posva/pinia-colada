@@ -1,12 +1,13 @@
 import type { ComponentInternalInstance, EffectScope, ShallowRef } from 'vue'
-import type { AsyncStatus, DataState } from './data-state'
+import type { AsyncStatus, DataState, DataStateStatus } from './data-state'
 import type { EntryNodeKey } from './tree-map'
-import { defineStore } from 'pinia'
-import { getCurrentScope, shallowReactive, shallowRef } from 'vue'
+import { defineStore, skipHydrate } from 'pinia'
+import { customRef, getCurrentScope, shallowRef } from 'vue'
 import { TreeMapNode } from './tree-map'
 import type { _EmptyObject } from './utils'
-import { isSameArray, stringifyFlatObject, toValueWithArgs } from './utils'
+import { isSameArray, noop, stringifyFlatObject, toCacheKey, toValueWithArgs } from './utils'
 import type { _ReduceContext, UseMutationOptions } from './use-mutation'
+import type { EntryKey } from './entry-options'
 
 /**
  * A mutation entry in the cache.
@@ -57,6 +58,40 @@ export interface UseMutationEntry<
   }
 }
 
+/**
+ * Filter to get mutation entries from the cache.
+ */
+export interface UseMutationEntryFilter {
+  /**
+   * A key to filter the entries.
+   */
+  key?: EntryKey
+
+  /**
+   * If true, it will only match the exact key, not the children.
+   *
+   * @example
+   * ```ts
+   * { key: ['a'], exact: true }
+   *  // will match ['a'] but not ['a', 'b'], while
+   * { key: ['a'] }
+   * // will match both
+   * ```
+   */
+  exact?: boolean
+
+  /**
+   * If defined, it will only return the entries with the given status.
+   */
+  status?: DataStateStatus
+
+  /**
+   * Pass a predicate to filter the entries. This will be executed for each entry matching the other filters.
+   * @param entry - entry to filter
+   */
+  predicate?: (entry: UseMutationEntry) => boolean
+}
+
 function createMutationEntry<
   TResult = unknown,
   TVars = unknown,
@@ -85,8 +120,33 @@ function createMutationEntry<
 export const useMutationCache = /* @__PURE__ */ defineStore('_pc_mutation', ({ action }) => {
   // We have two versions of the cache, one that track changes and another that doesn't so the actions can be used
   // inside computed properties
+  // We have two versions of the cache, one that track changes and another that doesn't so the actions can be used
+  // inside computed properties
   const cachesRaw = new TreeMapNode<UseMutationEntry<unknown, any, unknown, any>>()
-  const caches = shallowReactive(cachesRaw)
+  let triggerCache!: () => void
+  const caches = skipHydrate(
+    customRef(
+      (track, trigger) =>
+        (triggerCache = trigger) && {
+          // eslint-disable-next-line no-sequences
+          get: () => (track(), cachesRaw),
+          set:
+            process.env.NODE_ENV !== 'production'
+              ? () => {
+                  console.error(
+                    `[@pinia/colada]: The mutation cache instance cannot be set directly, it must be modified. This will fail in production.`,
+                  )
+                }
+              : noop,
+        },
+    ),
+  )
+
+  // this allows use to attach reactive effects to the scope later on
+  const scope = getCurrentScope()!
+
+  // const globalOptions = inject()
+  const defineMutationMap = new WeakMap<() => unknown, unknown>()
 
   function ensure<
     TResult = unknown,
@@ -122,12 +182,13 @@ export const useMutationCache = /* @__PURE__ */ defineStore('_pc_mutation', ({ a
     if (!entry) {
       entry = createMutationEntry(options, key)
       if (key) {
-        caches.set(
+        cachesRaw.set(
           key,
           // @ts-expect-error: function types with generics are incompatible
           entry,
         )
       }
+      triggerCache()
       return createMutationEntry(options, key)
     }
     // reuse the entry when no key is provided
@@ -142,23 +203,17 @@ export const useMutationCache = /* @__PURE__ */ defineStore('_pc_mutation', ({ a
           // the type NonNullable<TVars> is not assignable to TVars
           vars as TVars,
         )
-        caches.set(
+        cachesRaw.set(
           key,
           // @ts-expect-error: function types with generics are incompatible
           entry,
         )
+        triggerCache()
       }
     }
 
     return entry
   }
-
-  // this allows use to attach reactive effects to the scope later on
-  const scope = getCurrentScope()!
-
-  // const globalOptions = inject()
-
-  const defineMutationMap = new WeakMap<() => unknown, unknown>()
 
   /**
    * Ensures a query created with {@link defineMutation} is present in the cache. If it's not, it creates a new one.
@@ -171,6 +226,70 @@ export const useMutationCache = /* @__PURE__ */ defineStore('_pc_mutation', ({ a
     }
 
     return defineMutationResult
+  })
+
+  /**
+   * Sets the state of a query entry in the cache and updates the
+   * {@link UseQueryEntry['pending']['when'] | `when` property}. This action is
+   * called every time the cache state changes and can be used by plugins to
+   * detect changes.
+   *
+   * @param entry - the entry of the query to set the state
+   * @param state - the new state of the entry
+   */
+  const setEntryState = action(
+    <
+      TResult = unknown,
+      TVars = unknown,
+      TError = unknown,
+      TContext extends Record<any, any> = _EmptyObject,
+    >(
+      entry: UseMutationEntry<TResult, TVars, TError, TContext>,
+      // NOTE: NoInfer ensures correct inference of TResult and TError
+      state: DataState<NoInfer<TResult>, NoInfer<TError>>,
+    ) => {
+      entry.state.value = state
+      entry.when = Date.now()
+    },
+  )
+
+  /**
+   * Removes a query entry from the cache if it has a key. If it doesn't then it does nothing.
+   *
+   * @param entry - the entry of the query to remove
+   */
+  const remove = action(
+    /**
+     * Removes a query entry from the cache.
+     */
+    (entry: UseMutationEntry) => {
+      if (entry.key != null) {
+        cachesRaw.delete(entry.key)
+        triggerCache()
+      }
+    },
+  )
+
+  /**
+   * Returns all the entries in the cache that match the filters.
+   *
+   * @param filters - filters to apply to the entries
+   */
+  const getEntries = action((filters: UseMutationEntryFilter = {}): UseMutationEntry[] => {
+    const node = filters.key ? caches.value.find(toCacheKey(filters.key)) : caches.value
+
+    if (!node) return []
+
+    return (filters.exact ? (node.value ? [node.value] : []) : [...node]).filter((entry) => {
+      let pass = true
+
+      if (filters.status) {
+        pass &&= entry.state.value.status === filters.status
+      }
+      if (filters.predicate) pass &&= filters.predicate(entry)
+
+      return pass
+    })
   })
 
   async function mutate<
@@ -231,30 +350,42 @@ export const useMutationCache = /* @__PURE__ */ defineStore('_pc_mutation', ({ a
       )
 
       if (currentEntry.pending === currentCall) {
-        currentEntry.state.value = {
+        setEntryState(currentEntry, {
           status: 'success',
           data: newData,
           error: null,
-        }
+        })
       }
-    } catch (newError: any) {
-      currentError = newError
-      await options.onError?.(newError, vars, context)
+    } catch (newError: unknown) {
+      currentError = newError as TError
+      await options.onError?.(currentError, vars, context)
       if (currentEntry.pending === currentCall) {
-        currentEntry.state.value = {
+        setEntryState(currentEntry, {
           status: 'error',
           data: currentEntry.state.value.data,
-          error: newError,
-        }
+          error: currentError,
+        })
       }
       throw newError
     } finally {
+      // TODO: should we catch and log it?
       await options.onSettled?.(currentData, currentError, vars, context)
-      currentEntry.asyncStatus.value = 'idle'
+      if (currentEntry.pending === currentCall) {
+        currentEntry.asyncStatus.value = 'idle'
+      }
     }
 
     return currentData
   }
 
-  return { ensure, ensureDefinedMutation, caches, mutate }
+  return {
+    caches,
+    ensure,
+    ensureDefinedMutation,
+    mutate,
+    remove,
+
+    setEntryState,
+    getEntries,
+  }
 })

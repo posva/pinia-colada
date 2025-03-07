@@ -61,7 +61,9 @@ export interface UseMutationOptions<
   mutation: (vars: TVars, context: _ReduceContext<NoInfer<TContext>>) => Promise<TResult>
 
   /**
-   * Optional key to identify the mutation globally and access it through other helpers like `useMutationState()`.
+   * Optional key to identify the mutation globally and access it through other
+   * helpers like `useMutationState()`. If you don't need to reference the
+   * mutation elsewhere, you should ignore this option.
    */
   key?: _MutationKey<NoInfer<TVars>>
 
@@ -282,11 +284,11 @@ export function useMutation<
   }
 
   function reset() {
-    entry.value.state.value = {
+    mutationCache.setEntryState(entry.value, {
       status: 'pending',
       data: undefined,
       error: null,
-    }
+    })
     entry.value.asyncStatus.value = 'idle'
   }
 
