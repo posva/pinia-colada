@@ -32,6 +32,8 @@ declare module 'vue-router/auto-routes' {
     '/hmr-tests/': RouteRecordInfo<'/hmr-tests/', '/hmr-tests', Record<never, never>, Record<never, never>>,
     '/hmr-tests/defined-query': RouteRecordInfo<'/hmr-tests/defined-query', '/hmr-tests/defined-query', Record<never, never>, Record<never, never>>,
     '/hmr-tests/local-use-query': RouteRecordInfo<'/hmr-tests/local-use-query', '/hmr-tests/local-use-query', Record<never, never>, Record<never, never>>,
+    '/suspense/contacts': RouteRecordInfo<'/suspense/contacts', '/suspense/contacts', Record<never, never>, Record<never, never>>,
+    '/suspense/contacts/[id]': RouteRecordInfo<'/suspense/contacts/[id]', '/suspense/contacts/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/warnings/': RouteRecordInfo<'/warnings/', '/warnings', Record<never, never>, Record<never, never>>,
     '/warnings/duped-[contactId]': RouteRecordInfo<'/warnings/duped-[contactId]', '/warnings/duped-:contactId', { contactId: ParamValue<true> }, { contactId: ParamValue<false> }>,
     '/warnings/usage-one-[contactId]': RouteRecordInfo<'/warnings/usage-one-[contactId]', '/warnings/usage-one-:contactId', { contactId: ParamValue<true> }, { contactId: ParamValue<false> }>,

@@ -1,4 +1,12 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { onErrorCaptured, shallowRef } from 'vue'
+
+const error = shallowRef<Error | null>(null)
+onErrorCaptured((err) => {
+  console.error('💥 Captured error at root', err)
+  error.value = err
+})
+</script>
 
 <template>
   <header>
@@ -10,6 +18,10 @@
         |
         <RouterLink to="/contacts">
           Contacts
+        </RouterLink>
+        |
+        <RouterLink to="/suspense/contacts">
+          Contacts (suspense)
         </RouterLink>
         |
         <RouterLink to="/cat-facts">
@@ -31,5 +43,17 @@
     </div>
   </header>
 
-  <RouterView />
+  <div v-if="error">
+    <pre>{{ error }}</pre>
+  </div>
+
+  <RouterView v-slot="{ Component }">
+    <Suspense @resolve="error = null">
+      <component :is="Component" />
+
+      <template #fallback>
+        <p>Loading...</p>
+      </template>
+    </Suspense>
+  </RouterView>
 </template>
