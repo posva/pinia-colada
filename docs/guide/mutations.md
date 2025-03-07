@@ -79,17 +79,19 @@ import { defineMutation, useMutation } from '@pinia/colada'
 
 export const useCreateTodo = defineMutation(() => {
   const todoText = ref('')
-  const { mutate: createTodo, ...mutation } = useMutation({
-    mutation: () =>
+  const { mutate, ...mutation } = useMutation({
+    mutation: (text: string) =>
       fetch('/api/todos', {
         method: 'POST',
-        body: JSON.stringify({ text: todoText.value }),
+        body: JSON.stringify({ text }),
       }),
   })
 
   return {
     ...mutation,
-    createTodo,
+    // we can still pass the todoText to the mutation so it appears in plugins
+    // and other places
+    createTodo: () => mutate(todoText.value),
     // expose the todoText ref
     todoText,
   }
@@ -114,6 +116,8 @@ const { createTodo, status, asyncStatus, todoText } = useCreateTodo()
 ```
 
 :::
+
+In the scenario above, the `todoText` is created only once and shared across all components that use the `useCreateTodo` composable.
 
 When you just want to organize your mutations, you can also pass an object of options to `defineMutation()`:
 
