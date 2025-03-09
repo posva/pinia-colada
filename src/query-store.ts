@@ -513,9 +513,10 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           entry.placeholderData = toValueWithArgs(
             options.placeholderData,
             // pass the previous entry placeholder data if it was in placeholder state
+            // NOTE: the build needs a cast or it thinks it's never
             isEntryUsingPlaceholderData(previousEntry)
               ? previousEntry.placeholderData
-              : previousEntry?.state.value.data,
+              : (previousEntry as UseQueryEntry<TResult, TError, TDataInitial> | undefined)?.state.value.data,
           )
         }
         triggerCache()
