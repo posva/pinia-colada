@@ -1,3 +1,10 @@
+## [0.13.8](https://github.com/posva/pinia-colada/compare/v0.13.7...v0.13.8) (2025-03-09)
+
+### Features
+
+- add more actions to the mutation cache ([a38595c](https://github.com/posva/pinia-colada/commit/a38595c5bfd8c993e763b7a60764ba24c6167546))
+- pass previous placeholderData if present ([a576093](https://github.com/posva/pinia-colada/commit/a576093623c515462955dd55c6ff60507b313fd7)), closes [#197](https://github.com/posva/pinia-colada/issues/197)
+
 ## [0.13.7](https://github.com/posva/pinia-colada/compare/v0.13.6...v0.13.7) (2025-03-04)
 
 ### Bug Fixes
