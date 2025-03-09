@@ -537,6 +537,39 @@ describe('useQuery', () => {
       expect(wrapper.vm.data).toBe(24)
     })
 
+    it('passes the previous placeholderData to the new placeholderData function if the key changes while loading', async () => {
+      const key = ref(1)
+      const placeholderData = vi.fn((previousValue) =>
+        previousValue ? `previous-${previousValue}` : 'from-placeholder',
+      )
+      const { wrapper } = mountSimple({
+        key: () => [key.value],
+        query: async () => {
+          await delay(100)
+          return 'from-query'
+        },
+        placeholderData,
+      })
+
+      await flushPromises()
+
+      vi.advanceTimersByTime(50)
+      key.value++
+      // enough to pass the previous with key 1
+      vi.advanceTimersByTime(51)
+      await nextTick()
+      expect(placeholderData).toHaveBeenCalledTimes(2)
+      expect(placeholderData).toHaveBeenNthCalledWith(1, undefined)
+      expect(placeholderData).toHaveBeenNthCalledWith(2, 'from-placeholder')
+      expect(wrapper.vm.data).toBe('previous-from-placeholder')
+
+      key.value++
+      await nextTick()
+      expect(placeholderData).toHaveBeenCalledTimes(3)
+      expect(placeholderData).toHaveBeenNthCalledWith(3, 'previous-from-placeholder')
+      expect(wrapper.vm.data).toBe('previous-previous-from-placeholder')
+    })
+
     it('does not change the cache state', async () => {
       const pinia = createPinia()
       const options = {

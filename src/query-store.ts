@@ -136,6 +136,18 @@ export interface UseQueryEntry<
 }
 
 /**
+ * Returns whether the entry is using a placeholder data.
+ *
+ * @template TDataInitial - Initial data type
+ * @param entry - entry to check
+ */
+export function isEntryUsingPlaceholderData<TDataInitial>(
+  entry: UseQueryEntry<unknown, unknown, TDataInitial> | undefined | null,
+): entry is UseQueryEntry<unknown, unknown, TDataInitial> & { placeholderData: TDataInitial } {
+  return entry?.placeholderData != null && entry.state.value.status === 'pending'
+}
+
+/**
  * Filter to get entries from the cache.
  */
 export interface UseQueryEntryFilter {
@@ -500,7 +512,10 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
         if (options.placeholderData && entry.state.value.status === 'pending') {
           entry.placeholderData = toValueWithArgs(
             options.placeholderData,
-            previousEntry?.state.value.data,
+            // pass the previous entry placeholder data if it was in placeholder state
+            isEntryUsingPlaceholderData(previousEntry)
+              ? previousEntry.placeholderData
+              : previousEntry?.state.value.data,
           )
         }
         triggerCache()

@@ -13,7 +13,7 @@ import {
 } from 'vue'
 import { IS_CLIENT, useEventListener } from './utils'
 import type { UseQueryEntry, UseQueryEntryExtensions } from './query-store'
-import { useQueryCache } from './query-store'
+import { isEntryUsingPlaceholderData, useQueryCache } from './query-store'
 import { useQueryOptions } from './query-options'
 import type { UseQueryOptions, UseQueryOptionsWithDefaults } from './query-options'
 import type { ErrorDefault } from './types-extension'
@@ -143,9 +143,7 @@ export function useQuery<
       // same as above
       (throwOnError as false | undefined) || errorCatcher,
     )
-  const isPlaceholderData = computed(
-    () => entry.value.placeholderData != null && entry.value.state.value.status === 'pending',
-  )
+  const isPlaceholderData = computed(() => isEntryUsingPlaceholderData(entry.value))
   const state = computed<DataState<TResult, TError, TDataInitial>>(() =>
     isPlaceholderData.value
       ? ({
