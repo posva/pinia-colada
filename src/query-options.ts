@@ -48,6 +48,13 @@ export interface UseQueryOptionsGlobal {
    * @default true
    */
   refetchOnReconnect?: MaybeRefOrGetter<RefetchOnControl>
+
+  /**
+   * A placeholder data that is initially shown while the query is loading for the first time. This will also show the
+   * `status` as `success` until the query finishes loading (no matter the outcome of the query). Note: unlike with
+   * `initialData`, the placeholder does not change the cache state.
+   */
+  placeholderData?: (previousData: unknown) => any // any allows us to not worry about the types when merging options
 }
 
 /**
