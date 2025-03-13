@@ -427,7 +427,7 @@ function getInitialValue() {
 // ---cut-end---
 // @moduleResolution: bundler
 
-const useLocalStore = defineStore('query-search-store', () => {
+export const useLocalStore = defineStore('query-search-store', () => {
   const search = ref('')
   return { search }
 })
