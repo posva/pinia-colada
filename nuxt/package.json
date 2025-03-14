@@ -9,14 +9,9 @@
   "license": "MIT",
   "repository": "posva/pinia-colada",
   "exports": {
-    ".": {
-      "types": "./dist/types.d.ts",
-      "import": "./dist/module.mjs",
-      "require": "./dist/module.cjs"
-    }
+    ".": "./dist/module.mjs"
   },
-  "main": "./dist/module.cjs",
-  "types": "./dist/types.d.ts",
+  "main": "./dist/module.mjs",
   "files": [
     "dist",
     "types"
@@ -32,20 +27,20 @@
     "test:types": "vue-tsc --noEmit && cd playground && vue-tsc --noEmit"
   },
   "dependencies": {
-    "@nuxt/kit": "^3.15.4"
+    "@nuxt/kit": "^3.16.0"
   },
   "peerDependencies": {
     "@pinia/colada": "workspace:^"
   },
   "devDependencies": {
-    "@nuxt/devtools": "^2.1.1",
-    "@nuxt/eslint-config": "^1.1.0",
-    "@nuxt/module-builder": "^0.8.4",
-    "@nuxt/schema": "^3.15.4",
-    "@nuxt/test-utils": "^3.17.1",
+    "@nuxt/devtools": "^2.3.0",
+    "@nuxt/eslint-config": "^1.2.0",
+    "@nuxt/module-builder": "1.0.0-alpha.1",
+    "@nuxt/schema": "^3.16.0",
+    "@nuxt/test-utils": "^3.17.2",
     "@pinia/colada": "workspace:*",
     "@pinia/nuxt": "^0.10.1",
-    "nuxt": "^3.15.4",
+    "nuxt": "^3.16.0",
     "typescript": "~5.8.2",
     "vue-tsc": "^2.2.8"
   }
