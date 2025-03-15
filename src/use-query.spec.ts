@@ -3,8 +3,9 @@ import type { GlobalMountOptions } from '../test/utils'
 import type { UseQueryOptions } from './query-options'
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
+import type { Pinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { computed, createApp, defineComponent, nextTick, ref } from 'vue'
+import { computed, createApp, defineComponent, isRef, nextTick, ref } from 'vue'
 import type { PropType } from 'vue'
 import { mockWarn } from '../test/mock-warn'
 import { createSerializedTreeNodeEntry, delay, isSpy, promiseWithResolvers } from '../test/utils'
@@ -40,6 +41,18 @@ describe('useQuery', () => {
         ? options.query
         : vi.fn(options.query)
       : vi.fn(async () => 42)
+    const pinia
+      = mountOptions?.plugins?.find((plugin): plugin is Pinia => {
+        return (
+          'state' in plugin
+          && isRef(plugin.state)
+          && 'use' in plugin
+          && 'install' in plugin
+          && typeof plugin.use === 'function'
+          && typeof plugin.install === 'function'
+          && '_e' in plugin
+        )
+      }) || createPinia()
     const wrapper = mount(
       defineComponent({
         render: () => null,
@@ -58,11 +71,11 @@ describe('useQuery', () => {
       {
         global: {
           ...mountOptions,
-          plugins: [...(mountOptions?.plugins || [createPinia()]), PiniaColada],
+          plugins: [...(mountOptions?.plugins || [pinia]), PiniaColada],
         },
       },
     )
-    return Object.assign([wrapper, query] as const, { wrapper, query })
+    return Object.assign([wrapper, query] as const, { wrapper, query, pinia })
   }
 
   describe('initial fetch', () => {
@@ -671,6 +684,93 @@ describe('useQuery', () => {
       })
       expect(wrapper.vm.data).toBe(42)
       expect(wrapper.vm.error).toEqual(new Error('fail'))
+    })
+
+    it('keeps a pending status in the query cache', async () => {
+      const { wrapper, pinia } = mountSimple({
+        placeholderData: 24,
+      })
+      const queryCache = useQueryCache(pinia)
+      expect(queryCache.getEntries({ key: ['key'], exact: true }).at(0)?.state.value).toMatchObject(
+        {
+          status: 'pending',
+          data: undefined,
+          error: null,
+        },
+      )
+      expect(wrapper.vm.state).toMatchObject({
+        status: 'success',
+        data: 24,
+        error: null,
+      })
+
+      await flushPromises()
+    })
+
+    it('keeps the placeholderData if the result of the query cancelled', async () => {
+      const { wrapper, pinia } = mountSimple({
+        placeholderData: 24,
+        query: async () => {
+          await delay(50)
+          return 42
+        },
+      })
+
+      await flushPromises()
+      vi.advanceTimersByTime(25)
+      const queryCache = useQueryCache(pinia)
+      queryCache.cancelQueries({ key: ['key'] })
+      vi.advanceTimersByTime(26)
+      await flushPromises()
+      expect(wrapper.vm.isPlaceholderData).toBe(true)
+      expect(wrapper.vm.state).toMatchObject({
+        data: 24,
+        status: 'success',
+        error: null,
+      })
+      expect(queryCache.getEntries({ key: ['key'] }).at(0)?.state.value).toMatchObject({
+        data: undefined,
+        status: 'pending',
+        error: null,
+      })
+    })
+
+    it('keeps the placeholderData if the result of the signal is aborted', async () => {
+      const { wrapper, pinia } = mountSimple({
+        placeholderData: 24,
+        query: async ({ signal }) => {
+          await delay(50)
+          // ideally we would want to do `fetch('/...', { signal })` because it added
+          // rejects with AbortError if the signal is aborted, no matter the reason passed
+          signal.throwIfAborted()
+          return 42
+        },
+      })
+
+      await flushPromises()
+      vi.advanceTimersByTime(25)
+      const queryCache = useQueryCache(pinia)
+      // queryCache.getEntries({ key: ['key']}).at(0)?.pending?.abortController.abort(new Error('aborted'))
+      // NOTE: we cannot pass a reason so that signal.throwIfAborted() throws an AbortError()
+      queryCache
+        .getEntries({ key: ['key'] })
+        .at(0)
+        ?.pending
+?.abortController
+.abort()
+      vi.advanceTimersByTime(26)
+      await flushPromises()
+      // expect(wrapper.vm.isPlaceholderData).toBe(true)
+      expect(wrapper.vm.state).toMatchObject({
+        data: 24,
+        status: 'success',
+        error: null,
+      })
+      expect(queryCache.getEntries({ key: ['key'] }).at(0)?.state.value).toMatchObject({
+        data: undefined,
+        status: 'pending',
+        error: null,
+      })
     })
   })
 

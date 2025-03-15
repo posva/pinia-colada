@@ -631,7 +631,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
 
       const abortController = new AbortController()
       const { signal } = abortController
-      // Abort any ongoing request
+      // Abort any ongoing request without a reason to keep `AbortError` even with
+      // signal.throwIfAborted() in the query function
       entry.pending?.abortController.abort()
 
       const pendingCall = (entry.pending = {
@@ -652,7 +653,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
             if (
               pendingCall === entry.pending
               && error
-              && (error.name !== 'AbortError' || error === signal.reason)
+              // when the error is an abort error, it means the request was cancelled
+              // we should just ignore the result of the query but not error
+              && error.name !== 'AbortError'
             ) {
               setEntryState(entry, {
                 status: 'error',
@@ -669,8 +672,12 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
             entry.asyncStatus.value = 'idle'
             if (pendingCall === entry.pending) {
               entry.pending = null
-              // reset the placeholder data to free up memory
-              entry.placeholderData = null
+              // there are cases when the result is ignored, in that case, we still
+              // do not have a real result so we keep the placeholder data
+              if (entry.state.value.status !== 'pending') {
+                // reset the placeholder data to free up memory
+                entry.placeholderData = null
+              }
               entry.when = Date.now()
             }
           }),
