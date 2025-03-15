@@ -1188,6 +1188,17 @@ describe('useQuery', () => {
     expect(query).not.toHaveBeenCalled()
   })
 
+  it('should only invalidate active queries by default', async () => {
+    const { pinia, wrapper, query } = mountSimple({ key: ['key'] })
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(1)
+
+    const queryCache = useQueryCache(pinia)
+    wrapper.unmount()
+    await queryCache.invalidateQueries({ key: ['key'] })
+    expect(query).toHaveBeenCalledTimes(1)
+  })
+
   it('should not create entries while unmounting', async () => {
     const NestedComp = defineComponent({
       props: {
