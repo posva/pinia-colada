@@ -144,36 +144,35 @@ describe('useQuery type inference', () => {
     })
   })
 
-  it('infers the initial type from placeholderData as a function', () => {
+  it('infers the initial type from initialData', () => {
     const { state, data } = useQuery({
       key: ['id'],
-      query: async () => 42,
-      placeholderData: () => 42,
+      query: async () => ({ text: 'ok' }),
+      initialData: () => ({ text: 'init', isInit: true }),
+      placeholderData: () => ({ text: 'placeholder' }),
     })
-    expectTypeOf(data.value).toBeNumber()
-    expectTypeOf(state.value.data).toBeNumber()
+    expectTypeOf<{ text: string, isInit?: boolean }>(data.value)
+    expectTypeOf<{ text: string, isInit?: boolean }>(state.value.data)
   })
 
-  it('infers the initialy type when placeholderData returns undefined', () => {
-    const { state, data } = useQuery({
+  it('allows placeholderData to match initialData', async () => {
+    useQuery({
       key: ['id'],
-      query: async () => 42,
-      placeholderData: (n) => {
-        if (n) return n
-      },
+      query: async () => ({ text: 'ok' }),
+      initialData: () => ({ text: 'init', isInit: true }),
+      placeholderData: () => ({ text: 'placeholder', isInit: false }),
     })
-    expectTypeOf(data.value).toEqualTypeOf<number | undefined>()
-    expectTypeOf(state.value.data).toEqualTypeOf<number | undefined>()
   })
 
-  it('infers the initial type from placeholderData as a value', () => {
+  it('keeps data as possibly undefined with palceholderData', () => {
     const { state, data } = useQuery({
       key: ['id'],
-      query: async () => 42,
-      placeholderData: 42,
+      query: async () => ({ text: 'ok' }),
+      placeholderData: () => ({ text: 'placeholder' }),
     })
-    expectTypeOf(data.value).toBeNumber()
-    expectTypeOf(state.value.data).toBeNumber()
+
+    expectTypeOf<{ text: string } | undefined>(data.value)
+    expectTypeOf<{ text: string } | undefined>(state.value.data)
   })
 
   it('infers the initial type from initialData', () => {

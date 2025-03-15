@@ -144,10 +144,10 @@ export interface UseQueryOptions<
    * `initialData`, the placeholder does not change the cache state.
    */
   placeholderData?:
-    | TDataInitial
+    | NoInfer<TDataInitial> | NoInfer<TResult>
     // NOTE: the generic here allows to make UseQueryOptions<T> assignable to UseQueryOptions<unknown>
     // https://www.typescriptlang.org/play/?#code/JYOwLgpgTgZghgYwgAgPIAczAPYgM4A8AKsgLzICuIA1iNgO4gB8yA3gFDLICOAXMgAoAlGRYAFKNgC2wPBGJNOydAH5eSrgHpNyABZwAbqADmyMLpRwoxilIjhkAIygQ41PMmBgNyAD6CBdBcjbAo8ABE4MDh+ADlsAEkQGGgFP0oQABMIGFAITJFSFniklKgFIR9tZCJdWWQDaDwcEGR6bCh3Kp1-AWISCAAPSCyPIiZA4JwwyOj+IhJ-KmzckHzCliJKgF92dlBIWEQUAFFwKABPYjIM2gZmNiVsTBa8fgwsXEJx9JAKABt-uxduwYFQEJ9WggAPr2MCXBQCZ6Qt5oF5fNL+P6AoT8M7wq4-DhcFxgChQVqsZDI17IXa7BBfMDIDzkNb0ZAAZQgYAI+MuE0qeAAdHBMpkBDC4ZcBMSuDx+HA8BcQAhBBtkAAWABMABofOh+AIQBrWgBCNkA-7IFTIVoAKmQ2uQ-E1wKElSAA
-    | (<T extends TResult>(previousData: T | undefined) => TDataInitial)
+    | (<T extends TResult>(previousData: T | undefined) => NoInfer<TDataInitial> | NoInfer<TResult> | undefined)
 
   /**
    * Whether to refetch the query when the component is mounted.
