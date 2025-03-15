@@ -175,9 +175,9 @@ export interface UseQueryEntryFilter {
   stale?: boolean
 
   /**
-   * If true or false, it will only return entries that match the active status.
+   * If true or false, it will only return entries that match the active status. If set to `null` or `undefined`, it matches both.
    */
-  active?: boolean
+  active?: boolean | null
 
   /**
    * If defined, it will only return the entries with the given status.
@@ -444,9 +444,12 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    */
   const invalidateQueries = action((filters?: UseQueryEntryFilter): Promise<unknown> => {
     return Promise.all(
-      getEntries(filters).map((entry) => {
+      getEntries({
+        active: true,
+        ...filters,
+      }).map((entry) => {
         invalidate(entry)
-        return entry.active && toValue(entry.options?.enabled) && fetch(entry)
+        return toValue(entry.options?.enabled) && fetch(entry)
       }),
     )
   })
