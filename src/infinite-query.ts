@@ -13,7 +13,10 @@ export interface UseInfiniteQueryOptions<
   TError,
   TDataInitial extends TResult | undefined = TResult | undefined,
   TPages = unknown,
-> extends Omit<UseQueryOptions<TResult, TError, TDataInitial>, 'query'> {
+> extends Omit<
+    UseQueryOptions<TResult, TError, TDataInitial>,
+    'query' | 'initialData' | 'placeholderData'
+  > {
   /**
    * The function that will be called to fetch the data. It **must** be async.
    */
@@ -32,12 +35,13 @@ export interface UseInfiniteQueryOptions<
  * @experimental See https://github.com/posva/pinia-colada/issues/178
  */
 export function useInfiniteQuery<TResult, TError = ErrorDefault, TPage = unknown>(
-  options: UseInfiniteQueryOptions<TResult, TError, never, TPage>,
+  options: UseInfiniteQueryOptions<TResult, TError, TResult | undefined, TPage>,
 ) {
   let pages: TPage = toValue(options.initialPage)
 
-  const { refetch, refresh, ...query } = useQuery<TPage, TError, never>({
+  const { refetch, refresh, ...query } = useQuery<TPage, TError, TPage>({
     ...options,
+    initialData: () => pages,
     // since we hijack the query function and augment the data, we cannot refetch the data
     // like usual
     staleTime: Infinity,
