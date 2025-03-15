@@ -652,6 +652,26 @@ describe('useQuery', () => {
       queryCache.invalidateQueries({ key: ['common'] })
       expect(wrapper.vm.data).toBe(placeholderData)
     })
+
+    it('keeps data after an errored request that initially has a placeholderData', async () => {
+      const { wrapper, query } = mountSimple({
+        placeholderData: 24,
+      })
+
+      // let the first fetch succeed and take over the placeholderData
+      await flushPromises()
+      // then fail
+      query.mockRejectedValueOnce(new Error('fail'))
+      wrapper.vm.refetch()
+      await flushPromises()
+      expect(wrapper.vm.state).toMatchObject({
+        data: 42,
+        status: 'error',
+        error: new Error('fail'),
+      })
+      expect(wrapper.vm.data).toBe(42)
+      expect(wrapper.vm.error).toEqual(new Error('fail'))
+    })
   })
 
   describe('refresh data', () => {
