@@ -17,11 +17,13 @@ queryCache.invalidateQueries({ key: ['todos'] })
 queryCache.invalidateQueries({ key: ['todos'], exact: true })
 
 // Refetch all active queries
-queryCache.invalidateQueries({ active: true })
-
-// Invalidate all queries
 queryCache.invalidateQueries()
+
+// Invalidate all queries, even if they are not active
+queryCache.invalidateQueries({ active: null })
 ```
+
+By default, `invalidateQueries()` applies an `{ active: true }` filter to only invalidate active queries. You can override this behavior by passing `null` to the `active` option.
 
 ::: info
 
@@ -42,8 +44,7 @@ const queryCache = useQueryCache()
 
 const { mutate } = useMutation({
   mutation: (text: string) => createTodo(text),
-  onSettled: () =>
-    queryCache.invalidateQueries({ key: ['todos'], exact: true }),
+  onSettled: () => queryCache.invalidateQueries({ key: ['todos'], exact: true }),
 })
 </script>
 ```
