@@ -170,19 +170,20 @@ export interface UseQueryEntryFilter {
   exact?: boolean
 
   /**
-   * If true or false, it will only return entries that match the stale status. Requires `entry.options` to be set.
+   * If `true` or `false`, it will only return entries that match the stale status. If set to `null` or `undefined`, it matches both.
+   * Requires `entry.options` to be set.
    */
-  stale?: boolean
+  stale?: boolean | null
 
   /**
-   * If true or false, it will only return entries that match the active status. If set to `null` or `undefined`, it matches both.
+   * If `true` or `false`, it will only return entries that match the active status. If set to `null` or `undefined`, it matches both.
    */
   active?: boolean | null
 
   /**
-   * If defined, it will only return the entries with the given status.
+   * If it has a non _nullish_ value, it only returns the entries with the given status.
    */
-  status?: DataStateStatus
+  status?: DataStateStatus | null
 
   /**
    * Pass a predicate to filter the entries. This will be executed for each entry matching the other filters.
@@ -469,7 +470,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
 
       if (filters.stale != null) pass = entry.stale === filters.stale
       if (filters.active != null) pass &&= entry.active === filters.active
-      if (filters.status) {
+      if (filters.status != null) {
         pass &&= entry.state.value.status === filters.status
       }
       if (filters.predicate) pass &&= filters.predicate(entry)
