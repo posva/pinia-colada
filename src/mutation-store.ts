@@ -258,17 +258,12 @@ export const useMutationCache = /* @__PURE__ */ defineStore('_pc_mutation', ({ a
    *
    * @param entry - the entry of the query to remove
    */
-  const remove = action(
-    /**
-     * Removes a query entry from the cache.
-     */
-    (entry: UseMutationEntry) => {
-      if (entry.key != null) {
-        cachesRaw.delete(entry.key)
-        triggerCache()
-      }
-    },
-  )
+  const remove = action((entry: UseMutationEntry) => {
+    if (entry.key != null) {
+      cachesRaw.delete(entry.key)
+      triggerCache()
+    }
+  })
 
   /**
    * Returns all the entries in the cache that match the filters.
