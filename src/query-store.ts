@@ -465,18 +465,13 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
 
     if (!node) return []
 
-    return (filters.exact ? (node.value ? [node.value] : []) : [...node]).filter((entry) => {
-      let pass = true
-
-      if (filters.stale != null) pass = entry.stale === filters.stale
-      if (filters.active != null) pass &&= entry.active === filters.active
-      if (filters.status != null) {
-        pass &&= entry.state.value.status === filters.status
-      }
-      if (filters.predicate) pass &&= filters.predicate(entry)
-
-      return pass
-    })
+    return (filters.exact ? (node.value ? [node.value] : []) : [...node]).filter(
+      (entry) =>
+        (filters.stale == null || entry.stale === filters.stale)
+        && (filters.active == null || entry.active === filters.active)
+        && (!filters.status || entry.state.value.status === filters.status)
+        && (!filters.predicate || filters.predicate(entry)),
+    )
   })
 
   /**

@@ -275,16 +275,11 @@ export const useMutationCache = /* @__PURE__ */ defineStore('_pc_mutation', ({ a
 
     if (!node) return []
 
-    return (filters.exact ? (node.value ? [node.value] : []) : [...node]).filter((entry) => {
-      let pass = true
-
-      if (filters.status) {
-        pass &&= entry.state.value.status === filters.status
-      }
-      if (filters.predicate) pass &&= filters.predicate(entry)
-
-      return pass
-    })
+    return (filters.exact ? (node.value ? [node.value] : []) : [...node]).filter(
+      (entry) =>
+        (filters.status == null || entry.state.value.status === filters.status)
+        && (!filters.predicate || filters.predicate(entry)),
+    )
   })
 
   async function mutate<
