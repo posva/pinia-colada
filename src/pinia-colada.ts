@@ -29,7 +29,7 @@ export interface PiniaColadaOptions extends UseQueryOptionsGlobal {
  * @param app - Vue App
  * @param options - Pinia Colada options
  */
-export const PiniaColada: Plugin<PiniaColadaOptions> = (
+export const PiniaColada: Plugin<[PiniaColadaOptions?]> = (
   app: App,
   options: PiniaColadaOptions = {},
 ): void => {
