@@ -1,3 +1,9 @@
+## [0.14.1](https://github.com/posva/pinia-colada/compare/v0.14.0...v0.14.1) (2025-03-18)
+
+### Bug Fixes
+
+- **types:** allow extending global query options ([28acdd0](https://github.com/posva/pinia-colada/commit/28acdd0d052920100a4a6bbfd9da3cd82dfc166b))
+
 ## [0.14.0](https://github.com/posva/pinia-colada/compare/v0.13.8...v0.14.0) (2025-03-18)
 
 This version introduces codemods to automate migrations 🎉. Try them out with:
@@ -43,6 +49,7 @@ Remember to commit changes before running the codemods.
   ```
 
 - Replace `serialize` with `serializeTreeMap`
+
 * Removed `reviveTreeMap` (not needed)
 * Removed internal `createdQueryEntry`
 
