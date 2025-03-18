@@ -107,6 +107,8 @@ declare module '@pinia/colada' {
   // eslint-disable-next-line unused-imports/no-unused-vars
   interface UseQueryOptions<TResult, TError> extends PiniaColadaAutoRefetchOptions {}
 
+  interface UseQueryOptionsGlobal extends PiniaColadaAutoRefetchOptions {}
+
   // eslint-disable-next-line unused-imports/no-unused-vars
   interface UseQueryEntryExtensions<TResult, TError> {
     /**

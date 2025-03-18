@@ -20,6 +20,7 @@ const router = createRouter({
 app.use(createPinia())
 app.use(PiniaColada, {
   queryOptions: {
+    autoRefetch: false,
     gcTime: 300_000,
     enabled: true,
   },
