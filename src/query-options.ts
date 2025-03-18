@@ -27,7 +27,7 @@ export interface UseQueryOptionsGlobal {
 
   /**
    * Time in ms after which, once the data is no longer being used, it will be garbage collected to free resources. Set to `false` to disable garbage collection.
-   * @default 300000 (5 minutes)
+   * @default 300_000 (5 minutes)
    */
   gcTime?: number | false
 
