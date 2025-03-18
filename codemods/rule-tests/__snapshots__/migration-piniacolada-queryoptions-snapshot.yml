@@ -1,5 +1,34 @@
 id: migration-piniacolada-queryoptions
 snapshots:
+  ? |
+    app
+      .use(pinia)
+      .use(PiniaColada, { plugins, enabled: () => true pinia })
+  : fixed: |
+      app
+        .use(pinia)
+        .use(PiniaColada, {
+          queryOptions: {
+            enabled: () => true pinia,
+          },
+          plugins
+        })
+    labels:
+    - source: '{ plugins, enabled: () => true pinia }'
+      style: primary
+      start: 38
+      end: 76
+    - source: |-
+        app
+          .use(pinia)
+          .use(PiniaColada, { plugins, enabled: () => true pinia })
+      style: secondary
+      start: 0
+      end: 77
+    - source: '(PiniaColada, { plugins, enabled: () => true pinia })'
+      style: secondary
+      start: 24
+      end: 77
   'app.use(PiniaColada, { enabled: () => true, gcTime })':
     fixed: "app.use(PiniaColada, {\n  queryOptions: {\n    enabled: () => true,\ngcTime,\n  },\n  \n})"
     labels:

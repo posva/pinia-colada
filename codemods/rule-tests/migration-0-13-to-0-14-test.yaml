@@ -1,16 +1,44 @@
 id: migration-piniacolada-queryoptions
 invalid:
-  # - 'app.use(PiniaColada)'
   - 'app.use(PiniaColada, { plugins, enabled: () => true, pinia })'
   - 'app.use(PiniaColada, { enabled: () => true, pinia })'
   - 'app.use(PiniaColada, { enabled: () => true, gcTime, pinia })'
   - 'app.use(PiniaColada, { enabled: () => true, gcTime })'
   - 'app.use(PiniaColada, { enabled: () => true, plugins, gcTime })'
+  - |
+    app
+      .use(pinia)
+      .use(PiniaColada, { plugins, enabled: () => true pinia })
 vaild:
   - 'app.use(PiniaColada, {})'
   - 'app.use(PiniaColada, { plugins, queryOptions: { enabled: () => true }, pinia })'
+  - |
+    app
+      .use(pinia)
+      .use(PiniaColada, { plugins, queryOptions: { enabled: () => true }, pinia })
   - 'app.use(PiniaColada, { plugins: [] })'
   - 'app.use(PiniaColada, { plugins: [], pinia })'
   - 'app.use(PiniaColada, { plugins, pinia })'
   - 'app.use(PiniaColada, { plugins, pinia, queryOptions })'
   - 'app.use(PiniaColada, { plugins, pinia, queryOptions: {} })'
+
+---
+id: migration-piniacolada-no-options
+invalid:
+  - 'app.use(PiniaColada)'
+  - |
+    app
+      .use(PiniaColada)
+      .use(pinia)
+  - |
+    app
+      .use(pinia)
+      .use(PiniaColada)
+vaild:
+  - 'app.use(router)'
+  - 'app.use(PiniaColada, {})'
+  - |
+    app
+      .use(PiniaColada, {})
+      .use(pinia)
+  - 'app.use(PiniaColada, { plugins: [], pinia })'

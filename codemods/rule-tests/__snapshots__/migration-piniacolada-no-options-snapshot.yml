@@ -1,0 +1,67 @@
+id: migration-piniacolada-no-options
+snapshots:
+  ? |
+    app
+      .use(PiniaColada)
+      .use(pinia)
+  : fixed: |
+      app.use(PiniaColada, {})
+        .use(pinia)
+    labels:
+    - source: |-
+        app
+          .use(PiniaColada)
+      style: primary
+      start: 0
+      end: 23
+  ? |
+    app
+      .use(pinia)
+      .use(PiniaColada)
+  : fixed: |
+      app
+        .use(pinia).use(PiniaColada, {})
+    labels:
+    - source: |-
+        app
+          .use(pinia)
+          .use(PiniaColada)
+      style: primary
+      start: 0
+      end: 37
+  ? |
+    app
+    .use(PiniaColada)
+    .use(pinia)
+  : fixed: |
+      app.use(PiniaColada, {})
+      .use(pinia)
+    labels:
+    - source: |-
+        app
+        .use(PiniaColada)
+      style: primary
+      start: 0
+      end: 21
+  ? |
+    app
+    .use(pinia)
+    .use(PiniaColada)
+  : fixed: |
+      app
+      .use(pinia).use(PiniaColada, {})
+    labels:
+    - source: |-
+        app
+        .use(pinia)
+        .use(PiniaColada)
+      style: primary
+      start: 0
+      end: 33
+  app.use(PiniaColada):
+    fixed: app.use(PiniaColada, {})
+    labels:
+    - source: app.use(PiniaColada)
+      style: primary
+      start: 0
+      end: 20
