@@ -11,11 +11,14 @@ describe('PiniaColada types', () => {
     app.use(PiniaColada, {})
   })
 
-  it('allows global types', () => {
+  it('allows global queryOptions', () => {
     app.use(PiniaColada, {
-      enabled: true,
-      refetchOnMount: true,
-      refetchOnReconnect: true,
+      plugins: [],
+      queryOptions: {
+        enabled: true,
+        refetchOnMount: true,
+        refetchOnReconnect: true,
+      },
     })
   })
 })

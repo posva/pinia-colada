@@ -19,6 +19,7 @@ const router = createRouter({
 
 app.use(createPinia())
 app.use(PiniaColada, {
+  queryOptions: {},
   plugins: [
     PiniaColadaDelay(),
     PiniaColadaDebugPlugin(),

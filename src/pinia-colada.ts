@@ -9,7 +9,7 @@ import { addDevtools } from './devtools/plugin'
 /**
  * Options for the Pinia Colada plugin.
  */
-export interface PiniaColadaOptions extends UseQueryOptionsGlobal {
+export interface PiniaColadaOptions {
   /**
    * Pinia instance to use. This is only needed if installing before the Pinia plugin.
    */
@@ -19,6 +19,11 @@ export interface PiniaColadaOptions extends UseQueryOptionsGlobal {
    * Pinia Colada plugins to install.
    */
   plugins?: PiniaColadaPlugin[]
+
+  /**
+   * Global options for queries. These will apply to all `useQuery()`, `defineQuery()`, etc.
+   */
+  queryOptions?: UseQueryOptionsGlobal
 }
 
 /**
@@ -33,11 +38,11 @@ export const PiniaColada: Plugin<PiniaColadaOptions> = (
   app: App,
   options: PiniaColadaOptions = {},
 ): void => {
-  const { pinia = app.config.globalProperties.$pinia, plugins, ...useQueryOptions } = options
+  const { pinia = app.config.globalProperties.$pinia, plugins, queryOptions } = options
 
   app.provide(USE_QUERY_OPTIONS_KEY, {
     ...USE_QUERY_DEFAULTS,
-    ...useQueryOptions,
+    ...queryOptions,
   })
 
   if (process.env.NODE_ENV !== 'production' && !pinia) {
