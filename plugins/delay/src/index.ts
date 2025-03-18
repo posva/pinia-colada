@@ -71,7 +71,9 @@ export function PiniaColadaDelay(options?: PiniaColadaDelayOptions): PiniaColada
 
 declare module '@pinia/colada' {
   // eslint-disable-next-line unused-imports/no-unused-vars
-  interface UseQueryOptions<TResult, TError> extends PiniaColadaDelayOptions {}
+  interface UseQueryOptions<TResult, TError, TDataInitial> extends PiniaColadaDelayOptions {}
+
+  interface UseQueryOptionsGlobal extends PiniaColadaDelayOptions {}
 
   // eslint-disable-next-line unused-imports/no-unused-vars
   interface UseQueryEntryExtensions<TResult, TError> {
