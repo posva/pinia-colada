@@ -89,7 +89,15 @@ export interface UseQueryOptions<
   // eslint-disable-next-line unused-imports/no-unused-vars
   TError = ErrorDefault,
   TDataInitial extends TResult | undefined = TResult | undefined,
-> {
+> extends Pick<
+    UseQueryOptionsGlobal,
+    | 'gcTime'
+    | 'enabled'
+    | 'refetchOnMount'
+    | 'refetchOnReconnect'
+    | 'refetchOnWindowFocus'
+    | 'staleTime'
+  > {
   /**
    * The key used to identify the query. Array of primitives **without** reactive values or a reactive array or getter.
    * It should be treaded as an array of dependencies of your queries, e.g. if you use the `route.params.id` property,
@@ -115,24 +123,6 @@ export interface UseQueryOptions<
   query: (context: UseQueryFnContext) => Promise<TResult>
 
   /**
-   * Whether the query should be enabled or not. If `false`, the query will not be executed until `refetch()` or
-   * `refresh()` is called. If it becomes `true`, the query will be refreshed.
-   */
-  enabled?: MaybeRefOrGetter<boolean>
-
-  /**
-   * Time in ms after which the data is considered stale and will be refreshed on next read.
-   * @default 5000 (5 seconds)
-   */
-  staleTime?: number
-
-  /**
-   * Time in ms after which, once the data is no longer being used, it will be garbage collected to free resources. Set to `false` to disable garbage collection.
-   * @default 300000 (5 minutes)
-   */
-  gcTime?: number | false
-
-  /**
    * The data which is initially set to the query while the query is loading for the first time.
    * Note: unlike with `placeholderData`, setting the initial data changes the state of the query (it will be set to `success`).
    */
@@ -144,28 +134,13 @@ export interface UseQueryOptions<
    * `initialData`, the placeholder does not change the cache state.
    */
   placeholderData?:
-    | NoInfer<TDataInitial> | NoInfer<TResult>
+    | NoInfer<TDataInitial>
+    | NoInfer<TResult>
     // NOTE: the generic here allows to make UseQueryOptions<T> assignable to UseQueryOptions<unknown>
     // https://www.typescriptlang.org/play/?#code/JYOwLgpgTgZghgYwgAgPIAczAPYgM4A8AKsgLzICuIA1iNgO4gB8yA3gFDLICOAXMgAoAlGRYAFKNgC2wPBGJNOydAH5eSrgHpNyABZwAbqADmyMLpRwoxilIjhkAIygQ41PMmBgNyAD6CBdBcjbAo8ABE4MDh+ADlsAEkQGGgFP0oQABMIGFAITJFSFniklKgFIR9tZCJdWWQDaDwcEGR6bCh3Kp1-AWISCAAPSCyPIiZA4JwwyOj+IhJ-KmzckHzCliJKgF92dlBIWEQUAFFwKABPYjIM2gZmNiVsTBa8fgwsXEJx9JAKABt-uxduwYFQEJ9WggAPr2MCXBQCZ6Qt5oF5fNL+P6AoT8M7wq4-DhcFxgChQVqsZDI17IXa7BBfMDIDzkNb0ZAAZQgYAI+MuE0qeAAdHBMpkBDC4ZcBMSuDx+HA8BcQAhBBtkAAWABMABofOh+AIQBrWgBCNkA-7IFTIVoAKmQ2uQ-E1wKElSAA
-    | (<T extends TResult>(previousData: T | undefined) => NoInfer<TDataInitial> | NoInfer<TResult> | undefined)
-
-  /**
-   * Whether to refetch the query when the component is mounted.
-   * @default true
-   */
-  refetchOnMount?: MaybeRefOrGetter<RefetchOnControl>
-
-  /**
-   * Whether to refetch the query when the window regains focus.
-   * @default true
-   */
-  refetchOnWindowFocus?: MaybeRefOrGetter<RefetchOnControl>
-
-  /**
-   * Whether to refetch the query when the network reconnects.
-   * @default true
-   */
-  refetchOnReconnect?: MaybeRefOrGetter<RefetchOnControl>
+    | (<T extends TResult>(
+        previousData: T | undefined,
+      ) => NoInfer<TDataInitial> | NoInfer<TResult> | undefined)
 }
 
 /**

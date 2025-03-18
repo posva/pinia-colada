@@ -28,6 +28,7 @@ export { type EntryKey } from './entry-options'
 export {
   type RefetchOnControl,
   type UseQueryOptions,
+  type UseQueryOptionsGlobal,
   type UseQueryOptionsWithDefaults,
 } from './query-options'
 
