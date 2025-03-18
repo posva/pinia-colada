@@ -67,4 +67,12 @@ export default antfu(
       'yaml/plain-scalar': 'off',
     },
   },
+
+  {
+    files: ['codemods/**/*.yaml'],
+    rules: {
+      'yaml/plain-scalar': 'off',
+      'yaml/flow-mapping-curly-spacing': 'off',
+    },
+  },
 )
