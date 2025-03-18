@@ -135,7 +135,7 @@ export const useFilteredTodos = defineQuery(() => { // [!code ++]
   // `search` is shared by all components using this query
   const search = ref('')
   const { state, ...rest } = useQuery({
-    key: ['todos', { search: search.value }],
+    key: () => ['todos', { search: search.value }],
     query: () => fetch(`/api/todos?filter=${search.value}`, { method: 'GET' }),
   })
   return {
