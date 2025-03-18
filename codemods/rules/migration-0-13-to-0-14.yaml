@@ -1,0 +1,68 @@
+id: migration-piniacolada-queryoptions
+language: TypeScript
+rule:
+  kind: object
+  pattern: $OBJ
+  not:
+    has:
+      any:
+        - pattern:
+            context: '{queryOptions: $_}'
+            selector: pair
+        - kind: shorthand_property_identifier
+          regex: ^queryOptions$
+  inside:
+    kind: arguments
+    inside:
+      pattern: app.use(PiniaColada, $_)
+rewriters:
+  - id: queryOptions-value
+    rule:
+      pattern:
+        context: '{$KEY: $VAL}'
+        selector: pair
+    constraints:
+      KEY:
+        not: { regex: 'plugins|pinia' }
+    fix: '$KEY: $VAL'
+  - id: queryOptions-shorthand
+    rule:
+      kind: shorthand_property_identifier
+      pattern: $KEY
+    constraints:
+      KEY:
+        not: { regex: 'plugins|pinia' }
+    fix: '$KEY'
+  - id: other-options-value
+    rule:
+      pattern:
+        context: '{$KEY: $VAL}'
+        selector: pair
+    constraints:
+      KEY: { regex: 'plugins|pinia' }
+    fix: '$KEY: $VAL'
+  - id: other-options-shorthand
+    rule:
+      kind: shorthand_property_identifier
+      pattern: $KEY
+    constraints:
+      KEY: { regex: 'plugins|pinia' }
+    fix: '$KEY'
+transform:
+  GROUPED:
+    rewrite:
+      rewriters: [queryOptions-value, queryOptions-shorthand]
+      source: $OBJ
+      joinBy: ",\n"
+  STANDALONE:
+    rewrite:
+      rewriters: [other-options-value, other-options-shorthand]
+      source: $OBJ
+      joinBy: ",\n"
+fix: |-
+  {
+    queryOptions: {
+      $GROUPED,
+    },
+    $STANDALONE
+  }

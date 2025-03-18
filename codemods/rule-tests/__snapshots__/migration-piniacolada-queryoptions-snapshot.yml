@@ -1,0 +1,104 @@
+id: migration-piniacolada-queryoptions
+snapshots:
+  'app.use(PiniaColada, { enabled: () => true, gcTime })':
+    fixed: "app.use(PiniaColada, {\n  queryOptions: {\n    enabled: () => true,\ngcTime,\n  },\n  \n})"
+    labels:
+    - source: '{ enabled: () => true, gcTime }'
+      style: primary
+      start: 21
+      end: 52
+    - source: 'app.use(PiniaColada, { enabled: () => true, gcTime })'
+      style: secondary
+      start: 0
+      end: 53
+    - source: '(PiniaColada, { enabled: () => true, gcTime })'
+      style: secondary
+      start: 7
+      end: 53
+  'app.use(PiniaColada, { enabled: () => true, gcTime, pinia })':
+    fixed: |-
+      app.use(PiniaColada, {
+        queryOptions: {
+          enabled: () => true,
+      gcTime,
+        },
+        pinia
+      })
+    labels:
+    - source: '{ enabled: () => true, gcTime, pinia }'
+      style: primary
+      start: 21
+      end: 59
+    - source: 'app.use(PiniaColada, { enabled: () => true, gcTime, pinia })'
+      style: secondary
+      start: 0
+      end: 60
+    - source: '(PiniaColada, { enabled: () => true, gcTime, pinia })'
+      style: secondary
+      start: 7
+      end: 60
+  'app.use(PiniaColada, { enabled: () => true, pinia })':
+    fixed: |-
+      app.use(PiniaColada, {
+        queryOptions: {
+          enabled: () => true,
+        },
+        pinia
+      })
+    labels:
+    - source: '{ enabled: () => true, pinia }'
+      style: primary
+      start: 21
+      end: 51
+    - source: 'app.use(PiniaColada, { enabled: () => true, pinia })'
+      style: secondary
+      start: 0
+      end: 52
+    - source: '(PiniaColada, { enabled: () => true, pinia })'
+      style: secondary
+      start: 7
+      end: 52
+  'app.use(PiniaColada, { enabled: () => true, plugins, gcTime })':
+    fixed: |-
+      app.use(PiniaColada, {
+        queryOptions: {
+          enabled: () => true,
+      gcTime,
+        },
+        plugins
+      })
+    labels:
+    - source: '{ enabled: () => true, plugins, gcTime }'
+      style: primary
+      start: 21
+      end: 61
+    - source: 'app.use(PiniaColada, { enabled: () => true, plugins, gcTime })'
+      style: secondary
+      start: 0
+      end: 62
+    - source: '(PiniaColada, { enabled: () => true, plugins, gcTime })'
+      style: secondary
+      start: 7
+      end: 62
+  'app.use(PiniaColada, { plugins, enabled: () => true, pinia })':
+    fixed: |-
+      app.use(PiniaColada, {
+        queryOptions: {
+          enabled: () => true,
+        },
+        plugins,
+      pinia
+      })
+    labels:
+    - source: '{ plugins, enabled: () => true, pinia }'
+      style: primary
+      start: 21
+      end: 60
+    - source: 'app.use(PiniaColada, { plugins, enabled: () => true, pinia })'
+      style: secondary
+      start: 0
+      end: 61
+    - source: '(PiniaColada, { plugins, enabled: () => true, pinia })'
+      style: secondary
+      start: 7
+      end: 61

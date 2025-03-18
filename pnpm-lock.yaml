@@ -15,6 +15,9 @@ importers:
       '@antfu/eslint-config':
         specifier: ^4.10.1
         version: 4.10.1(@typescript-eslint/utils@8.26.1(eslint@9.22.0(jiti@2.4.2))(typescript@5.8.2))(@vue/compiler-sfc@3.5.13)(eslint@9.22.0(jiti@2.4.2))(typescript@5.8.2)(vitest@3.0.9)
+      '@ast-grep/cli':
+        specifier: ^0.36.1
+        version: 0.36.1
       '@pinia/colada':
         specifier: workspace:*
         version: 'link:'
@@ -399,6 +402,53 @@ packages:
 
   '@antfu/utils@0.7.10':
     resolution: {integrity: sha512-+562v9k4aI80m1+VuMHehNJWLOFjBnXn3tdOitzD0il5b7smkSBal4+a3oKiQTbrwMmN/TBUMDvbdoWDehgOww==}
+
+  '@ast-grep/cli-darwin-arm64@0.36.1':
+    resolution: {integrity: sha512-crjY7QC+jVkwl7NO4siG1NrMAilTN81GC/OBhFJCErOz9Wi+SxR71E523UxBfrC7aG+HjP/hrXpcyCKrgbdtyw==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@ast-grep/cli-darwin-x64@0.36.1':
+    resolution: {integrity: sha512-m9Q8QQeCU/aR69tH9wZWX7eWn3ZuZFTKY4lmN5/vFkxBdnv//HfKMPVP42MnbDhvxahoiUtHq2vYlrUPgRTFTQ==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [darwin]
+
+  '@ast-grep/cli-linux-arm64-gnu@0.36.1':
+    resolution: {integrity: sha512-xo9bSXiadrZFTHCOqCF3hVIyeZ/HXkLaS11G16x57QGqfR1SqSsewxD2xmGPwopF4bMCExuRF+H+zWdLfrTzDg==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [linux]
+
+  '@ast-grep/cli-linux-x64-gnu@0.36.1':
+    resolution: {integrity: sha512-jeBzTxLGbTBs/DRJPnWaB9sO2q/QtFELoKgZAo1WL0vZAcmgdwY7epqOuRI4s/YEa7Mtt/oQ3ms1WWD/w9NsRA==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [linux]
+
+  '@ast-grep/cli-win32-arm64-msvc@0.36.1':
+    resolution: {integrity: sha512-0WzSBPcpKUCCZPS1/IgFqKDdF/BjeUjoennCU2ezVBX5/b7QKE2nwkmagtKSqCXzeoTHFTp8gBhOPvo/GAQiuA==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [win32]
+
+  '@ast-grep/cli-win32-ia32-msvc@0.36.1':
+    resolution: {integrity: sha512-ZkWDXUxjKqiP4ycv6SJaX5GTy5/CHKF2aBwMPmX9HdjF5ZL6MlpuJ2SjWLmnP4VPhkQEhAc8tl2Apbb2wr/yqQ==}
+    engines: {node: '>= 10'}
+    cpu: [ia32]
+    os: [win32]
+
+  '@ast-grep/cli-win32-x64-msvc@0.36.1':
+    resolution: {integrity: sha512-k8tQq6+zoLE3PPOqaQo9T0J7fcSbx1ySQdPnEc36on7hC5CW0/hFD5iBbHqEFlto2ciTDeuEVlNMsNLl2bTbWw==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [win32]
+
+  '@ast-grep/cli@0.36.1':
+    resolution: {integrity: sha512-1qjFJKVuPappJ7WyKAEKE+rf+vHlKhzRdlOGzg2/oXJDNhqkfKjT/U5xCkvGOucnkf/dZoHSLC/qhkiUnq50cA==}
+    engines: {node: '>= 12.0.0'}
+    hasBin: true
 
   '@babel/code-frame@7.26.2':
     resolution: {integrity: sha512-RJlIHRueQgwWitWgF8OdFYGZX328Ax5BCemNGlqHfplnRT9ESi8JkFlvaVYbS+UubVY6dpv87Fs2u5M29iNFVQ==}
@@ -6579,6 +6629,39 @@ snapshots:
       tinyexec: 0.3.2
 
   '@antfu/utils@0.7.10': {}
+
+  '@ast-grep/cli-darwin-arm64@0.36.1':
+    optional: true
+
+  '@ast-grep/cli-darwin-x64@0.36.1':
+    optional: true
+
+  '@ast-grep/cli-linux-arm64-gnu@0.36.1':
+    optional: true
+
+  '@ast-grep/cli-linux-x64-gnu@0.36.1':
+    optional: true
+
+  '@ast-grep/cli-win32-arm64-msvc@0.36.1':
+    optional: true
+
+  '@ast-grep/cli-win32-ia32-msvc@0.36.1':
+    optional: true
+
+  '@ast-grep/cli-win32-x64-msvc@0.36.1':
+    optional: true
+
+  '@ast-grep/cli@0.36.1':
+    dependencies:
+      detect-libc: 2.0.3
+    optionalDependencies:
+      '@ast-grep/cli-darwin-arm64': 0.36.1
+      '@ast-grep/cli-darwin-x64': 0.36.1
+      '@ast-grep/cli-linux-arm64-gnu': 0.36.1
+      '@ast-grep/cli-linux-x64-gnu': 0.36.1
+      '@ast-grep/cli-win32-arm64-msvc': 0.36.1
+      '@ast-grep/cli-win32-ia32-msvc': 0.36.1
+      '@ast-grep/cli-win32-x64-msvc': 0.36.1
 
   '@babel/code-frame@7.26.2':
     dependencies:

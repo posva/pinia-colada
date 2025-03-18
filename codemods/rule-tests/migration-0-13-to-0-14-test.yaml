@@ -1,0 +1,16 @@
+id: migration-piniacolada-queryoptions
+invalid:
+  # - 'app.use(PiniaColada)'
+  - 'app.use(PiniaColada, { plugins, enabled: () => true, pinia })'
+  - 'app.use(PiniaColada, { enabled: () => true, pinia })'
+  - 'app.use(PiniaColada, { enabled: () => true, gcTime, pinia })'
+  - 'app.use(PiniaColada, { enabled: () => true, gcTime })'
+  - 'app.use(PiniaColada, { enabled: () => true, plugins, gcTime })'
+vaild:
+  - 'app.use(PiniaColada, {})'
+  - 'app.use(PiniaColada, { plugins, queryOptions: { enabled: () => true }, pinia })'
+  - 'app.use(PiniaColada, { plugins: [] })'
+  - 'app.use(PiniaColada, { plugins: [], pinia })'
+  - 'app.use(PiniaColada, { plugins, pinia })'
+  - 'app.use(PiniaColada, { plugins, pinia, queryOptions })'
+  - 'app.use(PiniaColada, { plugins, pinia, queryOptions: {} })'

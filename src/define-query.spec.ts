@@ -307,7 +307,7 @@ describe('defineQuery', () => {
       const pinia = createPinia()
       app = createApp({ render: () => null })
         .use(pinia)
-        .use(PiniaColada)
+        .use(PiniaColada, {})
       app.mount(document.createElement('div'))
     })
     afterEach(() => {
@@ -539,7 +539,7 @@ describe('defineQuery', () => {
         const pinia = createPinia()
         app = createApp({ render: () => null })
           .use(pinia)
-          .use(PiniaColada)
+          .use(PiniaColada, {})
         app.mount(document.createElement('div'))
       })
       afterEach(() => {
