@@ -1,4 +1,4 @@
-import type { App } from 'vue'
+import type { App, Plugin } from 'vue'
 import type { Pinia } from 'pinia'
 import type { UseQueryOptionsGlobal } from './query-options'
 import { USE_QUERY_DEFAULTS, USE_QUERY_OPTIONS_KEY } from './query-options'
@@ -29,7 +29,10 @@ export interface PiniaColadaOptions extends UseQueryOptionsGlobal {
  * @param app - Vue App
  * @param options - Pinia Colada options
  */
-export function PiniaColada(app: App, options: PiniaColadaOptions = {}) {
+export const PiniaColada: Plugin<PiniaColadaOptions> = (
+  app: App,
+  options: PiniaColadaOptions = {},
+): void => {
   const { pinia = app.config.globalProperties.$pinia, plugins, ...useQueryOptions } = options
 
   app.provide(USE_QUERY_OPTIONS_KEY, {
