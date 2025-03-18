@@ -23,7 +23,7 @@ import { PiniaColada } from '@pinia/colada'
 
 const app = createApp({})
 app.use(createPinia())
-app.use(PiniaColada)
+app.use(PiniaColada, {})
 
 app.mount('#app')
 ```
