@@ -42,8 +42,6 @@ export {
 export {
   hydrateQueryCache,
   type QueryCache,
-  reviveTreeMap,
-  serialize,
   serializeQueryCache,
   serializeTreeMap,
   useQueryCache,
