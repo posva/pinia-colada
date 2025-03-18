@@ -187,8 +187,9 @@ export const useMutationCache = /* @__PURE__ */ defineStore('_pc_mutation', ({ a
           // @ts-expect-error: function types with generics are incompatible
           entry,
         )
+        triggerCache()
       }
-      triggerCache()
+      // TODO: store it somewhere during dev mode to show in devtools
       return createMutationEntry(options, key)
     }
     // reuse the entry when no key is provided
