@@ -1,3 +1,7 @@
+## [0.1.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.0.6...@pinia/colada-nuxt@0.1.0) (2025-03-18)
+
+This releases moves to ESM only as Nuxt only uses the ESM build.
+
 ## [0.0.6](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.0.5...@pinia/colada-nuxt@0.0.6) (2025-03-04)
 
 This release contains no changes

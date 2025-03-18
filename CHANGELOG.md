@@ -1,3 +1,75 @@
+## [0.14.0](https://github.com/posva/pinia-colada/compare/v0.13.8...v0.14.0) (2025-03-18)
+
+This version introduces codemods to automate migrations 🎉. Try them out with:
+
+```sh
+pnpm --package=@ast-grep/cli dlx ast-grep scan -r node_modules/@pinia/colada/codemods/rules/migration-0-13-to-0-14.yaml -i src
+```
+
+You can also [globally install ast-grep](https://ast-grep.github.io/guide/quick-start.html#installation) and run:
+
+```sh
+ast-grep scan -r node_modules/@pinia/colada/codemods/rules/migration-0-13-to-0-14.yaml -i src
+```
+
+Remember to commit changes before running the codemods.
+
+### ⚠ BREAKING CHANGES
+
+- Every global query (`useQuery()` and `defineQuery()`)
+  option passed to `PiniaColada` has been moved to its own option
+  `queryOptions`:
+
+  ```diff
+  app.use(PiniaColada, {
+    plugins: [],
+  -  gcTime: 20_000,
+  +  queryOptions: {
+  +    gcTime: 20_000,
+  +  },
+  })
+  ```
+
+  You can also use the new codemods to automatically migrate this.
+
+- **types:** This changes allows for Pinia Colada global options to
+  auto complete but it also requires you to use pass an options object to
+  `app.use(PiniaColada, {})`. This is just for typing reasons (it could be
+  a limitation of Vue) but the same old code actually works.
+
+  ```diff
+  -app.use(PiniaColada)
+  +app.use(PiniaColada, {})
+  ```
+
+- Replace `serialize` with `serializeTreeMap`
+* Removed `reviveTreeMap` (not needed)
+* Removed internal `createdQueryEntry`
+
+### Features
+
+- add codemods for migrations ([1a2d552](https://github.com/posva/pinia-colada/commit/1a2d552df57142967955c51d82846e2a1f9bdb60))
+- allow global placeholderData ([a98528a](https://github.com/posva/pinia-colada/commit/a98528ad3e26c84dbc30a911a7a2da74b92111fb)), closes [#216](https://github.com/posva/pinia-colada/issues/216)
+- allow invalidating all queries no matter their active status ([a64f674](https://github.com/posva/pinia-colada/commit/a64f674ec43184f467756fdccce4b2e5ae68e48f))
+- allow nullish filters ([aadd11d](https://github.com/posva/pinia-colada/commit/aadd11dd6a3d155b6859a22c3ce515d98969584f))
+
+### Bug Fixes
+
+- avoid cancels to change the status ([138857c](https://github.com/posva/pinia-colada/commit/138857c4150d4586818f3f6706a4cfcff3a6622a)), closes [#210](https://github.com/posva/pinia-colada/issues/210)
+- avoid unnecessary triggerCache ([a3494a0](https://github.com/posva/pinia-colada/commit/a3494a0f7acfff6654816feb5c01b8673dbcae7a))
+- initialize the infinite query pages ([9efb7d4](https://github.com/posva/pinia-colada/commit/9efb7d44feab687285a4cfe6de654502e468a970))
+- **types:** correctly type PiniaColada Vue plugin ([f01326f](https://github.com/posva/pinia-colada/commit/f01326f728844037b76fba4ba3eabafc45df8639))
+- **types:** placeholderData does not guarantee data ([aed71c1](https://github.com/posva/pinia-colada/commit/aed71c1c6a6f32e940fb16937d9526ee06c24f33)), closes [#217](https://github.com/posva/pinia-colada/issues/217)
+
+### Performance Improvements
+
+- inline filter fn ([2aa1254](https://github.com/posva/pinia-colada/commit/2aa125470fdae96cf474d35bd1f79653a51b4788))
+
+### Code Refactoring
+
+- move global query options to its own option ([f5e20f0](https://github.com/posva/pinia-colada/commit/f5e20f0131c1e0537b9598bc607e33da3fa50919))
+- remove deprecated functions ([8ba4362](https://github.com/posva/pinia-colada/commit/8ba436262f4364a4ca46506c2274d15753d20655))
+
 ## [0.13.8](https://github.com/posva/pinia-colada/compare/v0.13.7...v0.13.8) (2025-03-09)
 
 ### Features
