@@ -62,7 +62,7 @@ transform:
 fix: |-
   {
     queryOptions: {
-      $GROUPED,
+      $GROUPED
     },
     $STANDALONE
   }
