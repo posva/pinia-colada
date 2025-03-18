@@ -41,6 +41,37 @@ import { toCacheKey } from '@pinia/colada'
 const key = toCacheKey(['users', 1, { type: 'friends' }])
 ```
 
+## TypeScript
+
+As plugins can add properties to the types, you need to augment the types to add the new properties. This is done with module augmentation.
+
+### Adding Options to Queries
+
+When adding options to queries, you can augment the `UseQueryOptions` and `UseQueryOptionsGlobal` interfaces. The first one gives is generic and exposes its types params for more precise type inference, the second one is global and doesn't expose the types params.
+
+```ts
+/**
+ * Options for the auto-refetch plugin.
+ */
+export interface PiniaColadaAutoRefetchOptions {
+  /**
+   * Whether to enable auto refresh by default.
+   * @default false
+   */
+  autoRefetch?: MaybeRefOrGetter<boolean>
+}
+
+// Add types for the new option
+declare module '@pinia/colada' {
+
+  interface UseQueryOptions<TResult, TError, TDataInitial> extends PiniaColadaAutoRefetchOptions {}
+
+  interface UseQueryOptionsGlobal extends PiniaColadaAutoRefetchOptions {}
+}
+```
+
+To avoid repetition, define the options in a separate interface and augment both `UseQueryOptions` and `UseQueryOptionsGlobal` in a module augmentation. Note you need to write the three type params, `TResult`, `TError`, and `TDataInitial`, even if you don't use them and they must be named exactly like that.
+
 ## Examples
 
 Here are some practical examples you can learn from.

@@ -110,7 +110,7 @@ declare module '@pinia/colada' {
   interface UseQueryOptionsGlobal extends PiniaColadaAutoRefetchOptions {}
 
   // eslint-disable-next-line unused-imports/no-unused-vars
-  interface UseQueryEntryExtensions<TResult, TError> {
+  interface UseQueryEntryExtensions<TResult, TError, TDataInitial> {
     /**
      * Used to store the timeout for the auto-refetch plugin.
      * @internal
