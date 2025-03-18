@@ -25,12 +25,16 @@ export type {
   DataStateStatus,
 } from './data-state'
 export { type EntryKey } from './entry-options'
-export {
-  type RefetchOnControl,
-  type UseQueryOptions,
-  type UseQueryOptionsGlobal,
-  type UseQueryOptionsWithDefaults,
+export type {
+  RefetchOnControl,
+  UseQueryOptions,
+  UseQueryOptionsGlobal,
+  UseQueryOptionsWithDefaults,
 } from './query-options'
+
+// export type {
+//   UseMutationOptionsGlobal,
+// } from './mutation-options'
 
 export { PiniaColada } from './pinia-colada'
 export type { PiniaColadaOptions } from './pinia-colada'

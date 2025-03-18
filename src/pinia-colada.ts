@@ -5,6 +5,7 @@ import { USE_QUERY_DEFAULTS, USE_QUERY_OPTIONS_KEY } from './query-options'
 import { useQueryCache } from './query-store'
 import type { PiniaColadaPlugin } from './plugins'
 import { addDevtools } from './devtools/plugin'
+import type { UseMutationOptionsGlobal } from './mutation-options'
 
 /**
  * Options for the Pinia Colada plugin.
@@ -24,6 +25,12 @@ export interface PiniaColadaOptions {
    * Global options for queries. These will apply to all `useQuery()`, `defineQuery()`, etc.
    */
   queryOptions?: UseQueryOptionsGlobal
+
+  /**
+   * Global options for mutations. These will apply to all `useMutation()`, `defineMutation()`, etc.
+   */
+  // TODO: uncomment once options are added
+  // mutationOptions?: UseMutationOptionsGlobal
 }
 
 /**
