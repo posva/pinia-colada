@@ -6,14 +6,15 @@ import { computed, shallowRef } from 'vue'
 import { useMutationCache } from './mutation-store'
 import type { UseMutationEntry } from './mutation-store'
 import { noop } from './utils'
-import type { _Awaitable, _EmptyObject } from './utils'
+import type { _EmptyObject } from './utils'
+import type { UseMutationOptions } from './mutation-options'
 
 /**
  * Valid keys for a mutation. Similar to query keys.
  * @see {@link EntryKey}
  * @internal
  */
-type _MutationKey<TVars> = EntryKey | ((vars: TVars) => EntryKey)
+export type _MutationKey<TVars> = EntryKey | ((vars: TVars) => EntryKey)
 
 /**
  * Removes the nullish types from the context type to make `A & TContext` work instead of yield `never`.
@@ -45,132 +46,6 @@ export type _ReduceContext<TContext> = TContext extends void | null | undefined
  * ```
  */
 export interface UseMutationGlobalContext {}
-
-/**
- * Options to create a mutation.
- */
-export interface UseMutationOptions<
-  TResult = unknown,
-  TVars = void,
-  TError = ErrorDefault,
-  TContext extends Record<any, any> = _EmptyObject,
-> {
-  /**
-   * The key of the mutation. If the mutation is successful, it will invalidate the mutation with the same key and refetch it
-   */
-  mutation: (vars: TVars, context: _ReduceContext<NoInfer<TContext>>) => Promise<TResult>
-
-  /**
-   * Optional key to identify the mutation globally and access it through other
-   * helpers like `useMutationState()`. If you don't need to reference the
-   * mutation elsewhere, you should ignore this option.
-   */
-  key?: _MutationKey<NoInfer<TVars>>
-
-  /**
-   * Runs before the mutation is executed. **It should be placed before `mutation()` for `context` to be inferred**. It
-   * can return a value that will be passed to `mutation`, `onSuccess`, `onError` and `onSettled`. If it returns a
-   * promise, it will be awaited before running `mutation`.
-   *
-   * @example
-   * ```ts
-   * useMutation({
-   * // must appear before `mutation` for `{ foo: string }` to be inferred
-   * // within `mutation`
-   *   onMutate() {
-   *     return { foo: 'bar' }
-   *   },
-   *   mutation: (id: number, { foo }) => {
-   *     console.log(foo) // bar
-   *     return fetch(`/api/todos/${id}`)
-   *   },
-   *   onSuccess(context) {
-   *     console.log(context.foo) // bar
-   *   },
-   * })
-   * ```
-   */
-  onMutate?: (
-    /**
-     * The variables passed to the mutation.
-     */
-    vars: NoInfer<TVars>,
-    context: // undefined properties if global onMutate throws
-    UseMutationGlobalContext,
-  ) => _Awaitable<TContext | undefined | void | null>
-
-  /**
-   * Runs if the mutation is successful.
-   */
-  onSuccess?: (
-    /**
-     * The result of the mutation.
-     */
-    data: NoInfer<TResult>,
-    /**
-     * The variables passed to the mutation.
-     */
-    vars: NoInfer<TVars>,
-    /**
-     * The merged context from `onMutate` and the global context.
-     */
-    context: UseMutationGlobalContext & _ReduceContext<NoInfer<TContext>>,
-  ) => unknown
-
-  /**
-   * Runs if the mutation encounters an error.
-   */
-  onError?: (
-    /**
-     * The error thrown by the mutation.
-     */
-    error: NoInfer<TError>,
-    /**
-     * The variables passed to the mutation.
-     */
-    vars: NoInfer<TVars>,
-    /**
-     * The merged context from `onMutate` and the global context. Properties returned by `onMutate` can be `undefined`
-     * if `onMutate` throws.
-     */
-    context:
-      | // undefined if global onMutate throws, makes type narrowing easier for the user
-      (Partial<Record<keyof UseMutationGlobalContext, never>> &
-          Partial<Record<keyof _ReduceContext<NoInfer<TContext>>, never>>)
-      // this is the success case where everything is defined
-      // undefined if global onMutate throws
-      | (UseMutationGlobalContext & _ReduceContext<NoInfer<TContext>>),
-  ) => unknown
-
-  /**
-   * Runs after the mutation is settled, regardless of the result.
-   */
-  onSettled?: (
-    /**
-     * The result of the mutation. `undefined` if the mutation failed.
-     */
-    data: NoInfer<TResult> | undefined,
-    /**
-     * The error thrown by the mutation. `undefined` if the mutation was successful.
-     */
-    error: NoInfer<TError> | undefined,
-    /**
-     * The variables passed to the mutation.
-     */
-    vars: NoInfer<TVars>,
-    /**
-     * The merged context from `onMutate` and the global context. Properties returned by `onMutate` can be `undefined`
-     * if `onMutate` throws.
-     */
-    context:
-      | // undefined if global onMutate throws, makes type narrowing easier for the user
-      (Partial<Record<keyof UseMutationGlobalContext, never>> &
-          Partial<Record<keyof _ReduceContext<NoInfer<TContext>>, never>>)
-      // this is the success case where everything is defined
-      // undefined if global onMutate throws
-      | (UseMutationGlobalContext & _ReduceContext<NoInfer<TContext>>),
-  ) => unknown
-}
 
 // export const USE_MUTATIONS_DEFAULTS = {} satisfies Partial<UseMutationsOptions>
 

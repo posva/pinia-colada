@@ -6,7 +6,9 @@ import { customRef, getCurrentScope, shallowRef } from 'vue'
 import { TreeMapNode } from './tree-map'
 import type { _EmptyObject } from './utils'
 import { isSameArray, noop, stringifyFlatObject, toCacheKey, toValueWithArgs } from './utils'
-import type { _ReduceContext, UseMutationOptions } from './use-mutation'
+import type { _ReduceContext, UseMutationGlobalContext } from './use-mutation'
+import { useMutationOptions } from './mutation-options'
+import type { UseMutationOptions } from './mutation-options'
 import type { EntryKey } from './entry-options'
 
 /**
@@ -145,7 +147,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore('_pc_mutation', ({ a
   // this allows use to attach reactive effects to the scope later on
   const scope = getCurrentScope()!
 
-  // const globalOptions = inject()
+  const globalOptions = useMutationOptions()
   const defineMutationMap = new WeakMap<() => unknown, unknown>()
 
   function ensure<
@@ -313,9 +315,12 @@ export const useMutationCache = /* @__PURE__ */ defineStore('_pc_mutation', ({ a
 
     const currentCall = (currentEntry.pending = Symbol())
     try {
-      // TODO: implement
-      // let globalOnMutateContext: UseMutationGlobalContext | undefined
-      // let globalOnMutateContext = await globalOptions.onMutate?.(vars)
+      const globalOnMutateContext = globalOptions.onMutate?.(vars)
+
+      context
+        = (globalOnMutateContext instanceof Promise
+          ? await globalOnMutateContext
+          : globalOnMutateContext) || {}
 
       const onMutateContext = (await options.onMutate?.(
         vars,
@@ -325,13 +330,14 @@ export const useMutationCache = /* @__PURE__ */ defineStore('_pc_mutation', ({ a
 
       // we set the context here so it can be used by other hooks
       context = {
-        // ...globalOnMutateContext!,
+        ...context,
         ...onMutateContext,
         // NOTE: needed for onSuccess cast
       } satisfies OnSuccessContext
 
       const newData = (currentData = await options.mutation(vars, context as OnSuccessContext))
 
+      await globalOptions.onSuccess?.(newData, vars, context as OnSuccessContext)
       await options.onSuccess?.(
         newData,
         vars,
@@ -349,6 +355,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore('_pc_mutation', ({ a
       }
     } catch (newError: unknown) {
       currentError = newError as TError
+      await globalOptions.onError?.(currentError, vars, context)
       await options.onError?.(currentError, vars, context)
       if (currentEntry.pending === currentCall) {
         setEntryState(currentEntry, {
@@ -360,6 +367,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore('_pc_mutation', ({ a
       throw newError
     } finally {
       // TODO: should we catch and log it?
+      await globalOptions.onSettled?.(currentData, currentError, vars, context)
       await options.onSettled?.(currentData, currentError, vars, context)
       if (currentEntry.pending === currentCall) {
         currentEntry.asyncStatus.value = 'idle'

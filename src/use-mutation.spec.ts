@@ -4,7 +4,7 @@ import { createPinia } from 'pinia'
 import { defineComponent } from 'vue'
 import type { GlobalMountOptions } from '../test/utils'
 import { delay } from '../test/utils'
-import type { UseMutationOptions } from './use-mutation'
+import type { UseMutationOptions } from './mutation-options'
 import { useMutation } from './use-mutation'
 import { PiniaColada } from './pinia-colada'
 
@@ -267,5 +267,84 @@ describe('useMutation', () => {
     expect(wrapper.vm.data).toBeUndefined()
     expect(wrapper.vm.error).toBeNull()
     expect(wrapper.vm.status).toBe('pending')
+  })
+
+  it('triggers global onMutate', async () => {
+    const onMutate = vi.fn()
+    const { wrapper } = mountSimple(
+      {},
+      {
+        plugins: [createPinia(), [PiniaColada, { mutationOptions: { onMutate } }]],
+      },
+    )
+
+    expect(onMutate).toHaveBeenCalledTimes(0)
+    wrapper.vm.mutate()
+    // no need since it's synchronous
+    // await flushPromises()
+    expect(onMutate).toHaveBeenCalledTimes(1)
+    expect(onMutate).toHaveBeenCalledWith(undefined)
+  })
+
+  it('local onMutate receives global onMutate result', async () => {
+    const onMutate = vi.fn(() => ({ foo: 'bar' }))
+    const { wrapper } = mountSimple(
+      { onMutate },
+      {
+        plugins: [
+          createPinia(),
+          [PiniaColada, { mutationOptions: { onMutate: () => ({ global: true }) } }],
+        ],
+      },
+    )
+
+    wrapper.vm.mutate()
+    expect(onMutate).toHaveBeenCalledWith(undefined, { global: true })
+  })
+
+  it('triggers global onSuccess', async () => {
+    const onSuccess = vi.fn()
+    const { wrapper } = mountSimple(
+      {},
+      {
+        plugins: [createPinia(), [PiniaColada, { mutationOptions: { onSuccess } }]],
+      },
+    )
+
+    wrapper.vm.mutate()
+    await flushPromises()
+    expect(onSuccess).toHaveBeenCalledWith(42, undefined, {})
+  })
+
+  it('triggers global onError', async () => {
+    const onError = vi.fn()
+    const { wrapper } = mountSimple(
+      {
+        mutation: async () => {
+          throw new Error('foobar')
+        },
+      },
+      {
+        plugins: [createPinia(), [PiniaColada, { mutationOptions: { onError } }]],
+      },
+    )
+
+    await expect(wrapper.vm.mutateAsync()).rejects.toThrow()
+    await flushPromises()
+    expect(onError).toHaveBeenCalledWith(new Error('foobar'), undefined, {})
+  })
+
+  it('triggers global onSettled', async () => {
+    const onSettled = vi.fn()
+    const { wrapper } = mountSimple(
+      {},
+      {
+        plugins: [createPinia(), [PiniaColada, { mutationOptions: { onSettled } }]],
+      },
+    )
+
+    wrapper.vm.mutate()
+    await flushPromises()
+    expect(onSettled).toHaveBeenCalledWith(42, undefined, undefined, {})
   })
 })

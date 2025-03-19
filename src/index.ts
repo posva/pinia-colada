@@ -6,7 +6,6 @@ export { defineMutation } from './define-mutation'
 export {
   type _ReduceContext,
   useMutation,
-  type UseMutationOptions,
   type UseMutationReturn,
 } from './use-mutation'
 
@@ -32,9 +31,10 @@ export type {
   UseQueryOptionsWithDefaults,
 } from './query-options'
 
-// export type {
-//   UseMutationOptionsGlobal,
-// } from './mutation-options'
+export type {
+  UseMutationOptions,
+  // UseMutationOptionsGlobal,
+} from './mutation-options'
 
 export { PiniaColada } from './pinia-colada'
 export type { PiniaColadaOptions } from './pinia-colada'

@@ -5,6 +5,7 @@ import { USE_QUERY_DEFAULTS, USE_QUERY_OPTIONS_KEY } from './query-options'
 import { useQueryCache } from './query-store'
 import type { PiniaColadaPlugin } from './plugins'
 import { addDevtools } from './devtools/plugin'
+import { USE_MUTATION_OPTIONS_KEY } from './mutation-options'
 import type { UseMutationOptionsGlobal } from './mutation-options'
 
 /**
@@ -29,8 +30,7 @@ export interface PiniaColadaOptions {
   /**
    * Global options for mutations. These will apply to all `useMutation()`, `defineMutation()`, etc.
    */
-  // TODO: uncomment once options are added
-  // mutationOptions?: UseMutationOptionsGlobal
+  mutationOptions?: UseMutationOptionsGlobal
 }
 
 /**
@@ -45,12 +45,14 @@ export const PiniaColada: Plugin<PiniaColadaOptions> = (
   app: App,
   options: PiniaColadaOptions = {},
 ): void => {
-  const { pinia = app.config.globalProperties.$pinia, plugins, queryOptions } = options
+  const { pinia = app.config.globalProperties.$pinia, plugins, queryOptions, mutationOptions = {} } = options
 
   app.provide(USE_QUERY_OPTIONS_KEY, {
     ...USE_QUERY_DEFAULTS,
     ...queryOptions,
   })
+
+  app.provide(USE_MUTATION_OPTIONS_KEY, mutationOptions)
 
   if (process.env.NODE_ENV !== 'production' && !pinia) {
     throw new Error(
