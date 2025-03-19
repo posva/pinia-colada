@@ -74,11 +74,11 @@ One of the most powerful features of query keys is that they are hierarchical. T
 ```ts
 // gets the product with all its details
 useQuery({
-  key: ['products', productId],
+  key: () => ['products', productId],
   query: () => getProductById(productId),
 })
 useQuery({
-  key: ['products', productId, { searchResult: true }],
+  key: () => ['products', productId, { searchResult: true }],
   query: () => getProductSummaryById(productId),
 })
 ```
