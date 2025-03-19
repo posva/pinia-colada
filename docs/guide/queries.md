@@ -181,6 +181,24 @@ If you need to define custom parameters **that aren't global**, you don't need t
 
 :::
 
+### Nuxt
+
+When using `defineQuery()` in Nuxt, `useRoute()` returns a different version of the route, **it is recommended to explicitly import it from `vue-router` instead of using the Nuxt version** (automatically imported):
+
+```ts{1}
+import { useRoute } from 'vue-router'
+
+export const useContactDetails = defineQuery(() => {
+  const route = useRoute()
+  return useQuery({
+    key: () => ['contacts', route.params.contactId],
+    query: () => fetch(`/api/contacts/${route.params.contactId}`).then((res) => res.json()),
+  })
+})
+```
+
+If you don't do this, you will see the query being triggered more than it should, specifically when navigating to or away from the page. It might be even `undefined`. This is due to how Nuxt internally handles the integration with Suspense.
+
 ## Using External Properties in Queries
 
 Since queries are automatically triggered by Pinia Colada, the `query` function cannot accept parameters. However, you can directly use external properties like route params or search queries within the `query` function. To ensure proper caching, add these properties to the `key` as a function. A common example is using the `route` within the `query` function:
@@ -203,7 +221,8 @@ Each unique `key` generates a new query entry in the cache. When you switch back
 
 ## Pausing queries
 
-It's possible to temporarily disable a query, like pausing it. This is crucial when some of the data used to query is required but not always present. The most common example is using a _param_ or _query_ from the route within a `defineQuery()`:
+It's possible to temporarily stopping a query from refreshing, like pausing it. This has many use cases and is especially handy when you have some kind of auto refetch happening.
+This is crucial when some of the data used to query is required but not always present. The most common example is using a _param_ or _query_ from the route in a query that is used across pages (e.g. within a store). Such usage will make the query trigger while not in the page, causing unnecessary network requests. It's easy to disable the query when the required data is absent:
 
 ```ts
 export const useCurrentDeck = defineQuery(() => {
