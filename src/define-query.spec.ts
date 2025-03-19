@@ -117,6 +117,120 @@ describe('defineQuery', () => {
     expect(useData().value).toBe('ok')
   })
 
+  // tests that are specific to the nested scope created for each defineQuery
+  // that allows them to mimic useQuery behavior in components
+  describe('nested scope', () => {
+    it('avoids reading the key if not active (unmounted component)', async () => {
+      const routeId = ref(1)
+      const key = vi.fn(() => ['key', routeId.value])
+      const useProfile = defineQuery(() => {
+        return useQuery({
+          key,
+          query: async () => ({ name: 'Eduardo' }),
+        })
+      })
+
+      const wrapper = mount(
+        {
+          setup() {
+            return { ...useProfile() }
+          },
+          template: `<div></div>`,
+        },
+        {
+          global: {
+            plugins: [createPinia(), PiniaColada],
+          },
+        },
+      )
+
+      await flushPromises()
+      expect(key).toHaveBeenCalledTimes(1)
+      wrapper.unmount()
+      routeId.value = 2
+      await flushPromises()
+      expect(key).toHaveBeenCalledTimes(1)
+    })
+
+    it('avoids reading the key if not active (v-if toggle)', async () => {
+      const routeId = ref(1)
+      const key = vi.fn(() => ['key', routeId.value])
+      const useProfile = defineQuery(() => {
+        return useQuery({
+          key,
+          query: async () => ({ name: 'Eduardo' }),
+        })
+      })
+
+      const ViewComponent = defineComponent({
+        setup() {
+          return { ...useProfile() }
+        },
+        template: `<div></div>`,
+      })
+
+      mount(
+        {
+          components: { ViewComponent },
+          setup() {
+            return { routeId }
+          },
+          template: `<div>{{ routeId }}<ViewComponent v-if="routeId === 1" /></div>`,
+        },
+        {
+          global: {
+            plugins: [createPinia(), PiniaColada],
+          },
+        },
+      )
+
+      await flushPromises()
+      routeId.value = 2
+      await flushPromises()
+      expect(key).toHaveBeenCalledTimes(1)
+    })
+
+    it('reactivates if a new component mounts', async () => {
+      const routeId = ref(1)
+      const key = vi.fn(() => ['key', routeId.value])
+      const useProfile = defineQuery(() => {
+        return useQuery({
+          key,
+          query: async () => ({ name: 'Eduardo' }),
+        })
+      })
+
+      const ViewComponent = defineComponent({
+        setup() {
+          return { ...useProfile() }
+        },
+        template: `<div></div>`,
+      })
+
+      mount(
+        {
+          components: { ViewComponent },
+          setup() {
+            return { routeId }
+          },
+          template: `<div>{{ routeId }}<ViewComponent v-if="routeId === 1" /></div>`,
+        },
+        {
+          global: {
+            plugins: [createPinia(), PiniaColada],
+          },
+        },
+      )
+
+      await flushPromises()
+      routeId.value = 2
+      await flushPromises()
+      routeId.value = 1
+      await flushPromises()
+      expect(key).toHaveBeenCalledTimes(2)
+    })
+  })
+
   describe('refetchOnMount', () => {
     it('refreshes the query if mounted in a new component', async () => {
       const spy = vi.fn(async () => {

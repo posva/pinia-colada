@@ -107,6 +107,8 @@ export function useQuery<
   const queryCache = useQueryCache()
   const optionDefaults = useQueryOptions()
   // const effect = (getActivePinia() as any)._e as EffectScope
+  const hasCurrentInstance = getCurrentInstance()
+  const currentEffect = getCurrentDefineQueryEffect() || getCurrentScope()
 
   const options = {
     ...optionDefaults,
@@ -122,8 +124,15 @@ export function useQuery<
   // without triggering watchers and creating entries. It is used during
   // unmounting and mounting
   let lastEntry: UseQueryEntry<TResult, TError, TDataInitial>
-  const entry = computed(
-    () => (lastEntry = queryCache.ensure<TResult, TError, TDataInitial>(options, lastEntry)),
+  const entry = computed(() =>
+    // NOTE: there should be a `paused` property on the effect later on
+    // if the effect is paused, we don't want to compute the entry because its key
+    // might be referencing unedfined values
+    // https://github.com/posva/pinia-colada/issues/227
+    // @ts-expect-error: _isPaused is private
+    currentEffect?._isPaused
+      ? lastEntry!
+      : (lastEntry = queryCache.ensure<TResult, TError, TDataInitial>(options, lastEntry)),
   )
   // we compute the entry here and reuse this across
   lastEntry = entry.value
@@ -188,9 +197,6 @@ export function useQuery<
     refresh,
     refetch,
   } satisfies UseQueryReturn<TResult, TError, TDataInitial>
-
-  const hasCurrentInstance = getCurrentInstance()
-  const currentEffect = getCurrentDefineQueryEffect() || getCurrentScope()
 
   if (hasCurrentInstance) {
     // only happens on server, app awaits this

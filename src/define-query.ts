@@ -78,7 +78,7 @@ export function defineQuery(optionsOrSetup: DefineQueryOptions | (() => unknown)
     const previousEffect = currentDefineQueryEffect
     const currentScope = getCurrentInstance() || (currentDefineQueryEffect = getCurrentScope())
 
-    const [entries, ret] = queryCache.ensureDefinedQuery(setupFn)
+    const [entries, ret, scope] = queryCache.ensureDefinedQuery(setupFn)
     // NOTE: most of the time this should be set, so maybe we should show a dev warning
     // if it's not set instead
     if (currentScope) {
@@ -90,9 +90,17 @@ export function defineQuery(optionsOrSetup: DefineQueryOptions | (() => unknown)
         }
       })
       onScopeDispose(() => {
-        entries.forEach((entry) => {
-          queryCache.untrack(entry, currentScope)
-        })
+        // if all entries become inactive, we pause the scope
+        // to avoid triggering the effects within useQuery. This immitates the behavior
+        // of a component that unmounts
+        if (
+          entries.every((entry) => {
+            queryCache.untrack(entry, currentScope)
+            return !entry.active
+          })
+        ) {
+          scope.pause()
+        }
       })
     }
 

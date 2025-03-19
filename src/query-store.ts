@@ -1,6 +1,7 @@
 import { defineStore, getActivePinia, skipHydrate } from 'pinia'
 import {
   customRef,
+  effectScope,
   getCurrentInstance,
   getCurrentScope,
   hasInjectionContext,
@@ -237,7 +238,7 @@ export const QUERY_STORE_ID = '_pc_query'
  * A query entry that is defined with {@link defineQuery}.
  * @internal
  */
-type DefineQueryEntry = [entries: UseQueryEntry[], returnValue: unknown]
+type DefineQueryEntry = [entries: UseQueryEntry[], returnValue: unknown, effect: EffectScope]
 
 /**
  * Composable to get the cache of the queries. As any other composable, it can be used inside the `setup` function of a
@@ -345,13 +346,15 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     let defineQueryEntry = defineQueryMap.get(fn)
     if (!defineQueryEntry) {
       // create the entry first
-      currentDefineQueryEntry = defineQueryEntry = [[], null]
+      currentDefineQueryEntry = defineQueryEntry = [[], null, scope.run(() => effectScope())!]
       // then run it so it can add the queries to the entry
       // we use the app context for injections and the scope for effects
-      defineQueryEntry[1] = app.runWithContext(() => scope.run(fn)!)
+      defineQueryEntry[1] = app.runWithContext(() => defineQueryEntry![2].run(fn)!)
       currentDefineQueryEntry = null
       defineQueryMap.set(fn, defineQueryEntry)
     } else {
+      // ensure the scope is active so effects computing inside `useQuery()` run (e.g. the entry computed)
+      defineQueryEntry[2].resume()
       // if the entry already exists, we know the queries inside
       // we should consider as if they are activated again
       defineQueryEntry[0] = defineQueryEntry[0].map((oldEntry) => {
