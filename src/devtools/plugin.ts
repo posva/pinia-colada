@@ -1,7 +1,6 @@
 import { setupDevtoolsPlugin } from '@vue/devtools-api'
 import { watch } from 'vue'
 import type { App } from 'vue'
-// import DevtoolsPanel from './DevtoolsPane.vue?raw'
 import type { Pinia } from 'pinia'
 import { useQueryCache } from '../query-store'
 import type { AsyncStatus, DataStateStatus } from '../data-state'
