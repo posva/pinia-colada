@@ -21,6 +21,11 @@ export interface UseMutationEntry<
   TContext extends Record<any, any> = _EmptyObject,
 > {
   /**
+   * Unique id of the mutation entry.
+   */
+  id: number
+
+  /**
    * The state of the mutation. Contains the data, error and status.
    */
   state: ShallowRef<DataState<TResult, TError>>
@@ -94,6 +99,8 @@ export interface UseMutationEntryFilter {
   predicate?: (entry: UseMutationEntry) => boolean
 }
 
+let nextMutationId = 0
+
 function createMutationEntry<
   TResult = unknown,
   TVars = unknown,
@@ -105,6 +112,7 @@ function createMutationEntry<
   vars?: TVars,
 ): UseMutationEntry<TResult, TVars, TError, TContext> {
   return {
+    id: nextMutationId++,
     state: shallowRef<DataState<TResult, TError>>({
       status: 'pending',
       data: undefined,
