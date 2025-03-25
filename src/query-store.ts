@@ -536,7 +536,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           entry.__hmr.deps ??= new Set()
           entry.__hmr.id
             // @ts-expect-error: internal property
-            = currentInstance.type.__hmrId
+            = currentInstance.type?.__hmrId
+            // @ts-expect-error: for Vue 2 support
+            ?? currentInstance.proxy?._uid
           if (
             entry.__hmr.id == null
             && process.env.NODE_ENV !== 'test'
