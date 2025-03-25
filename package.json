@@ -126,7 +126,7 @@
     "@shikijs/vitepress-twoslash": "^3.2.1",
     "@size-limit/esbuild-why": "^11.2.0",
     "@size-limit/preset-small-lib": "^11.2.0",
-    "@types/node": "^22.13.11",
+    "@types/node": "^22.13.13",
     "@vitejs/plugin-vue": "^5.2.3",
     "@vitest/coverage-v8": "^3.0.9",
     "@vitest/ui": "^3.0.9",
@@ -156,7 +156,8 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": [
-      "@ast-grep/cli"
+      "@ast-grep/cli",
+      "simple-git-hooks"
     ]
   },
   "simple-git-hooks": {
