@@ -86,6 +86,18 @@ export interface UseQueryEntry<
   gcTimeout: ReturnType<typeof setTimeout> | undefined
 
   /**
+   * Time in ms after which the entry is considered stale and will be refreshed on next read.
+   */
+  staleTime: number
+
+  /**
+   * Time in ms after which, once the entry is no longer being used, it will be
+   * garbage collected to free resources. Can be `false` to disable garbage
+   * collection.
+   */
+  gcTime: number | false
+
+  /**
    * The current pending request.
    */
   pending: null | {
@@ -106,7 +118,7 @@ export interface UseQueryEntry<
   /**
    * Options used to create the query. They can be `null` during hydration but are needed for fetching. This is why
    * `store.ensure()` sets this property. Note these options might be shared by multiple query entries when the key is
-   * dynamic.
+   * dynamic and that's why some methods like {@link fetch} receive the options as an argument.
    */
   options: UseQueryOptionsWithDefaults<TResult, TError, TDataInitial> | null
 
@@ -321,14 +333,17 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           // eslint-disable-next-line ts/ban-ts-comment
           // @ts-ignore: some plugins are adding properties to the entry type
           ext: START_EXT,
+          // setup staleTime and gcTime so this entry can be disposed of
+          staleTime: options?.staleTime ?? optionDefaults.staleTime,
+          gcTime: options?.gcTime ?? optionDefaults.gcTime,
           options,
           get stale() {
-            return !this.when || Date.now() >= this.when + this.options!.staleTime
+            return !this.when || Date.now() >= this.when + this.staleTime
           },
           get active() {
             return this.deps.size > 0
           },
-        })
+        } satisfies UseQueryEntry<TResult, TError, TDataInitial>)
       })!,
   )
 
@@ -358,9 +373,10 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       // if the entry already exists, we know the queries inside
       // we should consider as if they are activated again
       defineQueryEntry[0] = defineQueryEntry[0].map((oldEntry) => {
-        // the entries' key might have change (e.g. Nuxt navigation)
+        // the entries' key might have changed (e.g. Nuxt navigation)
         // so we need to ensure them again
         const entry = oldEntry.options ? ensure(oldEntry.options, oldEntry) : oldEntry
+        // TODO: should happen in useQuery and defineQuery
         if (entry.options?.refetchOnMount && toValue(entry.options.enabled)) {
           if (toValue(entry.options.refetchOnMount) === 'always') {
             fetch(entry)
@@ -413,13 +429,14 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     entry.deps.delete(effect)
     triggerCache()
 
-    if (entry.deps.size > 0 || !entry.options) return
+    // schedule a garbage collection if the entry is not active
+    if (entry.deps.size > 0) return
     clearTimeout(entry.gcTimeout)
     // avoid setting a timeout with false, Infinity or NaN
-    if ((Number.isFinite as (val: unknown) => val is number)(entry.options.gcTime)) {
+    if ((Number.isFinite as (val: unknown) => val is number)(entry.gcTime)) {
       entry.gcTimeout = setTimeout(() => {
         remove(entry)
-      }, entry.options.gcTime)
+      }, entry.gcTime)
     }
   }
 
@@ -553,6 +570,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
 
       // we set it every time to ensure we are using up to date key getters and others options
       entry.options = options
+      // If the data is hydrated, we need to set these values here
+      entry.gcTime = options.gcTime
+      entry.staleTime = options.staleTime
 
       // extend the entry with plugins the first time only
       if (entry.ext === START_EXT) {
@@ -601,15 +621,16 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   const refresh = action(
     async <TResult, TError, TDataInitial extends TResult | undefined>(
       entry: UseQueryEntry<TResult, TError, TDataInitial>,
+      options = entry.options,
     ): Promise<DataState<TResult, TError, TDataInitial>> => {
-      if (process.env.NODE_ENV !== 'production' && !entry.options) {
+      if (process.env.NODE_ENV !== 'production' && !options) {
         throw new Error(
           `"entry.refresh()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`,
         )
       }
 
       if (entry.state.value.error || entry.stale) {
-        return entry.pending?.refreshCall ?? fetch(entry)
+        return entry.pending?.refreshCall ?? fetch(entry, options)
       }
 
       return entry.state.value
@@ -624,8 +645,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   const fetch = action(
     async <TResult, TError, TDataInitial extends TResult | undefined>(
       entry: UseQueryEntry<TResult, TError, TDataInitial>,
+      options = entry.options,
     ): Promise<DataState<TResult, TError, TDataInitial>> => {
-      if (process.env.NODE_ENV !== 'production' && !entry.options) {
+      if (process.env.NODE_ENV !== 'production' && !options) {
         throw new Error(
           `"entry.fetch()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`,
         )
@@ -642,7 +664,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       const pendingCall = (entry.pending = {
         abortController,
         // wrapping with async allows us to catch synchronous errors too
-        refreshCall: (async () => entry.options!.query({ signal }))()
+        refreshCall: (async () => options!.query({ signal }))()
           .then((data) => {
             if (pendingCall === entry.pending) {
               setEntryState(entry, {
@@ -675,6 +697,11 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           .finally(() => {
             entry.asyncStatus.value = 'idle'
             if (pendingCall === entry.pending) {
+              // update the time amounts based on the current request
+              // NOTE: Normally these should be the same everywhere but the
+              // same query could be instantiated with different options
+              // entry.gcTime = options!.gcTime
+              // entry.staleTime = options!.staleTime
               entry.pending = null
               // there are cases when the result is ignored, in that case, we still
               // do not have a real result so we keep the placeholder data
