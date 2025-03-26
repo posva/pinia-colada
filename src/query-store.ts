@@ -86,18 +86,6 @@ export interface UseQueryEntry<
   gcTimeout: ReturnType<typeof setTimeout> | undefined
 
   /**
-   * Time in ms after which the entry is considered stale and will be refreshed on next read.
-   */
-  staleTime: number
-
-  /**
-   * Time in ms after which, once the entry is no longer being used, it will be
-   * garbage collected to free resources. Can be `false` to disable garbage
-   * collection.
-   */
-  gcTime: number | false
-
-  /**
    * The current pending request.
    */
   pending: null | {
@@ -333,12 +321,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           // eslint-disable-next-line ts/ban-ts-comment
           // @ts-ignore: some plugins are adding properties to the entry type
           ext: START_EXT,
-          // setup staleTime and gcTime so this entry can be disposed of
-          staleTime: options?.staleTime ?? optionDefaults.staleTime,
-          gcTime: options?.gcTime ?? optionDefaults.gcTime,
           options,
           get stale() {
-            return !this.when || Date.now() >= this.when + this.staleTime
+            return !this.when || Date.now() >= this.when + this.options!.staleTime
           },
           get active() {
             return this.deps.size > 0
@@ -421,13 +406,13 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     triggerCache()
 
     // schedule a garbage collection if the entry is not active
-    if (entry.deps.size > 0) return
+    if (entry.deps.size > 0 || !entry.options) return
     clearTimeout(entry.gcTimeout)
     // avoid setting a timeout with false, Infinity or NaN
-    if ((Number.isFinite as (val: unknown) => val is number)(entry.gcTime)) {
+    if ((Number.isFinite as (val: unknown) => val is number)(entry.options.gcTime)) {
       entry.gcTimeout = setTimeout(() => {
         remove(entry)
-      }, entry.gcTime)
+      }, entry.options.gcTime)
     }
   }
 
@@ -561,9 +546,6 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
 
       // we set it every time to ensure we are using up to date key getters and others options
       entry.options = options
-      // If the data is hydrated, we need to set these values here
-      entry.gcTime = options.gcTime
-      entry.staleTime = options.staleTime
 
       // extend the entry with plugins the first time only
       if (entry.ext === START_EXT) {
