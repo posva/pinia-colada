@@ -372,20 +372,11 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       defineQueryEntry[2].resume()
       // if the entry already exists, we know the queries inside
       // we should consider as if they are activated again
-      defineQueryEntry[0] = defineQueryEntry[0].map((oldEntry) => {
+      defineQueryEntry[0] = defineQueryEntry[0].map((oldEntry) =>
         // the entries' key might have changed (e.g. Nuxt navigation)
         // so we need to ensure them again
-        const entry = oldEntry.options ? ensure(oldEntry.options, oldEntry) : oldEntry
-        // TODO: should happen in useQuery and defineQuery
-        if (entry.options?.refetchOnMount && toValue(entry.options.enabled)) {
-          if (toValue(entry.options.refetchOnMount) === 'always') {
-            fetch(entry)
-          } else {
-            refresh(entry)
-          }
-        }
-        return entry
-      })
+        oldEntry.options ? ensure(oldEntry.options, oldEntry) : oldEntry,
+      )
     }
 
     return defineQueryEntry

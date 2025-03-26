@@ -1,4 +1,4 @@
-import { getCurrentInstance, getCurrentScope, onScopeDispose } from 'vue'
+import { getCurrentInstance, getCurrentScope, onScopeDispose, toValue } from 'vue'
 import type { EffectScope } from 'vue'
 import type { UseQueryOptions } from './query-options'
 import { useQueryCache } from './query-store'
@@ -72,6 +72,7 @@ export function defineQuery(optionsOrSetup: DefineQueryOptions | (() => unknown)
   const setupFn
     = typeof optionsOrSetup === 'function' ? optionsOrSetup : () => useQuery(optionsOrSetup)
 
+  let hasBeenEnsured: boolean | undefined
   return () => {
     const queryCache = useQueryCache()
     // preserve any current effect to account for nested usage of these functions
@@ -79,6 +80,23 @@ export function defineQuery(optionsOrSetup: DefineQueryOptions | (() => unknown)
     const currentScope = getCurrentInstance() || (currentDefineQueryEffect = getCurrentScope())
 
     const [entries, ret, scope] = queryCache.ensureDefinedQuery(setupFn)
+
+    // subsequent calls to the composable returned by useQuery will not trigger the `useQuery()`,
+    // this ensures the refetchOnMount option is respected
+    if (hasBeenEnsured) {
+      entries.forEach((entry) => {
+        // TODO: should happen in useQuery and defineQuery
+        if (entry.options?.refetchOnMount && toValue(entry.options.enabled)) {
+          if (toValue(entry.options.refetchOnMount) === 'always') {
+            queryCache.fetch(entry)
+          } else {
+            queryCache.refresh(entry)
+          }
+        }
+      })
+    }
+    hasBeenEnsured = true
+
     // NOTE: most of the time this should be set, so maybe we should show a dev warning
     // if it's not set instead
     if (currentScope) {
