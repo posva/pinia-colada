@@ -1,3 +1,9 @@
+## [0.1.1](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.1.0...@pinia/colada-nuxt@0.1.1) (2025-03-26)
+
+### Bug Fixes
+
+- **defineQuery:** pause the query when inactive ([2b5057e](https://github.com/posva/pinia-colada/commit/2b5057e1ea6764391b4e1a7494641d459d0bf4b1)), closes [#227](https://github.com/posva/pinia-colada/issues/227)
+
 ## [0.1.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.0.6...@pinia/colada-nuxt@0.1.0) (2025-03-18)
 
 This releases moves to ESM only as Nuxt only uses the ESM build.

@@ -1,3 +1,14 @@
+## [0.14.2](https://github.com/posva/pinia-colada/compare/v0.14.1...v0.14.2) (2025-03-26)
+
+### Features
+
+- allow global mutation hooks ([045b057](https://github.com/posva/pinia-colada/commit/045b057cb9431956e31ff01d9f694125ca06a8b4))
+- avoid incompatible line with Vue 2 ([0c614db](https://github.com/posva/pinia-colada/commit/0c614dba82d33b9bf6bc7a35a5cbc1ee6dad5959))
+
+### Bug Fixes
+
+- **defineQuery:** pause the query when inactive ([2b5057e](https://github.com/posva/pinia-colada/commit/2b5057e1ea6764391b4e1a7494641d459d0bf4b1)), closes [#227](https://github.com/posva/pinia-colada/issues/227)
+
 ## [0.14.1](https://github.com/posva/pinia-colada/compare/v0.14.0...v0.14.1) (2025-03-18)
 
 ### Bug Fixes
