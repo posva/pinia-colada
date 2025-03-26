@@ -588,6 +588,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * return the current data. Can only be called if the entry has been initialized with `useQuery()` and has options.
    *
    * @param entry - the entry of the query to refresh
+   * @param options - the options to use for the fetch
    *
    * @see {@link fetch}
    */
@@ -614,6 +615,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * Fetch an entry. Ignores fresh data and triggers a new fetch. Can only be called if the entry has options.
    *
    * @param entry - the entry of the query to fetch
+   * @param options - the options to use for the fetch
    */
   const fetch = action(
     async <TResult, TError, TDataInitial extends TResult | undefined>(
