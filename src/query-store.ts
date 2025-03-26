@@ -739,6 +739,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     ) => {
       entry.state.value = state
       entry.when = Date.now()
+      // if we need to, we could schedule a garbage collection here but I don't
+      // see why would one create entries that are not used (not tracked immediately after)
     },
   )
 
