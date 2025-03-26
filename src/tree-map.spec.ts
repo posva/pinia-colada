@@ -53,6 +53,34 @@ describe('tree-map', () => {
     expect(tree.get(['a', 'k'])).toBe('ak')
   })
 
+  it('.find', () => {
+    const tree = new TreeMapNode<string>()
+    tree.set(['a', 'b', 'c'], 'abc')
+    tree.set(['a', 'b', 'd'], 'abd')
+    tree.set(['a', 'e'], 'ae')
+    tree.set(['a', 'k'], 'ak')
+    tree.set(['f'], 'f')
+    tree.set(['g', 'h'], 'gh')
+
+    expect(tree.find(['f'])?.value).toBe('f')
+
+    expect(tree.find(['a', 'b'])?.value).toBe(undefined)
+    expect(tree.find(['a', 'b'])?.get(['c'])).toBe('abc')
+    expect(tree.find(['a', 'b'])?.get(['d'])).toBe('abd')
+    expect(tree.find(['a', 'b'])?.get(['e'])).toBe(undefined)
+    expect(tree.find(['a', 'b'])?.get(['k'])).toBe(undefined)
+
+    expect(tree.find(['a', 'b', 'c'])?.value).toBe('abc')
+    expect(tree.find(['a', 'b', 'c'])?.get([])).toBe('abc')
+    expect(tree.find(['a'])?.value).toBe(undefined)
+    expect(tree.find(['a', 'b', 'c'])?.get(['c'])).toBe(undefined)
+    expect(tree.find(['a', 'b', 'c'])?.get(['d'])).toBe(undefined)
+    expect(tree.find(['a', 'b', 'c'])?.get(['e'])).toBe(undefined)
+
+    expect(tree.find(['g'])?.find(['h'])?.value).toBe('gh')
+    expect(tree.find(['g', 'h'])?.value).toBe('gh')
+  })
+
   it('entryNodeSize', () => {
     const tree = new TreeMapNode<string>()
     tree.set(['a', 'b', 'c'], 'abc')
