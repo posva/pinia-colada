@@ -12,12 +12,25 @@ export type EntryNodeKey = string | number
  */
 export class TreeMapNode<T = unknown> {
   value: T | undefined
+  // TODO: test if more performant to always have a children property (start as null)
   children?: Map<EntryNodeKey, this>
+  parent: this | null | undefined
+  /**
+   * The key of the node in the tree. the root has an `undefined` key.
+   */
+  key: EntryNodeKey | undefined
 
+  /**
+   * Creates the root node of the tree.
+   */
   constructor()
+  /**
+   * Creates a node with the given keys and value.
+   */
   constructor(keys: EntryNodeKey[], value: T | undefined)
   constructor(...args: [] | [EntryNodeKey[], T]) {
     if (args.length) {
+      this.key = args[0][0]
       this.set(...args)
     }
   }
@@ -28,23 +41,31 @@ export class TreeMapNode<T = unknown> {
    * @param keys - key as an array
    * @param value - value to set
    */
-  set(keys: EntryNodeKey[], value?: T) {
-    if (keys.length === 0) {
+  set([top, ...otherKeys]: EntryNodeKey[], value?: T) {
+    if (!top) {
       this.value = value
+      // TODO: if value is undefined try deleting
+      if (value == null) {
+        // free up unused tree
+        // eslint-disable-next-line ts/no-this-alias
+        let currentNode: this | undefined | null = this
+        while (currentNode?.isEmpty()) {
+          currentNode.children?.clear()
+          currentNode = currentNode.parent
+        }
+      }
     } else {
-      const [top, ...otherKeys] = keys as [top: EntryNodeKey, ...otherKeys: EntryNodeKey[]]
-      const node: this | undefined = this.children?.get(top)
+      let node: this | undefined = this.children?.get(top)
       if (node) {
         node.set(otherKeys, value)
       } else {
         this.children ??= new Map()
-        this.children.set(
-          top,
-          new (this.constructor as new (keys: EntryNodeKey[], value: T | undefined) => this)(
-            otherKeys,
-            value,
-          ),
+        node = new (this.constructor as new (keys: EntryNodeKey[], value: T | undefined) => this)(
+          otherKeys,
+          value,
         )
+        node.parent = this
+        this.children.set(top, node)
       }
     }
   }
@@ -57,37 +78,12 @@ export class TreeMapNode<T = unknown> {
   }
 
   /**
-   * Unsets the value at the given path of keys and deletes the node if it's empty.
-   */
-  unset(keys: EntryNodeKey[]) {
-    if (keys.length === 0) {
-      this.value = undefined
-      // free up unused tree
-      // if (this.isEmpty()) {
-      //   this.children?.clear()
-      // }
-    } else {
-      const [top, ...otherKeys] = keys as [top: EntryNodeKey, ...otherKeys: EntryNodeKey[]]
-      const child = this.children?.get(top)
-      child?.unset(otherKeys)
-      if (child?.isEmpty()) {
-        child.children?.clear()
-      }
-    }
-  }
-
-  /**
    * Finds the node at the given path of keys.
    *
    * @param keys - path of keys
    */
-  find(keys: EntryNodeKey[]): this | undefined {
-    if (keys.length === 0) {
-      return this
-    } else {
-      const [top, ...otherKeys] = keys as [top: EntryNodeKey, ...otherKeys: EntryNodeKey[]]
-      return this.children?.get(top)?.find(otherKeys)
-    }
+  find([top, ...otherKeys]: EntryNodeKey[]): this | undefined {
+    return top ? this.children?.get(top)?.find(otherKeys) : this
   }
 
   /**
@@ -97,20 +93,6 @@ export class TreeMapNode<T = unknown> {
    */
   get(keys: EntryNodeKey[]): T | undefined {
     return this.find(keys)?.value
-  }
-
-  /**
-   * Delete the node at the given path of keys and all its children.
-   *
-   * @param keys - path of keys
-   */
-  delete(keys: EntryNodeKey[]) {
-    if (keys.length === 1) {
-      this.children?.delete(keys[0]!)
-    } else {
-      const [top, ...otherKeys] = keys as [top: EntryNodeKey, ...otherKeys: EntryNodeKey[]]
-      this.children?.get(top)?.delete(otherKeys)
-    }
   }
 
   /**
@@ -127,6 +109,59 @@ export class TreeMapNode<T = unknown> {
       }
     }
   }
+}
+
+export class TreeMapMultiNode<T = unknown> extends TreeMapNode<T[]> {
+  /**
+   * Sets the value while building the tree
+   *
+   * @param keys - key as an array
+   * @param values - values to add
+   */
+  override set(keys: EntryNodeKey[], values: T[] = []) {
+    if (keys.length === 0) {
+      this.value ??= []
+      this.value.push(...values)
+    } else {
+      // TODO: does it call the overriden set when recursive?
+      // super.set(keys, values)
+      // TODO: super.set() instead of all this code
+      // this.children ??= new Map<EntryNodeKey,
+      const [top, ...otherKeys] = keys as [top: EntryNodeKey, ...otherKeys: EntryNodeKey[]]
+      const node: this | undefined = this.children?.get(top)
+      if (node) {
+        node.set(otherKeys, values)
+      } else {
+        this.children ??= new Map()
+        this.children.set(top, new TreeMapMultiNode<T>(otherKeys, values) as this)
+      }
+    }
+  }
+
+  // /**
+  //  * Deletes the value at a given node of the tree and if the array is empty, deletes the node.
+  //  *
+  //  * @param keys - key as an array
+  //  * @param value - value to delete
+  //  */
+  // override delete(keys: EntryNodeKey[], value?: T) {
+  //   if (!value) {
+  //     throw new Error('Cannot delete a value without specifying the value to delete')
+  //   }
+  //
+  //   if (keys.length === 1) {
+  //     const node = this.children?.get(keys[0]!)
+  //     if (node) {
+  //       node.value = node.value?.filter((v) => v !== value)
+  //       if (node.value?.length === 0) {
+  //         this.children?.delete(keys[0]!)
+  //       }
+  //     }
+  //   } else {
+  //     const [top, ...otherKeys] = keys as [top: EntryNodeKey, ...otherKeys: EntryNodeKey[]]
+  //     this.children?.get(top)?.delete(otherKeys, value)
+  //   }
+  // }
 }
 
 // NOTE: this function is outside of TreeMapNode because it's only needed for SSR apps and shouldn't add to the bundle

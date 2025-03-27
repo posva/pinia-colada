@@ -27,12 +27,14 @@ describe('tree-map', () => {
     const tree = new TreeMapNode<string>()
     tree.set(['a', 'b', 'c'], 'abc')
     tree.set(['a', 'b', 'd'], 'abd')
-    tree.delete(['a', 'b', 'c'])
+    // tree.delete(['a', 'b', 'c'])
+    tree.find(['a', 'b'])?.children?.delete('c')
     expect(tree.get(['a', 'b', 'c'])).toBe(undefined)
     expect(tree.get(['a', 'b', 'd'])).toBe('abd')
 
     tree.set(['a', 'b', 'h'], 'abh')
-    tree.delete(['a', 'b'])
+    // tree.delete(['a', 'b'])
+    tree.find(['a'])?.children?.delete('b')
     expect(tree.get(['a', 'b'])).toBe(undefined)
     expect(tree.get(['a', 'b', 'c'])).toBe(undefined)
     expect(tree.get(['a', 'b', 'h'])).toBe(undefined)
@@ -46,21 +48,50 @@ describe('tree-map', () => {
     tree.set(['a', 'k'], 'ak')
     tree.set(['f'], 'f')
 
-    tree.delete(['a', 'e'])
+    // tree.delete(['a', 'e'])
+    tree.find(['a'])?.children?.delete('e')
     expect(tree.get(['a', 'e'])).toBe(undefined)
-    tree.delete(['f'])
+    // tree.delete(['f'])
+    tree.find([])?.children?.delete('f')
     expect(tree.get(['f'])).toBe(undefined)
     expect(tree.get(['a', 'k'])).toBe('ak')
   })
 
-  it('can delete a node without deleting the children', () => {
+  it('can unset a node without deleting the children', () => {
     const tree = new TreeMapNode<string>()
     tree.set(['a', 'b', 'c'], 'abc')
     tree.set(['a', 'b', 'd'], 'abd')
-    tree.delete(['a', 'b'])
+    tree.set(['a', 'b'])
     expect(tree.get(['a', 'b', 'c'])).toBe('abc')
     expect(tree.get(['a', 'b', 'd'])).toBe('abd')
     expect(tree.get(['a', 'b'])).toBe(undefined)
+  })
+
+  it('isEmpty if all children are empty', () => {
+    const tree = new TreeMapNode<string>()
+    expect(tree.isEmpty()).toBe(true)
+    tree.set(['a'], 'a')
+    expect(tree.isEmpty()).toBe(false)
+    expect(tree.find(['a'])?.isEmpty()).toBe(false)
+    tree.set(['a', 'b', 'c'], 'abc')
+    tree.set(['a'])
+    expect(tree.find(['a'])?.isEmpty()).toBe(false)
+    expect(tree.isEmpty()).toBe(false)
+    tree.set(['a', 'b', 'c'])
+    expect(tree.isEmpty()).toBe(true)
+  })
+
+  it('cleans up nodes when the sub tree is empty', () => {
+    const tree = new TreeMapNode<string>()
+    tree.set(['a'], 'a')
+    tree.set(['a', '1'], 'a1')
+    tree.set(['a', '2'], 'a2')
+
+    tree.set(['a', '1'])
+    tree.set(['a', '2'])
+    expect(tree.get(['a'])).toBe('a')
+    tree.set(['a'])
+    expect(tree.find(['a'])).toBe(undefined)
   })
 
   it('.find', () => {
