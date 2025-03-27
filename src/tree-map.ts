@@ -15,10 +15,6 @@ export class TreeMapNode<T = unknown> {
   // TODO: test if more performant to always have a children property (start as null)
   children?: Map<EntryNodeKey, this>
   parent: this | null | undefined
-  /**
-   * The key of the node in the tree. the root has an `undefined` key.
-   */
-  key: EntryNodeKey | undefined
 
   /**
    * Creates the root node of the tree.
@@ -30,7 +26,6 @@ export class TreeMapNode<T = unknown> {
   constructor(keys: EntryNodeKey[], value: T | undefined)
   constructor(...args: [] | [EntryNodeKey[], T]) {
     if (args.length) {
-      this.key = args[0][0]
       this.set(...args)
     }
   }
@@ -44,7 +39,6 @@ export class TreeMapNode<T = unknown> {
   set([top, ...otherKeys]: EntryNodeKey[], value?: T) {
     if (!top) {
       this.value = value
-      // TODO: if value is undefined try deleting
       if (value == null) {
         // free up unused tree
         // eslint-disable-next-line ts/no-this-alias
