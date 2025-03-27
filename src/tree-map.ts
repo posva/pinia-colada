@@ -7,11 +7,12 @@ export type EntryNodeKey = string | number
 
 /**
  * Internal data structure used to store the data of `useQuery()`. `T` should be serializable to JSON.
+ *
  * @internal
  */
 export class TreeMapNode<T = unknown> {
   value: T | undefined
-  children?: Map<EntryNodeKey, TreeMapNode<T>>
+  children?: Map<EntryNodeKey, this>
 
   constructor()
   constructor(keys: EntryNodeKey[], value: T | undefined)
@@ -31,14 +32,46 @@ export class TreeMapNode<T = unknown> {
     if (keys.length === 0) {
       this.value = value
     } else {
-      // this.children ??= new Map<EntryNodeKey,
       const [top, ...otherKeys] = keys as [top: EntryNodeKey, ...otherKeys: EntryNodeKey[]]
-      const node: TreeMapNode<T> | undefined = this.children?.get(top)
+      const node: this | undefined = this.children?.get(top)
       if (node) {
         node.set(otherKeys, value)
       } else {
         this.children ??= new Map()
-        this.children.set(top, new TreeMapNode(otherKeys, value))
+        this.children.set(
+          top,
+          new (this.constructor as new (keys: EntryNodeKey[], value: T | undefined) => this)(
+            otherKeys,
+            value,
+          ),
+        )
+      }
+    }
+  }
+
+  /**
+   * Returns whether the node and all its children are empty.
+   */
+  isEmpty(): boolean {
+    return this.value == null && (this.children?.values() || []).every((child) => child.isEmpty())
+  }
+
+  /**
+   * Unsets the value at the given path of keys and deletes the node if it's empty.
+   */
+  unset(keys: EntryNodeKey[]) {
+    if (keys.length === 0) {
+      this.value = undefined
+      // free up unused tree
+      // if (this.isEmpty()) {
+      //   this.children?.clear()
+      // }
+    } else {
+      const [top, ...otherKeys] = keys as [top: EntryNodeKey, ...otherKeys: EntryNodeKey[]]
+      const child = this.children?.get(top)
+      child?.unset(otherKeys)
+      if (child?.isEmpty()) {
+        child.children?.clear()
       }
     }
   }
@@ -48,7 +81,7 @@ export class TreeMapNode<T = unknown> {
    *
    * @param keys - path of keys
    */
-  find(keys: EntryNodeKey[]): TreeMapNode<T> | undefined {
+  find(keys: EntryNodeKey[]): this | undefined {
     if (keys.length === 0) {
       return this
     } else {
@@ -81,7 +114,8 @@ export class TreeMapNode<T = unknown> {
   }
 
   /**
-   * Iterates over the node values if not null or undefined and all its children. Goes in depth first order. Allows a `for (const of node)` loop.
+   * Iterates over the node values if not null or undefined and all its
+   * children. Goes in depth first order. Allows a `for (const of node)` loop.
    */
   * [Symbol.iterator](): IterableIterator<T> {
     if (this.value != null) {

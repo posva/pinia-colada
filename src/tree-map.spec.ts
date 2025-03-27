@@ -53,6 +53,16 @@ describe('tree-map', () => {
     expect(tree.get(['a', 'k'])).toBe('ak')
   })
 
+  it('can delete a node without deleting the children', () => {
+    const tree = new TreeMapNode<string>()
+    tree.set(['a', 'b', 'c'], 'abc')
+    tree.set(['a', 'b', 'd'], 'abd')
+    tree.delete(['a', 'b'])
+    expect(tree.get(['a', 'b', 'c'])).toBe('abc')
+    expect(tree.get(['a', 'b', 'd'])).toBe('abd')
+    expect(tree.get(['a', 'b'])).toBe(undefined)
+  })
+
   it('.find', () => {
     const tree = new TreeMapNode<string>()
     tree.set(['a', 'b', 'c'], 'abc')

@@ -120,6 +120,17 @@ describe('Query Cache store', () => {
     queryCache.getEntries({ key: ['key'] })
   })
 
+  it('can remove an entry without removing the children', () => {
+    const queryCache = useQueryCache()
+    queryCache.setQueryData(['a', 'b', 'c'], 'abc')
+    queryCache.setQueryData(['a', 'b', 'd'], 'abd')
+    queryCache.setQueryData(['a', 'b'], 'ab')
+    const [entry] = queryCache.getEntries({ key: ['a', 'b'], exact: true })
+    expect(entry).toBeDefined()
+    queryCache.remove(entry!)
+    expect(queryCache.getEntries({ key: ['a', 'b', 'c'] })).toHaveLength(1)
+  })
+
   describe('plugins', () => {
     it('triggers the create hook once when creating data', () => {
       const pinia = getActivePinia()!
