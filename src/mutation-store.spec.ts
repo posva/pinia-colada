@@ -125,6 +125,90 @@ describe('Mutation Cache store', () => {
       mutationCache.caches = {} as any
       expect('mutation cache instance cannot be set directly').toHaveBeenErroredTimes(1)
     })
+
+    it('warns when a mutation entry is created with a reserved key part at the start', () => {
+      const mutationCache = useMutationCache()
+
+      const options = {
+        key: ['$1'], // Using a reserved key format at the start
+        mutation: async () => 'test',
+      } satisfies UseMutationOptions
+
+      const entry = mutationCache.create(options)
+      mutationCache.ensure(entry, undefined)
+
+      expect('A mutation entry was created with a reserved key part "$1"').toHaveBeenWarnedTimes(1)
+    })
+
+    it('warns when a mutation entry is created with a reserved key part in the middle', () => {
+      const mutationCache = useMutationCache()
+
+      const options = {
+        key: ['users', '$42', 'profile'], // Using a reserved key format in the middle
+        mutation: async () => 'test',
+      } satisfies UseMutationOptions
+
+      const entry = mutationCache.create(options)
+      mutationCache.ensure(entry, undefined)
+
+      expect('A mutation entry was created with a reserved key part "$42"').toHaveBeenWarnedTimes(1)
+    })
+
+    it('warns when a mutation entry is created with a reserved key part at the end', () => {
+      const mutationCache = useMutationCache()
+
+      const options = {
+        key: ['users', 'profile', '$123'], // Using a reserved key format at the end
+        mutation: async () => 'test',
+      } satisfies UseMutationOptions
+
+      const entry = mutationCache.create(options)
+      mutationCache.ensure(entry, undefined)
+
+      expect('A mutation entry was created with a reserved key part "$123"').toHaveBeenWarnedTimes(1)
+    })
+
+    it('errors when mutating an entry that was not ensured', () => {
+      const mutationCache = useMutationCache()
+
+      const options = {
+        mutation: async () => 'test',
+      } satisfies UseMutationOptions
+
+      const entry = mutationCache.create(options)
+
+      mutationCache.mutate(entry).catch(() => {})
+
+      expect('A mutation entry without a key was mutated before being ensured').toHaveBeenErroredTimes(1)
+    })
+
+    it('errors when mutating an entry with ongoing operations', async () => {
+      const mutationCache = useMutationCache()
+
+      const options = {
+        mutation: async () => {
+          // Make it take some time so we can call mutate again before it finishes
+          await new Promise((resolve) => setTimeout(resolve, 10))
+          return 'test'
+        },
+      } satisfies UseMutationOptions
+
+      const entry = mutationCache.create(options)
+      const ensuredEntry = mutationCache.ensure(entry, undefined)
+
+      // Start the first mutation
+      const promise = mutationCache.mutate(ensuredEntry)
+
+      // Try to mutate it again while it's still loading
+      mutationCache.mutate(ensuredEntry).catch(() => {})
+
+      // Check that the error was logged
+      expect('A mutation entry with key').toHaveBeenErroredTimes(1)
+      expect('was reused').toHaveBeenErroredTimes(1)
+
+      // Wait for the first mutation to complete
+      await promise
+    })
   })
 
   it('can remove an entry without removing the children', async () => {

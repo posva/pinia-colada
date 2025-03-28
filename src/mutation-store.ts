@@ -309,9 +309,10 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     // DEV warnings
     if (process.env.NODE_ENV !== 'production') {
       const key = entry.key?.join('/')
+      const keyMessage = key ? `with key "${key}"` : 'without a key'
       if (!entry.id) {
         console.error(
-          `[@pinia/colada] A mutation entry with key "${key}" was mutated before being ensured. If you are manually calling the "mutationCache.mutate()", you should always ensure the entry first If not, this is probably a bug. Please, open an issue on GitHub with a boiled down reproduction.`,
+          `[@pinia/colada] A mutation entry ${keyMessage} was mutated before being ensured. If you are manually calling the "mutationCache.mutate()", you should always ensure the entry first If not, this is probably a bug. Please, open an issue on GitHub with a boiled down reproduction.`,
         )
       }
       if (
@@ -320,7 +321,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
         || entry.asyncStatus.value === 'loading'
       ) {
         console.error(
-          `[@pinia/colada] A mutation entry with key "${key}" was reused. If you are manually calling the "mutationCache.mutate()", you should always ensure the entry first: "mutationCache.mutate(mutationCache.ensure(entry, vars))". If not this is probably a bug. Please, open an issue on GitHub with a boiled down reproduction.`,
+          `[@pinia/colada] A mutation entry ${keyMessage} was reused. If you are manually calling the "mutationCache.mutate()", you should always ensure the entry first: "mutationCache.mutate(mutationCache.ensure(entry, vars))". If not this is probably a bug. Please, open an issue on GitHub with a boiled down reproduction.`,
         )
       }
     }
