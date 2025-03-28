@@ -10,6 +10,7 @@ import { PiniaColadaRetry } from '@pinia/colada-plugin-retry'
 import App from './App.vue'
 import { PiniaColadaDebugPlugin } from '@pinia/colada-plugin-debug'
 import { PiniaColadaDelay } from '@pinia/colada-plugin-delay'
+import type { PiniaColadaOptions } from '@pinia/colada'
 
 const app = createApp(App)
 const router = createRouter({
@@ -24,6 +25,9 @@ app.use(PiniaColada, {
     gcTime: 300_000,
     enabled: true,
   },
+  mutationOptions: {
+    gcTime: 10_000,
+  },
   plugins: [
     PiniaColadaDelay(),
     PiniaColadaDebugPlugin(),
@@ -32,7 +36,7 @@ app.use(PiniaColada, {
       onSettled() {},
     }),
   ],
-})
+} satisfies PiniaColadaOptions)
 app.use(router)
 
 app.mount('#app')

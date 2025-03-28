@@ -3,11 +3,8 @@
  * @module @pinia/colada
  */
 export { defineMutation } from './define-mutation'
-export {
-  type _ReduceContext,
-  useMutation,
-  type UseMutationReturn,
-} from './use-mutation'
+export type { _ReduceContext, UseMutationReturn } from './use-mutation'
+export { useMutation } from './use-mutation'
 
 export { defineQuery } from './define-query'
 export { useQuery, type UseQueryReturn } from './use-query'
@@ -33,7 +30,8 @@ export type {
 
 export type {
   UseMutationOptions,
-  // UseMutationOptionsGlobal,
+  UseMutationOptionsGlobal,
+  UseMutationOptionsGlobalDefaults,
 } from './mutation-options'
 
 export { PiniaColada } from './pinia-colada'

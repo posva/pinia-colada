@@ -87,7 +87,23 @@ export interface UseMutationOptionsGlobal {
       // undefined if global onMutate throws
       | UseMutationGlobalContext,
   ) => unknown
+
+  /**
+   * Time in ms after which, once the mutation is no longer being used, it will be
+   * garbage collected to free resources. Set to `false` to disable garbage
+   * collection (not recommended).
+   *
+   * @default 60_000 (1 minute)
+   */
+  gcTime?: number | false
 }
+
+/**
+ * Default options for `useMutation()`. Modifying this object will affect all mutations.
+ */
+export const USE_MUTATION_DEFAULTS = {
+  gcTime: (1000 * 60) as NonNullable<UseMutationOptions['gcTime']>, // 5 minutes
+} satisfies UseMutationOptionsGlobal
 
 /**
  * Options to create a mutation.
@@ -97,7 +113,7 @@ export interface UseMutationOptions<
   TVars = void,
   TError = ErrorDefault,
   TContext extends Record<any, any> = _EmptyObject,
-> {
+> extends Pick<UseMutationOptionsGlobal, 'gcTime'> {
   /**
    * The key of the mutation. If the mutation is successful, it will invalidate the mutation with the same key and refetch it
    */
@@ -212,7 +228,14 @@ export interface UseMutationOptions<
   ) => unknown
 }
 
-export const USE_MUTATION_OPTIONS_KEY: InjectionKey<UseMutationOptionsGlobal>
+/**
+ * Global default options for `useMutations()`.
+ * @internal
+ */
+export type UseMutationOptionsGlobalDefaults = UseMutationOptionsGlobal &
+  typeof USE_MUTATION_DEFAULTS
+
+export const USE_MUTATION_OPTIONS_KEY: InjectionKey<UseMutationOptionsGlobalDefaults>
   = process.env.NODE_ENV !== 'production' ? Symbol('useMutationOptions') : Symbol()
 
 /**
@@ -220,4 +243,4 @@ export const USE_MUTATION_OPTIONS_KEY: InjectionKey<UseMutationOptionsGlobal>
  * @internal
  */
 export const useMutationOptions = (): UseMutationOptionsGlobal =>
-  inject(USE_MUTATION_OPTIONS_KEY, {})
+  inject(USE_MUTATION_OPTIONS_KEY, USE_MUTATION_DEFAULTS)
