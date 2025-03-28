@@ -2,7 +2,14 @@ import type { ComputedRef, ShallowRef } from 'vue'
 import type { AsyncStatus, DataState, DataStateStatus } from './data-state'
 import type { EntryKey } from './entry-options'
 import type { ErrorDefault } from './types-extension'
-import { computed, shallowRef } from 'vue'
+import {
+  computed,
+  shallowRef,
+  getCurrentInstance,
+  getCurrentScope,
+  onUnmounted,
+  onScopeDispose,
+} from 'vue'
 import { useMutationCache } from './mutation-store'
 import type { UseMutationEntry } from './mutation-store'
 import { noop } from './utils'
@@ -11,13 +18,16 @@ import type { UseMutationOptions } from './mutation-options'
 
 /**
  * Valid keys for a mutation. Similar to query keys.
+ *
  * @see {@link EntryKey}
+ *
  * @internal
  */
 export type _MutationKey<TVars> = EntryKey | ((vars: TVars) => EntryKey)
 
 /**
  * Removes the nullish types from the context type to make `A & TContext` work instead of yield `never`.
+ *
  * @internal
  */
 export type _ReduceContext<TContext> = TContext extends void | null | undefined
@@ -137,11 +147,25 @@ export function useMutation<
   options: UseMutationOptions<TResult, TVars, TError, TContext>,
 ): UseMutationReturn<TResult, TVars, TError> {
   const mutationCache = useMutationCache()
+  const hasCurrentInstance = getCurrentInstance()
+  const currentEffect = getCurrentScope()
 
   // always create an initial entry with no key (cannot be computed without vars)
   const entry = shallowRef<UseMutationEntry<TResult, TVars, TError, TContext>>(
     mutationCache.create(options),
   )
+
+  // Track the mutation entry if a component or effect scope is available
+  if (hasCurrentInstance) {
+    onUnmounted(() => {
+      mutationCache.untrack(entry.value)
+    })
+  }
+  if (currentEffect) {
+    onScopeDispose(() => {
+      mutationCache.untrack(entry.value)
+    })
+  }
 
   const state = computed(() => entry.value.state.value)
   const status = computed(() => state.value.status)

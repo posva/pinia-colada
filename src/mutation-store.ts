@@ -2,7 +2,7 @@ import type { ComponentInternalInstance, EffectScope, ShallowRef } from 'vue'
 import type { AsyncStatus, DataState, DataStateStatus } from './data-state'
 import type { EntryNodeKey } from './tree-map'
 import { defineStore, skipHydrate } from 'pinia'
-import { customRef, getCurrentScope, shallowRef } from 'vue'
+import { customRef, getCurrentScope, markRaw, shallowRef } from 'vue'
 import { TreeMapNode } from './tree-map'
 import type { _EmptyObject } from './utils'
 import { noop, stringifyFlatObject, toCacheKey, toValueWithArgs } from './utils'
@@ -56,14 +56,9 @@ export interface UseMutationEntry<
   options: UseMutationOptions<TResult, TVars, TError, TContext>
 
   /**
-   * Component `__hmrId` to track wrong usage of `useQuery` and warn the user.
-   * @internal
+   * Timeout id that scheduled a garbage collection. It is set here to clear it when the entry is used by a different component.
    */
-  __hmr?: {
-    id?: string
-    deps?: Set<EffectScope | ComponentInternalInstance>
-    skip?: boolean
-  }
+  gcTimeout: ReturnType<typeof setTimeout> | undefined
 }
 
 /**
@@ -160,25 +155,28 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
       key?: EntryNodeKey[] | undefined,
       vars?: TVars,
     ): UseMutationEntry<TResult, TVars, TError, TContext> =>
-      scope.run(() => ({
-        id: '', // not a real id yet, indicates that the entry is not in the cache
-        state: shallowRef<DataState<TResult, TError>>({
-          status: 'pending',
-          data: undefined,
-          error: null,
-        }),
-        asyncStatus: shallowRef<AsyncStatus>('idle'),
-        when: 0,
-        vars,
-        key,
-        options,
-      }))!,
+      scope.run(
+        () =>
+          ({
+            id: '', // not a real id yet, indicates that the entry is not in the cache
+            state: shallowRef<DataState<TResult, TError>>({
+              status: 'pending',
+              data: undefined,
+              error: null,
+            }),
+            gcTimeout: undefined,
+            asyncStatus: shallowRef<AsyncStatus>('idle'),
+            when: 0,
+            vars,
+            key,
+            options,
+          }) satisfies UseMutationEntry<TResult, TVars, TError, TContext>,
+      )!,
   )
 
   /**
    * Ensures a mutation entry in the cache by assigning it an `id` and a `key` based on `vars`. Usually, a mutation is ensured twice
    *
-   * @param options - options to create the mutation
    * @param entry - entry to ensure
    * @param vars - variables to call the mutation with
    */
@@ -212,8 +210,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
       }
     }
 
-    entry = entry.id ? create(options, cacheKey, vars) : entry
-    // TODO: untrack the previous entry
+    entry = entry.id ? (untrack(entry), create(options, cacheKey, vars)) : entry
     entry.id = id
     entry.key = cacheKey
     entry.vars = vars
@@ -268,12 +265,21 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
    *
    * @param entry - the entry of the query to remove
    */
-  const remove = action((entry: UseMutationEntry) => {
-    if (entry.key != null) {
-      cachesRaw.set(entry.key)
-      triggerCache()
-    }
-  })
+  const remove = action(
+    <
+      TResult = unknown,
+      TVars = unknown,
+      TError = unknown,
+      TContext extends Record<any, any> = _EmptyObject,
+    >(
+      entry: UseMutationEntry<TResult, TVars, TError, TContext>,
+    ) => {
+      if (entry.key != null) {
+        cachesRaw.set(entry.key)
+        triggerCache()
+      }
+    },
+  )
 
   /**
    * Returns all the entries in the cache that match the filters.
@@ -291,6 +297,35 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
         && (!filters.predicate || filters.predicate(entry)),
     )
   })
+
+  /**
+   * Untracks an effect or component that uses a mutation.
+   *
+   * @param entry - the entry of the mutation
+   * @param effect - the effect or component to untrack
+   *
+   * @see {@link track}
+   */
+  const untrack = action(
+    <
+      TResult = unknown,
+      TVars = unknown,
+      TError = unknown,
+      TContext extends Record<any, any> = _EmptyObject,
+    >(
+      entry: UseMutationEntry<TResult, TVars, TError, TContext>,
+    ) => {
+      // schedule a garbage collection if the entry is not active
+      if (entry.gcTimeout) return
+
+      // avoid setting a timeout with false, Infinity or NaN
+      if ((Number.isFinite as (val: unknown) => val is number)(entry.options.gcTime)) {
+        entry.gcTimeout = setTimeout(() => {
+          remove(entry)
+        }, entry.options.gcTime)
+      }
+    },
+  )
 
   /**
    * Mutate a previously ensured mutation entry.
@@ -411,6 +446,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
 
     setEntryState,
     getEntries,
+    untrack,
   }
 })
 

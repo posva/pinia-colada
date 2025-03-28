@@ -7,7 +7,7 @@ import type { Pinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { computed, createApp, defineComponent, isRef, nextTick, ref } from 'vue'
 import type { PropType } from 'vue'
-import { mockWarn } from '../test/mock-warn'
+import { mockConsoleError, mockWarn } from '../test/mock-warn'
 import { createSerializedTreeNodeEntry, delay, isSpy, promiseWithResolvers } from '../test/utils'
 import { PiniaColada } from './pinia-colada'
 import { hydrateQueryCache, QUERY_STORE_ID, useQueryCache } from './query-store'
@@ -27,6 +27,9 @@ describe('useQuery', () => {
   })
 
   enableAutoUnmount(afterEach)
+
+  mockWarn()
+  mockConsoleError()
 
   function mountSimple<
     TResult = number,
@@ -1408,8 +1411,6 @@ describe('useQuery', () => {
   })
 
   describe('warns', () => {
-    mockWarn()
-
     it.todo(
       'warns if the key uses a reactive property that does not belong to the query',
       async () => {

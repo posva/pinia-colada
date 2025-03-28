@@ -1,23 +1,30 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { flushPromises, mount } from '@vue/test-utils'
+import { flushPromises, mount, enableAutoUnmount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
-import { defineComponent } from 'vue'
+import { defineComponent, effectScope, createApp } from 'vue'
 import type { GlobalMountOptions } from '../test/utils'
 import { delay } from '../test/utils'
 import type { UseMutationOptions } from './mutation-options'
 import { useMutation } from './use-mutation'
 import { PiniaColada } from './pinia-colada'
-import { mockWarn } from '../test/mock-warn'
+import { mockConsoleError, mockWarn } from '../test/mock-warn'
+import { useMutationCache } from './mutation-store'
 
 describe('useMutation', () => {
   beforeEach(() => {
     vi.clearAllTimers()
     vi.useFakeTimers()
   })
-  afterEach(() => {
+  afterEach(async () => {
+    // clear all gc timers to avoid log polluting across tests
+    await vi.runAllTimersAsync()
     vi.restoreAllMocks()
   })
+
+  enableAutoUnmount(afterEach)
+
   mockWarn()
+  mockConsoleError()
 
   function mountSimple<TResult = number, TParams = void>(
     options: Partial<UseMutationOptions<TResult, TParams>> = {},
@@ -48,7 +55,7 @@ describe('useMutation', () => {
         },
       },
     )
-    return Object.assign([wrapper, mutation] as const, { wrapper, mutation })
+    return { wrapper, mutation }
   }
 
   it('invokes the mutation', async () => {
@@ -366,6 +373,154 @@ describe('useMutation', () => {
       wrapper.vm.mutate()
       await flushPromises()
       expect(onSettled).toHaveBeenCalledWith(42, undefined, undefined, {})
+    })
+  })
+
+  describe('gcTime', () => {
+    it('keeps the cache while the component is mounted', async () => {
+      const { wrapper, mutation } = mountSimple({ gcTime: 1000 })
+      const cache = useMutationCache()
+
+      await flushPromises()
+
+      // Trigger the mutation
+      wrapper.vm.mutate()
+      await flushPromises()
+
+      expect(mutation).toHaveBeenCalledTimes(1)
+      expect(cache.getEntries()).toHaveLength(1)
+
+      vi.advanceTimersByTime(1000)
+      expect(cache.getEntries()).toHaveLength(1)
+      vi.advanceTimersByTime(1000)
+      expect(cache.getEntries()).toHaveLength(1)
+    })
+
+    it('deletes the cache once the component is unmounted after the delay', async () => {
+      const { wrapper, mutation } = mountSimple({ gcTime: 1000 })
+      const cache = useMutationCache()
+
+      await flushPromises()
+
+      // Trigger the mutation
+      wrapper.vm.mutate()
+      await flushPromises()
+
+      expect(mutation).toHaveBeenCalledTimes(1)
+      expect(cache.getEntries()).toHaveLength(1)
+
+      wrapper.unmount()
+      vi.advanceTimersByTime(999)
+      // still there
+      expect(cache.getEntries()).toHaveLength(1)
+      vi.advanceTimersByTime(1)
+      expect(cache.getEntries()).toHaveLength(0)
+    })
+
+    it('keeps the cache if the mutation is reused by a new component before the delay', async () => {
+      const pinia = createPinia()
+      const options = {
+        key: ['key'],
+        mutation: vi.fn(async () => 42),
+        gcTime: 1000,
+      } satisfies UseMutationOptions
+
+      // Mount first component and trigger mutation
+      const { wrapper: w1, mutation } = mountSimple(options, { plugins: [pinia] })
+      const cache = useMutationCache()
+
+      // Trigger the mutation in the first component
+      w1.vm.mutate()
+      await flushPromises()
+
+      expect(mutation).toHaveBeenCalledTimes(1)
+      const entriesBeforeUnmount = cache.getEntries({ key: ['key'] })
+      expect(entriesBeforeUnmount).toHaveLength(1)
+
+      // Unmount first component
+      w1.unmount()
+
+      // Advance time but not enough to trigger GC
+      vi.advanceTimersByTime(999)
+      expect(cache.getEntries({ key: ['key'] })).toHaveLength(1)
+
+      // Mount second component using the same options/key
+      const { wrapper: w2 } = mountSimple(options, { plugins: [pinia] })
+      await flushPromises()
+
+      // Trigger mutation in second component
+      w2.vm.mutate()
+      await flushPromises()
+
+      // New component creates a new cache entry with the same key, which is fine
+      // The important thing is that the entries are still tracked and not garbage collected
+      expect(cache.getEntries({ key: ['key'] }).length).toBeGreaterThan(0)
+
+      // Advance more time - entries should still be in cache since component is mounted
+      vi.advanceTimersByTime(1000)
+      expect(cache.getEntries({ key: ['key'] }).length).toBeGreaterThan(0)
+
+      // Unmount second component
+      w2.unmount()
+
+      // Advance time but not enough to trigger GC
+      vi.advanceTimersByTime(999)
+      expect(cache.getEntries({ key: ['key'] }).length).toBeGreaterThan(0)
+
+      // Advance time to trigger GC
+      vi.advanceTimersByTime(1)
+      expect(cache.getEntries({ key: ['key'] })).toHaveLength(0)
+    })
+
+    it('keeps the cache forever if gcTime is false', async () => {
+      const { wrapper, mutation } = mountSimple({ gcTime: false })
+      const cache = useMutationCache()
+
+      await flushPromises()
+
+      // Trigger the mutation
+      wrapper.vm.mutate()
+      await flushPromises()
+
+      expect(mutation).toHaveBeenCalledTimes(1)
+      expect(cache.getEntries()).toHaveLength(1)
+
+      wrapper.unmount()
+      vi.advanceTimersByTime(1000000)
+      expect(cache.getEntries()).toHaveLength(1)
+    })
+
+    it('works with effectScope too', async () => {
+      const pinia = createPinia()
+      const options = {
+        key: ['key'],
+        mutation: vi.fn(async () => 42),
+        gcTime: 1000,
+      } satisfies UseMutationOptions
+
+      const scope = effectScope()
+
+      scope.run(() => {
+        const app = createApp({})
+        app.use(pinia)
+        app.runWithContext(() => {
+          const { mutate } = useMutation(options)
+          // Trigger the mutation
+          mutate()
+        })
+      })
+
+      const cache = useMutationCache()
+      await flushPromises()
+
+      expect(cache.getEntries()).toHaveLength(1)
+
+      scope.stop()
+
+      vi.advanceTimersByTime(999)
+      expect(cache.getEntries()).toHaveLength(1)
+      vi.advanceTimersByTime(1)
+      expect(cache.getEntries()).toHaveLength(0)
     })
   })
 })
