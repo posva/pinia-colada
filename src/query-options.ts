@@ -14,19 +14,25 @@ export type RefetchOnControl = boolean | 'always'
  */
 export interface UseQueryOptionsGlobal {
   /**
-   * Whether the query should be enabled or not. If `false`, the query will not be executed until `refetch()` or
-   * `refresh()` is called. If it becomes `true`, the query will be refreshed.
+   * Whether the query should be enabled or not. If `false`, the query will not
+   * be executed until `refetch()` or `refresh()` is called. If it becomes
+   * `true`, the query will be refreshed.
    */
   enabled?: MaybeRefOrGetter<boolean>
 
   /**
-   * Time in ms after which the data is considered stale and will be refreshed on next read.
+   * Time in ms after which the data is considered stale and will be refreshed
+   * on next read.
+   *
    * @default 5000 (5 seconds)
    */
   staleTime?: number
 
   /**
-   * Time in ms after which, once the data is no longer being used, it will be garbage collected to free resources. Set to `false` to disable garbage collection.
+   * Time in ms after which, once the data is no longer being used, it will be
+   * garbage collected to free resources. Set to `false` to disable garbage
+   * collection.
+   *
    * @default 300_000 (5 minutes)
    */
   gcTime?: number | false
@@ -50,9 +56,10 @@ export interface UseQueryOptionsGlobal {
   refetchOnReconnect?: MaybeRefOrGetter<RefetchOnControl>
 
   /**
-   * A placeholder data that is initially shown while the query is loading for the first time. This will also show the
-   * `status` as `success` until the query finishes loading (no matter the outcome of the query). Note: unlike with
-   * `initialData`, the placeholder does not change the cache state.
+   * A placeholder data that is initially shown while the query is loading for
+   * the first time. This will also show the `status` as `success` until the
+   * query finishes loading (no matter the outcome of the query). Note: unlike
+   * with `initialData`, the placeholder does not change the cache state.
    */
   placeholderData?: (previousData: unknown) => any // any allows us to not worry about the types when merging options
 }
@@ -63,8 +70,9 @@ export interface UseQueryOptionsGlobal {
  */
 export interface UseQueryFnContext {
   /**
-   * `AbortSignal` instance attached to the query call. If the call becomes outdated (e.g. due to a new call with the
-   * same key), the signal will be aborted.
+   * `AbortSignal` instance attached to the query call. If the call becomes
+   * outdated (e.g. due to a new call with the same key), the signal will be
+   * aborted.
    */
   signal: AbortSignal
 }
@@ -99,9 +107,10 @@ export interface UseQueryOptions<
     | 'staleTime'
   > {
   /**
-   * The key used to identify the query. Array of primitives **without** reactive values or a reactive array or getter.
-   * It should be treaded as an array of dependencies of your queries, e.g. if you use the `route.params.id` property,
-   * it should also be part of the key:
+   * The key used to identify the query. Array of primitives **without**
+   * reactive values or a reactive array or getter. It should be treaded as an
+   * array of dependencies of your queries, e.g. if you use the
+   * `route.params.id` property, it should also be part of the key:
    *
    * ```ts
    * import { useRoute } from 'vue-router'
@@ -123,15 +132,17 @@ export interface UseQueryOptions<
   query: (context: UseQueryFnContext) => Promise<TResult>
 
   /**
-   * The data which is initially set to the query while the query is loading for the first time.
-   * Note: unlike with `placeholderData`, setting the initial data changes the state of the query (it will be set to `success`).
+   * The data which is initially set to the query while the query is loading
+   * for the first time. Note: unlike with `placeholderData`, setting the
+   * initial data changes the state of the query (it will be set to `success`).
    */
   initialData?: () => TDataInitial
 
   /**
-   * A placeholder data that is initially shown while the query is loading for the first time. This will also show the
-   * `status` as `success` until the query finishes loading (no matter the outcome of the query). Note: unlike with
-   * `initialData`, the placeholder does not change the cache state.
+   * A placeholder data that is initially shown while the query is loading for
+   * the first time. This will also show the `status` as `success` until the
+   * query finishes loading (no matter the outcome of the query). Note: unlike
+   * with `initialData`, the placeholder does not change the cache state.
    */
   placeholderData?:
     | NoInfer<TDataInitial>
