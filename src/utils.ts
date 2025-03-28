@@ -85,15 +85,37 @@ export type _Simplify<T> = { [K in keyof T]: T[K] }
  */
 export const toArray = <T>(value: _MaybeArray<T>): T[] => (Array.isArray(value) ? value : [value])
 
+/**
+ * Valid primitives that can be stringified with `JSON.stringify`.
+ *
+ * @internal
+ */
 export type _JSONPrimitive = string | number | boolean | null | undefined
 
 /**
- * Utility type to represent a flat object that can be stringified with `JSON.stringify` no matter the order of keys.
+ * Utility type to represent a flat object that can be stringified with
+ * `JSON.stringify` no matter the order of keys.
+ *
  * @internal
  */
 export interface _ObjectFlat {
   [key: string]: _JSONPrimitive | Array<_JSONPrimitive>
 }
+
+/**
+ * Valid values that can be stringified with `JSON.stringify`.
+ *
+ * @internal
+ */
+export type _JSONValue = _JSONPrimitive | _JSONValue[] | { [key: string]: _JSONValue }
+
+/**
+ * Utility type to represent a nested object that can be stringified with
+ * `JSON.stringify`, ensuring stable key order.
+ *
+ * @internal
+ */
+export interface _JSONObject extends Record<string, _JSONValue> {}
 
 /**
  * Stringifies an object no matter the order of keys. This is used to create a hash for a given object. It only works
@@ -103,6 +125,28 @@ export interface _ObjectFlat {
  */
 export function stringifyFlatObject(obj: _ObjectFlat | _JSONPrimitive): string {
   return obj && typeof obj === 'object' ? JSON.stringify(obj, Object.keys(obj).sort()) : String(obj)
+}
+
+function sortJSONValue(obj: _JSONValue): _JSONValue {
+  return Array.isArray(obj)
+    ? obj.map(sortJSONValue)
+    : obj && typeof obj === 'object'
+      ? Object.fromEntries(
+          Object.entries(obj)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(
+              ([k, v]) =>
+                [k, v && typeof v === 'object' ? sortJSONValue(v) : v] satisfies [
+                  key: string,
+                  value: _JSONValue,
+                ],
+            ),
+        )
+      : obj
+}
+
+export function stableStringifyJSON(obj: _JSONValue): string {
+  return JSON.stringify(sortJSONValue(obj))
 }
 
 /**
