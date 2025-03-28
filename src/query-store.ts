@@ -286,6 +286,15 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
 
   const optionDefaults = useQueryOptions()
 
+  /**
+   * Creates a new query entry in the cache. Shouldn't be called directly.
+   *
+   * @param key - Serialized key of the query
+   * @param [options] - options attached to the query
+   * @param [initialData] - initial data of the query if any
+   * @param [error] - initial error of the query if any
+   * @param [when] - when was the data or error fetched
+   */
   const create = action(
     <TResult, TError, TDataInitial extends TResult | undefined>(
       key: EntryNodeKey[],
