@@ -5,8 +5,8 @@ import { defineStore, skipHydrate } from 'pinia'
 import { customRef, getCurrentScope, shallowRef } from 'vue'
 import { TreeMapNode } from './tree-map'
 import type { _EmptyObject } from './utils'
-import { isSameArray, noop, stringifyFlatObject, toCacheKey, toValueWithArgs } from './utils'
-import type { _ReduceContext, UseMutationGlobalContext } from './use-mutation'
+import { noop, stringifyFlatObject, toCacheKey, toValueWithArgs } from './utils'
+import type { _ReduceContext } from './use-mutation'
 import { useMutationOptions } from './mutation-options'
 import type { UseMutationOptions } from './mutation-options'
 import type { EntryKey } from './entry-options'
@@ -23,7 +23,7 @@ export interface UseMutationEntry<
   /**
    * Unique id of the mutation entry.
    */
-  id: number
+  id: string
 
   /**
    * The state of the mutation. Contains the data, error and status.
@@ -99,35 +99,14 @@ export interface UseMutationEntryFilter {
   predicate?: (entry: UseMutationEntry) => boolean
 }
 
-let nextMutationId = 0
+export const MUTATION_STORE_ID = '_pc_mutation'
 
-function createMutationEntry<
-  TResult = unknown,
-  TVars = unknown,
-  TError = unknown,
-  TContext extends Record<any, any> = _EmptyObject,
->(
-  options: UseMutationOptions<TResult, TVars, TError, TContext>,
-  key: EntryNodeKey[] | undefined,
-  vars?: TVars,
-): UseMutationEntry<TResult, TVars, TError, TContext> {
-  return {
-    id: nextMutationId++,
-    state: shallowRef<DataState<TResult, TError>>({
-      status: 'pending',
-      data: undefined,
-      error: null,
-    }),
-    asyncStatus: shallowRef<AsyncStatus>('idle'),
-    when: 0,
-    vars: shallowRef(vars),
-    key,
-    options,
-    pending: null,
-  }
-}
-
-export const useMutationCache = /* @__PURE__ */ defineStore('_pc_mutation', ({ action }) => {
+/**
+ * Composable to get the cache of the mutations. As any other composable, it
+ * can be used inside the `setup` function of a component, within another
+ * composable, or in injectable contexts like stores and navigation guards.
+ */
+export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, ({ action }) => {
   // We have two versions of the cache, one that track changes and another that doesn't so the actions can be used
   // inside computed properties
   // We have two versions of the cache, one that track changes and another that doesn't so the actions can be used
@@ -158,6 +137,36 @@ export const useMutationCache = /* @__PURE__ */ defineStore('_pc_mutation', ({ a
   const globalOptions = useMutationOptions()
   const defineMutationMap = new WeakMap<() => unknown, unknown>()
 
+  let nextMutationId = 0
+  const generateMutationId = () => `$${nextMutationId++}`
+
+  const create = action(
+    <
+      TResult = unknown,
+      TVars = unknown,
+      TError = unknown,
+      TContext extends Record<any, any> = _EmptyObject,
+    >(
+      options: UseMutationOptions<TResult, TVars, TError, TContext>,
+      key?: EntryNodeKey[] | undefined,
+      vars?: TVars,
+    ): UseMutationEntry<TResult, TVars, TError, TContext> =>
+      scope.run(() => ({
+        id: '', // not a real id yet
+        state: shallowRef<DataState<TResult, TError>>({
+          status: 'pending',
+          data: undefined,
+          error: null,
+        }),
+        asyncStatus: shallowRef<AsyncStatus>('idle'),
+        when: 0,
+        vars: shallowRef(vars),
+        key,
+        options,
+        pending: null,
+      }))!,
+  )
+
   function ensure<
     TResult = unknown,
     TVars = unknown,
@@ -187,41 +196,39 @@ export const useMutationCache = /* @__PURE__ */ defineStore('_pc_mutation', ({ a
     entry?: UseMutationEntry<TResult, TVars, TError, TContext>,
     vars?: NoInfer<TVars>,
   ): UseMutationEntry<TResult, TVars, TError, TContext> {
-    const key = vars && toValueWithArgs(options.key, vars)?.map(stringifyFlatObject)
-
+    // we are ensuring the initial entry, we cannot have a key yet
+    // and we know that vars === undefined
     if (!entry) {
-      entry = createMutationEntry(options, key)
+      entry = create(options)
+      // since this entry is still not being used, we don't even store it in the caches
+      // that way it won't appear in devtools, won't be accessible by getEntries, etc
+      return entry
+    }
+
+    // NOTE: vars is always defined here since entry and vars must be defined together
+    const key = toValueWithArgs(options.key, vars!)?.map(stringifyFlatObject)
+    // const id = entry.id < 0 ? (entry.id = nextMutationId++) : entry.id
+    // const cacheKey = mutationCacheKey(key, id)
+
+    // reuse the entry if it was the initial one
+    if (!entry.id) {
+      // move the entry if it has a key
       if (key) {
-        cachesRaw.set(
-          key,
-          // @ts-expect-error: function types with generics are incompatible
-          entry,
-        )
-        triggerCache()
-      }
-      // TODO: store it somewhere during dev mode to show in devtools
-      return createMutationEntry(options, key)
-    }
-    // reuse the entry when no key is provided
-    if (key) {
-      // update key
-      if (!entry.key) {
         entry.key = key
-      } else if (!isSameArray(entry.key, key)) {
-        entry = createMutationEntry(
-          options,
-          key,
-          // the type NonNullable<TVars> is not assignable to TVars
-          vars as TVars,
-        )
-        cachesRaw.set(
-          key,
-          // @ts-expect-error: function types with generics are incompatible
-          entry,
-        )
-        triggerCache()
       }
+      entry.vars.value = vars
+    } else {
+      // each mutation creates a new entry, leaving the previous one in the cache
+      // TODO: untrack the previous entry
+      entry = create(options, key, vars)
     }
+
+    // create doesn't generate an id
+    entry.id = generateMutationId()
+
+    // store the entry with a generated key
+    cachesRaw.set(mutationCacheKey(key, entry.id), entry as unknown as UseMutationEntry)
+    triggerCache()
 
     return entry
   }
@@ -271,7 +278,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore('_pc_mutation', ({ a
    */
   const remove = action((entry: UseMutationEntry) => {
     if (entry.key != null) {
-      cachesRaw.delete(entry.key)
+      cachesRaw.set(entry.key)
       triggerCache()
     }
   })
@@ -302,6 +309,11 @@ export const useMutationCache = /* @__PURE__ */ defineStore('_pc_mutation', ({ a
     currentEntry: UseMutationEntry<TResult, TVars, TError, TContext>,
     vars: NoInfer<TVars>,
   ): Promise<TResult> {
+    // allows calling mutate directly on an entry that was created manually
+    if (!currentEntry.id) {
+      ensure(currentEntry.options, currentEntry, vars)
+    }
+
     currentEntry.asyncStatus.value = 'loading'
     currentEntry.vars.value = vars
 
@@ -387,6 +399,8 @@ export const useMutationCache = /* @__PURE__ */ defineStore('_pc_mutation', ({ a
 
   return {
     caches,
+
+    create,
     ensure,
     ensureDefinedMutation,
     mutate,
@@ -396,3 +410,15 @@ export const useMutationCache = /* @__PURE__ */ defineStore('_pc_mutation', ({ a
     getEntries,
   }
 })
+
+/**
+ * Generates a mutation cache key by appending the id of the mutation. This
+ * allows the cache to store multiple mutations with the same key.
+ *
+ * @param [keys] - Original keys of the mutation
+ * @param {number} id - id of the mutation
+ */
+const mutationCacheKey = (keys: EntryNodeKey[] | undefined = [], id: string): EntryNodeKey[] => [
+  ...keys,
+  id,
+]
