@@ -53,12 +53,14 @@ export interface UseMutationReturn<TResult, TVars, TError> {
   key?: EntryKey | ((vars: NoInfer<TVars>) => EntryKey)
 
   /**
-   * The combined state of the mutation. Contains its data, error, and status. It enables type narrowing based on the {@link UseMutationReturn.status}.
+   * The combined state of the mutation. Contains its data, error, and status.
+   * It enables type narrowing based on the {@link UseMutationReturn['status']}.
    */
   state: ComputedRef<DataState<TResult, TError>>
 
   /**
    * The status of the mutation.
+   *
    * @see {@link DataStateStatus}
    */
   status: ShallowRef<DataStateStatus>
@@ -114,6 +116,7 @@ export interface UseMutationReturn<TResult, TVars, TError> {
  * Setups a mutation.
  *
  * @param options - Options to create the mutation
+ *
  * @example
  * ```ts
  * const queryCache = useQueryCache()
