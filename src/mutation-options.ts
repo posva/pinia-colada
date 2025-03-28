@@ -102,7 +102,7 @@ export interface UseMutationOptionsGlobal {
  * Default options for `useMutation()`. Modifying this object will affect all mutations.
  */
 export const USE_MUTATION_DEFAULTS = {
-  gcTime: (1000 * 60) as NonNullable<UseMutationOptions['gcTime']>, // 5 minutes
+  gcTime: (1000 * 60) as NonNullable<UseMutationOptions['gcTime']>, // 1 minute
 } satisfies UseMutationOptionsGlobal
 
 /**
