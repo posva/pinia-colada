@@ -127,7 +127,7 @@ export function useQuery<
   const entry = computed(() =>
     // NOTE: there should be a `paused` property on the effect later on
     // if the effect is paused, we don't want to compute the entry because its key
-    // might be referencing unedfined values
+    // might be referencing undefined values
     // https://github.com/posva/pinia-colada/issues/227
     // @ts-expect-error: _isPaused is private
     currentEffect?._isPaused
