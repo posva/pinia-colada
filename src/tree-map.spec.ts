@@ -23,7 +23,7 @@ describe('tree-map', () => {
     expect(tree.get(['f'])).toBe('f')
   })
 
-  it('.delete', () => {
+  it('deleting entries', () => {
     const tree = new TreeMapNode<string>()
     tree.set(['a', 'b', 'c'], 'abc')
     tree.set(['a', 'b', 'd'], 'abd')

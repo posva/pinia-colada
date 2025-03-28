@@ -31,7 +31,8 @@ export class TreeMapNode<T = unknown> {
   }
 
   /**
-   * Sets the value while building the tree
+   * Sets the value while building the tree. If the value is nullish, it will
+   * unset the value and clean up empty subtrees.
    *
    * @param keys - key as an array
    * @param value - value to set
@@ -39,12 +40,15 @@ export class TreeMapNode<T = unknown> {
   set([top, ...otherKeys]: EntryNodeKey[], value?: T) {
     if (!top) {
       this.value = value
+      // if the value is unset, start deleting the subtree and go up
       if (value == null) {
         // free up unused tree
         // eslint-disable-next-line ts/no-this-alias
         let currentNode: this | undefined | null = this
         while (currentNode?.isEmpty()) {
           currentNode.children?.clear()
+          // TODO: do we need to unset currentNode.parent?
+          // propagate up
           currentNode = currentNode.parent
         }
       }
@@ -103,59 +107,6 @@ export class TreeMapNode<T = unknown> {
       }
     }
   }
-}
-
-export class TreeMapMultiNode<T = unknown> extends TreeMapNode<T[]> {
-  /**
-   * Sets the value while building the tree
-   *
-   * @param keys - key as an array
-   * @param values - values to add
-   */
-  override set(keys: EntryNodeKey[], values: T[] = []) {
-    if (keys.length === 0) {
-      this.value ??= []
-      this.value.push(...values)
-    } else {
-      // TODO: does it call the overriden set when recursive?
-      // super.set(keys, values)
-      // TODO: super.set() instead of all this code
-      // this.children ??= new Map<EntryNodeKey,
-      const [top, ...otherKeys] = keys as [top: EntryNodeKey, ...otherKeys: EntryNodeKey[]]
-      const node: this | undefined = this.children?.get(top)
-      if (node) {
-        node.set(otherKeys, values)
-      } else {
-        this.children ??= new Map()
-        this.children.set(top, new TreeMapMultiNode<T>(otherKeys, values) as this)
-      }
-    }
-  }
-
-  // /**
-  //  * Deletes the value at a given node of the tree and if the array is empty, deletes the node.
-  //  *
-  //  * @param keys - key as an array
-  //  * @param value - value to delete
-  //  */
-  // override delete(keys: EntryNodeKey[], value?: T) {
-  //   if (!value) {
-  //     throw new Error('Cannot delete a value without specifying the value to delete')
-  //   }
-  //
-  //   if (keys.length === 1) {
-  //     const node = this.children?.get(keys[0]!)
-  //     if (node) {
-  //       node.value = node.value?.filter((v) => v !== value)
-  //       if (node.value?.length === 0) {
-  //         this.children?.delete(keys[0]!)
-  //       }
-  //     }
-  //   } else {
-  //     const [top, ...otherKeys] = keys as [top: EntryNodeKey, ...otherKeys: EntryNodeKey[]]
-  //     this.children?.get(top)?.delete(otherKeys, value)
-  //   }
-  // }
 }
 
 // NOTE: this function is outside of TreeMapNode because it's only needed for SSR apps and shouldn't add to the bundle
