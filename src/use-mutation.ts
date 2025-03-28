@@ -134,6 +134,7 @@ export function useMutation<
   options: UseMutationOptions<TResult, TVars, TError, TContext>,
 ): UseMutationReturn<TResult, TVars, TError> {
   const mutationCache = useMutationCache()
+
   // always create an initial entry with no key (cannot be computed without vars)
   const entry = shallowRef<UseMutationEntry<TResult, TVars, TError, TContext>>(
     mutationCache.ensure(options),
@@ -147,8 +148,8 @@ export function useMutation<
   const variables = computed(() => entry.value.vars.value)
 
   async function mutateAsync(vars: TVars): Promise<TResult> {
-    // either create a new entry, transform the initial one with the correct keys, or reuse the same if keys are undefined
     return mutationCache.mutate(
+      // ensures we reuse the initial empty entry and adapt it or create a new one
       (entry.value = mutationCache.ensure(options, entry.value, vars)),
       vars,
     )
