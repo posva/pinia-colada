@@ -21,7 +21,7 @@ export interface UseMutationEntry<
   TContext extends Record<any, any> = _EmptyObject,
 > {
   /**
-   * Unique id of the mutation entry.
+   * Unique id of the mutation entry. Empty string if the entry is not yet in the cache.
    */
   id: string
 
