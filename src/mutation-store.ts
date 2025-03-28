@@ -48,11 +48,12 @@ export interface UseMutationEntry<
   /**
    * The variables used to call the mutation.
    */
-  vars: ShallowRef<TVars | undefined>
+  vars: TVars | undefined
 
+  /**
+   * Options used to create the mutation.
+   */
   options: UseMutationOptions<TResult, TVars, TError, TContext>
-
-  pending: symbol | null
 
   /**
    * Component `__hmrId` to track wrong usage of `useQuery` and warn the user.
@@ -140,6 +141,14 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
   let nextMutationId = 0
   const generateMutationId = () => `$${nextMutationId++}`
 
+  /**
+   * Creates a mutation entry and its state without adding it to the cache.
+   * This allows for the state to exist in `useMutation()` before the mutation
+   * is actually called. The mutation must be _ensured_ with {@link ensure}
+   * before being called.
+   *
+   * @param options - options to create the mutation
+   */
   const create = action(
     <
       TResult = unknown,
@@ -152,7 +161,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
       vars?: TVars,
     ): UseMutationEntry<TResult, TVars, TError, TContext> =>
       scope.run(() => ({
-        id: '', // not a real id yet
+        id: '', // not a real id yet, indicates that the entry is not in the cache
         state: shallowRef<DataState<TResult, TError>>({
           status: 'pending',
           data: undefined,
@@ -160,74 +169,57 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
         }),
         asyncStatus: shallowRef<AsyncStatus>('idle'),
         when: 0,
-        vars: shallowRef(vars),
+        vars,
         key,
         options,
-        pending: null,
       }))!,
   )
 
+  /**
+   * Ensures a mutation entry in the cache by assigning it an `id` and a `key` based on `vars`. Usually, a mutation is ensured twice
+   *
+   * @param options - options to create the mutation
+   * @param entry - entry to ensure
+   * @param vars - variables to call the mutation with
+   */
   function ensure<
     TResult = unknown,
     TVars = unknown,
     TError = unknown,
     TContext extends Record<any, any> = _EmptyObject,
   >(
-    options: UseMutationOptions<TResult, TVars, TError, TContext>,
-  ): UseMutationEntry<TResult, TVars, TError, TContext>
-  function ensure<
-    TResult = unknown,
-    TVars = unknown,
-    TError = unknown,
-    TContext extends Record<any, any> = _EmptyObject,
-  >(
-    options: UseMutationOptions<TResult, TVars, TError, TContext>,
     entry: UseMutationEntry<TResult, TVars, TError, TContext>,
     vars: NoInfer<TVars>,
-  ): UseMutationEntry<TResult, TVars, TError, TContext>
-
-  function ensure<
-    TResult = unknown,
-    TVars = unknown,
-    TError = unknown,
-    TContext extends Record<any, any> = _EmptyObject,
-  >(
-    options: UseMutationOptions<TResult, TVars, TError, TContext>,
-    entry?: UseMutationEntry<TResult, TVars, TError, TContext>,
-    vars?: NoInfer<TVars>,
   ): UseMutationEntry<TResult, TVars, TError, TContext> {
-    // we are ensuring the initial entry, we cannot have a key yet
-    // and we know that vars === undefined
-    if (!entry) {
-      entry = create(options)
-      // since this entry is still not being used, we don't even store it in the caches
-      // that way it won't appear in devtools, won't be accessible by getEntries, etc
-      return entry
-    }
+    const options = entry.options
+    const id = generateMutationId()
+    const cacheKey: EntryNodeKey[] = mutationCacheKey(
+      toValueWithArgs(options.key || [], vars).map(stringifyFlatObject),
+      id,
+    )
 
-    // NOTE: vars is always defined here since entry and vars must be defined together
-    const key = toValueWithArgs(options.key, vars!)?.map(stringifyFlatObject)
-    // const id = entry.id < 0 ? (entry.id = nextMutationId++) : entry.id
-    // const cacheKey = mutationCacheKey(key, id)
-
-    // reuse the entry if it was the initial one
-    if (!entry.id) {
-      // move the entry if it has a key
-      if (key) {
-        entry.key = key
+    if (process.env.NODE_ENV !== 'production') {
+      const badKey = cacheKey
+        ?.slice(0, -1) // the last part is the id
+        .find(
+          (k) =>
+            typeof k === 'string' && k.startsWith('$') && String(Number(k.slice(1))) === k.slice(1),
+        )
+      if (badKey) {
+        console.warn(
+          `[@pinia/colada] A mutation entry was created with a reserved key part "${badKey}". Do not name keys with "$<number>" as these are reserved in mutations.`,
+        )
       }
-      entry.vars.value = vars
-    } else {
-      // each mutation creates a new entry, leaving the previous one in the cache
-      // TODO: untrack the previous entry
-      entry = create(options, key, vars)
     }
 
-    // create doesn't generate an id
-    entry.id = generateMutationId()
+    entry = entry.id ? create(options, cacheKey, vars) : entry
+    // TODO: untrack the previous entry
+    entry.id = id
+    entry.key = cacheKey
+    entry.vars = vars
 
     // store the entry with a generated key
-    cachesRaw.set(mutationCacheKey(key, entry.id), entry as unknown as UseMutationEntry)
+    cachesRaw.set(cacheKey, entry as unknown as UseMutationEntry)
     triggerCache()
 
     return entry
@@ -300,22 +292,40 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     )
   })
 
+  /**
+   * Mutate a previously ensured mutation entry.
+   *
+   * @param entry - the entry to mutate
+   */
   async function mutate<
     TResult = unknown,
     TVars = unknown,
     TError = unknown,
     TContext extends Record<any, any> = _EmptyObject,
-  >(
-    currentEntry: UseMutationEntry<TResult, TVars, TError, TContext>,
-    vars: NoInfer<TVars>,
-  ): Promise<TResult> {
-    // allows calling mutate directly on an entry that was created manually
-    if (!currentEntry.id) {
-      ensure(currentEntry.options, currentEntry, vars)
+  >(entry: UseMutationEntry<TResult, TVars, TError, TContext>): Promise<TResult> {
+    // the vars is set when the entry is ensured, we warn against it below
+    const { vars, options } = entry as typeof entry & { vars: TVars }
+
+    // DEV warnings
+    if (process.env.NODE_ENV !== 'production') {
+      const key = entry.key?.join('/')
+      if (!entry.id) {
+        console.error(
+          `[@pinia/colada] A mutation entry with key "${key}" was mutated before being ensured. If you are manually calling the "mutationCache.mutate()", you should always ensure the entry first If not, this is probably a bug. Please, open an issue on GitHub with a boiled down reproduction.`,
+        )
+      }
+      if (
+        // the entry has already an ongoing request
+        entry.state.value.status !== 'pending'
+        || entry.asyncStatus.value === 'loading'
+      ) {
+        console.error(
+          `[@pinia/colada] A mutation entry with key "${key}" was reused. If you are manually calling the "mutationCache.mutate()", you should always ensure the entry first: "mutationCache.mutate(mutationCache.ensure(entry, vars))". If not this is probably a bug. Please, open an issue on GitHub with a boiled down reproduction.`,
+        )
+      }
     }
 
-    currentEntry.asyncStatus.value = 'loading'
-    currentEntry.vars.value = vars
+    entry.asyncStatus.value = 'loading'
 
     // TODO: AbortSignal that is aborted when the mutation is called again so we can throw in pending
     let currentData: TResult | undefined
@@ -329,11 +339,9 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     type OnErrorContext = Parameters<
       Required<UseMutationOptions<TResult, TVars, TError, TContext>>['onError']
     >['2']
-    const { options } = currentEntry
 
     let context: OnMutateContext | OnErrorContext | OnSuccessContext = {}
 
-    const currentCall = (currentEntry.pending = Symbol())
     try {
       const globalOnMutateContext = globalOptions.onMutate?.(vars)
 
@@ -366,32 +374,26 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
         context as OnSuccessContext,
       )
 
-      if (currentEntry.pending === currentCall) {
-        setEntryState(currentEntry, {
-          status: 'success',
-          data: newData,
-          error: null,
-        })
-      }
+      setEntryState(entry, {
+        status: 'success',
+        data: newData,
+        error: null,
+      })
     } catch (newError: unknown) {
       currentError = newError as TError
       await globalOptions.onError?.(currentError, vars, context)
       await options.onError?.(currentError, vars, context)
-      if (currentEntry.pending === currentCall) {
-        setEntryState(currentEntry, {
-          status: 'error',
-          data: currentEntry.state.value.data,
-          error: currentError,
-        })
-      }
+      setEntryState(entry, {
+        status: 'error',
+        data: entry.state.value.data,
+        error: currentError,
+      })
       throw newError
     } finally {
       // TODO: should we catch and log it?
       await globalOptions.onSettled?.(currentData, currentError, vars, context)
       await options.onSettled?.(currentData, currentError, vars, context)
-      if (currentEntry.pending === currentCall) {
-        currentEntry.asyncStatus.value = 'idle'
-      }
+      entry.asyncStatus.value = 'idle'
     }
 
     return currentData

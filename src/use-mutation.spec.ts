@@ -7,6 +7,7 @@ import { delay } from '../test/utils'
 import type { UseMutationOptions } from './mutation-options'
 import { useMutation } from './use-mutation'
 import { PiniaColada } from './pinia-colada'
+import { mockWarn } from '../test/mock-warn'
 
 describe('useMutation', () => {
   beforeEach(() => {
@@ -16,6 +17,7 @@ describe('useMutation', () => {
   afterEach(() => {
     vi.restoreAllMocks()
   })
+  mockWarn()
 
   function mountSimple<TResult = number, TParams = void>(
     options: Partial<UseMutationOptions<TResult, TParams>> = {},
@@ -88,175 +90,6 @@ describe('useMutation', () => {
     expect(wrapper.vm.error).toEqual(new Error('foobar'))
   })
 
-  it('invokes the "onMutate" hook before mutating', async () => {
-    const onMutate = vi.fn()
-    const { wrapper } = mountSimple({
-      mutation: async ({ a, b }: { a: number, b: number }) => {
-        return a + b
-      },
-      onMutate,
-    })
-    expect(onMutate).not.toHaveBeenCalled()
-    wrapper.vm.mutate({ a: 24, b: 42 })
-    expect(onMutate).toHaveBeenCalledTimes(1)
-    expect(onMutate).toHaveBeenLastCalledWith({ a: 24, b: 42 }, expect.objectContaining({}))
-    wrapper.vm.mutateAsync({ a: 0, b: 1 })
-    expect(onMutate).toHaveBeenCalledTimes(2)
-    expect(onMutate).toHaveBeenLastCalledWith({ a: 0, b: 1 }, expect.objectContaining({}))
-  })
-
-  it('invokes the "onError" hook if mutation throws', async () => {
-    const onError = vi.fn()
-    const { wrapper } = mountSimple({
-      mutation: async (n: number) => {
-        throw new Error(String(n))
-      },
-      onError,
-    })
-
-    expect(onError).not.toHaveBeenCalled()
-    wrapper.vm.mutate(24)
-    await flushPromises()
-    expect(onError).toHaveBeenCalledWith(new Error('24'), 24, expect.objectContaining({}))
-  })
-
-  it('invokes the "onError" hook if onMutate throws', async () => {
-    const onError = vi.fn()
-    const { wrapper } = mountSimple({
-      onMutate() {
-        throw new Error('onMutate')
-      },
-      onError,
-    })
-
-    wrapper.vm.mutate()
-    await flushPromises()
-    expect(onError).toHaveBeenCalledWith(
-      new Error('onMutate'),
-      undefined,
-      expect.objectContaining({}),
-    )
-  })
-
-  it('passes the returned value from onMutate to onError', async () => {
-    const onError = vi.fn()
-    const { wrapper, mutation } = mountSimple({
-      onMutate: () => ({ foo: 'bar' }),
-      onError,
-    })
-
-    mutation.mockRejectedValueOnce(new Error('onMutate'))
-    wrapper.vm.mutate()
-    await flushPromises()
-    expect(onError).toHaveBeenCalledWith(
-      new Error('onMutate'),
-      undefined,
-      expect.objectContaining({ foo: 'bar' }),
-    )
-  })
-
-  it('skips setting the error if "onError" throws', async () => {
-    const onError = vi.fn().mockRejectedValueOnce(new Error('onError'))
-    const { wrapper } = mountSimple({
-      mutation: async () => {
-        throw new Error('mutation')
-      },
-      onError,
-    })
-
-    wrapper.vm.mutate()
-    await flushPromises()
-    expect(onError).toHaveBeenCalled()
-    // couldn't be set
-    expect(wrapper.vm.error).toEqual(null)
-  })
-
-  it('awaits the "onMutate" hook before mutation', async () => {
-    const onMutate = vi.fn(async () => delay(10))
-    const { wrapper, mutation } = mountSimple({ onMutate })
-
-    wrapper.vm.mutate()
-    expect(onMutate).toHaveBeenCalled()
-    expect(mutation).not.toHaveBeenCalled()
-    vi.advanceTimersByTime(10)
-    expect(mutation).not.toHaveBeenCalled()
-    await flushPromises()
-    expect(mutation).toHaveBeenCalled()
-  })
-
-  it('invokes the "onSuccess" hook', async () => {
-    const onSuccess = vi.fn()
-    const { wrapper } = mountSimple({ onSuccess })
-
-    wrapper.vm.mutate()
-    await flushPromises()
-    expect(onSuccess).toHaveBeenCalledWith(42, undefined, expect.objectContaining({}))
-  })
-
-  it('skips setting the data if "onSuccess" throws', async () => {
-    const onSuccess = vi.fn().mockRejectedValueOnce(new Error('onSuccess'))
-    const { wrapper, mutation } = mountSimple({ onSuccess })
-
-    wrapper.vm.mutate()
-    await flushPromises()
-    expect(onSuccess).toHaveBeenCalled()
-    expect(mutation).toHaveBeenCalled()
-    // since it threw
-    expect(wrapper.vm.data).toBeUndefined()
-  })
-
-  it('sets the error if "onSuccess" throws', async () => {
-    const onSuccess = vi.fn().mockRejectedValueOnce(new Error('onSuccess'))
-    const { wrapper } = mountSimple({ onSuccess })
-
-    wrapper.vm.mutate()
-    await flushPromises()
-    expect(onSuccess).toHaveBeenCalled()
-    expect(wrapper.vm.error).toEqual(new Error('onSuccess'))
-  })
-
-  it('sets the error if "onMutate" throws', async () => {
-    const onMutate = vi.fn().mockRejectedValueOnce(new Error('onMutate'))
-    const { wrapper } = mountSimple({ onMutate })
-
-    wrapper.vm.mutate()
-    await flushPromises()
-    expect(onMutate).toHaveBeenCalled()
-    expect(wrapper.vm.error).toEqual(new Error('onMutate'))
-  })
-
-  describe('invokes the "onSettled" hook', () => {
-    it('on success', async () => {
-      const onSettled = vi.fn()
-      const { wrapper } = mountSimple({
-        onSettled,
-      })
-
-      wrapper.vm.mutate()
-      await flushPromises()
-      expect(onSettled).toHaveBeenCalledWith(42, undefined, undefined, expect.objectContaining({}))
-    })
-
-    it('on error', async () => {
-      const onSettled = vi.fn()
-      const { wrapper } = mountSimple({
-        mutation: async () => {
-          throw new Error('foobar')
-        },
-        onSettled,
-      })
-
-      await expect(wrapper.vm.mutateAsync()).rejects.toThrow()
-      await flushPromises()
-      expect(onSettled).toHaveBeenCalledWith(
-        undefined,
-        new Error('foobar'),
-        undefined,
-        expect.objectContaining({}),
-      )
-    })
-  })
-
   it('can reset the mutation', async () => {
     const { wrapper } = mountSimple()
 
@@ -269,82 +102,270 @@ describe('useMutation', () => {
     expect(wrapper.vm.status).toBe('pending')
   })
 
-  it('triggers global onMutate', async () => {
-    const onMutate = vi.fn()
-    const { wrapper } = mountSimple(
-      {},
-      {
-        plugins: [createPinia(), [PiniaColada, { mutationOptions: { onMutate } }]],
-      },
-    )
-
-    expect(onMutate).toHaveBeenCalledTimes(0)
-    wrapper.vm.mutate()
-    // no need since it's synchronous
-    // await flushPromises()
-    expect(onMutate).toHaveBeenCalledTimes(1)
-    expect(onMutate).toHaveBeenCalledWith(undefined)
-  })
-
-  it('local onMutate receives global onMutate result', async () => {
-    const onMutate = vi.fn(() => ({ foo: 'bar' }))
-    const { wrapper } = mountSimple(
-      { onMutate },
-      {
-        plugins: [
-          createPinia(),
-          [PiniaColada, { mutationOptions: { onMutate: () => ({ global: true }) } }],
-        ],
-      },
-    )
-
-    wrapper.vm.mutate()
-    expect(onMutate).toHaveBeenCalledWith(undefined, { global: true })
-  })
-
-  it('triggers global onSuccess', async () => {
-    const onSuccess = vi.fn()
-    const { wrapper } = mountSimple(
-      {},
-      {
-        plugins: [createPinia(), [PiniaColada, { mutationOptions: { onSuccess } }]],
-      },
-    )
+  it('can be called again after reset', async () => {
+    const { wrapper } = mountSimple()
 
     wrapper.vm.mutate()
     await flushPromises()
-    expect(onSuccess).toHaveBeenCalledWith(42, undefined, {})
+    wrapper.vm.reset()
+    wrapper.vm.mutate()
+    await flushPromises()
+    expect(wrapper.vm.data).toBe(42)
+    expect(wrapper.vm.status).toBe('success')
   })
 
-  it('triggers global onError', async () => {
-    const onError = vi.fn()
-    const { wrapper } = mountSimple(
-      {
-        mutation: async () => {
-          throw new Error('foobar')
+  describe('hooks', () => {
+    it('invokes the "onMutate" hook before mutating', async () => {
+      const onMutate = vi.fn()
+      const { wrapper } = mountSimple({
+        mutation: async ({ a, b }: { a: number, b: number }) => {
+          return a + b
         },
-      },
-      {
-        plugins: [createPinia(), [PiniaColada, { mutationOptions: { onError } }]],
-      },
-    )
+        onMutate,
+      })
+      expect(onMutate).not.toHaveBeenCalled()
+      wrapper.vm.mutate({ a: 24, b: 42 })
+      expect(onMutate).toHaveBeenCalledTimes(1)
+      expect(onMutate).toHaveBeenLastCalledWith({ a: 24, b: 42 }, expect.objectContaining({}))
+      wrapper.vm.mutateAsync({ a: 0, b: 1 })
+      expect(onMutate).toHaveBeenCalledTimes(2)
+      expect(onMutate).toHaveBeenLastCalledWith({ a: 0, b: 1 }, expect.objectContaining({}))
+    })
 
-    await expect(wrapper.vm.mutateAsync()).rejects.toThrow()
-    await flushPromises()
-    expect(onError).toHaveBeenCalledWith(new Error('foobar'), undefined, {})
-  })
+    it('invokes the "onError" hook if mutation throws', async () => {
+      const onError = vi.fn()
+      const { wrapper } = mountSimple({
+        mutation: async (n: number) => {
+          throw new Error(String(n))
+        },
+        onError,
+      })
 
-  it('triggers global onSettled', async () => {
-    const onSettled = vi.fn()
-    const { wrapper } = mountSimple(
-      {},
-      {
-        plugins: [createPinia(), [PiniaColada, { mutationOptions: { onSettled } }]],
-      },
-    )
+      expect(onError).not.toHaveBeenCalled()
+      wrapper.vm.mutate(24)
+      await flushPromises()
+      expect(onError).toHaveBeenCalledWith(new Error('24'), 24, expect.objectContaining({}))
+    })
 
-    wrapper.vm.mutate()
-    await flushPromises()
-    expect(onSettled).toHaveBeenCalledWith(42, undefined, undefined, {})
+    it('invokes the "onError" hook if onMutate throws', async () => {
+      const onError = vi.fn()
+      const { wrapper } = mountSimple({
+        onMutate() {
+          throw new Error('onMutate')
+        },
+        onError,
+      })
+
+      wrapper.vm.mutate()
+      await flushPromises()
+      expect(onError).toHaveBeenCalledWith(
+        new Error('onMutate'),
+        undefined,
+        expect.objectContaining({}),
+      )
+    })
+
+    it('passes the returned value from onMutate to onError', async () => {
+      const onError = vi.fn()
+      const { wrapper, mutation } = mountSimple({
+        onMutate: () => ({ foo: 'bar' }),
+        onError,
+      })
+
+      mutation.mockRejectedValueOnce(new Error('onMutate'))
+      wrapper.vm.mutate()
+      await flushPromises()
+      expect(onError).toHaveBeenCalledWith(
+        new Error('onMutate'),
+        undefined,
+        expect.objectContaining({ foo: 'bar' }),
+      )
+    })
+
+    it('skips setting the error if "onError" throws', async () => {
+      const onError = vi.fn().mockRejectedValueOnce(new Error('onError'))
+      const { wrapper } = mountSimple({
+        mutation: async () => {
+          throw new Error('mutation')
+        },
+        onError,
+      })
+
+      wrapper.vm.mutate()
+      await flushPromises()
+      expect(onError).toHaveBeenCalled()
+      // couldn't be set
+      expect(wrapper.vm.error).toEqual(null)
+    })
+
+    it('awaits the "onMutate" hook before mutation', async () => {
+      const onMutate = vi.fn(async () => delay(10))
+      const { wrapper, mutation } = mountSimple({ onMutate })
+
+      wrapper.vm.mutate()
+      expect(onMutate).toHaveBeenCalled()
+      expect(mutation).not.toHaveBeenCalled()
+      vi.advanceTimersByTime(10)
+      expect(mutation).not.toHaveBeenCalled()
+      await flushPromises()
+      expect(mutation).toHaveBeenCalled()
+    })
+
+    it('invokes the "onSuccess" hook', async () => {
+      const onSuccess = vi.fn()
+      const { wrapper } = mountSimple({ onSuccess })
+
+      wrapper.vm.mutate()
+      await flushPromises()
+      expect(onSuccess).toHaveBeenCalledWith(42, undefined, expect.objectContaining({}))
+    })
+
+    it('skips setting the data if "onSuccess" throws', async () => {
+      const onSuccess = vi.fn().mockRejectedValueOnce(new Error('onSuccess'))
+      const { wrapper, mutation } = mountSimple({ onSuccess })
+
+      wrapper.vm.mutate()
+      await flushPromises()
+      expect(onSuccess).toHaveBeenCalled()
+      expect(mutation).toHaveBeenCalled()
+      // since it threw
+      expect(wrapper.vm.data).toBeUndefined()
+    })
+
+    it('sets the error if "onSuccess" throws', async () => {
+      const onSuccess = vi.fn().mockRejectedValueOnce(new Error('onSuccess'))
+      const { wrapper } = mountSimple({ onSuccess })
+
+      wrapper.vm.mutate()
+      await flushPromises()
+      expect(onSuccess).toHaveBeenCalled()
+      expect(wrapper.vm.error).toEqual(new Error('onSuccess'))
+    })
+
+    it('sets the error if "onMutate" throws', async () => {
+      const onMutate = vi.fn().mockRejectedValueOnce(new Error('onMutate'))
+      const { wrapper } = mountSimple({ onMutate })
+
+      wrapper.vm.mutate()
+      await flushPromises()
+      expect(onMutate).toHaveBeenCalled()
+      expect(wrapper.vm.error).toEqual(new Error('onMutate'))
+    })
+
+    describe('invokes the "onSettled" hook', () => {
+      it('on success', async () => {
+        const onSettled = vi.fn()
+        const { wrapper } = mountSimple({
+          onSettled,
+        })
+
+        wrapper.vm.mutate()
+        await flushPromises()
+        expect(onSettled).toHaveBeenCalledWith(
+          42,
+          undefined,
+          undefined,
+          expect.objectContaining({}),
+        )
+      })
+
+      it('on error', async () => {
+        const onSettled = vi.fn()
+        const { wrapper } = mountSimple({
+          mutation: async () => {
+            throw new Error('foobar')
+          },
+          onSettled,
+        })
+
+        await expect(wrapper.vm.mutateAsync()).rejects.toThrow()
+        await flushPromises()
+        expect(onSettled).toHaveBeenCalledWith(
+          undefined,
+          new Error('foobar'),
+          undefined,
+          expect.objectContaining({}),
+        )
+      })
+    })
+
+    it('triggers global onMutate', async () => {
+      const onMutate = vi.fn()
+      const { wrapper } = mountSimple(
+        {},
+        {
+          plugins: [createPinia(), [PiniaColada, { mutationOptions: { onMutate } }]],
+        },
+      )
+
+      expect(onMutate).toHaveBeenCalledTimes(0)
+      wrapper.vm.mutate()
+      // no need since it's synchronous
+      // await flushPromises()
+      expect(onMutate).toHaveBeenCalledTimes(1)
+      expect(onMutate).toHaveBeenCalledWith(undefined)
+    })
+
+    it('local onMutate receives global onMutate result', async () => {
+      const onMutate = vi.fn(() => ({ foo: 'bar' }))
+      const { wrapper } = mountSimple(
+        { onMutate },
+        {
+          plugins: [
+            createPinia(),
+            [PiniaColada, { mutationOptions: { onMutate: () => ({ global: true }) } }],
+          ],
+        },
+      )
+
+      wrapper.vm.mutate()
+      expect(onMutate).toHaveBeenCalledWith(undefined, { global: true })
+    })
+
+    it('triggers global onSuccess', async () => {
+      const onSuccess = vi.fn()
+      const { wrapper } = mountSimple(
+        {},
+        {
+          plugins: [createPinia(), [PiniaColada, { mutationOptions: { onSuccess } }]],
+        },
+      )
+
+      wrapper.vm.mutate()
+      await flushPromises()
+      expect(onSuccess).toHaveBeenCalledWith(42, undefined, {})
+    })
+
+    it('triggers global onError', async () => {
+      const onError = vi.fn()
+      const { wrapper } = mountSimple(
+        {
+          mutation: async () => {
+            throw new Error('foobar')
+          },
+        },
+        {
+          plugins: [createPinia(), [PiniaColada, { mutationOptions: { onError } }]],
+        },
+      )
+
+      await expect(wrapper.vm.mutateAsync()).rejects.toThrow()
+      await flushPromises()
+      expect(onError).toHaveBeenCalledWith(new Error('foobar'), undefined, {})
+    })
+
+    it('triggers global onSettled', async () => {
+      const onSettled = vi.fn()
+      const { wrapper } = mountSimple(
+        {},
+        {
+          plugins: [createPinia(), [PiniaColada, { mutationOptions: { onSettled } }]],
+        },
+      )
+
+      wrapper.vm.mutate()
+      await flushPromises()
+      expect(onSettled).toHaveBeenCalledWith(42, undefined, undefined, {})
+    })
   })
 })

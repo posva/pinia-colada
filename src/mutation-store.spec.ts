@@ -1,13 +1,12 @@
 import { createPinia, getActivePinia, setActivePinia } from 'pinia'
 import { describe, beforeEach, it, expect, vi } from 'vitest'
 import { createApp } from 'vue'
-import { MUTATION_STORE_ID, useMutationCache } from './mutation-store'
+import { useMutationCache } from './mutation-store'
 import type { UseMutationEntry } from './mutation-store'
 import { flushPromises } from '@vue/test-utils'
 import type { UseMutationOptions } from './mutation-options'
 import { mockConsoleError, mockWarn } from '../test/mock-warn'
 import { useMutation } from './use-mutation'
-import { logTree } from './tree-map'
 
 describe('Mutation Cache store', () => {
   let app!: ReturnType<typeof createApp>
@@ -25,8 +24,8 @@ describe('Mutation Cache store', () => {
         key,
         mutation: async () => 'ok',
       } satisfies UseMutationOptions
-      const entry = mutationCache.ensure(options)
-      mutationCache.ensure(options, entry, undefined)
+      const entry = mutationCache.create(options)
+      mutationCache.ensure(entry, undefined)
     }
   }
 
@@ -40,7 +39,9 @@ describe('Mutation Cache store', () => {
       expect(mutationCache.getEntries({ key: ['a', 'a'] })).toHaveLength(1)
       expect(mutationCache.getEntries({ key: ['a', 'b'] })).toHaveLength(0)
       expect(mutationCache.getEntries({ key: ['a', 'a', 'a'] })).toHaveLength(0)
-      expect(mutationCache.getEntries({ key: ['a', 'a'] })).toMatchObject([{ key: ['a', 'a'] }])
+      expect(mutationCache.getEntries({ key: ['a', 'a'] })).toMatchObject([
+        { key: ['a', 'a', '$2'] },
+      ])
     })
 
     it('can filter unkeyed entries', () => {
@@ -57,7 +58,7 @@ describe('Mutation Cache store', () => {
       // we need to pass the id to make them work
       expect(mutationCache.getEntries({ exact: true, key: ['a', '$0'] })).toHaveLength(1)
       expect(mutationCache.getEntries({ exact: true, key: ['a', 'a', '$2'] })).toMatchObject([
-        { key: ['a', 'a'] },
+        { key: ['a', 'a', '$2'] },
       ])
     })
 
@@ -84,7 +85,7 @@ describe('Mutation Cache store', () => {
       expect(mutationCache.getEntries({ status: 'success' })).toHaveLength(0)
       expect(mutationCache.getEntries({ status: 'pending' })).toHaveLength(3)
       mutationCache.getEntries({ status: 'pending' }).forEach((entry) => {
-        mutationCache.mutate(entry, undefined)
+        mutationCache.mutate(entry)
       })
       await flushPromises()
       expect(mutationCache.getEntries({ status: 'error' })).toHaveLength(0)
@@ -128,25 +129,34 @@ describe('Mutation Cache store', () => {
 
   it('can remove an entry without removing the children', async () => {
     const mutationCache = useMutationCache()
-    const e1 = mutationCache.ensure({
-      key: ['a', 'b', 'c'],
-      mutation: async () => 'abc',
-    })
-    await mutationCache.mutate(e1, undefined)
+    const e1 = mutationCache.ensure(
+      mutationCache.create({
+        key: ['a', 'b', 'c'],
+        mutation: async () => 'abc',
+      }),
+      undefined,
+    )
+    await mutationCache.mutate(e1)
 
-    const e2 = mutationCache.ensure({
-      key: ['a', 'b', 'd'],
-      mutation: async () => 'abd',
-    })
-    await mutationCache.mutate(e2, undefined)
+    const e2 = mutationCache.ensure(
+      mutationCache.create({
+        key: ['a', 'b', 'd'],
+        mutation: async () => 'abd',
+      }),
+      undefined,
+    )
+    await mutationCache.mutate(e2)
 
-    const e3 = mutationCache.ensure({
-      key: ['a', 'b'],
-      mutation: async () => 'ab',
-    })
-    await mutationCache.mutate(e3, undefined)
+    const e3 = mutationCache.ensure(
+      mutationCache.create({
+        key: ['a', 'b'],
+        mutation: async () => 'ab',
+      }),
+      undefined,
+    )
+    await mutationCache.mutate(e3)
 
-    const [entry] = mutationCache.getEntries({ key: ['a', 'b'] })
+    const [entry] = mutationCache.getEntries({ key: ['a', 'b', '$2'] })
     expect(entry).toBeDefined()
     mutationCache.remove(entry!)
     expect(mutationCache.getEntries({ key: ['a', 'b', 'c'] })).toHaveLength(1)
