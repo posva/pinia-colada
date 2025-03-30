@@ -122,7 +122,24 @@ describe('useMutation', () => {
   })
 
   describe('hooks', () => {
-    it('invokes the "onMutate" hook before mutating', async () => {
+    it('invokes the "onBeforeMutate" hook before mutating', async () => {
+      const onBeforeMutate = vi.fn()
+      const { wrapper } = mountSimple({
+        mutation: async ({ a, b }: { a: number, b: number }) => {
+          return a + b
+        },
+        onBeforeMutate,
+      })
+      expect(onBeforeMutate).not.toHaveBeenCalled()
+      wrapper.vm.mutate({ a: 24, b: 42 })
+      expect(onBeforeMutate).toHaveBeenCalledTimes(1)
+      expect(onBeforeMutate).toHaveBeenLastCalledWith({ a: 24, b: 42 }, expect.objectContaining({}))
+      wrapper.vm.mutateAsync({ a: 0, b: 1 })
+      expect(onBeforeMutate).toHaveBeenCalledTimes(2)
+      expect(onBeforeMutate).toHaveBeenLastCalledWith({ a: 0, b: 1 }, expect.objectContaining({}))
+    })
+
+    it('works with the deprecated local "onMutate"', async () => {
       const onMutate = vi.fn()
       const { wrapper } = mountSimple({
         mutation: async ({ a, b }: { a: number, b: number }) => {
@@ -137,6 +154,22 @@ describe('useMutation', () => {
       wrapper.vm.mutateAsync({ a: 0, b: 1 })
       expect(onMutate).toHaveBeenCalledTimes(2)
       expect(onMutate).toHaveBeenLastCalledWith({ a: 0, b: 1 }, expect.objectContaining({}))
+      expect('"onMutate" option is deprecated').toHaveBeenWarned()
+    })
+
+    it('warns about misusing deprecated "onMutate"', async () => {
+      const onMutate = vi.fn()
+      const onBeforeMutate = vi.fn()
+      const { wrapper } = mountSimple({
+        mutation: async ({ a, b }: { a: number, b: number }) => {
+          return a + b
+        },
+        onMutate,
+        onBeforeMutate,
+      })
+      wrapper.vm.mutate({ a: 24, b: 42 })
+      expect('"onMutate" option is deprecated').toHaveBeenWarned()
+      expect('Use only "onBeforeMutate"').toHaveBeenWarned()
     })
 
     it('invokes the "onError" hook if mutation throws', async () => {
@@ -154,11 +187,11 @@ describe('useMutation', () => {
       expect(onError).toHaveBeenCalledWith(new Error('24'), 24, expect.objectContaining({}))
     })
 
-    it('invokes the "onError" hook if onMutate throws', async () => {
+    it('invokes the "onError" hook if onBeforeMutate throws', async () => {
       const onError = vi.fn()
       const { wrapper } = mountSimple({
-        onMutate() {
-          throw new Error('onMutate')
+        onBeforeMutate() {
+          throw new Error('onBeforeMutate')
         },
         onError,
       })
@@ -166,24 +199,24 @@ describe('useMutation', () => {
       wrapper.vm.mutate()
       await flushPromises()
       expect(onError).toHaveBeenCalledWith(
-        new Error('onMutate'),
+        new Error('onBeforeMutate'),
         undefined,
         expect.objectContaining({}),
       )
     })
 
-    it('passes the returned value from onMutate to onError', async () => {
+    it('passes the returned value from onBeforeMutate to onError', async () => {
       const onError = vi.fn()
       const { wrapper, mutation } = mountSimple({
-        onMutate: () => ({ foo: 'bar' }),
+        onBeforeMutate: () => ({ foo: 'bar' }),
         onError,
       })
 
-      mutation.mockRejectedValueOnce(new Error('onMutate'))
+      mutation.mockRejectedValueOnce(new Error('onBeforeMutate'))
       wrapper.vm.mutate()
       await flushPromises()
       expect(onError).toHaveBeenCalledWith(
-        new Error('onMutate'),
+        new Error('onBeforeMutate'),
         undefined,
         expect.objectContaining({ foo: 'bar' }),
       )
@@ -205,12 +238,12 @@ describe('useMutation', () => {
       expect(wrapper.vm.error).toEqual(null)
     })
 
-    it('awaits the "onMutate" hook before mutation', async () => {
-      const onMutate = vi.fn(async () => delay(10))
-      const { wrapper, mutation } = mountSimple({ onMutate })
+    it('awaits the "onBeforeMutate" hook before mutation', async () => {
+      const onBeforeMutate = vi.fn(async () => delay(10))
+      const { wrapper, mutation } = mountSimple({ onBeforeMutate })
 
       wrapper.vm.mutate()
-      expect(onMutate).toHaveBeenCalled()
+      expect(onBeforeMutate).toHaveBeenCalled()
       expect(mutation).not.toHaveBeenCalled()
       vi.advanceTimersByTime(10)
       expect(mutation).not.toHaveBeenCalled()
@@ -249,14 +282,14 @@ describe('useMutation', () => {
       expect(wrapper.vm.error).toEqual(new Error('onSuccess'))
     })
 
-    it('sets the error if "onMutate" throws', async () => {
-      const onMutate = vi.fn().mockRejectedValueOnce(new Error('onMutate'))
-      const { wrapper } = mountSimple({ onMutate })
+    it('sets the error if "onBeforeMutate" throws', async () => {
+      const onBeforeMutate = vi.fn().mockRejectedValueOnce(new Error('onBeforeMutate'))
+      const { wrapper } = mountSimple({ onBeforeMutate })
 
       wrapper.vm.mutate()
       await flushPromises()
-      expect(onMutate).toHaveBeenCalled()
-      expect(wrapper.vm.error).toEqual(new Error('onMutate'))
+      expect(onBeforeMutate).toHaveBeenCalled()
+      expect(wrapper.vm.error).toEqual(new Error('onBeforeMutate'))
     })
 
     describe('invokes the "onSettled" hook', () => {
@@ -296,37 +329,37 @@ describe('useMutation', () => {
       })
     })
 
-    it('triggers global onMutate', async () => {
-      const onMutate = vi.fn()
+    it('triggers global onBeforeMutate', async () => {
+      const onBeforeMutate = vi.fn()
       const { wrapper } = mountSimple(
         {},
         {
-          plugins: [createPinia(), [PiniaColada, { mutationOptions: { onMutate } }]],
+          plugins: [createPinia(), [PiniaColada, { mutationOptions: { onBeforeMutate } }]],
         },
       )
 
-      expect(onMutate).toHaveBeenCalledTimes(0)
+      expect(onBeforeMutate).toHaveBeenCalledTimes(0)
       wrapper.vm.mutate()
       // no need since it's synchronous
       // await flushPromises()
-      expect(onMutate).toHaveBeenCalledTimes(1)
-      expect(onMutate).toHaveBeenCalledWith(undefined)
+      expect(onBeforeMutate).toHaveBeenCalledTimes(1)
+      expect(onBeforeMutate).toHaveBeenCalledWith(undefined)
     })
 
-    it('local onMutate receives global onMutate result', async () => {
-      const onMutate = vi.fn(() => ({ foo: 'bar' }))
+    it('local onBeforeMutate receives global onBeforeMutate result', async () => {
+      const onBeforeMutate = vi.fn(() => ({ foo: 'bar' }))
       const { wrapper } = mountSimple(
-        { onMutate },
+        { onBeforeMutate },
         {
           plugins: [
             createPinia(),
-            [PiniaColada, { mutationOptions: { onMutate: () => ({ global: true }) } }],
+            [PiniaColada, { mutationOptions: { onBeforeMutate: () => ({ global: true }) } }],
           ],
         },
       )
 
       wrapper.vm.mutate()
-      expect(onMutate).toHaveBeenCalledWith(undefined, { global: true })
+      expect(onBeforeMutate).toHaveBeenCalledWith(undefined, { global: true })
     })
 
     it('triggers global onSuccess', async () => {

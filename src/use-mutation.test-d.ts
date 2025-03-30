@@ -40,9 +40,9 @@ describe('useMutation type inference', () => {
     })
   })
 
-  it('can infer the context from sync onMutate', () => {
+  it('can infer the context from sync onBeforeMutate', () => {
     useMutation({
-      onMutate() {
+      onBeforeMutate() {
         return { foo: 'bar' }
       },
       mutation: async (vars: number, context) => {
@@ -66,20 +66,20 @@ describe('useMutation type inference', () => {
     })
   })
 
-  it('must return an object in onMutate', () => {
+  it('must return an object in onBeforeMutate', () => {
     useMutation({
       mutation: () => Promise.resolve(42),
       // @ts-expect-error: must return an object
-      onMutate() {
+      onBeforeMutate() {
         return 42
       },
     })
   })
 
-  it('can return undefined in onMutate', () => {
+  it('can return undefined in onBeforeMutate', () => {
     useMutation({
       mutation: () => Promise.resolve(42),
-      onMutate() {
+      onBeforeMutate() {
         return undefined
       },
       onSuccess(_d, _v, context) {
@@ -88,19 +88,19 @@ describe('useMutation type inference', () => {
     })
   })
 
-  it('can return null in onMutate', () => {
+  it('can return null in onBeforeMutate', () => {
     useMutation({
       mutation: () => Promise.resolve(42),
-      onMutate() {
+      onBeforeMutate() {
         return null
       },
     })
   })
 
-  it('can infer the context from async onMutate', () => {
+  it('can infer the context from async onBeforeMutate', () => {
     useMutation({
       mutation: () => Promise.resolve(42),
-      async onMutate() {
+      async onBeforeMutate() {
         return { foo: 'bar' }
       },
       onSuccess(_d, _v, context) {
@@ -121,7 +121,7 @@ describe('useMutation type inference', () => {
   it('allows type narrowing based on context properties', () => {
     useMutation({
       mutation: () => Promise.resolve(42),
-      async onMutate() {
+      async onBeforeMutate() {
         return { foo: 'bar', bar: 'baz' }
       },
       onSuccess(_d, _v, context) {
@@ -157,7 +157,7 @@ describe('useMutation type inference', () => {
   it('can infer a context of void', () => {
     useMutation({
       mutation: () => Promise.resolve(42),
-      onMutate() {
+      onBeforeMutate() {
         // no return
       },
 
@@ -175,10 +175,10 @@ describe('useMutation type inference', () => {
       },
     })
 
-    it('keeps empty context types when no return type onMutate', () => {
+    it('keeps empty context types when no return type onBeforeMutate', () => {
       useMutation({
         mutation: () => Promise.resolve(42),
-        onMutate() {
+        onBeforeMutate() {
           // no return
           // return { o: true }
         },

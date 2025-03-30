@@ -13,6 +13,16 @@ export interface UseMutationOptionsGlobal {
    * passed to `mutation`, `onSuccess`, `onError` and `onSettled`. If it
    * returns a promise, it will be awaited before running `mutation`.
    */
+  onBeforeMutate?: (
+    /**
+     * The variables passed to the mutation.
+     */
+    vars: unknown,
+  ) => _Awaitable<UseMutationGlobalContext | undefined | void | null>
+
+  /**
+   * @deprecated Use {@link onBeforeMutate} instead.
+   */
   onMutate?: (
     /**
      * The variables passed to the mutation.
@@ -33,7 +43,7 @@ export interface UseMutationOptionsGlobal {
      */
     vars: unknown,
     /**
-     * The merged context from `onMutate` and the global context.
+     * The merged context from `onBeforeMutate` and the global context.
      */
     context: UseMutationGlobalContext,
   ) => unknown
@@ -51,13 +61,13 @@ export interface UseMutationOptionsGlobal {
      */
     vars: unknown,
     /**
-     * The merged context from `onMutate` and the global context. Properties returned by `onMutate` can be `undefined`
-     * if `onMutate` throws.
+     * The merged context from `onBeforeMutate` and the global context. Properties returned by `onBeforeMutate` can be `undefined`
+     * if `onBeforeMutate` throws.
      */
     context:
       | Partial<Record<keyof UseMutationGlobalContext, never>>
       // this is the success case where everything is defined
-      // undefined if global onMutate throws
+      // undefined if global onBeforeMutate throws
       | UseMutationGlobalContext,
   ) => unknown
 
@@ -78,13 +88,13 @@ export interface UseMutationOptionsGlobal {
      */
     vars: unknown,
     /**
-     * The merged context from `onMutate` and the global context. Properties returned by `onMutate` can be `undefined`
-     * if `onMutate` throws.
+     * The merged context from `onBeforeMutate` and the global context. Properties are `undefined`
+     * if `onBeforeMutate` throws.
      */
     context:
       | Partial<Record<keyof UseMutationGlobalContext, never>>
       // this is the success case where everything is defined
-      // undefined if global onMutate throws
+      // undefined if global onBeforeMutate throws
       | UseMutationGlobalContext,
   ) => unknown
 
@@ -127,6 +137,17 @@ export interface UseMutationOptions<
   key?: _MutationKey<NoInfer<TVars>>
 
   /**
+   * @deprecated Use {@link onBeforeMutate} instead.
+   */
+  onMutate?: (
+    /**
+     * The variables passed to the mutation.
+     */
+    vars: NoInfer<TVars>,
+    context: UseMutationGlobalContext,
+  ) => _Awaitable<TContext | undefined | void | null>
+
+  /**
    * Runs before the mutation is executed. **It should be placed before `mutation()` for `context` to be inferred**. It
    * can return a value that will be passed to `mutation`, `onSuccess`, `onError` and `onSettled`. If it returns a
    * promise, it will be awaited before running `mutation`.
@@ -136,7 +157,7 @@ export interface UseMutationOptions<
    * useMutation({
    * // must appear before `mutation` for `{ foo: string }` to be inferred
    * // within `mutation`
-   *   onMutate() {
+   *   onBeforeMutate() {
    *     return { foo: 'bar' }
    *   },
    *   mutation: (id: number, { foo }) => {
@@ -149,7 +170,7 @@ export interface UseMutationOptions<
    * })
    * ```
    */
-  onMutate?: (
+  onBeforeMutate?: (
     /**
      * The variables passed to the mutation.
      */
@@ -170,7 +191,7 @@ export interface UseMutationOptions<
      */
     vars: NoInfer<TVars>,
     /**
-     * The merged context from `onMutate` and the global context.
+     * The merged context from `onBeforeMutate` and the global context.
      */
     context: UseMutationGlobalContext & _ReduceContext<NoInfer<TContext>>,
   ) => unknown
@@ -188,14 +209,14 @@ export interface UseMutationOptions<
      */
     vars: NoInfer<TVars>,
     /**
-     * The merged context from `onMutate` and the global context. Properties returned by `onMutate` can be `undefined`
-     * if `onMutate` throws.
+     * The merged context from `onBeforeMutate` and the global context. Properties returned by `onBeforeMutate` can be `undefined`
+     * if `onBeforeMutate` throws.
      */
     context:
       | (Partial<Record<keyof UseMutationGlobalContext, never>> &
           Partial<Record<keyof _ReduceContext<NoInfer<TContext>>, never>>)
       // this is the success case where everything is defined
-      // undefined if global onMutate throws
+      // undefined if global onBeforeMutate throws
       | (UseMutationGlobalContext & _ReduceContext<NoInfer<TContext>>),
   ) => unknown
 
@@ -216,14 +237,14 @@ export interface UseMutationOptions<
      */
     vars: NoInfer<TVars>,
     /**
-     * The merged context from `onMutate` and the global context. Properties returned by `onMutate` can be `undefined`
-     * if `onMutate` throws.
+     * The merged context from `onBeforeMutate` and the global context. Properties returned by `onBeforeMutate` can be `undefined`
+     * if `onBeforeMutate` throws.
      */
     context:
       | (Partial<Record<keyof UseMutationGlobalContext, never>> &
           Partial<Record<keyof _ReduceContext<NoInfer<TContext>>, never>>)
       // this is the success case where everything is defined
-      // undefined if global onMutate throws
+      // undefined if global onBeforeMutate throws
       | (UseMutationGlobalContext & _ReduceContext<NoInfer<TContext>>),
   ) => unknown
 }

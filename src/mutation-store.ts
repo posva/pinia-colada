@@ -367,7 +367,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     let currentData: TResult | undefined
     let currentError: TError | undefined
     type OnMutateContext = Parameters<
-      Required<UseMutationOptions<TResult, TVars, TError, TContext>>['onMutate']
+      Required<UseMutationOptions<TResult, TVars, TError, TContext>>['onBeforeMutate']
     >['1']
     type OnSuccessContext = Parameters<
       Required<UseMutationOptions<TResult, TVars, TError, TContext>>['onSuccess']
@@ -378,24 +378,42 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
 
     let context: OnMutateContext | OnErrorContext | OnSuccessContext = {}
 
+    if (process.env.NODE_ENV !== 'production') {
+      if (globalOptions.onMutate || options.onMutate) {
+        console.warn(
+          `[@pinia/colada] The "onMutate" option is deprecated. Use "onBeforeMutate" instead. It will be removed on the next version.`,
+        )
+        if (
+          (globalOptions.onMutate && globalOptions.onBeforeMutate)
+          || (options.onMutate && options.onBeforeMutate)
+        ) {
+          console.warn(
+            `[@pinia/colada] You are using both "onMutate" and "onBeforeMutate" but only "onMutate" is ran. Use only "onBeforeMutate" instead.`,
+          )
+        }
+      }
+    }
+
     try {
-      const globalOnMutateContext = globalOptions.onMutate?.(vars)
+      const globalOnMutateContext
+        = globalOptions.onMutate?.(vars) || globalOptions.onBeforeMutate?.(vars)
 
       context
         = (globalOnMutateContext instanceof Promise
           ? await globalOnMutateContext
           : globalOnMutateContext) || {}
 
-      const onMutateContext = (await options.onMutate?.(
-        vars,
-        context,
-        // NOTE: the cast makes it easier to write without extra code. It's safe because { ...null, ...undefined } works and TContext must be a Record<any, any>
-      )) as _ReduceContext<TContext>
+      const onBeforeMutateContext = (await (options.onMutate?.(vars, context)
+        || options.onBeforeMutate?.(
+          vars,
+          context,
+          // NOTE: the cast makes it easier to write without extra code. It's safe because { ...null, ...undefined } works and TContext must be a Record<any, any>
+        ))) as _ReduceContext<TContext>
 
       // we set the context here so it can be used by other hooks
       context = {
         ...context,
-        ...onMutateContext,
+        ...onBeforeMutateContext,
         // NOTE: needed for onSuccess cast
       } satisfies OnSuccessContext
 
