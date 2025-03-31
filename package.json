@@ -2,7 +2,7 @@
   "name": "@pinia/colada",
   "type": "module",
   "version": "0.14.2",
-  "packageManager": "pnpm@10.6.5",
+  "packageManager": "pnpm@10.7.0",
   "description": "The smart data fetching layer for Pinia",
   "publishConfig": {
     "access": "public"
@@ -126,7 +126,7 @@
     "@shikijs/vitepress-twoslash": "^3.2.1",
     "@size-limit/esbuild-why": "^11.2.0",
     "@size-limit/preset-small-lib": "^11.2.0",
-    "@types/node": "^22.13.13",
+    "@types/node": "^22.13.14",
     "@vitejs/plugin-vue": "^5.2.3",
     "@vitest/coverage-v8": "^3.0.9",
     "@vitest/ui": "^3.0.9",
