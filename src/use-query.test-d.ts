@@ -57,6 +57,19 @@ describe('useQuery type inference', () => {
     )
   })
 
+  it('works with a tuple in the key', () => {
+    const key = ['todos', 2] as const
+    useQuery({
+      query: async () => 42,
+      key,
+    })
+
+    useQuery({
+      query: async () => 42,
+      key: () => key,
+    })
+  })
+
   it('can use a function as a key', () => {
     useQuery({
       query: async () => 42,
