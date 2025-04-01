@@ -772,4 +772,32 @@ describe('defineQuery', () => {
       })
     })
   })
+
+  describe('hmr', () => {
+    // TODO: it would be nice to have this but not needed: it's better to fetch
+    // an extra time during dev than not
+    it.todo('does not refetch if the component changes', async () => {
+      const query = vi.fn(async () => 42)
+      const useMyQuery = defineQuery({ key: ['id'], query, staleTime: 10000 })
+      const component = defineComponent({
+        render: () => null,
+        setup() {
+          useMyQuery()
+          return {}
+        },
+        // to simulate HMR, the HMR id is stable across remounts
+        __hmrId: 'some-id',
+      })
+
+      const pinia = createPinia()
+      const w1 = mount(component, { global: { plugins: [pinia, PiniaColada] } })
+      // simulate the wait of things to settle but do not let staleTime pass
+      await flushPromises()
+
+      mount(component, { global: { plugins: [pinia, PiniaColada] } })
+      w1.unmount()
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+    })
+  })
 })

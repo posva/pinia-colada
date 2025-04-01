@@ -124,6 +124,19 @@ export interface UseQueryEntry<
    * Extensions to the query entry added by plugins.
    */
   ext: UseQueryEntryExtensions<TResult, TError, TDataInitial>
+
+  /**
+   * Internal property to store the HMR ids of the components that are using
+   * this query and force refetching.
+   *
+   * @internal
+   */
+  __hmr?: {
+    /**
+     * Reference count of the components using this query.
+     */
+    ids: Map<string, number>
+  }
 }
 
 /**
@@ -401,6 +414,18 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     // avoid clearing an existing timeout
     if (!effect || !entry.deps.has(effect)) return
 
+    // clear any HMR to avoid letting the set grow
+    if (process.env.NODE_ENV !== 'production') {
+      if ('type' in effect && '__hmrId' in effect.type && entry.__hmr) {
+        const count = (entry.__hmr.ids.get(effect.type.__hmrId) ?? 1) - 1
+        if (count > 0) {
+          entry.__hmr.ids.set(effect.type.__hmrId, count)
+        } else {
+          entry.__hmr.ids.delete(effect.type.__hmrId)
+        }
+      }
+    }
+
     entry.deps.delete(effect)
     triggerCache()
 
@@ -514,6 +539,27 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           )
         }
         triggerCache()
+      }
+
+      // during HMR, staleTime could be long and if we change the query function, the query won't trigger a refetch
+      // so we need to detect and trigger just in case
+      if (process.env.NODE_ENV !== 'production') {
+        const currentInstance = getCurrentInstance()
+        if (currentInstance) {
+          entry.__hmr ??= { ids: new Map() }
+
+          const id
+            // @ts-expect-error: internal property
+            = currentInstance.type?.__hmrId
+
+          if (id) {
+            if (entry.__hmr.ids.has(id)) {
+              invalidate(entry)
+            }
+            const count = (entry.__hmr.ids.get(id) ?? 0) + 1
+            entry.__hmr.ids.set(id, count)
+          }
+        }
       }
 
       // we set it every time to ensure we are using up to date key getters and others options

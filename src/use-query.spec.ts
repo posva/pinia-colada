@@ -1410,6 +1410,31 @@ describe('useQuery', () => {
     })
   })
 
+  describe('hmr', () => {
+    it('always refetches on hmr', async () => {
+      const query = vi.fn(async () => 42)
+      const component = defineComponent({
+        render: () => null,
+        setup() {
+          useQuery({ key: ['id'], query })
+          return {}
+        },
+        // to simulate HMR, the HMR id is stable across remounts
+        __hmrId: 'some-id',
+      })
+
+      const pinia = createPinia()
+      const w1 = mount(component, { global: { plugins: [pinia, PiniaColada] } })
+      // simulate the wait of things to settle but do not let staleTime pass
+      await flushPromises()
+
+      mount(component, { global: { plugins: [pinia, PiniaColada] } })
+      w1.unmount()
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(2)
+    })
+  })
+
   describe('warns', () => {
     it.todo(
       'warns if the key uses a reactive property that does not belong to the query',
