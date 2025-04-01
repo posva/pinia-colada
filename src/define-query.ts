@@ -102,10 +102,6 @@ export function defineQuery(optionsOrSetup: DefineQueryOptions | (() => unknown)
     if (currentScope) {
       entries.forEach((entry) => {
         queryCache.track(entry, currentScope)
-        if (process.env.NODE_ENV !== 'production') {
-          entry.__hmr ??= {}
-          entry.__hmr.skip = true
-        }
       })
       onScopeDispose(() => {
         // if all entries become inactive, we pause the scope

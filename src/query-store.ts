@@ -124,16 +124,6 @@ export interface UseQueryEntry<
    * Extensions to the query entry added by plugins.
    */
   ext: UseQueryEntryExtensions<TResult, TError, TDataInitial>
-
-  /**
-   * Component `__hmrId` to track wrong usage of `useQuery` and warn the user.
-   * @internal
-   */
-  __hmr?: {
-    id?: string
-    deps?: Set<EffectScope | ComponentInternalInstance>
-    skip?: boolean
-  }
 }
 
 /**
@@ -524,33 +514,6 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           )
         }
         triggerCache()
-      }
-
-      // warn against using the same key for different functions
-      // this only applies outside of HMR since during HMR, the `useQuery()` will be called
-      // when remounting the component and it's essential to update the options.
-      // in other scenarios, it's a mistake
-      if (process.env.NODE_ENV !== 'production') {
-        const currentInstance = getCurrentInstance()
-        if (currentInstance) {
-          entry.__hmr ??= {}
-
-          entry.__hmr.deps ??= new Set()
-          entry.__hmr.id
-            // @ts-expect-error: internal property
-            = currentInstance.type?.__hmrId
-            // @ts-expect-error: for Vue 2 support
-            ?? currentInstance.proxy?._uid
-          if (
-            entry.__hmr.id == null
-            && process.env.NODE_ENV !== 'test'
-            && typeof document !== 'undefined'
-          ) {
-            warnOnce(
-              `Found a nullish hmr id. This is probably a bug. Please report it to pinia-colada with a boiled down reproduction. Thank you!`,
-            )
-          }
-        }
       }
 
       // we set it every time to ensure we are using up to date key getters and others options

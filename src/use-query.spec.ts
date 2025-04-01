@@ -1512,23 +1512,5 @@ describe('useQuery', () => {
       await flushPromises()
       // No warnings!
     })
-
-    it('does not warn if the same key is used during HMR', async () => {
-      const component = defineComponent({
-        render: () => null,
-        setup() {
-          useQuery({ key: ['id'], query: async () => 42 })
-          return {}
-        },
-        // to simulate HMR
-        __hmrId: 'some-id',
-      })
-
-      const pinia = createPinia()
-      mount(component, { global: { plugins: [pinia, PiniaColada] } })
-      mount(component, { global: { plugins: [pinia, PiniaColada] } })
-      await flushPromises()
-      // No warnings!
-    })
   })
 })
