@@ -78,7 +78,7 @@ const queryCache = useQueryCache()
 
 const { mutate } = useMutation({
   mutation: (text: string) => createTodo(text),
-  onMutate: (text: string) => {
+  onBeforeMutate: (text: string) => {
     const previousTodos = queryCache.getQueryData(['todos'])
     queryCache.setQueryData(['todos'], [...(previousTodos || []), { text }])
     // return anything you want to reuse in other hooks

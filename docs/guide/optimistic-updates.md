@@ -17,7 +17,7 @@ const queryCache = useQueryCache()
 const { mutate } = useMutation({
   mutation: patchContact,
   // `contactInfo` type is inferred from the mutation function
-  onMutate(contactInfo) {
+  onBeforeMutate(contactInfo) {
     // get the current contact from the cache, we assume it exists
     const oldContact = queryCache.getQueryData<Contact>(['contact', contactInfo.id])!
     const newContact: Contact = {
@@ -37,7 +37,7 @@ const { mutate } = useMutation({
 
   // on both error and success
   onSettled(_data, _error, _vars, { newContact }) {
-    // `newContact` can be undefined if the `onMutate` hook fails
+    // `newContact` can be undefined if the `onBeforeMutate` hook fails
     if (newContact) {
       // invalidate the query to refetch the new data
       queryCache.invalidateQueries({ key: ['contact', newContact.id] })
@@ -75,7 +75,7 @@ import type { TodoItem } from './api/todos'
 const queryCache = useQueryCache()
 const { mutate } = useMutation({
   mutation: (text: string) => createTodo(text),
-  onMutate(text) {
+  onBeforeMutate(text) {
     // save the current todo list
     const oldTodoList = queryCache.getQueryData<TodoItem[]>(['todos'])
     // keep track of the new todo item
@@ -124,7 +124,7 @@ const { mutate } = useMutation({
     // update the todo list even if the user is submitting multiple mutations
     // successively
     const todoList = queryCache.getQueryData<TodoItem[]>(['todos']) || []
-    // find the todo we added in `onMutate()` and replace it with the one from the server
+    // find the todo we added in `onBeforeMutate()` and replace it with the one from the server
     const todoIndex = todoList.findIndex((t) => t.id === newTodoItem.id)
     if (todoIndex >= 0) {
       // Replace the whole array to trigger a reactivity update
