@@ -47,7 +47,7 @@ As plugins can add properties to the types, you need to augment the types to add
 
 ### Adding Options to Queries
 
-When adding options to queries, you can augment the `UseQueryOptions` and `UseQueryOptionsGlobal` interfaces. The first one gives is generic and exposes its types params for more precise type inference, the second one is global and doesn't expose the types params.
+When adding options to queries, you can augment the `UseQueryOptions` and `UseQueryOptionsGlobal` interfaces. The first one gives is generic and exposes its type params for more precise type inference, the second one is global and doesn't expose the type params.
 
 ```ts
 /**
@@ -93,7 +93,7 @@ watch(
 )
 ```
 
-If you need to use this very often, you might as well crate a plugin:
+If you need to use this very often, you might as well create a plugin:
 
 ```ts twoslash
 import type { PiniaColadaPlugin } from '@pinia/colada'
