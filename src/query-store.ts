@@ -241,7 +241,11 @@ export const QUERY_STORE_ID = '_pc_query'
  * A query entry that is defined with {@link defineQuery}.
  * @internal
  */
-type DefineQueryEntry = [entries: UseQueryEntry[], returnValue: unknown, effect: EffectScope]
+type DefineQueryEntry = [
+  lastEnsuredEntries: UseQueryEntry[],
+  returnValue: unknown,
+  effect: EffectScope,
+]
 
 /**
  * Composable to get the cache of the queries. As any other composable, it can be used inside the `setup` function of a

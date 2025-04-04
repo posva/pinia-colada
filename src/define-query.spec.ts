@@ -229,6 +229,55 @@ describe('defineQuery', () => {
       await flushPromises()
       expect(key).toHaveBeenCalledTimes(2)
     })
+
+    // https://github.com/posva/pinia-colada/issues/246
+    it('reactivates if the key changes to a cached data used in a nested component', async () => {
+      const useProfile = defineQuery(() => {
+        const id = ref(1)
+        const query = useQuery({
+          key: () => ['key', id.value],
+          query: async () => id.value,
+        })
+
+        return { id, ...query }
+      })
+
+      const NestedComponent = defineComponent({
+        setup() {
+          const { data } = useProfile()
+          return { data }
+        },
+        template: '<div>{{data}}</div>',
+      })
+
+      const wrapper = mount(
+        {
+          setup() {
+            return { ...useProfile() }
+          },
+          components: { NestedComponent },
+          template: `<div>{{ data }}=<NestedComponent v-if="id === 1" /></div>`,
+        },
+        {
+          global: {
+            plugins: [createPinia(), PiniaColada],
+          },
+        },
+      )
+      const { id } = useProfile()
+
+      await flushPromises()
+      expect(wrapper.text()).toBe('1=1')
+      id.value = 2
+      await flushPromises()
+      expect(wrapper.text()).toBe('2=')
+      id.value = 1
+      await flushPromises()
+      expect(wrapper.text()).toBe('1=1')
+      id.value = 2
+      await flushPromises()
+      expect(wrapper.text()).toBe('2=')
+    })
   })
 
   describe('refetchOnMount', () => {

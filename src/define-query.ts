@@ -73,18 +73,20 @@ export function defineQuery(optionsOrSetup: DefineQueryOptions | (() => unknown)
     = typeof optionsOrSetup === 'function' ? optionsOrSetup : () => useQuery(optionsOrSetup)
 
   let hasBeenEnsured: boolean | undefined
+  // allows pausing the scope when the defined query is no used anymore
+  let refCount = 0
   return () => {
     const queryCache = useQueryCache()
     // preserve any current effect to account for nested usage of these functions
     const previousEffect = currentDefineQueryEffect
     const currentScope = getCurrentInstance() || (currentDefineQueryEffect = getCurrentScope())
 
-    const [entries, ret, scope] = queryCache.ensureDefinedQuery(setupFn)
+    const [ensuredEntries, ret, scope] = queryCache.ensureDefinedQuery(setupFn)
 
     // subsequent calls to the composable returned by useQuery will not trigger the `useQuery()`,
     // this ensures the refetchOnMount option is respected
     if (hasBeenEnsured) {
-      entries.forEach((entry) => {
+      ensuredEntries.forEach((entry) => {
         // TODO: should happen in useQuery and defineQuery
         if (entry.options?.refetchOnMount && toValue(entry.options.enabled)) {
           if (toValue(entry.options.refetchOnMount) === 'always') {
@@ -99,20 +101,23 @@ export function defineQuery(optionsOrSetup: DefineQueryOptions | (() => unknown)
 
     // NOTE: most of the time this should be set, so maybe we should show a dev warning
     // if it's not set instead
+    //
+    // Because `useQuery()` might already be called before and we might be reusing an existing query
+    // we need to manually track and untrack. When untracking, we cannot use the ensuredEntries because
+    // there might be another component using the defineQuery, so we simply count how many are using it
     if (currentScope) {
-      entries.forEach((entry) => {
+      refCount++
+      ensuredEntries.forEach((entry) => {
         queryCache.track(entry, currentScope)
       })
       onScopeDispose(() => {
+        ensuredEntries.forEach((entry) => {
+          queryCache.untrack(entry, currentScope)
+        })
         // if all entries become inactive, we pause the scope
         // to avoid triggering the effects within useQuery. This immitates the behavior
         // of a component that unmounts
-        if (
-          entries.every((entry) => {
-            queryCache.untrack(entry, currentScope)
-            return !entry.active
-          })
-        ) {
+        if (--refCount < 1) {
           scope.pause()
         }
       })
