@@ -592,7 +592,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   )
 
   /**
-   * Invalidates and cancels a query entry. It effectively sets the `when` property to `0` and {@link cancel | cancels} the pending request.
+   * Invalidates and cancels a query entry. It effectively sets the `when`
+   * property to `0` and {@link cancel | cancels} the pending request.
    *
    * @param entry - the entry of the query to invalidate
    *
@@ -606,8 +607,10 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   })
 
   /**
-   * Ensures the current data is fresh. If the data is stale or if the status is 'error', calls {@link fetch}, if not
-   * return the current data. Can only be called if the entry has been initialized with `useQuery()` and has options.
+   * Ensures the current data is fresh. If the data is stale or if the status
+   * is 'error', calls {@link fetch}, if not return the current data. Can only
+   * be called if the entry has been initialized with `useQuery()` and has
+   * options.
    *
    * @param entry - the entry of the query to refresh
    * @param options - the options to use for the fetch
