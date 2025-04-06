@@ -2,3 +2,5 @@ packages:
   - playground
   - plugins/*
   - nuxt
+  - devtools
+  - devtools-panel

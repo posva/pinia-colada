@@ -1,0 +1,54 @@
+{
+  "name": "@pinia/colada-devtools-panel",
+  "type": "module",
+  "version": "0.0.0",
+  "packageManager": "pnpm@10.7.0",
+  "description": "Pinia Colada Devtools panel component shipped as a custom element",
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": {
+    "name": "Eduardo San Martin Morote",
+    "email": "posva13@gmail.com"
+  },
+  "license": "MIT",
+  "funding": "https://github.com/sponsors/posva",
+  "homepage": "https://github.com/posva/pinia-colada#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/posva/pinia-colada.git"
+  },
+  "bugs": {
+    "url": "https://github.com/posva/pinia-colada/issues"
+  },
+  "keywords": [
+    "pinia",
+    "plugin",
+    "data",
+    "fetching",
+    "query",
+    "mutation",
+    "cache",
+    "layer"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "module": "./dist/index.js",
+  "files": [
+    "LICENSE",
+    "README.md",
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "splitpanes": "^4.0.3"
+  },
+  "devDependencies": {
+    "vite-plugin-dts": "^4.5.3"
+  }
+}

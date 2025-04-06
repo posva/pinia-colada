@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onErrorCaptured, shallowRef } from 'vue'
+import { onErrorCaptured, onMounted, shallowRef } from 'vue'
+import { PiniaColadaDevtools } from '@pinia/colada-devtools'
 
 const error = shallowRef<Error | null>(null)
 onErrorCaptured((err) => {
@@ -56,4 +57,7 @@ onErrorCaptured((err) => {
       </template>
     </Suspense>
   </RouterView>
+
+  <PiniaColadaDevtools />
+  <hr />
 </template>

@@ -11,7 +11,15 @@ export default defineConfig({
   plugins: [
     //
     VueRouter(),
-    Vue(),
+    Vue({
+      template: {
+        compilerOptions: {
+          isCustomElement: (tag) => {
+            return tag.startsWith('pinia-colada-')
+          },
+        },
+      },
+    }),
     TailwindCSS(),
     VueDevTools(),
   ],
