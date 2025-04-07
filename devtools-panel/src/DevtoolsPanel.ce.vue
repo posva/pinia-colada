@@ -14,7 +14,7 @@ const n = ref(0)
     <Splitpanes class="bg-main">
       <Pane v-for="i in 3" :key="i">
         <div style="height: 300px; overflow-y: hidden; overflow-x: scroll">
-          <div class="bg-main" style="min-width: 150px; background-color:">
+          <div style="min-width: 150px; background-color:">
             {{ i }}
           </div>
         </div>
@@ -48,7 +48,7 @@ const n = ref(0)
 </template>
 
 <style>
-@import 'splitpanes/dist/splitpanes.css';
+@import '@posva/splitpanes/dist/splitpanes.css';
 
 .splitpanes__splitter {
   position: relative;
