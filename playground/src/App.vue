@@ -59,5 +59,5 @@ onErrorCaptured((err) => {
   </RouterView>
 
   <PiniaColadaDevtools />
-  <hr />
+  <hr>
 </template>

@@ -115,78 +115,76 @@ export function addDevtools(app: App, pinia: Pinia) {
       const QUERY_FILTER_RE = /\b(active|inactive|stale|fresh|exact|loading|idle)\b/gi
 
       api.on.getInspectorTree((payload) => {
-        if (payload.app !== app) return
+        if (payload.app !== app || payload.inspectorId !== QUERY_INSPECTOR_ID) return
 
-        if (payload.inspectorId === QUERY_INSPECTOR_ID) {
-          const filters = payload.filter.match(QUERY_FILTER_RE)
-          // strip the filters from the query
-          const filter = (
-            filters ? payload.filter.replace(QUERY_FILTER_RE, '') : payload.filter
-          ).trim()
+        const filters = payload.filter.match(QUERY_FILTER_RE)
+        // strip the filters from the query
+        const filter = (
+          filters ? payload.filter.replace(QUERY_FILTER_RE, '') : payload.filter
+        ).trim()
 
-          const active = filters?.includes('active')
-            ? true
-            : filters?.includes('inactive')
-              ? false
-              : undefined
-          const stale = filters?.includes('stale')
-            ? true
-            : filters?.includes('fresh')
-              ? false
-              : undefined
-          const asyncStatus = filters?.includes('loading')
-            ? 'loading'
-            : filters?.includes('idle')
-              ? 'idle'
-              : undefined
+        const active = filters?.includes('active')
+          ? true
+          : filters?.includes('inactive')
+            ? false
+            : undefined
+        const stale = filters?.includes('stale')
+          ? true
+          : filters?.includes('fresh')
+            ? false
+            : undefined
+        const asyncStatus = filters?.includes('loading')
+          ? 'loading'
+          : filters?.includes('idle')
+            ? 'idle'
+            : undefined
 
-          payload.rootNodes = queryCache
-            .getEntries({
-              active,
-              stale,
-              exact: filters?.includes('exact'),
-              predicate(entry) {
-                // filter out by asyncStatus
-                if (asyncStatus && entry.asyncStatus.value !== asyncStatus) return false
-                if (filter) {
-                  // TODO: fuzzy match between entry.key.join('/') and the filter
-                  return entry.key.some((key) => String(key).includes(filter))
-                }
-                return true
-              },
-            })
-            .map((entry) => {
-              const id = entry.key.join(ID_SEPARATOR)
-              const label = entry.key.join('/')
-              const asyncStatus = entry.asyncStatus.value
-              const state = entry.state.value
-
-              const tags: InspectorNodeTag[] = [
-                ASYNC_STATUS_TAG[asyncStatus],
-                STATUS_TAG[state.status],
-                // useful for testing colors
-                // ASYNC_STATUS_TAG.idle,
-                // ASYNC_STATUS_TAG.fetching,
-                // STATUS_TAG.pending,
-                // STATUS_TAG.success,
-                // STATUS_TAG.error,
-              ]
-              if (!entry.active) {
-                tags.push({
-                  label: 'inactive',
-                  textColor: 0,
-                  backgroundColor: 0xAAAAAA,
-                  tooltip: 'The query is not being used anywhere',
-                })
+        payload.rootNodes = queryCache
+          .getEntries({
+            active,
+            stale,
+            exact: filters?.includes('exact'),
+            predicate(entry) {
+              // filter out by asyncStatus
+              if (asyncStatus && entry.asyncStatus.value !== asyncStatus) return false
+              if (filter) {
+                // TODO: fuzzy match between entry.key.join('/') and the filter
+                return entry.key.some((key) => String(key).includes(filter))
               }
-              return {
-                id,
-                label,
-                name: label,
-                tags,
-              }
-            })
-        }
+              return true
+            },
+          })
+          .map((entry) => {
+            const id = entry.key.join(ID_SEPARATOR)
+            const label = entry.key.join('/')
+            const asyncStatus = entry.asyncStatus.value
+            const state = entry.state.value
+
+            const tags: InspectorNodeTag[] = [
+              ASYNC_STATUS_TAG[asyncStatus],
+              STATUS_TAG[state.status],
+              // useful for testing colors
+              // ASYNC_STATUS_TAG.idle,
+              // ASYNC_STATUS_TAG.fetching,
+              // STATUS_TAG.pending,
+              // STATUS_TAG.success,
+              // STATUS_TAG.error,
+            ]
+            if (!entry.active) {
+              tags.push({
+                label: 'inactive',
+                textColor: 0,
+                backgroundColor: 0xAAAAAA,
+                tooltip: 'The query is not being used anywhere',
+              })
+            }
+            return {
+              id,
+              label,
+              name: label,
+              tags,
+            }
+          })
       })
 
       queryCache.$onAction(({ name, after, onError }) => {
@@ -219,11 +217,15 @@ export function addDevtools(app: App, pinia: Pinia) {
   //   title: 'Pinia Colada',
   //   icon: 'https://pinia-colada.esm.dev/logo.svg',
   //   view: {
-  //     type: 'sfc',
-  //     sfc: DevtoolsPanel,
+  //     type: 'iframe',
+  //     src: '//localhost:',
+  //     persistent: true,
   //     // type: 'vnode',
+  //     // sfc: DevtoolsPanel,
+  //     // type: 'vnode',
+  //     // vnode: h(DevtoolsPane),
   //     // vnode: h('p', ['hello world']),
-  //     // vnode: createVNode(DevtoolsPanel),
+  //     // vnode: createVNode(DevtoolsPane),
   //   },
   //   category: 'modules',
   // })

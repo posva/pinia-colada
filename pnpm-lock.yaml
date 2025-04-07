@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@pinia/colada-devtools':
-        specifier: workspace:^*
-        version: link:devtools
       '@vue/devtools-api':
         specifier: ^7.7.2
         version: 7.7.2
@@ -130,7 +127,7 @@ importers:
 
   devtools-panel:
     dependencies:
-      splitpanes:
+      '@posva/splitpanes':
         specifier: ^4.0.3
         version: 4.0.3(vue@3.5.13(typescript@5.8.2))
     devDependencies:
@@ -226,9 +223,6 @@ importers:
       '@pinia/colada-devtools':
         specifier: workspace:^*
         version: link:../devtools
-      '@pinia/colada-devtools-panel':
-        specifier: workspace:^*
-        version: link:../devtools-panel
       '@tailwindcss/vite':
         specifier: ^4.0.17
         version: 4.0.17(vite@6.2.3(@types/node@22.13.14)(jiti@2.4.2)(lightningcss@1.29.2)(terser@5.39.0)(yaml@2.7.0))
@@ -1595,6 +1589,11 @@ packages:
   '@posva/prompts@2.4.4':
     resolution: {integrity: sha512-8aPwklhbSV2VN/NQMBNFkuo8+hlJVdcFRXp4NCIfdcahh3qNEcaSoD8qXjru0OlN1sONJ7le7p6+YUbALaG6Mg==}
     engines: {node: '>= 14'}
+
+  '@posva/splitpanes@4.0.3':
+    resolution: {integrity: sha512-y/Tysck4w4DYWbrJ3tNqOpGnqtLvA6m1p8lbNwhUtFryk4ItNjPfQOop4X6vC3JiT69oUwsqKjFTVlQeTx+XJQ==}
+    peerDependencies:
+      vue: ^3.2.0
 
   '@redocly/ajv@8.11.2':
     resolution: {integrity: sha512-io1JpnwtIcvojV7QKDUSIuMN/ikdOUd1ReEnUnMKGfDVridQZ31J0MmIuqwuRjWDZfmvr+Q0MqCcfHM2gTivOg==}
@@ -5821,11 +5820,6 @@ packages:
     resolution: {integrity: sha512-UcjcJOWknrNkF6PLX83qcHM6KHgVKNkV62Y8a5uYDVv9ydGQVwAHMKqHdJje1VTWpljG0WYpCDhrCdAOYH4TWg==}
     engines: {node: '>= 10.x'}
 
-  splitpanes@4.0.3:
-    resolution: {integrity: sha512-S/f1CoH2JroOib7kzQtTQNtQCa7VzNQ2qKOO5HNj/5EVVcNkfz1eX/sH+X3XKdBdDLihEKDekVGwrLADd2oirA==}
-    peerDependencies:
-      vue: ^3.2.0
-
   sprintf-js@1.0.3:
     resolution: {integrity: sha512-D9cPgkvLlV3t3IzL0D0YLvGA9Ahk4PcvVwUbN0dSGr1aP0Nrt4AEnTUbuGvquEC0mA64Gqt1fzirlRs5ibXx8g==}
 
@@ -8110,6 +8104,10 @@ snapshots:
     dependencies:
       kleur: 4.1.5
       sisteransi: 1.0.5
+
+  '@posva/splitpanes@4.0.3(vue@3.5.13(typescript@5.8.2))':
+    dependencies:
+      vue: 3.5.13(typescript@5.8.2)
 
   '@redocly/ajv@8.11.2':
     dependencies:
@@ -12995,10 +12993,6 @@ snapshots:
   speakingurl@14.0.1: {}
 
   split2@4.2.0: {}
-
-  splitpanes@4.0.3(vue@3.5.13(typescript@5.8.2)):
-    dependencies:
-      vue: 3.5.13(typescript@5.8.2)
 
   sprintf-js@1.0.3: {}
 

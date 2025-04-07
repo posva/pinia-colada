@@ -46,7 +46,7 @@
     "build": "vite build"
   },
   "dependencies": {
-    "splitpanes": "^4.0.3"
+    "@posva/splitpanes": "^4.0.3"
   },
   "devDependencies": {
     "vite-plugin-dts": "^4.5.3"
