@@ -7,11 +7,3 @@ export const DevtoolsPanel = defineCustomElement(DevtoolsPanelCE, {
   configureApp,
   shadowRoot: true,
 })
-
-export {
-  createQueryEntryPayload,
-  type UseQueryEntryPayload,
-  type UseQueryEntryPayloadDep,
-  type UseQueryEntryPayloadDepComponent,
-  type UseQueryEntryPayloadDepEffect,
-} from './query-serialized'

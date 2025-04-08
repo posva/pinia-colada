@@ -9,26 +9,21 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 export default defineConfig({
   resolve: {
     alias: {
-      '@pinia/colada-devtools/shared': resolve(__dirname, './src/shared/index.ts'),
-      '@pinia/colada-devtools/panel': resolve(__dirname, './src/panel/index.ts'),
+      // '@pinia/colada-devtools/shared': resolve(__dirname, './src/shared/index.ts'),
     },
   },
+
   build: {
     sourcemap: true,
+    outDir: resolve(__dirname, './dist-shared'),
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
-      name: 'PiniaColadaDevtools',
+      entry: resolve(__dirname, './src/shared/index.ts'),
+      name: 'PiniaColadaDevtools_Shared',
       formats: ['es'],
       fileName: 'index',
     },
     rollupOptions: {
-      external: [
-        'vue',
-        '@pinia/colada',
-        'pinia',
-        '@pinia/colada-devtools/shared',
-        '@pinia/colada-devtools/panel',
-      ],
+      external: ['vue', '@pinia/colada', 'pinia'],
     },
   },
 

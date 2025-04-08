@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Splitpanes, Pane } from '@posva/splitpanes'
-import { onUnmounted, ref, watch } from 'vue'
-import type { UseQueryEntryPayload } from './query-serialized';
+import { ref, watch } from 'vue'
+import type { UseQueryEntryPayload } from '../shared/query-serialized'
 
 const { ports, isPip } = defineProps<{
   ports: [port1: MessagePort, port2: MessagePort]
@@ -64,7 +64,9 @@ function sendMessage(msg: string) {
   <div>
     Hello!
     <button @click="sendMessage(`n: ${n}`)">Increment {{ n }}</button>
-    <button class="underline font-bold" @click="emit('togglePip')">{{ isPip ? 'Close Pip' : 'Open PiP' }}</button>
+    <button class="underline font-bold" @click="emit('togglePip')">
+      {{ isPip ? 'Close Pip' : 'Open PiP' }}
+    </button>
 
     <pre>{{ queries }}</pre>
 

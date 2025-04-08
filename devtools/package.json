@@ -33,24 +33,31 @@
   ],
   "sideEffects": false,
   "exports": {
-    ".": "./dist/index.js"
+    ".": "./dist/index.js",
+    "./panel": "./dist-panel/index.js",
+    "./shared": "./dist-shared/index.js"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "files": [
     "LICENSE",
     "README.md",
-    "dist"
+    "dist",
+    "dist-panel",
+    "dist-shared"
   ],
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
-  },
-  "dependencies": {
-    "@pinia/colada-devtools-panel": "workspace:^"
+    "build:main": "vite build --config vite.config.ts",
+    "build:shared": "vite build --config vite.config.shared.ts",
+    "build:panel": "vite build --config vite.config.panel.ts",
+    "build": "pnpm run --stream '/^build:/'"
   },
   "devDependencies": {
     "@pinia/colada": "workspace:^*",
+    "@posva/splitpanes": "^4.0.4",
+    "@tailwindcss/vite": "^4.1.3",
+    "tailwindcss": "^4.1.3",
     "vite-plugin-dts": "^4.5.3"
   }
 }

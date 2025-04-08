@@ -4,7 +4,8 @@
     "baseUrl": ".",
     "rootDir": "..",
     "paths": {
-      // "@pinia/colada": ["./src/index.ts"]
+      "@pinia/colada-devtools/panel": ["./src/panel/index.ts"],
+      "@pinia/colada-devtools/shared": ["./src/shared/index.ts"]
     }
   },
   "include": ["src/**/*"]

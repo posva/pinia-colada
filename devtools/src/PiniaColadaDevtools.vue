@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { inject, onBeforeUnmount, onMounted, shallowRef, useTemplateRef, watch } from 'vue'
 import { useQueryCache } from '@pinia/colada'
-import { createQueryEntryPayload } from '@pinia/colada-devtools-panel'
+import { createQueryEntryPayload, useEventListener } from '@pinia/colada-devtools/shared'
 
 console.log('Injected value', inject('test', 'NO'))
 
@@ -39,7 +39,7 @@ onMounted(async () => {
 
   // define the component once
   if (!customElements.get('pinia-colada-devtools-panel')) {
-    const { DevtoolsPanel } = await import('@pinia/colada-devtools-panel')
+    const { DevtoolsPanel } = await import('@pinia/colada-devtools/panel')
     customElements.define('pinia-colada-devtools-panel', DevtoolsPanel)
   }
 })
@@ -74,12 +74,12 @@ watch(pipWindow, () => {
   mc.value = newMc
 })
 
+useEventListener(window, 'unload', () => {
+  pipWindow.value?.close()
+}, { passive: true })
 onBeforeUnmount(() => {
-  if (pipWindow.value) {
-    pipWindow.value.close()
-  }
+  pipWindow.value?.close()
 })
-// TODO: on page leave close popup
 
 function closePiPWindow() {
   pipWindow.value?.close()

@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import Vue from '@vitejs/plugin-vue'
 import Dts from 'vite-plugin-dts'
+import TailwindCSS from '@tailwindcss/vite'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -10,25 +11,20 @@ export default defineConfig({
   resolve: {
     alias: {
       '@pinia/colada-devtools/shared': resolve(__dirname, './src/shared/index.ts'),
-      '@pinia/colada-devtools/panel': resolve(__dirname, './src/panel/index.ts'),
     },
   },
+
   build: {
     sourcemap: true,
+    outDir: resolve(__dirname, './dist-panel'),
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
-      name: 'PiniaColadaDevtools',
+      entry: resolve(__dirname, './src/panel/index.ts'),
+      name: 'PiniaColadaDevtools_Panel',
       formats: ['es'],
       fileName: 'index',
     },
     rollupOptions: {
-      external: [
-        'vue',
-        '@pinia/colada',
-        'pinia',
-        '@pinia/colada-devtools/shared',
-        '@pinia/colada-devtools/panel',
-      ],
+      external: ['@pinia/colada-devtools/shared'],
     },
   },
 
@@ -44,5 +40,6 @@ export default defineConfig({
       },
     }),
     Dts({ rollupTypes: true }),
+    TailwindCSS(),
   ],
 })
