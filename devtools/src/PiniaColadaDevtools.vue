@@ -170,7 +170,9 @@ function togglePiPWindow() {
 
 <template>
   <template v-if="mc">
-    <button @click="sendMessageTest()">Send message</button>
+    <button @click="sendMessageTest()">
+      Send message
+    </button>
     <Teleport :to="pipWindow ? pipWindow.document.body : 'body'">
       <pinia-colada-devtools-panel
         ref="devtools"

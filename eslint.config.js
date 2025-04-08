@@ -7,6 +7,9 @@ export default antfu(
       // line split
       '**/*.ts.timestamp*',
       'nuxt',
+      'dist',
+      'devtools/dist',
+      'devtools/dist-*',
     ],
     rules: {
       'symbol-description': 'off',
@@ -73,6 +76,19 @@ export default antfu(
     rules: {
       'yaml/plain-scalar': 'off',
       'yaml/flow-mapping-curly-spacing': 'off',
+    },
+  },
+
+  {
+    files: ['devtools/**/*'],
+    rules: {
+      'vue/attribute-hyphenation': [
+        'error',
+        'always',
+        {
+          ignoreTags: ['pinia-colada-devtools-panel'],
+        },
+      ],
     },
   },
 )

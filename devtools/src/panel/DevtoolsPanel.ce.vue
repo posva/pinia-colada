@@ -63,7 +63,9 @@ function sendMessage(msg: string) {
 <template>
   <div>
     Hello!
-    <button @click="sendMessage(`n: ${n}`)">Increment {{ n }}</button>
+    <button @click="sendMessage(`n: ${n}`)">
+      Increment {{ n }}
+    </button>
     <button class="underline font-bold" @click="emit('togglePip')">
       {{ isPip ? 'Close Pip' : 'Open PiP' }}
     </button>
