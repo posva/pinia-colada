@@ -47,9 +47,10 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@pinia/colada-devtools-panel": "workspace:^*"
+    "@pinia/colada-devtools-panel": "workspace:^"
   },
   "devDependencies": {
+    "@pinia/colada": "workspace:^*",
     "vite-plugin-dts": "^4.5.3"
   }
 }

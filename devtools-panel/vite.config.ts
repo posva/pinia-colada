@@ -3,12 +3,14 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import Vue from '@vitejs/plugin-vue'
 import Dts from 'vite-plugin-dts'
+import TailwindCSS from '@tailwindcss/vite'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   plugins: [
     //
+    TailwindCSS(),
     Vue(),
     Dts({ rollupTypes: true }),
   ],

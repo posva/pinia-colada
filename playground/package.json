@@ -29,7 +29,7 @@
     "water.css": "^2.1.1"
   },
   "devDependencies": {
-    "@pinia/colada-devtools": "workspace:^*",
+    "@pinia/colada-devtools": "workspace:^",
     "@tailwindcss/vite": "^4.1.3",
     "@tsconfig/node18": "^18.2.4",
     "@types/node": "^22.14.0",
