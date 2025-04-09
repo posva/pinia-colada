@@ -27,10 +27,6 @@ export default defineConfig({
         find: /^@pinia\/colada-devtools\/panel\/index\.css$/,
         replacement: resolve(__dirname, './src/panel/styles.css'),
       },
-      // '@pinia/colada-devtools/panel/index.css': resolve(__dirname, './src/panel/styles.css'),
-      // '^@pinia/colada-devtools/shared$': resolve(__dirname, './src/shared/index.ts'),
-      // '^@pinia/colada-devtools/panel$': resolve(__dirname, './src/panel/index.ts'),
-      // '^@pinia/colada-devtools$': resolve(__dirname, './src/index.ts'),
     ],
   },
 
