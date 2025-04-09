@@ -75,7 +75,7 @@
     "test:types": "tsc --build ./tsconfig.json",
     "test:cov": "vitest run --coverage",
     "build": "tsup",
-    "build:plugins": "pnpm run --stream --parallel --filter './plugins/*' --filter './nuxt' build",
+    "build:plugins": "pnpm run --stream --parallel --filter './plugins/*' --filter './nuxt' --filter './devtools' build",
     "size": "size-limit",
     "codemods:test": "ast-grep test",
     "prepare": "simple-git-hooks"
