@@ -3,6 +3,8 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import Vue from '@vitejs/plugin-vue'
 import Dts from 'vite-plugin-dts'
+import UiPro from '@nuxt/ui-pro/vite'
+import VueRouter from 'unplugin-vue-router/vite'
 import TailwindCSS from '@tailwindcss/vite'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -31,7 +33,13 @@ export default defineConfig({
   },
 
   plugins: [
-    //
+    VueRouter({
+      routesFolder: [
+        {
+          src: resolve(__dirname, './src/panel/pages'),
+        },
+      ],
+    }),
     Vue({
       template: {
         compilerOptions: {
@@ -41,7 +49,15 @@ export default defineConfig({
         },
       },
     }),
+    UiPro({
+      ui: {
+        colors: {
+          primary: 'green',
+          neutral: 'slate',
+        },
+      },
+    }),
     Dts({ rollupTypes: true }),
-    TailwindCSS(),
+    // TailwindCSS(),
   ],
 })

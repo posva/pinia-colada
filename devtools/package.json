@@ -54,10 +54,13 @@
     "build": "pnpm run --stream '/^build:/'"
   },
   "devDependencies": {
+    "@nuxt/ui-pro": "^3.0.2",
     "@pinia/colada": "workspace:^*",
     "@posva/splitpanes": "^4.0.4",
     "@tailwindcss/vite": "^4.1.3",
     "tailwindcss": "^4.1.3",
-    "vite-plugin-dts": "^4.5.3"
+    "unplugin-vue-router": "^0.12.0",
+    "vite-plugin-dts": "^4.5.3",
+    "vue-router": "^4.5.0"
   }
 }

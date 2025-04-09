@@ -1,7 +1,30 @@
 <script setup lang="ts">
-import PiniaColadaDevtools from '../PiniaColadaDevtools.vue'
+import { ref } from 'vue'
+// import { PiniaColadaDevtools } from '../'
+import { PiniaColadaDevtools } from '@pinia/colada-devtools'
+// import { TestHMR as PiniaColadaDevtools } from '@pinia/colada-devtools'
+
+if (import.meta.hot) {
+  import.meta.hot.accept(() => {
+    import.meta.hot?.invalidate()
+  })
+  // FIXME: HMR crashes the APP
+  // import.meta.hot.accept('../', () => {
+  //   import.meta.hot?.invalidate()
+  // })
+  // import.meta.hot.accept('@pinia/colada-devtools', () => {
+  //   import.meta.hot?.invalidate()
+  // })
+}
+
+const isActive = ref(true)
 </script>
 
 <template>
-  <PiniaColadaDevtools />
+  <main>
+    <h1>Hello</h1>
+
+    <label> <input type="checkbox" v-model="isActive" /> Show Devtools </label>
+  </main>
+  <PiniaColadaDevtools v-if="isActive" />
 </template>

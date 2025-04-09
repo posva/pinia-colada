@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Splitpanes, Pane } from '@posva/splitpanes'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { UseQueryEntryPayload } from '../shared/query-serialized'
+import { useColorMode } from '@vueuse/core'
 
 const { ports, isPip } = defineProps<{
   ports: [port1: MessagePort, port2: MessagePort]
@@ -58,63 +59,115 @@ function sendMessage(msg: string) {
     msg,
   })
 }
+
+const colorMode = useColorMode()
+const colorTheme = computed(() => {
+  return colorMode.value === 'light' ? 'light' : 'dark'
+})
 </script>
 
 <template>
-  <div>
-    Hello!
-    <button @click="sendMessage(`n: ${n}`)">Increment {{ n }}</button>
-    <button class="font-bold underline" @click="emit('togglePip')">
-      {{ isPip ? 'Close Pip' : 'Open PiP' }}
-    </button>
+  <main id="main" :class="colorTheme">
+    <UApp>
+      <UHeader>
+        <template #left>
+          <RouterLink to="/">
+            <span class="underline font-bold text-2xl">Home</span>
+          </RouterLink>
+        </template>
 
-    <pre>{{ queries }}</pre>
+        <template #right>
+          <UColorModeButton />
 
-    <aside class="bg-main fixed max-h-[80%] bottom-0 left-0 right-0 flex flex-col">
-      <div class="flex">
-        <h2>Pinia Colada Devtools</h2>
+          <UButton
+            to="https://github.com/nuxt-ui-pro/starter-vue"
+            target="_blank"
+            icon="simple-icons:github"
+            aria-label="GitHub"
+            color="neutral"
+            variant="ghost"
+          />
+        </template>
+      </UHeader>
 
-        <button>Queries</button>
-        <button>Mutations</button>
+      <UMain>
+        <RouterView />
+      </UMain>
 
-        <div class="flex-grow" />
+      <USeparator icon="simple-icons:vuedotjs" />
 
-        <div>
-          <div>Loading {{ 5 }}</div>
-        </div>
-      </div>
+      <UFooter>
+        <template #left>
+          <p class="text-sm text-(--ui-text-muted)">Copyright © {{ new Date().getFullYear() }}</p>
+        </template>
 
-      <div>
-        <input type="search" autocomplete="off" spellcheck="false" placeholder="Search by key" />
-
-        <div>
-          <button>Clear cache</button>
-        </div>
-      </div>
-
-      <Splitpanes :key="n" style="height: 600px">
-        <Pane min-size="20" class="flex flex-col">
-          <button v-for="entry in queries" class="border-b-1 border-white flex">
-            {{ entry.key }}
-          </button>
-        </Pane>
-        <Pane>
-          <Splitpanes horizontal>
-            <Pane v-for="i in 3" :key="i">
-              {{ i + 1 }}
-            </Pane>
-          </Splitpanes>
-        </Pane>
-        <Pane>
-          <div>5</div>
-        </Pane>
-      </Splitpanes>
-    </aside>
-  </div>
+        <template #right>
+          <UButton
+            to="https://github.com/nuxt-ui-pro/starter-vue"
+            target="_blank"
+            icon="simple-icons:github"
+            aria-label="GitHub"
+            color="neutral"
+            variant="ghost"
+          />
+        </template>
+      </UFooter>
+      <!-- Hello! -->
+      <!-- <UButton @click="sendMessage(`n: ${n}`)"> Increment {{ n }} </UButton> -->
+      <!-- <button class="font-bold underline" @click="emit('togglePip')"> -->
+      <!--   {{ isPip ? 'Close Pip' : 'Open PiP' }} -->
+      <!-- </button> -->
+      <!---->
+      <!-- <pre>{{ queries }}</pre> -->
+      <!---->
+      <!-- <RouterView /> -->
+      <!---->
+      <!-- <aside class="bg-main fixed max-h-[80%] bottom-0 left-0 right-0 flex flex-col"> -->
+      <!--   <div class="flex"> -->
+      <!--     <h2>Pinia Colada Devtools</h2> -->
+      <!---->
+      <!--     <button>Queries</button> -->
+      <!--     <button>Mutations</button> -->
+      <!---->
+      <!--     <div class="flex-grow" /> -->
+      <!---->
+      <!--     <div> -->
+      <!--       <div>Loading {{ 5 }}</div> -->
+      <!--     </div> -->
+      <!--   </div> -->
+      <!---->
+      <!--   <div> -->
+      <!--     <input type="search" autocomplete="off" spellcheck="false" placeholder="Search by key" /> -->
+      <!---->
+      <!--     <div> -->
+      <!--       <button>Clear cache</button> -->
+      <!--     </div> -->
+      <!--   </div> -->
+      <!---->
+      <!--   <Splitpanes :key="n" style="height: 600px"> -->
+      <!--     <Pane min-size="20" class="flex flex-col"> -->
+      <!--       <button v-for="entry in queries" class="border-b-1 border-white flex"> -->
+      <!--         {{ entry.key }} -->
+      <!--       </button> -->
+      <!--     </Pane> -->
+      <!--     <Pane> -->
+      <!--       <Splitpanes horizontal> -->
+      <!--         <Pane v-for="i in 3" :key="i"> -->
+      <!--           {{ i + 1 }} -->
+      <!--         </Pane> -->
+      <!--       </Splitpanes> -->
+      <!--     </Pane> -->
+      <!--     <Pane> -->
+      <!--       <div>5</div> -->
+      <!--     </Pane> -->
+      <!--   </Splitpanes> -->
+      <!-- </aside> -->
+    </UApp>
+  </main>
 </template>
 
 <style>
-@import '~~styles.css';
+@import '@pinia/colada-devtools/panel/index.css';
 @import '@posva/splitpanes/dist/splitpanes.css';
 
 .splitpanes__splitter {
@@ -162,18 +215,16 @@ function sendMessage(msg: string) {
 }
 </style>
 
-<style scoped>
-button {
-  background-color: #42b983;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-.bg-main {
-  background-color: rgb(18 18 18 / 1);
-  color: white;
-}
+<style>
+/* #main:where(.dark, .dark *) { */
+/*   color-scheme: dark; */
+/* } */
+/**/
+/* #main { */
+/*   background-color: var(--ui-bg); */
+/*   color: var(--ui-text); */
+/*   -webkit-font-smoothing: antialiased; */
+/*   -moz-osx-font-smoothing: grayscale; */
+/*   color-scheme: light; */
+/* } */
 </style>

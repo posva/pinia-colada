@@ -5,8 +5,9 @@
     "rootDir": "..",
     "paths": {
       "@pinia/colada-devtools/panel": ["./src/panel/index.ts"],
-      "@pinia/colada-devtools/shared": ["./src/shared/index.ts"]
+      "@pinia/colada-devtools/shared": ["./src/shared/index.ts"],
+      "@pinia/colada-devtools": ["./src/index.ts"]
     }
   },
-  "include": ["src/**/*"]
+  "include": ["./src/**/*", "./auto-imports.d.ts", "./components.d.ts", "./typed-router.d.ts"]
 }

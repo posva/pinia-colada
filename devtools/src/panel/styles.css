@@ -1,1 +1,15 @@
 @import 'tailwindcss';
+@import '@nuxt/ui-pro';
+
+@theme static {
+  --color-green-50: oklch(90.98% 0.04338 166.72);
+  --color-green-100: oklch(88.46% 0.05417 166.29);
+  --color-green-200: oklch(83.957% 0.07763 165.13);
+  --color-green-300: oklch(79.343% 0.09927 163.52);
+  --color-green-400: oklch(74.927% 0.11835 162.26);
+  --color-green-500: oklch(70.253% 0.13197 160.37);
+  --color-green-600: oklch(58.426% 0.10793 160.73);
+  --color-green-700: oklch(45.657% 0.08188 161.06);
+  --color-green-800: oklch(32.298% 0.05338 161.83);
+  --color-green-900: oklch(17.276% 0.02184 161.78);
+}

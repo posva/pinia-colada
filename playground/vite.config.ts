@@ -29,12 +29,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
-      // load the local version of tailwindcss within the devtools panel
-      '~~styles.css': resolve(__dirname, './src/style.css'),
       '@pinia/colada': resolve(__dirname, '../src/index.ts'),
-      '@pinia/colada-devtools/shared': resolve(__dirname, '../devtools/src/shared/index.ts'),
-      '@pinia/colada-devtools/panel': resolve(__dirname, '../devtools/src/panel/index.ts'),
-      '^@pinia/colada-devtools$': resolve(__dirname, '../devtools/src/index.ts'),
       '@pinia/colada-plugin-retry': resolve(__dirname, '../plugins/retry/src/index.ts'),
       '@pinia/colada-plugin-debug': resolve(__dirname, '../plugins/debug/src/index.ts'),
       '@pinia/colada-plugin-delay': resolve(__dirname, '../plugins/delay/src/index.ts'),
