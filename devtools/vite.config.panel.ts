@@ -3,7 +3,6 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import Vue from '@vitejs/plugin-vue'
 import Dts from 'vite-plugin-dts'
-import UiPro from '@nuxt/ui-pro/vite'
 import VueRouter from 'unplugin-vue-router/vite'
 import TailwindCSS from '@tailwindcss/vite'
 
@@ -11,11 +10,24 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   resolve: {
-    alias: {
-      '@pinia/colada-devtools/shared': resolve(__dirname, './src/shared/index.ts'),
-      // load the correct version during build
-      '~~styles.css': resolve(__dirname, './src/panel/styles.css'),
-    },
+    alias: [
+      {
+        find: /^@pinia\/colada-devtools$/,
+        replacement: resolve(__dirname, './src/index.ts'),
+      },
+      // {
+      //   find: /^@pinia\/colada-devtools\/panel$/,
+      //   replacement: resolve(__dirname, './src/panel/index.ts'),
+      // },
+      {
+        find: /^@pinia\/colada-devtools\/shared$/,
+        replacement: resolve(__dirname, './src/shared/index.ts'),
+      },
+      {
+        find: /^@pinia\/colada-devtools\/panel\/index\.css$/,
+        replacement: resolve(__dirname, './src/panel/styles.css'),
+      },
+    ],
   },
 
   build: {
@@ -49,15 +61,7 @@ export default defineConfig({
         },
       },
     }),
-    UiPro({
-      ui: {
-        colors: {
-          primary: 'green',
-          neutral: 'slate',
-        },
-      },
-    }),
     Dts({ rollupTypes: true }),
-    // TailwindCSS(),
+    TailwindCSS(),
   ],
 })

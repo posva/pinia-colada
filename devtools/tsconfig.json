@@ -9,5 +9,11 @@
       "@pinia/colada-devtools": ["./src/index.ts"]
     }
   },
-  "include": ["./src/**/*", "./auto-imports.d.ts", "./components.d.ts", "./typed-router.d.ts"]
+  "include": [
+    "./src/**/*",
+    "./auto-imports.d.ts",
+    "./components.d.ts",
+    "./typed-router.d.ts",
+    "./vite.config.*"
+  ]
 }

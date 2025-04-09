@@ -201,15 +201,16 @@ function togglePiPWindow() {
 <template>
   <template v-if="mc">
     <button @click="sendMessageTest()">Send message</button>
+    <!--
+      NOTE:we need to keep the pinia-colada-devtools-panel component as the root without wrappers so it is reused
+    -->
     <Teleport :to="pipWindow ? pipWindow.document.body : 'body'">
-      <aside>
-        <pinia-colada-devtools-panel
-          ref="devtools"
-          :isPip.prop="!!pipWindow"
-          :ports.prop="[mc.port1, mc.port2]"
-          @toggle-pip="togglePiPWindow()"
-        />
-      </aside>
+      <pinia-colada-devtools-panel
+        ref="devtools"
+        :isPip.prop="!!pipWindow"
+        :ports.prop="[mc.port1, mc.port2]"
+        @toggle-pip="togglePiPWindow()"
+      />
     </Teleport>
   </template>
 </template>

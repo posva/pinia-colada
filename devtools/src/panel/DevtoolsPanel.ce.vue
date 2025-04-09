@@ -67,102 +67,58 @@ const colorTheme = computed(() => {
 </script>
 
 <template>
+  <!-- TODO: <PiPContainer /> -->
   <main id="main" :class="colorTheme">
-    <UApp>
-      <UHeader>
-        <template #left>
-          <RouterLink to="/">
-            <span class="underline font-bold text-2xl">Home</span>
-          </RouterLink>
-        </template>
+    Hello!
+    <button @click="sendMessage(`n: ${n}`)">Increment {{ n }}</button>
+    <button class="font-bold underline" @click="emit('togglePip')">
+      {{ isPip ? 'Close Pip' : 'Open PiP' }}
+    </button>
 
-        <template #right>
-          <UColorModeButton />
+    <pre>{{ queries }}</pre>
 
-          <UButton
-            to="https://github.com/nuxt-ui-pro/starter-vue"
-            target="_blank"
-            icon="simple-icons:github"
-            aria-label="GitHub"
-            color="neutral"
-            variant="ghost"
-          />
-        </template>
-      </UHeader>
+    <RouterView />
 
-      <UMain>
-        <RouterView />
-      </UMain>
+    <aside class="bg-main fixed max-h-[80%] bottom-0 left-0 right-0 flex flex-col">
+      <div class="flex">
+        <h2>Pinia Colada Devtools</h2>
 
-      <USeparator icon="simple-icons:vuedotjs" />
+        <button>Queries</button>
+        <button>Mutations</button>
 
-      <UFooter>
-        <template #left>
-          <p class="text-sm text-(--ui-text-muted)">Copyright © {{ new Date().getFullYear() }}</p>
-        </template>
+        <div class="flex-grow" />
 
-        <template #right>
-          <UButton
-            to="https://github.com/nuxt-ui-pro/starter-vue"
-            target="_blank"
-            icon="simple-icons:github"
-            aria-label="GitHub"
-            color="neutral"
-            variant="ghost"
-          />
-        </template>
-      </UFooter>
-      <!-- Hello! -->
-      <!-- <UButton @click="sendMessage(`n: ${n}`)"> Increment {{ n }} </UButton> -->
-      <!-- <button class="font-bold underline" @click="emit('togglePip')"> -->
-      <!--   {{ isPip ? 'Close Pip' : 'Open PiP' }} -->
-      <!-- </button> -->
-      <!---->
-      <!-- <pre>{{ queries }}</pre> -->
-      <!---->
-      <!-- <RouterView /> -->
-      <!---->
-      <!-- <aside class="bg-main fixed max-h-[80%] bottom-0 left-0 right-0 flex flex-col"> -->
-      <!--   <div class="flex"> -->
-      <!--     <h2>Pinia Colada Devtools</h2> -->
-      <!---->
-      <!--     <button>Queries</button> -->
-      <!--     <button>Mutations</button> -->
-      <!---->
-      <!--     <div class="flex-grow" /> -->
-      <!---->
-      <!--     <div> -->
-      <!--       <div>Loading {{ 5 }}</div> -->
-      <!--     </div> -->
-      <!--   </div> -->
-      <!---->
-      <!--   <div> -->
-      <!--     <input type="search" autocomplete="off" spellcheck="false" placeholder="Search by key" /> -->
-      <!---->
-      <!--     <div> -->
-      <!--       <button>Clear cache</button> -->
-      <!--     </div> -->
-      <!--   </div> -->
-      <!---->
-      <!--   <Splitpanes :key="n" style="height: 600px"> -->
-      <!--     <Pane min-size="20" class="flex flex-col"> -->
-      <!--       <button v-for="entry in queries" class="border-b-1 border-white flex"> -->
-      <!--         {{ entry.key }} -->
-      <!--       </button> -->
-      <!--     </Pane> -->
-      <!--     <Pane> -->
-      <!--       <Splitpanes horizontal> -->
-      <!--         <Pane v-for="i in 3" :key="i"> -->
-      <!--           {{ i + 1 }} -->
-      <!--         </Pane> -->
-      <!--       </Splitpanes> -->
-      <!--     </Pane> -->
-      <!--     <Pane> -->
-      <!--       <div>5</div> -->
-      <!--     </Pane> -->
-      <!--   </Splitpanes> -->
-      <!-- </aside> -->
-    </UApp>
+        <div>
+          <div>Loading {{ 5 }}</div>
+        </div>
+      </div>
+
+      <div>
+        <input type="search" autocomplete="off" spellcheck="false" placeholder="Search by key" />
+
+        <div>
+          <button>Clear cache</button>
+        </div>
+      </div>
+
+      <Splitpanes :key="n" style="height: 600px">
+        <Pane min-size="20" class="flex flex-col">
+          <button v-for="entry in queries" class="border-b-1 border-white flex">
+            {{ entry.key }}
+          </button>
+        </Pane>
+        <Pane>
+          <Splitpanes horizontal>
+            <Pane v-for="i in 3" :key="i">
+              {{ i + 1 }}
+            </Pane>
+          </Splitpanes>
+        </Pane>
+        <Pane>
+          <div>5</div>
+        </Pane>
+      </Splitpanes>
+    </aside>
   </main>
 </template>
 

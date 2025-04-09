@@ -2,7 +2,6 @@
 import { ref } from 'vue'
 // import { PiniaColadaDevtools } from '../'
 import { PiniaColadaDevtools } from '@pinia/colada-devtools'
-// import { TestHMR as PiniaColadaDevtools } from '@pinia/colada-devtools'
 
 if (import.meta.hot) {
   import.meta.hot.accept(() => {
@@ -24,7 +23,7 @@ const isActive = ref(true)
   <main>
     <h1>Hello</h1>
 
-    <label> <input type="checkbox" v-model="isActive" /> Show Devtools </label>
+    <label> <input v-model="isActive" type="checkbox" /> Show Devtools </label>
   </main>
   <PiniaColadaDevtools v-if="isActive" />
 </template>
