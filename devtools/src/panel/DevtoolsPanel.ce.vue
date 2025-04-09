@@ -63,35 +63,58 @@ function sendMessage(msg: string) {
 <template>
   <div>
     Hello!
-    <button @click="sendMessage(`n: ${n}`)">
-      Increment {{ n }}
-    </button>
-    <button class="underline font-bold" @click="emit('togglePip')">
+    <button @click="sendMessage(`n: ${n}`)">Increment {{ n }}</button>
+    <button class="font-bold underline" @click="emit('togglePip')">
       {{ isPip ? 'Close Pip' : 'Open PiP' }}
     </button>
 
     <pre>{{ queries }}</pre>
 
-    <Splitpanes :key="n" class="bg-main" style="height: 600px">
-      <Pane min-size="20">
-        <div>1</div>
-      </Pane>
-      <Pane>
-        <Splitpanes horizontal>
-          <Pane v-for="i in 3" :key="i">
-            {{ i + 1 }}
-          </Pane>
-        </Splitpanes>
-      </Pane>
-      <Pane>
-        <div>5</div>
-      </Pane>
-    </Splitpanes>
+    <aside class="bg-main fixed max-h-[80%] bottom-0 left-0 right-0 flex flex-col">
+      <div class="flex">
+        <h2>Pinia Colada Devtools</h2>
+
+        <button>Queries</button>
+        <button>Mutations</button>
+
+        <div class="flex-grow" />
+
+        <div>
+          <div>Loading {{ 5 }}</div>
+        </div>
+      </div>
+
+      <div>
+        <input type="search" autocomplete="off" spellcheck="false" placeholder="Search by key" />
+
+        <div>
+          <button>Clear cache</button>
+        </div>
+      </div>
+
+      <Splitpanes :key="n" style="height: 600px">
+        <Pane min-size="20" class="flex flex-col">
+          <button v-for="entry in queries" class="border-b-1 border-white flex">
+            {{ entry.key }}
+          </button>
+        </Pane>
+        <Pane>
+          <Splitpanes horizontal>
+            <Pane v-for="i in 3" :key="i">
+              {{ i + 1 }}
+            </Pane>
+          </Splitpanes>
+        </Pane>
+        <Pane>
+          <div>5</div>
+        </Pane>
+      </Splitpanes>
+    </aside>
   </div>
 </template>
 
 <style>
-@import './styles.css';
+@import '~~styles.css';
 @import '@posva/splitpanes/dist/splitpanes.css';
 
 .splitpanes__splitter {

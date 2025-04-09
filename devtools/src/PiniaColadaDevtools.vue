@@ -18,6 +18,31 @@ watch(
   },
 )
 
+queryCache.$onAction(({ name, after, onError }) => {
+  if (
+    name === 'fetch' ||
+    name === 'track' ||
+    name === 'untrack' ||
+    name === 'remove' ||
+    name === 'invalidate' ||
+    name === 'cancel'
+  ) {
+    // TODO: throttle
+    after(() => {
+      mc.value?.port1.postMessage({
+        id: 'caches:fetch',
+        caches: queryCache.getEntries({}).map(createQueryEntryPayload),
+      })
+    })
+    onError(() => {
+      mc.value?.port1.postMessage({
+        id: 'caches:fetch',
+        caches: queryCache.getEntries({}).map(createQueryEntryPayload),
+      })
+    })
+  }
+})
+
 const devtoolsEl = useTemplateRef<HTMLElement>('devtools')
 
 const mc = shallowRef<MessageChannel | null>(null)
@@ -74,9 +99,14 @@ watch(pipWindow, () => {
   mc.value = newMc
 })
 
-useEventListener(window, 'unload', () => {
-  pipWindow.value?.close()
-}, { passive: true })
+useEventListener(
+  window,
+  'unload',
+  () => {
+    pipWindow.value?.close()
+  },
+  { passive: true },
+)
 onBeforeUnmount(() => {
   pipWindow.value?.close()
 })
@@ -170,9 +200,7 @@ function togglePiPWindow() {
 
 <template>
   <template v-if="mc">
-    <button @click="sendMessageTest()">
-      Send message
-    </button>
+    <button @click="sendMessageTest()">Send message</button>
     <Teleport :to="pipWindow ? pipWindow.document.body : 'body'">
       <pinia-colada-devtools-panel
         ref="devtools"

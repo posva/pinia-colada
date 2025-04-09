@@ -11,6 +11,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@pinia/colada-devtools/shared': resolve(__dirname, './src/shared/index.ts'),
+      // load the correct version during build
+      '~~styles.css': resolve(__dirname, './src/panel/styles.css'),
     },
   },
 
