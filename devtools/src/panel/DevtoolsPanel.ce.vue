@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { Splitpanes, Pane } from '@posva/splitpanes'
-import { computed, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import type { UseQueryEntryPayload } from '../shared/query-serialized'
-import { useColorMode } from '@vueuse/core'
+import PiPContainer from './components/PiPContainer.vue'
+import UButton from './components/UButton.ce.vue'
 
 const { ports, isPip } = defineProps<{
   ports: [port1: MessagePort, port2: MessagePort]
@@ -59,67 +60,72 @@ function sendMessage(msg: string) {
     msg,
   })
 }
-
-const colorMode = useColorMode()
-const colorTheme = computed(() => {
-  return colorMode.value === 'light' ? 'light' : 'dark'
-})
 </script>
 
 <template>
-  <!-- TODO: <PiPContainer /> -->
-  <main id="main" :class="colorTheme">
-    Hello!
-    <button @click="sendMessage(`n: ${n}`)">Increment {{ n }}</button>
-    <button class="font-bold underline" @click="emit('togglePip')">
-      {{ isPip ? 'Close Pip' : 'Open PiP' }}
-    </button>
+  <PiPContainer :is-pip>
+    <main id="main" class="w-full h-full">
+      Hello!
+      <h2>Icons</h2>
+      <p>
+        <i-mdi-account />
+        <i-carbon-add-alt />
+        <i-carbon-renew class="text-xl" />
+      </p>
 
-    <pre>{{ queries }}</pre>
+      <UButton @click="sendMessage(`n: ${n}`)">
+        Increment {{ n }}
+      </UButton>
+      <button class="font-bold underline" @click="emit('togglePip')">
+        {{ isPip ? 'Close Pip' : 'Open PiP' }}
+      </button>
 
-    <RouterView />
+      <pre>{{ queries }}</pre>
 
-    <aside class="bg-main fixed max-h-[80%] bottom-0 left-0 right-0 flex flex-col">
-      <div class="flex">
-        <h2>Pinia Colada Devtools</h2>
+      <RouterView />
 
-        <button>Queries</button>
-        <button>Mutations</button>
+      <aside class="bottom-0 left-0 right-0 flex flex-col">
+        <div class="flex">
+          <h2>Pinia Colada Devtools</h2>
 
-        <div class="flex-grow" />
+          <button>Queries</button>
+          <button>Mutations</button>
+
+          <div class="flex-grow" />
+
+          <div>
+            <div>Loading {{ 5 }}</div>
+          </div>
+        </div>
 
         <div>
-          <div>Loading {{ 5 }}</div>
+          <input type="search" autocomplete="off" spellcheck="false" placeholder="Search by key">
+
+          <div>
+            <button>Clear cache</button>
+          </div>
         </div>
-      </div>
 
-      <div>
-        <input type="search" autocomplete="off" spellcheck="false" placeholder="Search by key" />
-
-        <div>
-          <button>Clear cache</button>
-        </div>
-      </div>
-
-      <Splitpanes :key="n" style="height: 600px">
-        <Pane min-size="20" class="flex flex-col">
-          <button v-for="entry in queries" class="border-b-1 border-white flex">
-            {{ entry.key }}
-          </button>
-        </Pane>
-        <Pane>
-          <Splitpanes horizontal>
-            <Pane v-for="i in 3" :key="i">
-              {{ i + 1 }}
-            </Pane>
-          </Splitpanes>
-        </Pane>
-        <Pane>
-          <div>5</div>
-        </Pane>
-      </Splitpanes>
-    </aside>
-  </main>
+        <Splitpanes :key="n" style="height: 600px">
+          <Pane min-size="20" class="flex flex-col">
+            <button v-for="entry in queries" class="border-b-1 border-white flex">
+              {{ entry.key }}
+            </button>
+          </Pane>
+          <Pane>
+            <Splitpanes horizontal>
+              <Pane v-for="i in 3" :key="i">
+                {{ i + 1 }}
+              </Pane>
+            </Splitpanes>
+          </Pane>
+          <Pane>
+            <div>5</div>
+          </Pane>
+        </Splitpanes>
+      </aside>
+    </main>
+  </PiPContainer>
 </template>
 
 <style>
@@ -132,7 +138,8 @@ const colorTheme = computed(() => {
 }
 
 .splitpanes__splitter {
-  background: #9ca3af33;
+  /* background-color: #9ca3af33; */
+  background-color: color-mix(in hsl, var(--ui-text) 20%, transparent);
 }
 
 /* .splitpanes--horizontal > div { */
@@ -144,43 +151,30 @@ const colorTheme = computed(() => {
 /*   overflow-x: scroll; */
 /* } */
 
-.splitpanes--vertical > .splitpanes__splitter:before {
+.splitpanes--vertical > .splitpanes__splitter::before {
   left: var(--grab-size);
   right: var(--grab-size);
   height: 100%;
 }
 
-.splitpanes--horizontal > .splitpanes__splitter:before {
+.splitpanes--horizontal > .splitpanes__splitter::before {
   top: var(--grab-size);
   bottom: var(--grab-size);
   width: 100%;
 }
 
-.splitpanes__splitter:before {
+.splitpanes__splitter::before {
   position: absolute;
   inset: 0;
   content: '';
-  transition: opacity 0.4s ease;
+  transition: background-color 0.25s ease-out;
   z-index: 10000;
 }
 
 /* .splitpanes--dragging .splitpanes__splitter::before, */
 .splitpanes__splitter:hover::before {
-  background: #8881;
+  /* background-color: color-mix(in hsl, var(--ui-text) 20%, transparent); */
+  background-color: color-mix(in srgb, var(--ui-text) 20%, transparent);
   opacity: 1;
 }
-</style>
-
-<style>
-/* #main:where(.dark, .dark *) { */
-/*   color-scheme: dark; */
-/* } */
-/**/
-/* #main { */
-/*   background-color: var(--ui-bg); */
-/*   color: var(--ui-text); */
-/*   -webkit-font-smoothing: antialiased; */
-/*   -moz-osx-font-smoothing: grayscale; */
-/*   color-scheme: light; */
-/* } */
 </style>

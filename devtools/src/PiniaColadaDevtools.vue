@@ -20,12 +20,12 @@ watch(
 
 queryCache.$onAction(({ name, after, onError }) => {
   if (
-    name === 'fetch' ||
-    name === 'track' ||
-    name === 'untrack' ||
-    name === 'remove' ||
-    name === 'invalidate' ||
-    name === 'cancel'
+    name === 'fetch'
+    || name === 'track'
+    || name === 'untrack'
+    || name === 'remove'
+    || name === 'invalidate'
+    || name === 'cancel'
   ) {
     // TODO: throttle
     after(() => {
@@ -122,10 +122,18 @@ function openPiPWindow() {
     throw new Error('No devtools elemnt found for Pinia Colada devtools')
   }
 
+  const devtoolsRootEl = devtools.shadowRoot.getElementById('main')
+
+  if (!devtoolsRootEl) {
+    throw new Error('No devtools root element found for Pinia Colada devtools')
+  }
+
+  console.info(`Opening PiP window ${devtoolsRootEl.offsetWidth}x${devtoolsRootEl.offsetHeight}`)
+
   const pip = window.open(
     '',
     'pinia-colada-devtools',
-    `popup,width=${devtools.offsetWidth},height=${devtools.offsetHeight}`,
+    `popup,width=${devtoolsRootEl.offsetWidth},height=${devtoolsRootEl.offsetHeight}`,
   )
 
   if (!pip) {
@@ -200,7 +208,9 @@ function togglePiPWindow() {
 
 <template>
   <template v-if="mc">
-    <button @click="sendMessageTest()">Send message</button>
+    <button @click="sendMessageTest()">
+      Send message
+    </button>
     <!--
       NOTE:we need to keep the pinia-colada-devtools-panel component as the root without wrappers so it is reused
     -->

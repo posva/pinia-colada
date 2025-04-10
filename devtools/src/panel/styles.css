@@ -1,1 +1,51 @@
 @import 'tailwindcss';
+
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+:host {
+  font-family: sans-serif;
+  color-scheme: light dark;
+
+  --ui-radius: var(--radius-sm);
+
+  --ui-primary: light-dark(var(--color-yellow-500), var(--color-yellow-400));
+  --ui-secondary: light-dark(var(--color-lime-500), var(--color-lime-400));
+  --ui-success: light-dark(var(--color-green-500), var(--color-green-400));
+  --ui-info: light-dark(var(--color-blue-500), var(--color-blue-400));
+  --ui-warning: light-dark(var(--color-amber-500), var(--color-amber-400));
+  --ui-error: light-dark(var(--color-red-500), var(--color-red-400));
+  --ui-neutral: light-dark(var(--color-gray-500), var(--color-gray-400));
+
+  --ui-text-dimmed: light-dark(var(--color-gray-400), var(--color-gray-500));
+  --ui-text-muted: light-dark(var(--color-gray-500), var(--color-gray-400));
+  --ui-text-toned: light-dark(var(--color-gray-600), var(--color-gray-300));
+  --ui-text: light-dark(var(--color-gray-700), var(--color-gray-200));
+  --ui-text-highlighted: light-dark(var(--color-gray-900), var(--color-white));
+
+  --ui-bg: light-dark(var(--color-white), var(--color-gray-900));
+  --ui-bg-muted: light-dark(var(--color-gray-50), var(--color-gray-800));
+  --ui-bg-elevated: light-dark(var(--color-gray-100), var(--color-gray-800));
+  --ui-bg-accented: light-dark(var(--color-gray-200), var(--color-gray-700));
+  --ui-bg-inverted: light-dark(var(--color-gray-900), var(--color-white));
+
+  --ui-border: light-dark(var(--color-gray-200), var(--color-gray-800));
+  --ui-border-muted: light-dark(var(--color-gray-200), var(--color-gray-700));
+  --ui-border-accented: light-dark(var(--color-gray-300), var(--color-gray-700));
+  --ui-border-inverted: light-dark(var(--color-gray-900), var(--color-white));
+}
+
+:host:has(.dark) {
+  color-scheme: dark;
+}
+
+:host:has(.light) {
+  color-scheme: light;
+}
+
+/* same as a body selector */
+#root {
+  color: var(--ui-text);
+  background-color: var(--ui-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
