@@ -346,52 +346,7 @@ function selectItem(id: string) {
 </template>
 
 <style>
-@import '@pinia/colada-devtools/panel/index.css';
 @import '@posva/splitpanes/dist/splitpanes.css';
-
-.splitpanes__splitter {
-  position: relative;
-  --grab-size: -4px;
-}
-
-.splitpanes__splitter {
-  /* background-color: #9ca3af33; */
-  background-color: color-mix(in hsl, var(--ui-text) 20%, transparent);
-}
-
-/* .splitpanes--horizontal > div { */
-/*   overflow-y: hidden; */
-/*   overflow-x: scroll; */
-/* } */
-/* .splitpanes--vertical > div { */
-/*   overflow-y: hidden; */
-/*   overflow-x: scroll; */
-/* } */
-
-.splitpanes--vertical > .splitpanes__splitter::before {
-  left: var(--grab-size);
-  right: var(--grab-size);
-  height: 100%;
-}
-
-.splitpanes--horizontal > .splitpanes__splitter::before {
-  top: var(--grab-size);
-  bottom: var(--grab-size);
-  width: 100%;
-}
-
-.splitpanes__splitter::before {
-  position: absolute;
-  inset: 0;
-  content: '';
-  transition: background-color 0.25s ease-out;
-  z-index: 10000;
-}
-
-/* .splitpanes--dragging .splitpanes__splitter::before, */
-.splitpanes__splitter:hover::before {
-  /* background-color: color-mix(in hsl, var(--ui-text) 20%, transparent); */
-  background-color: color-mix(in srgb, var(--ui-text) 20%, transparent);
-  opacity: 1;
-}
+@import './splitpanes.css';
+@import '@pinia/colada-devtools/panel/index.css';
 </style>
