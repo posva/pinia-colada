@@ -3,7 +3,6 @@ import { Splitpanes, Pane } from '@posva/splitpanes'
 import { ref, watch } from 'vue'
 import type { UseQueryEntryPayload } from '../shared/query-serialized'
 import PiPContainer from './components/PiPContainer.vue'
-import UButton from './components/UButton.ce.vue'
 
 const { ports, isPip } = defineProps<{
   ports: [port1: MessagePort, port2: MessagePort]
@@ -64,66 +63,88 @@ function sendMessage(msg: string) {
 
 <template>
   <PiPContainer :is-pip>
-    <main id="main" class="w-full h-full">
-      Hello!
-      <h2>Icons</h2>
-      <p>
-        <i-mdi-account />
-        <i-carbon-add-alt />
-        <i-carbon-renew class="text-xl" />
-      </p>
+    <main class="w-full h-full flex flex-col">
+      <form @submit.prevent>
+        <UInput
+          type="text"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="Type a message to send to the app"
+        />
+        <Ubutton type="submit" class="hidden"> Send </Ubutton>
+      </form>
 
-      <UButton @click="sendMessage(`n: ${n}`)">
-        Increment {{ n }}
-      </UButton>
+      <UButton @click="sendMessage(`n: ${n}`)" class="theme-error"> Increment {{ n }} </UButton>
       <button class="font-bold underline" @click="emit('togglePip')">
         {{ isPip ? 'Close Pip' : 'Open PiP' }}
       </button>
 
-      <pre>{{ queries }}</pre>
-
-      <RouterView />
-
-      <aside class="bottom-0 left-0 right-0 flex flex-col">
-        <div class="flex">
-          <h2>Pinia Colada Devtools</h2>
-
-          <button>Queries</button>
-          <button>Mutations</button>
-
-          <div class="flex-grow" />
-
-          <div>
-            <div>Loading {{ 5 }}</div>
+      <div>
+        <!-- Draw a square with all the variants of a each theme color (primary,secondary, etc) -->
+        <div class="flex flex-col">
+          <div
+            v-for="theme in ['primary', 'yellow', 'secondary', 'success', 'warning', 'error', 'red', 'info', 'neutral']"
+            :key="theme"
+            class="flex"
+          >
+            <div
+              v-for="variant in [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950]"
+              :key="variant"
+              :class="`bg-${theme}-${variant} w-10 h-10`"
+            />
           </div>
         </div>
 
-        <div>
-          <input type="search" autocomplete="off" spellcheck="false" placeholder="Search by key">
+        <pre>{{ queries }}</pre>
+
+        <RouterView />
+
+        <aside class="bottom-0 left-0 right-0 flex flex-col">
+          <div class="flex">
+            <h2>Pinia Colada Devtools</h2>
+
+            <button>Queries</button>
+            <button>Mutations</button>
+
+            <div class="flex-grow" />
+
+            <div>
+              <div>Loading {{ 5 }}</div>
+            </div>
+          </div>
 
           <div>
-            <button>Clear cache</button>
-          </div>
-        </div>
+            <input
+              type="search"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="Search by key"
+            />
 
-        <Splitpanes :key="n" style="height: 600px">
-          <Pane min-size="20" class="flex flex-col">
-            <button v-for="entry in queries" class="border-b-1 border-white flex">
-              {{ entry.key }}
-            </button>
-          </Pane>
-          <Pane>
-            <Splitpanes horizontal>
-              <Pane v-for="i in 3" :key="i">
-                {{ i + 1 }}
-              </Pane>
-            </Splitpanes>
-          </Pane>
-          <Pane>
-            <div>5</div>
-          </Pane>
-        </Splitpanes>
-      </aside>
+            <div>
+              <button>Clear cache</button>
+            </div>
+          </div>
+
+          <Splitpanes :key="n" style="height: 600px">
+            <Pane min-size="20" class="flex flex-col">
+              <button v-for="entry in queries" class="border-b-1 border-white flex">
+                {{ entry.key }}
+              </button>
+            </Pane>
+            <Pane>
+              <Splitpanes horizontal>
+                <Pane v-for="i in 3" :key="i">
+                  {{ i + 1 }}
+                </Pane>
+              </Splitpanes>
+            </Pane>
+            <Pane>
+              <div>5</div>
+            </Pane>
+          </Splitpanes>
+        </aside>
+      </div>
     </main>
   </PiPContainer>
 </template>
