@@ -76,12 +76,6 @@ function sendMessageTest() {
   })
 }
 
-// watch(devtoolsEl, async (el) => {
-//   // if (!el) return
-//   // TODO: must be done on click
-//   // openPiPWindow()
-// })
-
 const pipWindow = shallowRef<Window | null>(null)
 
 watch(pipWindow, () => {
@@ -154,38 +148,8 @@ function openPiPWindow() {
   //   setLocalStore('pip_open', 'false')
   //   setPipWindow(null)
   // })
-
-  for (const styleSheet of devtools.shadowRoot.styleSheets) {
-    try {
-      const cssRules = [...styleSheet.cssRules].map((rule) => rule.cssText).join('')
-      const style = document.createElement('style')
-      const style_node = styleSheet.ownerNode
-      let style_id = ''
-
-      if (style_node && 'id' in style_node) {
-        style_id = style_node.id
-      }
-
-      if (style_id) {
-        style.setAttribute('id', style_id)
-      }
-      style.textContent = cssRules
-      pip.document.head.appendChild(style)
-    } catch (err) {
-      if (styleSheet.href == null) {
-        console.warn('Failed to inject stylesheet', err)
-        return
-      }
-
-      const link = document.createElement('link')
-
-      link.rel = 'stylesheet'
-      link.type = styleSheet.type
-      link.media = styleSheet.media.toString()
-      link.href = styleSheet.href
-      pip.document.head.appendChild(link)
-    }
-  }
+  //
+  attachCssPropertyRules(devtools, pip.document)
 
   pip.addEventListener(
     'unload',
@@ -195,6 +159,23 @@ function openPiPWindow() {
     },
     { passive: true },
   )
+}
+
+function attachCssPropertyRules(el: HTMLElement | null, doc: Document = document) {
+  if (!el || !el.shadowRoot) {
+    throw new Error('No devtools elemnt found for Pinia Colada devtools')
+  }
+
+  const style = doc.getElementById('__pc-tw-properties') ?? doc.createElement('style')
+  style.setAttribute('id', '__pc-tw-properties')
+
+  const cssPropertyRulesText = [...el.shadowRoot.styleSheets]
+    .flatMap((s) => [...s.cssRules])
+    .filter((rule) => rule instanceof CSSPropertyRule)
+    .map((rule) => rule.cssText)
+    .join('')
+  style.textContent = cssPropertyRulesText
+  doc.head.appendChild(style)
 }
 
 function togglePiPWindow() {
@@ -220,6 +201,7 @@ function togglePiPWindow() {
         :isPip.prop="!!pipWindow"
         :ports.prop="[mc.port1, mc.port2]"
         @toggle-pip="togglePiPWindow()"
+        @ready="attachCssPropertyRules(devtoolsEl)"
       />
     </Teleport>
   </template>

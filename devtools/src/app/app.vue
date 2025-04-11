@@ -23,7 +23,7 @@ const isActive = ref(true)
   <main>
     <h1>Hello</h1>
 
-    <label> <input v-model="isActive" type="checkbox"> Show Devtools </label>
+    <label> <input v-model="isActive" type="checkbox" /> Show Devtools </label>
   </main>
   <PiniaColadaDevtools v-if="isActive" />
 </template>
@@ -31,7 +31,7 @@ const isActive = ref(true)
 <style>
 :root {
   font-family: sans-serif;
-  /* color-scheme: light dark; */
+  color-scheme: light dark;
 }
 
 body {

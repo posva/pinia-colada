@@ -8,17 +8,16 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    ICarbonAddAlt: typeof import('~icons/carbon/add-alt')['default']
-    ICarbonRenew: typeof import('~icons/carbon/renew')['default']
-    IMdiAccount: typeof import('~icons/mdi/account')['default']
+    ICarbonClose: typeof import('~icons/carbon/close')['default']
+    ICarbonMaximize: typeof import('~icons/carbon/maximize')['default']
+    ICarbonMinimize: typeof import('~icons/carbon/minimize')['default']
+    ICarbonPopup: typeof import('~icons/carbon/popup')['default']
+    ICarbonSearch: typeof import('~icons/carbon/search')['default']
+    ICarbonTrashCan: typeof import('~icons/carbon/trash-can')['default']
     PiPContainer: typeof import('./src/panel/components/PiPContainer.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    Ubutton: typeof import('./src/panel/components/Ubutton.ce.vue')['default']
-    UButton: typeof import('./src/panel/components/UButton.ce.vue')['default']
     'UButton.ce': typeof import('./src/panel/components/UButton.ce.vue')['default']
-    Uinput: typeof import('./src/panel/components/Uinput.ce.vue')['default']
-    UInput: typeof import('./src/panel/components/UInput.ce.vue')['default']
     'UInput.ce': typeof import('./src/panel/components/UInput.ce.vue')['default']
   }
 }

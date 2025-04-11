@@ -6,7 +6,9 @@ const { isPip } = defineProps<{
   isPip: boolean
 }>()
 
-const colorMode = useColorMode()
+const colorMode = useColorMode({
+  selector: '#root',
+})
 const colorTheme = computed(() => {
   return colorMode.value === 'auto' ? [] : colorMode.value
 })
