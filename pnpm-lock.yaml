@@ -135,6 +135,12 @@ importers:
       '@vueuse/core':
         specifier: ^13.0.0
         version: 13.0.0(vue@3.5.13(typescript@5.8.3))
+      mande:
+        specifier: ^2.0.9
+        version: 2.0.9
+      pinia:
+        specifier: ^3.0.1
+        version: 3.0.1(typescript@5.8.3)(vue@3.5.13(typescript@5.8.3))
       tailwindcss:
         specifier: ^4.1.3
         version: 4.1.3

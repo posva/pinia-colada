@@ -47,7 +47,9 @@
     "dist-shared"
   ],
   "scripts": {
-    "dev": "vite",
+    "dev:app": "vite",
+    "dev:db": "pnpm run -C ../playground dev:db",
+    "dev": "pnpm run --stream '/^dev:/'",
     "build:main": "vite build --config vite.config.ts",
     "build:shared": "vite build --config vite.config.shared.ts",
     "build:panel": "vite build --config vite.config.panel.ts",
@@ -60,6 +62,8 @@
     "@posva/splitpanes": "^4.0.4",
     "@tailwindcss/vite": "^4.1.3",
     "@vueuse/core": "^13.0.0",
+    "mande": "^2.0.9",
+    "pinia": "^3.0.1",
     "tailwindcss": "^4.1.3",
     "unplugin-icons": "^22.1.0",
     "unplugin-vue-components": "^28.4.1",

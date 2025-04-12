@@ -185,6 +185,14 @@ function togglePiPWindow() {
     openPiPWindow()
   }
 }
+
+function devtoolsOnReady() {
+  attachCssPropertyRules(devtoolsEl.value)
+  mc.value?.port1.postMessage({
+    id: 'caches:all',
+    caches: queryCache.getEntries({}).map(createQueryEntryPayload),
+  })
+}
 </script>
 
 <template>
@@ -201,7 +209,7 @@ function togglePiPWindow() {
         :isPip.prop="!!pipWindow"
         :ports.prop="[mc.port1, mc.port2]"
         @toggle-pip="togglePiPWindow()"
-        @ready="attachCssPropertyRules(devtoolsEl)"
+        @ready="devtoolsOnReady()"
       />
     </Teleport>
   </template>

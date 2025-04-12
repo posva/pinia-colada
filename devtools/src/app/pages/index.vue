@@ -1,5 +1,5 @@
 <script setup lang="ts"></script>
 
 <template>
-  <h1>Homepage</h1>
+  <div>Go to contacts</div>
 </template>
