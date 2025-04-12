@@ -11,26 +11,26 @@ import 'water.css'
 const app = createApp(App)
 app.use(createPinia())
 app.use(PiniaColada, {})
-app.use(
-  createRouter({
-    history: createWebHistory(),
-    routes: [
-      {
-        path: '/',
-        component: () => import('./pages/index.vue'),
-      },
-      {
-        path: '/contacts',
-        component: () => import('./pages/contacts.vue'),
-        children: [
-          {
-            path: ':id',
-            component: () => import('./pages/contacts/[id].vue'),
-          },
-        ],
-      },
-    ],
-  }),
-)
 
+const router = createRouter({
+  history: createWebHistory(),
+  routes: [
+    {
+      path: '/',
+      component: () => import('./pages/index.vue'),
+    },
+    {
+      path: '/contacts',
+      component: () => import('./pages/contacts.vue'),
+      children: [
+        {
+          path: ':id',
+          component: () => import('./pages/contacts/[id].vue'),
+        },
+      ],
+    },
+  ],
+})
+
+app.use(router)
 app.mount(`#app`)
