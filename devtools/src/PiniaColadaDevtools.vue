@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { inject, onBeforeUnmount, onMounted, shallowRef, useTemplateRef, watch } from 'vue'
 import { useQueryCache } from '@pinia/colada'
-import { createQueryEntryPayload, useEventListener } from '@pinia/colada-devtools/shared'
+import {
+  createQueryEntryPayload,
+  MessagePortEmitter,
+  useEventListener,
+} from '@pinia/colada-devtools/shared'
+import type { AppEmits, DevtoolsEmits } from '@pinia/colada-devtools/shared'
 
 console.log('Injected value', inject('test', 'NO'))
 
@@ -20,12 +25,12 @@ watch(
 
 queryCache.$onAction(({ name, after, onError }) => {
   if (
-    name === 'fetch'
-    || name === 'track'
-    || name === 'untrack'
-    || name === 'remove'
-    || name === 'invalidate'
-    || name === 'cancel'
+    name === 'fetch' ||
+    name === 'track' ||
+    name === 'untrack' ||
+    name === 'remove' ||
+    name === 'invalidate' ||
+    name === 'cancel'
   ) {
     // TODO: throttle
     after(() => {
@@ -51,6 +56,8 @@ function onMessage(e: MessageEvent) {
   console.log('Received message from devtools', e.data)
 }
 
+let events: MessagePortEmitter<AppEmits, DevtoolsEmits>
+
 onMounted(async () => {
   mc.value = new MessageChannel()
 
@@ -62,6 +69,16 @@ onMounted(async () => {
     console.error('P2: Error in message channel:', err)
   }
 
+  events = new MessagePortEmitter<AppEmits, DevtoolsEmits>(mc.value.port1)
+
+  events.on('ping', () => {
+    console.log('Received ping from devtools')
+    events.emit('pong')
+  })
+  events.on('pong', () => {
+    console.log('Received pong from devtools')
+  })
+
   // define the component once
   if (!customElements.get('pinia-colada-devtools-panel')) {
     const { DevtoolsPanel } = await import('@pinia/colada-devtools/panel')
@@ -70,10 +87,7 @@ onMounted(async () => {
 })
 
 function sendMessageTest() {
-  mc.value?.port1.postMessage({
-    message: 'Hello from the App',
-    when: new Date(),
-  })
+  events.emit('ping')
 }
 
 const pipWindow = shallowRef<Window | null>(null)
@@ -91,6 +105,7 @@ watch(pipWindow, () => {
   }
 
   mc.value = newMc
+  events.setPort(newMc.port1)
 })
 
 useEventListener(
@@ -197,9 +212,7 @@ function devtoolsOnReady() {
 
 <template>
   <template v-if="mc">
-    <button @click="sendMessageTest()">
-      Send message
-    </button>
+    <button @click="sendMessageTest()">Send message</button>
     <!--
       NOTE:we need to keep the pinia-colada-devtools-panel component as the root without wrappers so it is reused
     -->

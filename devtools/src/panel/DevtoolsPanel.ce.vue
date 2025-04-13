@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
-import type { UseQueryEntryPayload } from '../shared/query-serialized'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
+import type { UseQueryEntryPayload, DevtoolsEmits, AppEmits } from '@pinia/colada-devtools/shared'
+import { MessagePortEmitter } from '@pinia/colada-devtools/shared'
 import PiPContainer from './components/PiPContainer.vue'
 
 const { ports, isPip } = defineProps<{
@@ -13,49 +14,35 @@ const emit = defineEmits<{
   closePip: []
   ready: []
 }>()
+const events = new MessagePortEmitter<DevtoolsEmits, AppEmits>(ports[1])
+events.on('ping', () => {
+  console.log('Received ping from App')
+  events.emit('pong')
+})
+events.on('pong', () => {
+  console.log('Received pong from App')
+})
+watch(
+  () => ports[1],
+  (port, _old) => {
+    events.setPort(port)
+  },
+)
+onUnmounted(() => {
+  events.stop()
+})
 
 onMounted(() => {
   emit('ready')
+  events.emit('ping')
 })
 
 // Data stores
-const queries = ref<UseQueryEntryPayload[]>([])
-const mutations = ref<any[]>([]) // Placeholder for mutation data
+// const queries = ref<UseQueryEntryPayload[]>([])
+// const mutations = ref<any[]>([]) // Placeholder for mutation data
 
 // Tab management
 const activeTab = ref<'queries' | 'mutations'>('queries')
-
-function onMessage(e: MessageEvent) {
-  if (e.data && typeof e.data === 'object') {
-    if (e.data.id === 'caches:all') {
-      queries.value = e.data.caches
-      console.log('Received caches:', e.data.caches)
-    } else if (e.data.id === 'mutations:all') {
-      mutations.value = e.data.mutations || []
-      console.log('Received mutations:', e.data.mutations)
-    } else {
-      console.log('Received message from App:', e.data)
-    }
-  }
-}
-
-watch(
-  () => ports[1],
-  (port, _old, onCleanup) => {
-    if (!port) return
-    // NOTE: only setting onmessage works
-    port.onmessage = onMessage
-    port.onmessageerror = (err) => {
-      console.error('Error in message channel:', err)
-    }
-
-    onCleanup(() => {
-      port.onmessage = null
-      port.onmessageerror = null
-    })
-  },
-  { immediate: true },
-)
 </script>
 
 <template>

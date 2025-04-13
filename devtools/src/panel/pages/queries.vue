@@ -59,7 +59,7 @@ function selectItem(id: string) {
         type="search"
         class="w-full py-1.5 pl-8 pr-2 rounded bg-ui-bg-elevated border border-ui-border focus:border-primary-500 focus:ring-1 focus:ring-primary-500 focus:outline-none transition-colors"
         placeholder="Search Queries"
-      />
+      >
     </div>
 
     <button
@@ -113,14 +113,18 @@ function selectItem(id: string) {
           <Pane min-size="30" :size="50" class="p-4 overflow-auto">
             <div v-if="selectedItem" class="space-y-4">
               <div class="pb-2 border-b border-ui-border">
-                <h3 class="font-medium text-lg">Query Details</h3>
+                <h3 class="font-medium text-lg">
+                  Query Details
+                </h3>
                 <div class="text-sm text-ui-text-muted">
                   {{ selectedItem.key }}
                 </div>
               </div>
 
               <div class="space-y-2">
-                <h4 class="font-medium">Status</h4>
+                <h4 class="font-medium">
+                  Status
+                </h4>
                 <div
                   class="px-2 py-1 rounded inline-flex items-center"
                   :class="{
@@ -138,38 +142,49 @@ function selectItem(id: string) {
               </div>
 
               <div v-if="selectedItem.state.data != null" class="space-y-2">
-                <h4 class="font-medium">Data</h4>
+                <h4 class="font-medium">
+                  Data
+                </h4>
                 <pre class="bg-ui-bg-elevated p-3 rounded overflow-auto text-sm">{{
                   JSON.stringify(selectedItem.state.data, null, 2)
                 }}</pre>
               </div>
 
               <div v-if="selectedItem.state.error" class="space-y-2">
-                <h4 class="font-medium">Error</h4>
+                <h4 class="font-medium">
+                  Error
+                </h4>
                 <pre
                   class="bg-error-500 bg-opacity-10 text-error-500 p-3 rounded overflow-auto text-sm"
-                  >{{ JSON.stringify(selectedItem.state.error, null, 2) }}</pre
-                >
+                >{{ JSON.stringify(selectedItem.state.error, null, 2) }}</pre>
               </div>
             </div>
 
             <div v-else class="flex flex-col items-center justify-center h-full text-ui-text-muted">
-              <div class="text-lg">Select a query to view details</div>
+              <div class="text-lg">
+                Select a query to view details
+              </div>
             </div>
           </Pane>
 
           <!-- Timeline/Metadata Panel -->
           <Pane min-size="10" :size="50" class="p-4 overflow-auto border-t border-ui-border">
             <div v-if="selectedItem" class="space-y-4">
-              <h3 class="font-medium border-b border-ui-border pb-2">Timeline & Metadata</h3>
+              <h3 class="font-medium border-b border-ui-border pb-2">
+                Timeline & Metadata
+              </h3>
 
               <div class="space-y-2">
-                <h4 class="text-sm font-medium">Last Updated</h4>
+                <h4 class="text-sm font-medium">
+                  Last Updated
+                </h4>
                 <div>{{ new Date().toLocaleString() }}</div>
               </div>
 
               <div class="space-y-2">
-                <h4 class="text-sm font-medium">Additional Info</h4>
+                <h4 class="text-sm font-medium">
+                  Additional Info
+                </h4>
                 <div class="text-sm text-ui-text-muted">
                   This panel will show timeline information and additional metadata.
                 </div>
@@ -177,7 +192,9 @@ function selectItem(id: string) {
             </div>
 
             <div v-else class="flex flex-col items-center justify-center h-full text-ui-text-muted">
-              <div class="text-sm">Select an item to view metadata</div>
+              <div class="text-sm">
+                Select an item to view metadata
+              </div>
             </div>
           </Pane>
         </Splitpanes>
