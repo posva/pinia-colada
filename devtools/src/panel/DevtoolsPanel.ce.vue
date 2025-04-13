@@ -38,8 +38,12 @@ onMounted(() => {
 })
 
 // Data stores
-// const queries = ref<UseQueryEntryPayload[]>([])
+const queries = ref<UseQueryEntryPayload[]>([])
 // const mutations = ref<any[]>([]) // Placeholder for mutation data
+events.on('queries:all', (q) => {
+  console.log('Received queries from App', q)
+  queries.value = q
+})
 
 // Tab management
 const activeTab = ref<'queries' | 'mutations'>('queries')

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, onBeforeUnmount, onMounted, shallowRef, useTemplateRef, watch } from 'vue'
+import { inject, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef, watch } from 'vue'
 import { useQueryCache } from '@pinia/colada'
 import {
   createQueryEntryPayload,
@@ -15,11 +15,8 @@ const queryCache = useQueryCache()
 watch(
   () => queryCache.getEntries({}),
   (caches) => {
+    transmitter.emit('queries:all', caches.map(createQueryEntryPayload))
     console.log('Query cache changed', caches)
-    mc.value?.port1.postMessage({
-      id: 'caches:all',
-      caches: caches.map(createQueryEntryPayload),
-    })
   },
 )
 
@@ -34,16 +31,18 @@ queryCache.$onAction(({ name, after, onError }) => {
   ) {
     // TODO: throttle
     after(() => {
-      mc.value?.port1.postMessage({
-        id: 'caches:fetch',
-        caches: queryCache.getEntries({}).map(createQueryEntryPayload),
-      })
+      transmitter.emit('queries:all', queryCache.getEntries({}).map(createQueryEntryPayload))
+      // mc.value?.port1.postMessage({
+      //   id: 'caches:fetch',
+      //   caches: queryCache.getEntries({}).map(createQueryEntryPayload),
+      // })
     })
     onError(() => {
-      mc.value?.port1.postMessage({
-        id: 'caches:fetch',
-        caches: queryCache.getEntries({}).map(createQueryEntryPayload),
-      })
+      transmitter.emit('queries:all', queryCache.getEntries({}).map(createQueryEntryPayload))
+      // mc.value?.port1.postMessage({
+      //   id: 'caches:fetch',
+      //   caches: queryCache.getEntries({}).map(createQueryEntryPayload),
+      // })
     })
   }
 })
@@ -56,26 +55,18 @@ function onMessage(e: MessageEvent) {
   console.log('Received message from devtools', e.data)
 }
 
-let events: MessagePortEmitter<AppEmits, DevtoolsEmits>
+let transmitter: MessagePortEmitter<AppEmits, DevtoolsEmits>
 
 onMounted(async () => {
   mc.value = new MessageChannel()
 
-  mc.value.port1.onmessage = onMessage
-  mc.value.port1.onmessageerror = (err) => {
-    console.error('P1: Error in message channel:', err)
-  }
-  mc.value.port2.onmessageerror = (err) => {
-    console.error('P2: Error in message channel:', err)
-  }
+  transmitter = new MessagePortEmitter<AppEmits, DevtoolsEmits>(mc.value.port1)
 
-  events = new MessagePortEmitter<AppEmits, DevtoolsEmits>(mc.value.port1)
-
-  events.on('ping', () => {
+  transmitter.on('ping', () => {
     console.log('Received ping from devtools')
-    events.emit('pong')
+    transmitter.emit('pong')
   })
-  events.on('pong', () => {
+  transmitter.on('pong', () => {
     console.log('Received pong from devtools')
   })
 
@@ -86,26 +77,21 @@ onMounted(async () => {
   }
 })
 
-function sendMessageTest() {
-  events.emit('ping')
-}
+watch(
+  mc,
+  (mc) => {
+    if (!mc) return
+    // the first time, transmitter is still undefined
+    transmitter?.setPort(mc.port1)
+  },
+  { flush: 'sync' },
+)
 
 const pipWindow = shallowRef<Window | null>(null)
 
 watch(pipWindow, () => {
   console.info('🗺️ Recreating MessageChannel...')
-  const newMc = new MessageChannel()
-
-  newMc.port1.onmessage = onMessage
-  newMc.port1.onmessageerror = (err) => {
-    console.error('P1: Error in message channel:', err)
-  }
-  newMc.port2.onmessageerror = (err) => {
-    console.error('P2: Error in message channel:', err)
-  }
-
-  mc.value = newMc
-  events.setPort(newMc.port1)
+  mc.value = new MessageChannel()
 })
 
 useEventListener(
@@ -203,16 +189,13 @@ function togglePiPWindow() {
 
 function devtoolsOnReady() {
   attachCssPropertyRules(devtoolsEl.value)
-  mc.value?.port1.postMessage({
-    id: 'caches:all',
-    caches: queryCache.getEntries({}).map(createQueryEntryPayload),
-  })
+  transmitter.emit('queries:all', queryCache.getEntries({}).map(createQueryEntryPayload))
 }
 </script>
 
 <template>
   <template v-if="mc">
-    <button @click="sendMessageTest()">Send message</button>
+    <button @click="transmitter.emit('ping')">Send message</button>
     <!--
       NOTE:we need to keep the pinia-colada-devtools-panel component as the root without wrappers so it is reused
     -->

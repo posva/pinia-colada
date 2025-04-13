@@ -2,6 +2,7 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import Vue from '@vitejs/plugin-vue'
+import VueDevtools from 'vite-plugin-vue-devtools'
 import Dts from 'vite-plugin-dts'
 import VueRouter from 'unplugin-vue-router/vite'
 import TailwindCSS from '@tailwindcss/vite'
@@ -74,6 +75,7 @@ export default defineConfig({
       },
     }),
     Icons({ compiler: 'vue3' }),
+    VueDevtools(),
     Components({
       dirs: [resolve(__dirname, './src/panel/components')],
       dts: true,

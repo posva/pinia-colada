@@ -16,6 +16,7 @@ export class MessagePortEmitter<
   }
 
   setPort(port: MessagePort) {
+    // remove the previous event listeners
     this.eventsController?.abort()
     const { signal } = (this.eventsController = new AbortController())
     this.port = port
