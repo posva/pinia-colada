@@ -22,12 +22,12 @@ watch(
 
 queryCache.$onAction(({ name, after, onError }) => {
   if (
-    name === 'fetch' ||
-    name === 'track' ||
-    name === 'untrack' ||
-    name === 'remove' ||
-    name === 'invalidate' ||
-    name === 'cancel'
+    name === 'fetch'
+    || name === 'track'
+    || name === 'untrack'
+    || name === 'remove'
+    || name === 'invalidate'
+    || name === 'cancel'
   ) {
     // TODO: throttle
     after(() => {
