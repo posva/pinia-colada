@@ -303,23 +303,15 @@
   --color-theme-950: var(--color-neutral-950);
 }
 
-.theme-ghost {
-  --ui-text: var(--ui-text-inverted);
-  --ui-bg: color-mix(in hsl, var(--color-theme) 20%, transparent);
-
-  --color-theme: var(--ui-neutral);
-
-  --color-theme-50: color-mix(in hsl, var(--color-neutral-50) 20%, transparent);
-  --color-theme-100: color-mix(in hsl, var(--color-neutral-100) 20%, transparent);
-  --color-theme-200: color-mix(in hsl, var(--color-neutral-200) 20%, transparent);
-  --color-theme-300: color-mix(in hsl, var(--color-neutral-300) 20%, transparent);
-  --color-theme-400: color-mix(in hsl, var(--color-neutral-400) 20%, transparent);
-  --color-theme-500: color-mix(in hsl, var(--color-neutral-500) 20%, transparent);
-  --color-theme-600: color-mix(in hsl, var(--color-neutral-600) 20%, transparent);
-  --color-theme-700: color-mix(in hsl, var(--color-neutral-700) 20%, transparent);
-  --color-theme-800: color-mix(in hsl, var(--color-neutral-800) 20%, transparent);
-  --color-theme-900: color-mix(in hsl, var(--color-neutral-900) 20%, transparent);
-  --color-theme-950: color-mix(in hsl, var(--color-neutral-950) 20%, transparent);
+.variant-ghost {
+  --ui-text: var(--color-theme);
+  color: var(--color-theme);
+  background-color: transparent;
+  &:hover {
+    color: var(--color-theme);
+    /* color: var(--ui-bg-inverted); */
+    background-color: color-mix(in hsl, var(--ui-bg) 10%, transparent);
+  }
 }
 
 /* For testing purposes */

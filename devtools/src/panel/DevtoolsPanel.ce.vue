@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, computed, provide } from 'vue'
+import { ref, watch, onMounted, onUnmounted, provide } from 'vue'
 import type { UseQueryEntryPayload, DevtoolsEmits, AppEmits } from '@pinia/colada-devtools/shared'
 import { MessagePortEmitter } from '@pinia/colada-devtools/shared'
 import { DUPLEX_CHANNEL_KEY } from './composables/duplex-channel'
@@ -52,7 +52,7 @@ events.on('queries:all', (q) => {
   <PiPContainer id="root" :is-pip>
     <main class="w-full h-full grid grid-rows-[auto_1fr] bg-ui-bg text-ui-text">
       <!-- Merged Header with Tabs Navigation -->
-      <div class="flex items-center border-b border-(--ui-border) select-none pt-2">
+      <div class="flex items-center border-b border-(--ui-border) select-none">
         <!-- Logo -->
         <div class="flex items-center p-2 mr-2">
           <span class="text-xl">🍹</span>
@@ -79,14 +79,16 @@ events.on('queries:all', (q) => {
         <div class="flex-grow" />
 
         <!-- PiP toggle button -->
-        <UButton
-          class="theme-ghost"
-          :title="isPip ? 'Close popup' : 'Open in popup'"
-          @click="emit('togglePip')"
-        >
-          <i-carbon-popup v-if="!isPip" class="w-5 h-5" />
-          <i-carbon-close v-else class="w-5 h-5" />
-        </UButton>
+        <div class="flex items-center py-1 gap-1 pr-1">
+          <UButton
+            class="variant-ghost theme-neutral"
+            :title="isPip ? 'Close popup' : 'Open in popup'"
+            @click="emit('togglePip')"
+          >
+            <i-carbon-popup v-if="!isPip" class="w-5 h-5" />
+            <i-carbon-close v-else class="w-5 h-5" />
+          </UButton>
+        </div>
       </div>
 
       <RouterView />

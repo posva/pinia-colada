@@ -58,13 +58,13 @@ function selectItem(id: string) {
         />
       </div>
 
-      <button
-        class="p-1.5 rounded hover:bg-ui-bg-elevated transition-colors text-ui-text-toned hover:text-error-500 flex items-center gap-1.5"
+      <UButton
+        class="variant-ghost theme-error flex items-center gap-1.5"
         @click="clearCache"
       >
         <i-carbon-trash-can class="w-4 h-4" />
         <span>Clear</span>
-      </button>
+      </UButton>
     </div>
 
     <!-- Content with SplitPanes -->
