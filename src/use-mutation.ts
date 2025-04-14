@@ -37,8 +37,8 @@ export type _ReduceContext<TContext> = TContext extends void | null | undefined
     : TContext
 
 /**
- * Context object returned by a global `onBeforeMutate` function that is merged with the context returned by a local
- * `onBeforeMutate`.
+ * Context object returned by a global `onMutate` function that is merged with the context returned by a local
+ * `onMutate`.
  * @example
  * ```ts
  * declare module '@pinia/colada' {
@@ -49,7 +49,7 @@ export type _ReduceContext<TContext> = TContext extends void | null | undefined
  *
  * // add the `router` to the context
  * app.use(MutationPlugin, {
- *   onBeforeMutate() {
+ *   onMutate() {
  *     return { router }
  *   },
  * })
