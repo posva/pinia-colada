@@ -164,7 +164,7 @@
 
 .theme-primary {
   --ui-text: var(--ui-text-inverted);
-  --ui-bg: var(--color-primary);
+  --ui-bg: var(--color-theme);
 
   --color-theme: var(--ui-primary);
 
@@ -183,7 +183,7 @@
 
 .theme-secondary {
   --ui-text: var(--ui-text-inverted);
-  --ui-bg: var(--color-primary);
+  --ui-bg: var(--color-theme);
 
   --color-theme: var(--ui-secondary);
 
@@ -202,7 +202,7 @@
 
 .theme-success {
   --ui-text: var(--ui-text-inverted);
-  --ui-bg: var(--color-success);
+  --ui-bg: var(--color-theme);
 
   --color-theme: var(--ui-success);
 
@@ -221,7 +221,7 @@
 
 .theme-info {
   --ui-text: var(--ui-text-inverted);
-  --ui-bg: var(--color-info);
+  --ui-bg: var(--color-theme);
 
   --color-theme: var(--ui-info);
 
@@ -240,7 +240,7 @@
 
 .theme-warning {
   --ui-text: var(--ui-text-inverted);
-  --ui-bg: var(--color-warning);
+  --ui-bg: var(--color-theme);
 
   --color-theme: var(--ui-warning);
 
@@ -259,7 +259,7 @@
 
 .theme-error {
   --ui-text: var(--ui-text-inverted);
-  --ui-bg: var(--color-error);
+  --ui-bg: var(--color-theme);
 
   --color-theme: var(--ui-error);
 
@@ -278,7 +278,7 @@
 
 .theme-neutral {
   --ui-text: var(--ui-text-inverted);
-  --ui-bg: var(--color-neutral);
+  --ui-bg: var(--color-theme);
 
   --color-theme: var(--ui-neutral);
 
