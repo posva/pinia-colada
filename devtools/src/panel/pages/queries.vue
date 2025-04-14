@@ -2,6 +2,7 @@
 import type { UseQueryEntryPayload } from '../../shared/query-serialized'
 import { computed, ref } from 'vue'
 import { Pane, Splitpanes } from '@posva/splitpanes'
+import { useDuplexChannel } from '../composables/duplex-channel'
 
 const searchQuery = ref('')
 
@@ -28,17 +29,11 @@ const filteredItems = computed(() => {
   })
 })
 
+const channel = useDuplexChannel()
+
 // TODO: move to a rpc instance
 function clearCache() {
-  // Send message to clear query cache
-  const port = ports?.[1]
-  if (port) {
-    port.postMessage({
-      id: 'caches:clear',
-    })
-  }
-  queries.value = []
-
+  channel.emit('queries:clear')
   selectedItemId.value = null
 }
 

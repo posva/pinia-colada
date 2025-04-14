@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
+import { ref, watch, onMounted, onUnmounted, computed, provide } from 'vue'
 import type { UseQueryEntryPayload, DevtoolsEmits, AppEmits } from '@pinia/colada-devtools/shared'
 import { MessagePortEmitter } from '@pinia/colada-devtools/shared'
+import { DUPLEX_CHANNEL_KEY } from './composables/duplex-channel'
 
 const { port, isPip } = defineProps<{
   port: MessagePort
@@ -14,6 +15,8 @@ const emit = defineEmits<{
   ready: []
 }>()
 const events = new MessagePortEmitter<DevtoolsEmits, AppEmits>(port)
+provide(DUPLEX_CHANNEL_KEY, events)
+
 events.on('ping', () => {
   console.log('Received ping from App')
   events.emit('pong')
@@ -52,7 +55,7 @@ const activeTab = ref<'queries' | 'mutations'>('queries')
   <PiPContainer id="root" :is-pip>
     <main class="w-full h-full grid grid-rows-[auto_1fr] bg-ui-bg text-ui-text">
       <!-- Merged Header with Tabs Navigation -->
-      <div class="flex items-center border-b border-(--ui-border)">
+      <div class="flex items-center border-b border-(--ui-border) select-none">
         <!-- Logo -->
         <div class="flex items-center p-2 mr-2">
           <span class="text-xl">🍹</span>
@@ -60,26 +63,20 @@ const activeTab = ref<'queries' | 'mutations'>('queries')
 
         <!-- Tabs -->
         <RouterLink
-          class="px-4 py-2 font-medium transition-colors relative"
-          active-class="text-primary-500"
-          to="/queries"
+          v-for="link in ['/queries', '/mutations']"
+          :key="link"
+          v-slot="{ isActive, href, navigate }"
+          custom
+          :to="link"
         >
-          Queries
-          <div
-            v-if="$route.path === '/queries'"
-            class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-500"
-          />
-        </RouterLink>
-        <RouterLink
-          class="px-4 py-2 font-medium transition-colors relative"
-          active-class="'text-primary-500'"
-          to="/mutations"
-        >
-          Mutations
-          <div
-            v-if="activeTab === 'mutations'"
-            class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-500"
-          />
+          <a
+            :href
+            :class="isActive ? 'border-theme' : 'border-transparent text-(--ui-text-dimmed)'"
+            class="px-4 py-2 font-medium transition-colors relative theme-primary border-b-2 hover:border-theme-300"
+            @click="navigate"
+          >
+            {{ link.slice(1, 2).toUpperCase() + link.slice(2) }}
+          </a>
         </RouterLink>
 
         <div class="flex-grow" />
