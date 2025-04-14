@@ -17,6 +17,7 @@ declare module 'vue' {
     PiPContainer: typeof import('./src/panel/components/PiPContainer.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    UButton: typeof import('./src/panel/components/UButton.ce.vue')['default']
     'UButton.ce': typeof import('./src/panel/components/UButton.ce.vue')['default']
     UInput: typeof import('./src/panel/components/UInput.ce.vue')['default']
     'UInput.ce': typeof import('./src/panel/components/UInput.ce.vue')['default']

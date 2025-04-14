@@ -46,16 +46,13 @@ events.on('queries:all', (q) => {
   console.log('Received queries from App', q)
   queries.value = q
 })
-
-// Tab management
-const activeTab = ref<'queries' | 'mutations'>('queries')
 </script>
 
 <template>
   <PiPContainer id="root" :is-pip>
     <main class="w-full h-full grid grid-rows-[auto_1fr] bg-ui-bg text-ui-text">
       <!-- Merged Header with Tabs Navigation -->
-      <div class="flex items-center border-b border-(--ui-border) select-none">
+      <div class="flex items-center border-b border-(--ui-border) select-none pt-2">
         <!-- Logo -->
         <div class="flex items-center p-2 mr-2">
           <span class="text-xl">🍹</span>
@@ -72,7 +69,7 @@ const activeTab = ref<'queries' | 'mutations'>('queries')
           <a
             :href
             :class="isActive ? 'border-theme' : 'border-transparent text-(--ui-text-dimmed)'"
-            class="px-4 py-2 font-medium transition-colors relative theme-primary border-b-2 hover:border-theme-300"
+            class="px-4 py-2 font-medium transition-colors hover:bg-theme-400 relative theme-primary border-b-2 hover:border-theme-300"
             @click="navigate"
           >
             {{ link.slice(1, 2).toUpperCase() + link.slice(2) }}
@@ -82,14 +79,14 @@ const activeTab = ref<'queries' | 'mutations'>('queries')
         <div class="flex-grow" />
 
         <!-- PiP toggle button -->
-        <button
-          class="p-2 rounded hover:bg-ui-bg-elevated transition-colors"
+        <UButton
+          class="theme-ghost"
           :title="isPip ? 'Close popup' : 'Open in popup'"
           @click="emit('togglePip')"
         >
           <i-carbon-popup v-if="!isPip" class="w-5 h-5" />
           <i-carbon-close v-else class="w-5 h-5" />
-        </button>
+        </UButton>
       </div>
 
       <RouterView />
