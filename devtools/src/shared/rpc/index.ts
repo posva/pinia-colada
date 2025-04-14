@@ -4,6 +4,9 @@ import type { UseQueryEntryPayload } from '../query-serialized'
 export class MessagePortEmitter<
   const Emits extends Record<EmitsKeys, any[]>,
   const Listens extends Record<ListensKeys, [...any[]]>,
+  // TODO: this seems to be enough. Test it
+  // const Emits extends Record<keyof Emits, [...any[]]>,
+  // const Listens extends Record<keyof Listens, [...any[]]>,
   // NOTE: we need these two to avoid requiring the interface to have an index signature for string
   EmitsKeys extends keyof Emits = keyof Emits,
   ListensKeys extends keyof Listens = keyof Listens,
