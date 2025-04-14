@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
 import type { UseQueryEntryPayload, DevtoolsEmits, AppEmits } from '@pinia/colada-devtools/shared'
 import { MessagePortEmitter } from '@pinia/colada-devtools/shared'
-import PiPContainer from './components/PiPContainer.vue'
 
 const { ports, isPip } = defineProps<{
   ports: [port1: MessagePort, port2: MessagePort]
@@ -50,10 +49,10 @@ const activeTab = ref<'queries' | 'mutations'>('queries')
 </script>
 
 <template>
-  <PiPContainer :is-pip>
-    <main id="main" class="w-full h-full flex flex-col bg-ui-bg text-ui-text">
+  <PiPContainer id="root" :is-pip>
+    <main class="w-full h-full grid grid-rows-[auto_1fr] bg-ui-bg text-ui-text">
       <!-- Merged Header with Tabs Navigation -->
-      <div class="flex items-center border-b border-ui-border">
+      <div class="flex items-center border-b border-(--ui-border)">
         <!-- Logo -->
         <div class="flex items-center p-2 mr-2">
           <span class="text-xl">🍹</span>

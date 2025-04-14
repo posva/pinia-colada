@@ -9,6 +9,7 @@ import './style.css'
 import 'water.css'
 
 const app = createApp(App)
+app.provide('test', 'IT WORKS!')
 app.use(createPinia())
 app.use(PiniaColada, {})
 

@@ -74,6 +74,7 @@ export class MessagePortEmitter<
 
 export interface AppEmits {
   'queries:all': [entries: UseQueryEntryPayload[]]
+  'mutations:all': [entries: unknown[]]
   'ping': []
   'pong': []
 }

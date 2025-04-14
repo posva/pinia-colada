@@ -15,13 +15,13 @@ const colorTheme = computed(() => {
 
 const containerClasses = computed(() => {
   return isPip
-    ? []
-    : ['fixed', 'max-h-[80%]', 'bottom-0', 'left-0', 'right-0', 'overflow-hidden', 'z-[9999]']
+    ? ['h-full']
+    : ['fixed', 'max-h-[80%]', 'min-h-[20vh]', 'bottom-0', 'left-0', 'right-0', 'overflow-hidden', 'z-[9999]', 'h-[500px]']
 })
 </script>
 
 <template>
-  <div id="root" :class="[colorTheme, containerClasses]" class="">
+  <aside :class="[colorTheme, containerClasses]" class="w-full ">
     <slot />
-  </div>
+  </aside>
 </template>

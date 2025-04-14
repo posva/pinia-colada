@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef, watch } from 'vue'
+import { inject, onBeforeUnmount, shallowRef, useTemplateRef, watch } from 'vue'
 import { useQueryCache } from '@pinia/colada'
 import {
   createQueryEntryPayload,
@@ -49,44 +49,26 @@ queryCache.$onAction(({ name, after, onError }) => {
 
 const devtoolsEl = useTemplateRef<HTMLElement>('devtools')
 
-const mc = shallowRef<MessageChannel | null>(null)
-
-function onMessage(e: MessageEvent) {
-  console.log('Received message from devtools', e.data)
-}
-
-let transmitter: MessagePortEmitter<AppEmits, DevtoolsEmits>
-
-onMounted(async () => {
-  mc.value = new MessageChannel()
-
-  transmitter = new MessagePortEmitter<AppEmits, DevtoolsEmits>(mc.value.port1)
-
-  transmitter.on('ping', () => {
-    console.log('Received ping from devtools')
-    transmitter.emit('pong')
-  })
-  transmitter.on('pong', () => {
-    console.log('Received pong from devtools')
-  })
-
-  // define the component once
-  if (!customElements.get('pinia-colada-devtools-panel')) {
-    const { DevtoolsPanel } = await import('@pinia/colada-devtools/panel')
-    customElements.define('pinia-colada-devtools-panel', DevtoolsPanel)
-  }
-})
-
+const mc = shallowRef(new MessageChannel())
+const transmitter = new MessagePortEmitter<AppEmits, DevtoolsEmits>(mc.value.port1)
 watch(
   mc,
   (mc) => {
-    if (!mc) return
-    // the first time, transmitter is still undefined
-    transmitter?.setPort(mc.port1)
+    transmitter.setPort(mc.port1)
   },
   { flush: 'sync' },
 )
 
+// DEBUG
+transmitter.on('ping', () => {
+  console.log('[App] Received ping from devtools')
+  transmitter.emit('pong')
+})
+transmitter.on('pong', () => {
+  console.log('[App] Received pong from devtools')
+})
+
+// PiP window handling
 const pipWindow = shallowRef<Window | null>(null)
 
 watch(pipWindow, () => {
@@ -117,18 +99,20 @@ function openPiPWindow() {
     throw new Error('No devtools elemnt found for Pinia Colada devtools')
   }
 
-  const devtoolsRootEl = devtools.shadowRoot.getElementById('main')
+  const devtoolsRootEl = devtools.shadowRoot.getElementById('root')
 
   if (!devtoolsRootEl) {
     throw new Error('No devtools root element found for Pinia Colada devtools')
   }
 
-  console.info(`Opening PiP window ${devtoolsRootEl.offsetWidth}x${devtoolsRootEl.offsetHeight}`)
+  const windowWidth = Math.max(devtoolsRootEl.offsetWidth, 400)
+  const windowHeight = Math.max(devtoolsRootEl.offsetHeight, 400)
+  console.info(`Opening PiP window ${windowWidth}x${windowHeight}`)
 
   const pip = window.open(
     '',
     'pinia-colada-devtools',
-    `popup,width=${devtoolsRootEl.offsetWidth},height=${devtoolsRootEl.offsetHeight}`,
+    `popup,width=${windowWidth},height=${windowHeight}`,
   )
 
   if (!pip) {
@@ -190,23 +174,21 @@ function togglePiPWindow() {
 function devtoolsOnReady() {
   attachCssPropertyRules(devtoolsEl.value)
   transmitter.emit('queries:all', queryCache.getEntries({}).map(createQueryEntryPayload))
+  transmitter.emit('mutations:all', queryCache.getEntries({}).map(createQueryEntryPayload))
 }
 </script>
 
 <template>
-  <template v-if="mc">
-    <button @click="transmitter.emit('ping')">Send message</button>
-    <!--
+  <!--
       NOTE:we need to keep the pinia-colada-devtools-panel component as the root without wrappers so it is reused
     -->
-    <Teleport :to="pipWindow ? pipWindow.document.body : 'body'">
-      <pinia-colada-devtools-panel
-        ref="devtools"
-        :isPip.prop="!!pipWindow"
-        :ports.prop="[mc.port1, mc.port2]"
-        @toggle-pip="togglePiPWindow()"
-        @ready="devtoolsOnReady()"
-      />
-    </Teleport>
-  </template>
+  <Teleport :to="pipWindow ? pipWindow.document.body : 'body'">
+    <pinia-colada-devtools-panel
+      ref="devtools"
+      :isPip.prop="!!pipWindow"
+      :ports.prop="[mc.port1, mc.port2]"
+      @toggle-pip="togglePiPWindow()"
+      @ready="devtoolsOnReady()"
+    />
+  </Teleport>
 </template>

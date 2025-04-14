@@ -29,10 +29,14 @@
   --ui-bg-accented: light-dark(var(--color-gray-200), var(--color-gray-700));
   --ui-bg-inverted: light-dark(var(--color-gray-900), var(--color-white));
 
-  --ui-border: light-dark(var(--color-gray-200), var(--color-gray-800));
-  --ui-border-muted: light-dark(var(--color-gray-200), var(--color-gray-700));
-  --ui-border-accented: light-dark(var(--color-gray-300), var(--color-gray-700));
-  --ui-border-inverted: light-dark(var(--color-gray-900), var(--color-white));
+  /* --ui-border: light-dark(var(--color-gray-200), var(--color-gray-800)); */
+  --ui-border: color-mix(in hsl, var(--ui-text) 20%, transparent);
+  --ui-border-muted: color-mix(in hsl, var(--ui-text-muted) 10%, transparent);
+  --ui-border-accented: color-mix(in hsl, var(--ui-text) 35%, transparent);
+  --ui-border-inverted: color-mix(in hsl, var(--ui-text-inverted) 50%, transparent);
+  /* --ui-border-muted: light-dark(var(--color-gray-200), var(--color-gray-700)); */
+  /* --ui-border-accented: light-dark(var(--color-gray-300), var(--color-gray-700)); */
+  /* --ui-border-inverted: light-dark(var(--color-gray-900), var(--color-white)); */
 }
 
 :host:has(.dark) {
