@@ -3,8 +3,8 @@ import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
 import type { UseQueryEntryPayload, DevtoolsEmits, AppEmits } from '@pinia/colada-devtools/shared'
 import { MessagePortEmitter } from '@pinia/colada-devtools/shared'
 
-const { ports, isPip } = defineProps<{
-  ports: [port1: MessagePort, port2: MessagePort]
+const { port, isPip } = defineProps<{
+  port: MessagePort
   isPip: boolean
 }>()
 
@@ -13,7 +13,7 @@ const emit = defineEmits<{
   closePip: []
   ready: []
 }>()
-const events = new MessagePortEmitter<DevtoolsEmits, AppEmits>(ports[1])
+const events = new MessagePortEmitter<DevtoolsEmits, AppEmits>(port)
 events.on('ping', () => {
   console.log('Received ping from App')
   events.emit('pong')
@@ -22,7 +22,7 @@ events.on('pong', () => {
   console.log('Received pong from App')
 })
 watch(
-  () => ports[1],
+  () => port,
   (port, _old) => {
     events.setPort(port)
   },

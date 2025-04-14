@@ -186,7 +186,7 @@ function devtoolsOnReady() {
     <pinia-colada-devtools-panel
       ref="devtools"
       :isPip.prop="!!pipWindow"
-      :ports.prop="[mc.port1, mc.port2]"
+      :port.prop="mc.port2"
       @toggle-pip="togglePiPWindow()"
       @ready="devtoolsOnReady()"
     />
