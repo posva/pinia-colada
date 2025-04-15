@@ -3,13 +3,14 @@
  *
  */
 
-import type { QueryCache } from '@pinia/colada'
+import type { AsyncStatus, DataState, QueryCache, UseQueryEntry } from '@pinia/colada'
+import type { UnwrapRef } from 'vue'
 
 /**
  * Delays the `asyncStatus` of a query by a certain amount of time to avoid flickering between refreshes.
  * @param options - Pinia Colada Delay Loading plugin options
  */
-export function addRequestCount(queryCache: QueryCache): void {
+export function addDevtoolsInfo(queryCache: QueryCache): void {
   if (installationMap.has(queryCache)) {
     return
   }
@@ -18,32 +19,68 @@ export function addRequestCount(queryCache: QueryCache): void {
   queryCache.$onAction(({ name, args, after, onError }) => {
     if (name === 'create') {
       after((entry) => {
-        entry[FETCH_COUNT_KEY] = {
-          total: 0,
-          success: 0,
-          error: 0,
-          cancelled: 0,
+        entry[DEVTOOLS_INFO_KEY] = {
+          count: {
+            total: 0,
+            succeed: 0,
+            errored: 0,
+            cancelled: 0,
+          },
+          history: [],
         }
       })
     } else if (name === 'fetch') {
       const [entry] = args
-      entry[FETCH_COUNT_KEY].total++
+      entry[DEVTOOLS_INFO_KEY].count.total++
       after(() => {
-        entry[FETCH_COUNT_KEY].success++
+        entry[DEVTOOLS_INFO_KEY].count.succeed++
+        entry[DEVTOOLS_INFO_KEY].history.unshift({
+          key: entry.key,
+          state: entry.state.value,
+          updatedAt: Date.now(),
+        })
+        // limit history to 10 entries
+        entry[DEVTOOLS_INFO_KEY].history = entry[DEVTOOLS_INFO_KEY].history.slice(0, 10)
       })
       onError(() => {
-        entry[FETCH_COUNT_KEY].error++
+        entry[DEVTOOLS_INFO_KEY].count.errored++
+        entry[DEVTOOLS_INFO_KEY].history.unshift({
+          key: entry.key,
+          state: entry.state.value,
+          updatedAt: Date.now(),
+        })
+        // limit history to 10 entries
+        entry[DEVTOOLS_INFO_KEY].history = entry[DEVTOOLS_INFO_KEY].history.slice(0, 10)
       })
     } else if (name === 'cancel') {
       const [entry] = args
       if (entry.pending) {
-        entry[FETCH_COUNT_KEY].cancelled++
+        entry[DEVTOOLS_INFO_KEY].count.cancelled++
       }
     }
   })
 }
 
-export const FETCH_COUNT_KEY = Symbol('fetch-count-pinia-colada-plugin')
+export const DEVTOOLS_INFO_KEY = Symbol('fetch-count-pinia-colada-plugin')
+
+export interface UseQueryEntryHistoryEntry extends Pick<UseQueryEntry, 'key'> {
+  state: DataState<unknown, unknown, unknown>
+  updatedAt: number
+}
+
+export interface UseQueryDevtoolsInfo {
+  count: {
+    succeed: number
+    errored: number
+    cancelled: number
+    total: number
+  }
+
+  /**
+   * Only the last 10 entries are kept.
+   */
+  history: UseQueryEntryHistoryEntry[]
+}
 
 declare module '@pinia/colada' {
   // eslint-disable-next-line unused-imports/no-unused-vars
@@ -51,12 +88,7 @@ declare module '@pinia/colada' {
     /**
      * Returns whether the query is currently delaying its `asyncStatus` from becoming `'loading'`. Requires the {@link PiniaColadaDelay} plugin.
      */
-    [FETCH_COUNT_KEY]: {
-      total: number
-      success: number
-      error: number
-      cancelled: number
-    }
+    [DEVTOOLS_INFO_KEY]: UseQueryDevtoolsInfo
   }
 }
 

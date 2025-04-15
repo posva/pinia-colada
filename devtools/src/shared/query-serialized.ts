@@ -1,6 +1,6 @@
 import type { RefetchOnControl, UseQueryEntry, UseQueryOptionsWithDefaults } from '@pinia/colada'
 import { toValue } from 'vue'
-import { FETCH_COUNT_KEY } from './plugins/fetch-count'
+import { DEVTOOLS_INFO_KEY } from './plugins/fetch-count'
 
 export interface UseQueryEntryPayload {
   id: string
@@ -16,7 +16,7 @@ export interface UseQueryEntryPayload {
   deps: UseQueryEntryPayloadDep[]
   gcTimeout: number | null
 
-  count: UseQueryEntry[typeof FETCH_COUNT_KEY]
+  devtools: UseQueryEntry[typeof DEVTOOLS_INFO_KEY]
 }
 
 export interface UseQueryEntryPayloadDepComponent {
@@ -77,7 +77,7 @@ export function createQueryEntryPayload(entry: UseQueryEntry): UseQueryEntryPayl
     ),
     gcTimeout: typeof entry.gcTimeout === 'number' ? (entry.gcTimeout as number) : null,
 
-    count: entry[FETCH_COUNT_KEY],
+    devtools: entry[DEVTOOLS_INFO_KEY],
   }
 }
 

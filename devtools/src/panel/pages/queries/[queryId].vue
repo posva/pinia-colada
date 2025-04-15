@@ -79,7 +79,7 @@ const channel = useDuplexChannel()
         <div class="space-y-2">
           <h4 class="text-sm font-medium">Additional Info</h4>
           <div class="text-sm text-ui-text-muted">
-            {{ selectedItem.count }}
+            {{ selectedItem.devtools.history }}
           </div>
         </div>
       </div>

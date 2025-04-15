@@ -7,13 +7,13 @@ import {
   useEventListener,
 } from '@pinia/colada-devtools/shared'
 import type { AppEmits, DevtoolsEmits } from '@pinia/colada-devtools/shared'
-import { addRequestCount } from './shared/plugins/fetch-count'
+import { addDevtoolsInfo } from './shared/plugins/fetch-count'
 
 console.log('Injected value', inject('test', 'NO'))
 
 const queryCache = useQueryCache()
 
-addRequestCount(queryCache)
+addDevtoolsInfo(queryCache)
 
 // watch(
 //   () => queryCache.getEntries({}),

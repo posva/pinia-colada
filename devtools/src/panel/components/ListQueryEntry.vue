@@ -90,7 +90,7 @@ const status = computed(() => {
       <span
         class="bg-neutral-200 text-(--ui-text) dark:bg-neutral-800 rounded w-4 text-center text-sm ring-inset ring ring-(--ui-text)/30"
         title="Amount of times this query has ran"
-        >{{ entry.count.total }}</span
+        >{{ entry.devtools.count.total }}</span
       >
     </div>
   </RouterLink>
