@@ -1,0 +1,23 @@
+diff --git a/dist/runtime-dom.esm-bundler.js b/dist/runtime-dom.esm-bundler.js
+index ffdd0b26cb8e2aa1a081114df61e753d260310f9..3ce13e5e41e1c548926122967b0d63d63e03042c 100644
+--- a/dist/runtime-dom.esm-bundler.js
++++ b/dist/runtime-dom.esm-bundler.js
+@@ -7,6 +7,7 @@ import { warn, h, BaseTransition, assertNumber, BaseTransitionPropsValidators, g
+ export * from '@vue/runtime-core';
+ import { extend, isObject, toNumber, isArray, NOOP, isString, hyphenate, capitalize, includeBooleanAttr, isSymbol, isSpecialBooleanAttr, isFunction, isOn, isModelListener, camelize as camelize$1, isPlainObject, hasOwn, EMPTY_OBJ, looseToNumber, looseIndexOf, isSet, looseEqual, invokeArrayFns, isHTMLTag, isSVGTag, isMathMLTag } from '@vue/shared';
+ 
++console.log('👏👏👏👏👏👏')
+ let policy = void 0;
+ const tt = typeof window !== "undefined" && window.trustedTypes;
+ if (tt) {
+@@ -1082,7 +1083,9 @@ class VueElement extends BaseClass {
+     }
+   }
+   _update() {
+-    render(this._createVNode(), this._root);
++    const vnode = this._createVNode()
++    if (this._app && !this._instance) vnode.appContext = this._app._context
++    render(vnode, this._root);
+   }
+   _createVNode() {
+     const baseProps = {};
