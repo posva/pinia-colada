@@ -15,37 +15,45 @@ const queryCache = useQueryCache()
 
 addRequestCount(queryCache)
 
-watch(
-  () => queryCache.getEntries({}),
-  (caches) => {
-    transmitter.emit('queries:all', caches.map(createQueryEntryPayload))
-    console.log('Query cache changed', caches)
-  },
-)
+// watch(
+//   () => queryCache.getEntries({}),
+//   (caches) => {
+//     transmitter.emit('queries:all', caches.map(createQueryEntryPayload))
+//     console.log('Query cache changed', caches)
+//   },
+// )
 
-queryCache.$onAction(({ name, after, onError }) => {
-  if (
-    name === 'fetch'
-    || name === 'track'
+queryCache.$onAction(({ name, after, onError, args }) => {
+  if (name === 'remove') {
+    const [entry] = args
+    after(() => {
+      transmitter.emit('queries:delete', createQueryEntryPayload(entry))
+    })
+  } else if (
+    name === 'track'
     || name === 'untrack'
-    || name === 'remove'
-    || name === 'invalidate'
     || name === 'cancel'
+    || name === 'invalidate'
+    || name === 'fetch'
   ) {
+    const [entry] = args
     // TODO: throttle
     after(() => {
-      transmitter.emit('queries:all', queryCache.getEntries({}).map(createQueryEntryPayload))
-      // mc.value?.port1.postMessage({
-      //   id: 'caches:fetch',
-      //   caches: queryCache.getEntries({}).map(createQueryEntryPayload),
-      // })
+      transmitter.emit('queries:update', createQueryEntryPayload(entry))
+
+      // emit an update when the data becomes stale
+      if (
+        name === 'fetch'
+        && entry.options?.staleTime != null
+        && Number.isFinite(entry.options.staleTime)
+      ) {
+        setTimeout(() => {
+          transmitter.emit('queries:update', createQueryEntryPayload(entry))
+        }, entry.options.staleTime)
+      }
     })
     onError(() => {
-      transmitter.emit('queries:all', queryCache.getEntries({}).map(createQueryEntryPayload))
-      // mc.value?.port1.postMessage({
-      //   id: 'caches:fetch',
-      //   caches: queryCache.getEntries({}).map(createQueryEntryPayload),
-      // })
+      transmitter.emit('queries:update', createQueryEntryPayload(entry))
     })
   }
 })

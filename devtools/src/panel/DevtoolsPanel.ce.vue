@@ -44,8 +44,21 @@ onMounted(() => {
 const queries = ref<UseQueryEntryPayload[]>([])
 provide(QUERIES_KEY, queries)
 channel.on('queries:all', (q) => {
-  console.log('Received queries from App', q)
   queries.value = q
+})
+channel.on('queries:update', (q) => {
+  const index = queries.value.findIndex((entry) => entry.id === q.id)
+  if (index !== -1) {
+    queries.value.splice(index, 1, q)
+  } else {
+    queries.value.push(q)
+  }
+})
+channel.on('queries:delete', (q) => {
+  const index = queries.value.findIndex((entry) => entry.id === q.id)
+  if (index !== -1) {
+    queries.value.splice(index, 1)
+  }
 })
 </script>
 

@@ -74,6 +74,8 @@ export class DuplexChannel<
 
 export interface AppEmits {
   'queries:all': [entries: UseQueryEntryPayload[]]
+  'queries:update': [entry: UseQueryEntryPayload]
+  'queries:delete': [entry: UseQueryEntryPayload]
   'mutations:all': [entries: unknown[]]
   'ping': []
   'pong': []

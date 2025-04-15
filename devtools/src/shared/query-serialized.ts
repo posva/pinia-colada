@@ -1,4 +1,4 @@
-import type { UseQueryEntry, UseQueryOptionsWithDefaults } from '@pinia/colada'
+import type { RefetchOnControl, UseQueryEntry, UseQueryOptionsWithDefaults } from '@pinia/colada'
 import { toValue } from 'vue'
 import { FETCH_COUNT_KEY } from './plugins/fetch-count'
 
@@ -36,11 +36,12 @@ export type UseQueryEntryPayloadDep =
   | UseQueryEntryPayloadDepEffect
 
 export interface UseQueryEntryPayloadOptions
-  extends Pick<
-    UseQueryOptionsWithDefaults,
-    'gcTime' | 'staleTime' | 'refetchOnMount' | 'refetchOnReconnect' | 'refetchOnWindowFocus'
-  > {
+  extends Pick<UseQueryOptionsWithDefaults, 'gcTime' | 'staleTime'> {
+  // manually overriden to extract only plain values
   enabled: boolean
+  refetchOnMount: RefetchOnControl
+  refetchOnReconnect: RefetchOnControl
+  refetchOnWindowFocus: RefetchOnControl
 }
 
 export function createQueryEntryPayload(entry: UseQueryEntry): UseQueryEntryPayload {
@@ -56,9 +57,9 @@ export function createQueryEntryPayload(entry: UseQueryEntry): UseQueryEntryPayl
     options: entry.options && {
       staleTime: entry.options.staleTime,
       gcTime: entry.options.gcTime,
-      refetchOnMount: entry.options.refetchOnMount,
-      refetchOnReconnect: entry.options.refetchOnReconnect,
-      refetchOnWindowFocus: entry.options.refetchOnWindowFocus,
+      refetchOnMount: toValue(entry.options.refetchOnMount),
+      refetchOnReconnect: toValue(entry.options.refetchOnReconnect),
+      refetchOnWindowFocus: toValue(entry.options.refetchOnWindowFocus),
       enabled: toValue(entry.options.enabled),
     },
     deps: Array.from(entry.deps).map((dep) =>
