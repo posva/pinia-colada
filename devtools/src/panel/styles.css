@@ -8,8 +8,8 @@
 
   --ui-radius: var(--radius-sm);
 
-  --ui-primary: light-dark(var(--color-primary-500), var(--color-primary-400));
-  --ui-secondary: light-dark(var(--secondary-500), var(--secondary-400));
+  --ui-primary: light-dark(var(--color-secondary-500), var(--color-primary-400));
+  --ui-secondary: light-dark(var(--color-secondary-500), var(--color-secondary-400));
   --ui-success: light-dark(var(--color-success-500), var(--color-success-400));
   --ui-info: light-dark(var(--color-info-500), var(--color-info-400));
   --ui-warning: light-dark(var(--color-warning-500), var(--color-warning-400));
@@ -47,38 +47,70 @@
   color-scheme: light;
 }
 
+[class|='p'] {
+  color: pink;
+  @variant dark {
+    --ui-text: var(--ui-text-inverted);
+  }
+}
+
 /* same as a body selector */
 #root {
   color: var(--ui-text);
   background-color: var(--ui-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  @variant dark {
+    --color-primary-50: var(--color-yellow-50);
+    --color-primary-100: var(--color-yellow-100);
+    --color-primary-200: var(--color-yellow-200);
+    --color-primary-300: var(--color-yellow-300);
+    --color-primary-400: var(--color-yellow-400);
+    --color-primary-500: var(--color-yellow-500);
+    --color-primary-600: var(--color-yellow-600);
+    --color-primary-700: var(--color-yellow-700);
+    --color-primary-800: var(--color-yellow-800);
+    --color-primary-900: var(--color-yellow-900);
+    --color-primary-950: var(--color-yellow-950);
+
+    --color-secondary-50: var(--color-lime-50);
+    --color-secondary-100: var(--color-lime-100);
+    --color-secondary-200: var(--color-lime-200);
+    --color-secondary-300: var(--color-lime-300);
+    --color-secondary-400: var(--color-lime-400);
+    --color-secondary-500: var(--color-lime-500);
+    --color-secondary-600: var(--color-lime-600);
+    --color-secondary-700: var(--color-lime-700);
+    --color-secondary-800: var(--color-lime-800);
+    --color-secondary-900: var(--color-lime-900);
+    --color-secondary-950: var(--color-lime-950);
+  }
 }
 
 @theme static {
-  --color-primary-50: var(--color-yellow-50);
-  --color-primary-100: var(--color-yellow-100);
-  --color-primary-200: var(--color-yellow-200);
-  --color-primary-300: var(--color-yellow-300);
-  --color-primary-400: var(--color-yellow-400);
-  --color-primary-500: var(--color-yellow-500);
-  --color-primary-600: var(--color-yellow-600);
-  --color-primary-700: var(--color-yellow-700);
-  --color-primary-800: var(--color-yellow-800);
-  --color-primary-900: var(--color-yellow-900);
-  --color-primary-950: var(--color-yellow-950);
+  --color-primary-50: var(--color-lime-50);
+  --color-primary-100: var(--color-lime-100);
+  --color-primary-200: var(--color-lime-200);
+  --color-primary-300: var(--color-lime-300);
+  --color-primary-400: var(--color-lime-400);
+  --color-primary-500: var(--color-lime-500);
+  --color-primary-600: var(--color-lime-600);
+  --color-primary-700: var(--color-lime-700);
+  --color-primary-800: var(--color-lime-800);
+  --color-primary-900: var(--color-lime-900);
+  --color-primary-950: var(--color-lime-950);
 
-  --color-secondary-50: var(--color-lime-50);
-  --color-secondary-100: var(--color-lime-100);
-  --color-secondary-200: var(--color-lime-200);
-  --color-secondary-300: var(--color-lime-300);
-  --color-secondary-400: var(--color-lime-400);
-  --color-secondary-500: var(--color-lime-500);
-  --color-secondary-600: var(--color-lime-600);
-  --color-secondary-700: var(--color-lime-700);
-  --color-secondary-800: var(--color-lime-800);
-  --color-secondary-900: var(--color-lime-900);
-  --color-secondary-950: var(--color-lime-950);
+  --color-secondary-50: var(--color-yellow-50);
+  --color-secondary-100: var(--color-yellow-100);
+  --color-secondary-200: var(--color-yellow-200);
+  --color-secondary-300: var(--color-yellow-300);
+  --color-secondary-400: var(--color-yellow-400);
+  --color-secondary-500: var(--color-yellow-500);
+  --color-secondary-600: var(--color-yellow-600);
+  --color-secondary-700: var(--color-yellow-700);
+  --color-secondary-800: var(--color-yellow-800);
+  --color-secondary-900: var(--color-yellow-900);
 
   --color-success-50: var(--color-green-50);
   --color-success-100: var(--color-green-100);
@@ -174,19 +206,35 @@
   --ui-text: var(--ui-text-inverted);
   --ui-bg: var(--color-theme);
 
-  --color-theme: var(--ui-primary);
+  --color-theme: var(--ui-secondary);
 
-  --color-theme-50: var(--color-primary-50);
-  --color-theme-100: var(--color-primary-100);
-  --color-theme-200: var(--color-primary-200);
-  --color-theme-300: var(--color-primary-300);
-  --color-theme-400: var(--color-primary-400);
-  --color-theme-500: var(--color-primary-500);
-  --color-theme-600: var(--color-primary-600);
-  --color-theme-700: var(--color-primary-700);
-  --color-theme-800: var(--color-primary-800);
-  --color-theme-900: var(--color-primary-900);
-  --color-theme-950: var(--color-primary-950);
+  --color-theme-50: var(--color-secondary-50);
+  --color-theme-100: var(--color-secondary-100);
+  --color-theme-200: var(--color-secondary-200);
+  --color-theme-300: var(--color-secondary-300);
+  --color-theme-400: var(--color-secondary-400);
+  --color-theme-500: var(--color-secondary-500);
+  --color-theme-600: var(--color-secondary-600);
+  --color-theme-700: var(--color-secondary-700);
+  --color-theme-800: var(--color-secondary-800);
+  --color-theme-900: var(--color-secondary-900);
+  --color-theme-950: var(--color-secondary-950);
+
+  @variant dark {
+    --color-theme: var(--ui-primary);
+
+    --color-theme-50: var(--color-primary-50);
+    --color-theme-100: var(--color-primary-100);
+    --color-theme-200: var(--color-primary-200);
+    --color-theme-300: var(--color-primary-300);
+    --color-theme-400: var(--color-primary-400);
+    --color-theme-500: var(--color-primary-500);
+    --color-theme-600: var(--color-primary-600);
+    --color-theme-700: var(--color-primary-700);
+    --color-theme-800: var(--color-primary-800);
+    --color-theme-900: var(--color-primary-900);
+    --color-theme-950: var(--color-primary-950);
+  }
 }
 
 .theme-secondary {

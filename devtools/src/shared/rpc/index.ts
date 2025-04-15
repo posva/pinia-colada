@@ -1,7 +1,7 @@
 import type { UseQueryEntryFilter } from '@pinia/colada'
 import type { UseQueryEntryPayload } from '../query-serialized'
 
-export class MessagePortEmitter<
+export class DuplexChannel<
   const Emits extends Record<EmitsKeys, any[]>,
   const Listens extends Record<ListensKeys, [...any[]]>,
   // TODO: this seems to be enough. Test it
@@ -87,9 +87,9 @@ export interface DevtoolsEmits {
 
 export function _testTypes() {
   // the app
-  const client = new MessagePortEmitter<AppEmits, DevtoolsEmits>({} as any)
+  const client = new DuplexChannel<AppEmits, DevtoolsEmits>({} as any)
   // the devtools
-  const server = new MessagePortEmitter<DevtoolsEmits, AppEmits>({} as any)
+  const server = new DuplexChannel<DevtoolsEmits, AppEmits>({} as any)
 
   client.emit('queries:all', [])
   // client.emit('queries:all', [{ id: '', active: false, asyncStatus: 'idle',   }])

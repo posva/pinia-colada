@@ -3,14 +3,17 @@ import { inject, onBeforeUnmount, shallowRef, useTemplateRef, watch } from 'vue'
 import { useQueryCache } from '@pinia/colada'
 import {
   createQueryEntryPayload,
-  MessagePortEmitter,
+  DuplexChannel,
   useEventListener,
 } from '@pinia/colada-devtools/shared'
 import type { AppEmits, DevtoolsEmits } from '@pinia/colada-devtools/shared'
+import { addRequestCount } from './shared/plugins/fetch-count'
 
 console.log('Injected value', inject('test', 'NO'))
 
 const queryCache = useQueryCache()
+
+addRequestCount(queryCache)
 
 watch(
   () => queryCache.getEntries({}),
@@ -50,7 +53,7 @@ queryCache.$onAction(({ name, after, onError }) => {
 const devtoolsEl = useTemplateRef<HTMLElement>('devtools')
 
 const mc = shallowRef(new MessageChannel())
-const transmitter = new MessagePortEmitter<AppEmits, DevtoolsEmits>(mc.value.port1)
+const transmitter = new DuplexChannel<AppEmits, DevtoolsEmits>(mc.value.port1)
 watch(
   mc,
   (mc) => {
@@ -171,10 +174,14 @@ function togglePiPWindow() {
   }
 }
 
-function devtoolsOnReady() {
+async function devtoolsOnReady() {
   attachCssPropertyRules(devtoolsEl.value)
   transmitter.emit('queries:all', queryCache.getEntries({}).map(createQueryEntryPayload))
-  transmitter.emit('mutations:all', queryCache.getEntries({}).map(createQueryEntryPayload))
+  transmitter.emit(
+    'mutations:all',
+    // FIXME: mutations
+    queryCache.getEntries({}).map(createQueryEntryPayload),
+  )
 }
 </script>
 

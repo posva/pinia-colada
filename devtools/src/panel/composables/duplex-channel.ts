@@ -1,8 +1,13 @@
-import type { AppEmits, DevtoolsEmits, MessagePortEmitter } from '@pinia/colada-devtools/shared'
+import type {
+  AppEmits,
+  DevtoolsEmits,
+  DuplexChannel,
+  UseQueryEntryPayload,
+} from '@pinia/colada-devtools/shared'
 import { inject } from 'vue'
-import type { InjectionKey } from 'vue'
+import type { InjectionKey, Ref } from 'vue'
 
-export const DUPLEX_CHANNEL_KEY: InjectionKey<MessagePortEmitter<DevtoolsEmits, AppEmits>>
+export const DUPLEX_CHANNEL_KEY: InjectionKey<DuplexChannel<DevtoolsEmits, AppEmits>>
   = Symbol('duplex-channel')
 
 export function useDuplexChannel() {
@@ -13,4 +18,16 @@ export function useDuplexChannel() {
     )
   }
   return channel
+}
+
+export const QUERIES_KEY: InjectionKey<Ref<UseQueryEntryPayload[]>> = Symbol('queries')
+
+export function useQueryEntries() {
+  const entries = inject(QUERIES_KEY)
+  if (!entries) {
+    throw new Error(
+      'The query entries are not provided. Make sure to use it inside the context of a component that provides it.',
+    )
+  }
+  return entries
 }

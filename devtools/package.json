@@ -59,7 +59,7 @@
     "@iconify-json/carbon": "^1.2.8",
     "@iconify-json/mdi": "^1.2.3",
     "@pinia/colada": "workspace:^*",
-    "@posva/splitpanes": "^4.0.4",
+    "@posva/splitpanes": "^4.0.6",
     "@tailwindcss/vite": "^4.1.3",
     "@vueuse/core": "^13.0.0",
     "mande": "^2.0.9",

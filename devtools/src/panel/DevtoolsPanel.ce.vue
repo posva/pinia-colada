@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, provide } from 'vue'
+import { ref, watch, onMounted, onUnmounted, provide, onErrorCaptured } from 'vue'
 import type { UseQueryEntryPayload, DevtoolsEmits, AppEmits } from '@pinia/colada-devtools/shared'
-import { MessagePortEmitter } from '@pinia/colada-devtools/shared'
-import { DUPLEX_CHANNEL_KEY } from './composables/duplex-channel'
+import { DuplexChannel } from '@pinia/colada-devtools/shared'
+import { DUPLEX_CHANNEL_KEY, QUERIES_KEY } from './composables/duplex-channel'
 
 const { port, isPip } = defineProps<{
   port: MessagePort
@@ -14,35 +14,36 @@ const emit = defineEmits<{
   closePip: []
   ready: []
 }>()
-const events = new MessagePortEmitter<DevtoolsEmits, AppEmits>(port)
-provide(DUPLEX_CHANNEL_KEY, events)
+const channel = new DuplexChannel<DevtoolsEmits, AppEmits>(port)
+provide(DUPLEX_CHANNEL_KEY, channel)
 
-events.on('ping', () => {
-  console.log('Received ping from App')
-  events.emit('pong')
+channel.on('ping', () => {
+  console.log('[Devtools] Received ping from App')
+  channel.emit('pong')
 })
-events.on('pong', () => {
-  console.log('Received pong from App')
+channel.on('pong', () => {
+  console.log('[Devtools] Received pong from App')
 })
+
 watch(
   () => port,
   (port, _old) => {
-    events.setPort(port)
+    channel.setPort(port)
   },
 )
 onUnmounted(() => {
-  events.stop()
+  channel.stop()
 })
 
 onMounted(() => {
   emit('ready')
-  events.emit('ping')
+  channel.emit('ping')
 })
 
 // Data stores
 const queries = ref<UseQueryEntryPayload[]>([])
-// const mutations = ref<any[]>([]) // Placeholder for mutation data
-events.on('queries:all', (q) => {
+provide(QUERIES_KEY, queries)
+channel.on('queries:all', (q) => {
   console.log('Received queries from App', q)
   queries.value = q
 })

@@ -159,7 +159,10 @@
       "@ast-grep/cli",
       "esbuild",
       "simple-git-hooks"
-    ]
+    ],
+    "patchedDependencies": {
+      "@vue/runtime-dom": "patches/@vue__runtime-dom.patch"
+    }
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm lint-staged",

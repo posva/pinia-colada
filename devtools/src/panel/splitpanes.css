@@ -7,7 +7,7 @@
 
 .splitpanes__splitter {
   /* background-color: #9ca3af33; */
-  background-color: color-mix(in hsl, var(--ui-text) 20%, transparent);
+  background-color: color-mix(in lab, var(--ui-text) 20%, var(--ui-bg));
 }
 
 /* .splitpanes--horizontal > div { */
@@ -42,6 +42,6 @@
 /* .splitpanes--dragging .splitpanes__splitter::before, */
 .splitpanes__splitter:hover::before {
   /* background-color: color-mix(in hsl, var(--ui-text) 20%, transparent); */
-  background-color: color-mix(in srgb, var(--ui-text) 20%, transparent);
+  background-color: color-mix(in lab, var(--ui-text), transparent 75%);
   opacity: 1;
 }

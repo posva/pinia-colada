@@ -19,40 +19,70 @@ const formattedKey = computed(() => {
     return value && typeof value === 'object' ? miniJsonParse(value) : String(value)
   })
 })
+
+const status = computed(() => {
+  if (entry.asyncStatus === 'loading') {
+    return 'loading'
+  }
+  if (entry.state.status === 'error') {
+    return 'error'
+  }
+  if (entry.stale) {
+    return 'stale'
+  }
+  if (entry.state.status === 'success') {
+    return 'success'
+  }
+
+  return 'unknown'
+})
 </script>
 
 <template>
   <RouterLink
     v-slot="{ isActive, navigate, href }"
-    :to="{ name: '/queries.[[queryId]]', params: { queryId: entry.id } }"
+    :to="{ name: '/queries/[queryId]', params: { queryId: entry.id } }"
     custom
   >
     <div
-      class="grid grid-cols-[minmax(0,auto)_1fr] grid-flow-col items-center gap-x-2 p-1"
+      class="grid grid-cols-[minmax(0,auto)_1fr] grid-flow-col items-center gap-x-1 p-1 pr-3 relative"
       :class="
-        isActive ? 'bg-primary-300 dark:text-(--ui-text-inverted)' : 'hover:bg-(--ui-bg-elevated)'
+        isActive ? 'bg-neutral-200 dark:bg-neutral-700' : 'hover:bg-(--ui-bg-elevated)'
       "
     >
-      <!-- <div class="flex items-center gap-1"> -->
-      <i-carbon-intent-request-inactive
-        v-if="entry.asyncStatus === 'loading'"
-        class="size-4 animate-spin"
-      />
-      <i-carbon-warning v-else-if="entry.stale" class="size-4" />
-      <i-carbon-checkmark v-else class="size-4" />
+      <div
+        class="h-full w-1 relative"
+        :class="{
+          'theme-neutral': status === 'loading',
+          'theme-success': status === 'success',
+          'theme-error': status === 'error',
+          'theme-info': status === 'stale',
+          'theme-warning': status === 'unknown',
+        }"
+      >
+        <div class="absolute -inset-1 bg-theme right-0" :title="status" />
+        <!-- <i-carbon-intent-request-inactive -->
+        <!--   v-if="status === 'loading'" -->
+        <!--   class="animate-spin" -->
+        <!-- /> -->
+        <!-- <i-carbon-warning v-else-if="status === 'error'" class="" /> -->
+        <!-- <i-carbon-checkmark v-else-if="status === 'stale' || status === 'success'" class="" /> -->
+      </div>
 
-      <a :href class="hover:cursor-pointer block" @click="navigate">
-        <ol class="flex font-mono flex-grow">
-          <li
-            v-for="key of formattedKey"
-            class="relative after:absolute after:inset-0 after:contents not-last:after:content-['/']"
-          >
-            {{ key }}
-          </li>
+      <a :href class="hover:cursor-pointer block overflow-hidden" @click="navigate">
+        <ol class="flex font-mono flex-grow gap-0.5 overflow-auto items-center">
+          <template v-for="(key, i) in formattedKey">
+            <li class="text-wrap break-words rounded bg-(--ui-text)/5 px-0.5">{{ key }}</li>
+            <li v-if="i < formattedKey.length - 1" aria-hidden="true">/</li>
+          </template>
         </ol>
       </a>
 
-      <pre>{{ 7 }}</pre>
+      <span
+        class="bg-neutral-200 text-(--ui-text) dark:bg-neutral-800 rounded w-4 text-center text-sm ring-inset ring ring-(--ui-text)/30"
+        title="Amount of times this query has ran"
+        >{{ entry.count.total }}</span
+      >
     </div>
   </RouterLink>
 </template>
