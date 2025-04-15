@@ -33,6 +33,9 @@ const status = computed(() => {
   if (entry.state.status === 'success') {
     return 'success'
   }
+  if (entry.state.status === 'pending') {
+    return 'pending'
+  }
 
   return 'unknown'
 })
@@ -46,9 +49,10 @@ const status = computed(() => {
   >
     <div
       class="grid grid-cols-[minmax(0,auto)_1fr] grid-flow-col items-center gap-x-1 p-1 pr-3 relative"
-      :class="
-        isActive ? 'bg-neutral-200 dark:bg-neutral-700' : 'hover:bg-(--ui-bg-elevated)'
-      "
+      :class="[
+        isActive ? 'bg-neutral-200 dark:bg-neutral-700' : 'hover:bg-(--ui-bg-elevated)',
+        entry.active ? '' : 'text-(--ui-text)/50',
+      ]"
     >
       <div
         class="h-full w-1 relative"
@@ -57,7 +61,7 @@ const status = computed(() => {
           'theme-success': status === 'success',
           'theme-error': status === 'error',
           'theme-info': status === 'stale',
-          'theme-warning': status === 'unknown',
+          'theme-warning': status === 'pending',
         }"
       >
         <div class="absolute -inset-1 bg-theme right-0" :title="status" />
@@ -69,9 +73,14 @@ const status = computed(() => {
         <!-- <i-carbon-checkmark v-else-if="status === 'stale' || status === 'success'" class="" /> -->
       </div>
 
-      <a :href class="hover:cursor-pointer block overflow-hidden" @click="navigate">
+      <a
+        :href
+        class="hover:cursor-pointer block overflow-hidden"
+        :title="entry.active ? 'Active query' : 'Inactive query'"
+        @click="navigate"
+      >
         <ol class="flex font-mono flex-grow gap-0.5 overflow-auto items-center">
-          <template v-for="(key, i) in formattedKey">
+          <template v-for="(key, i) in formattedKey" :key="key">
             <li class="text-wrap break-words rounded bg-(--ui-text)/5 px-0.5">{{ key }}</li>
             <li v-if="i < formattedKey.length - 1" aria-hidden="true">/</li>
           </template>

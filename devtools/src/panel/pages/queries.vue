@@ -59,7 +59,7 @@ function clearCache() {
       <!-- List Panel -->
       <Pane min-size="15" :size="30" class="flex flex-col">
         <ol role="list" class="divide-y divide-(--ui-border)">
-          <li v-for="entry of filteredItems">
+          <li v-for="entry of filteredItems" :key="entry.id">
             <ListQueryEntry :entry />
           </li>
         </ol>
