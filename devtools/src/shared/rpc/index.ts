@@ -77,12 +77,16 @@ export interface AppEmits {
   'queries:update': [entry: UseQueryEntryPayload]
   'queries:delete': [entry: UseQueryEntryPayload]
   'mutations:all': [entries: unknown[]]
+
+  // for testing
   'ping': []
   'pong': []
 }
 
 export interface DevtoolsEmits {
   'queries:clear': [] | [filters: UseQueryEntryFilter]
+
+  // for testing
   'ping': []
   'pong': []
 }

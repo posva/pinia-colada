@@ -9,30 +9,32 @@ const searchQuery = ref('')
 
 const queries = useQueryEntries()
 
-const route = useRoute('/queries/[queryId]')
+const filteredItems = computed(() => {
+  let items = queries.value
 
-// Selection management
-const selectedItem = computed<UseQueryEntryPayload | null>(() => {
-  if (!route.params.queryId) return null
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    items = items.filter((item) => {
+      const searchable = item.key
+      return searchable.some((v) => String(v).toLowerCase().includes(query))
+    })
+  }
 
-  return queries.value.find((entry) => entry.id === route.params.queryId) ?? null
+  // sort by last updatedAt
+  return items.sort((a, b) => {
+    return b.devtools.history[0]!.updatedAt - a.devtools.history[0]!.updatedAt
+  })
 })
 
-// Filter items based on search query
-const filteredItems = computed(() => {
-  const items = queries.value
-  if (!searchQuery.value) return items
-
-  const query = searchQuery.value.toLowerCase()
-  return items.filter((item) => {
-    const searchable = item.key
-    return searchable.some((v) => String(v).toLowerCase().includes(query))
-  })
+const queriesGrouped = computed(() => {
+  return Object.groupBy(
+    filteredItems.value,
+    (item) => item.asyncStatus.value === 'loading' ? 'loading' : item.state.status,
+  )
 })
 
 const channel = useDuplexChannel()
 
-// TODO: move to a rpc instance
 function clearCache() {
   channel.emit('queries:clear')
 }

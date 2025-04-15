@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, onBeforeUnmount, shallowRef, useTemplateRef, watch } from 'vue'
+import { onBeforeUnmount, shallowRef, useTemplateRef, watch } from 'vue'
 import { useQueryCache } from '@pinia/colada'
 import {
   createQueryEntryPayload,
@@ -9,19 +9,8 @@ import {
 import type { AppEmits, DevtoolsEmits } from '@pinia/colada-devtools/shared'
 import { addDevtoolsInfo } from './shared/plugins/fetch-count'
 
-console.log('Injected value', inject('test', 'NO'))
-
 const queryCache = useQueryCache()
-
 addDevtoolsInfo(queryCache)
-
-// watch(
-//   () => queryCache.getEntries({}),
-//   (caches) => {
-//     transmitter.emit('queries:all', caches.map(createQueryEntryPayload))
-//     console.log('Query cache changed', caches)
-//   },
-// )
 
 queryCache.$onAction(({ name, after, onError, args }) => {
   if (name === 'remove') {
@@ -82,8 +71,9 @@ transmitter.on('pong', () => {
 // PiP window handling
 const pipWindow = shallowRef<Window | null>(null)
 
+// when the element is moved into a window, the port is automatically closed
 watch(pipWindow, () => {
-  console.info('🗺️ Recreating MessageChannel...')
+  // console.info('🗺️ Recreating MessageChannel...')
   mc.value = new MessageChannel()
 })
 

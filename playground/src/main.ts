@@ -17,7 +17,6 @@ const router = createRouter({
   history: createWebHistory(),
   routes,
 })
-app.provide('test', 'IT WORKS!!')
 
 app.use(createPinia())
 app.use(PiniaColada, {
