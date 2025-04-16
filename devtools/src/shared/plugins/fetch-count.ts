@@ -35,7 +35,6 @@ export function addDevtoolsInfo(queryCache: QueryCache): void {
       entry[DEVTOOLS_INFO_KEY].count.total++
       entry[DEVTOOLS_INFO_KEY].updatedAt = Date.now()
       const historyEntry: UseQueryEntryHistoryEntry = {
-        id: crypto.randomUUID(),
         key: entry.key,
         state: entry.state.value,
         updatedAt: Date.now(),
@@ -80,7 +79,6 @@ export function addDevtoolsInfo(queryCache: QueryCache): void {
 export const DEVTOOLS_INFO_KEY = Symbol('fetch-count-pinia-colada-plugin')
 
 export interface UseQueryEntryHistoryEntry extends Pick<UseQueryEntry, 'key'> {
-  id: string
   state: DataState<unknown, unknown, unknown>
   updatedAt: number
 }
