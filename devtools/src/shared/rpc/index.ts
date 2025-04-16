@@ -1,5 +1,6 @@
-import type { UseQueryEntryFilter } from '@pinia/colada'
+import type { AsyncStatus, DataState, EntryNodeKey, UseQueryEntryFilter } from '@pinia/colada'
 import type { UseQueryEntryPayload } from '../query-serialized'
+import { toRaw } from 'vue'
 
 export class DuplexChannel<
   const Emits extends Record<EmitsKeys, any[]>,
@@ -52,7 +53,8 @@ export class DuplexChannel<
   }
 
   emit<K extends keyof Emits>(event: K, ...args: NoInfer<Emits[K]>): void {
-    this.port.postMessage({ id: event, data: args })
+    const clonedData = args.map((arg) => toRawDeep(arg))
+    this.port.postMessage({ id: event, data: clonedData })
   }
 
   on<K extends keyof Listens>(event: K, callback: (...args: Listens[K]) => void): () => void {
@@ -85,6 +87,10 @@ export interface AppEmits {
 
 export interface DevtoolsEmits {
   'queries:clear': [] | [filters: UseQueryEntryFilter]
+  'queries:refetch': [entryKey: EntryNodeKey[]]
+  'queries:invalidate': [entryKey: EntryNodeKey[]]
+  'queries:set:asyncStatus': [entryKey: EntryNodeKey[], asyncStatus: AsyncStatus]
+  'queries:set:state': [entryKey: EntryNodeKey[], state: DataState<unknown, unknown, unknown>]
 
   // for testing
   'ping': []
@@ -107,4 +113,14 @@ export function _testTypes() {
 
   server.emit('queries:clear')
   server.emit('queries:clear', { key: [''] })
+}
+
+function toRawDeep<T>(val: T): T {
+  if (Array.isArray(val)) {
+    return val.map((item) => toRawDeep(item)) as T
+  }
+  if (val && typeof val === 'object') {
+    return Object.fromEntries(Object.entries(val).map(([key, value]) => [key, toRawDeep(value)])) as T
+  }
+  return toRaw(val)
 }

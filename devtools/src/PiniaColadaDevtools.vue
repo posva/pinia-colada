@@ -81,6 +81,13 @@ transmitter.on('pong', () => {
   console.log('[App] Received pong from devtools')
 })
 
+transmitter.on('queries:refetch', (key) => {
+  queryCache.invalidateQueries({ key, exact: true, active: null, stale: null })
+})
+transmitter.on('queries:invalidate', (key) => {
+  queryCache.invalidateQueries({ key, exact: true })
+})
+
 // PiP window handling
 const pipWindow = shallowRef<Window | null>(null)
 

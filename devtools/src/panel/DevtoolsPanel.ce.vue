@@ -40,7 +40,6 @@ onMounted(() => {
   channel.emit('ping')
 })
 
-// Data stores
 const queries = ref<UseQueryEntryPayload[]>([])
 provide(QUERIES_KEY, queries)
 channel.on('queries:all', (q) => {

@@ -5,12 +5,11 @@ import { Pane, Splitpanes } from '@posva/splitpanes'
 import { useDuplexChannel, useQueryEntries } from '../../composables/duplex-channel'
 import { useRoute } from 'vue-router'
 
+const route = useRoute('/queries/[queryId]')
 const queries = useQueryEntries()
 
-const route = useRoute('/queries/[queryId]')
-
 // Selection management
-const selectedItem = computed<UseQueryEntryPayload | null>(() => {
+const selectedQuery = computed<UseQueryEntryPayload | null>(() => {
   return queries.value.find((entry) => entry.id === route.params.queryId) ?? null
 })
 
@@ -18,75 +17,86 @@ const channel = useDuplexChannel()
 </script>
 
 <template>
-  <Splitpanes horizontal>
-    <!-- Data Panel -->
-    <Pane min-size="30" :size="50" class="p-4">
-      <div v-if="selectedItem" class="space-y-4">
-        <div class="pb-2 border-b border(--ui-border)">
-          <h3 class="font-medium text-lg">Query Details</h3>
-          <div class="text-sm text-ui-text-muted">
-            {{ selectedItem.key }}
-          </div>
+  <div class="flex flex-col divide-y divide-(--ui-border)">
+    <template v-if="selectedQuery">
+      <UCollapse title="Details">
+        <div class="py-1 text-sm">
+          <p class="grid grid-cols-[auto_1fr] gap-1">
+            <span>key:</span>
+            <span>
+              <code class="rounded bg-neutral-500/20 p-0.5">{{ selectedQuery.key }}</code>
+            </span>
+          </p>
+          <p class="grid grid-cols-[auto_1fr] gap-x-2">
+            <span>Last update:</span>
+            <span>{{ new Date(selectedQuery.devtools.updatedAt).toLocaleTimeString() }}</span>
+          </p>
         </div>
+      </UCollapse>
 
-        <div class="space-y-2">
-          <h4 class="font-medium">Status</h4>
-          <div
-            class="px-2 py-1 rounded inline-flex items-center"
-            :class="{
-              'bg-success-500 bg-opacity-10 text-success-500':
-                selectedItem.state.status === 'success',
-              'bg-error-500 bg-opacity-10 text-error-500': selectedItem.state.status === 'error',
-              'bg-warning-500 bg-opacity-10 text-warning-500':
-                selectedItem.state.status === 'pending',
-              'bg-neutral-500 bg-opacity-10 text-neutral-500': !selectedItem.state.status,
-            }"
+      <UCollapse title="Actions">
+        <div class="py-2 flex gap-x-2">
+          <UButton
+            class="theme-info"
+            size="xs"
+            title="Refetch this query"
+            @click="channel.emit('queries:refetch', selectedQuery.key)"
           >
-            {{ selectedItem.state.status || 'unknown' }}
-          </div>
-        </div>
+            Refetch
+          </UButton>
 
-        <div v-if="selectedItem.state.data != null" class="space-y-2">
-          <h4 class="font-medium">Data</h4>
-          <pre class="bg-ui-bg-elevated p-3 rounded text-sm">{{
-            JSON.stringify(selectedItem.state.data, null, 2)
+          <UButton
+            class="theme-neutral"
+            size="xs"
+            title="Invalidate this query"
+            @click="channel.emit('queries:invalidate', selectedQuery.key)"
+          >
+            Invalidate
+          </UButton>
+
+          <UButton
+            class="theme-warning"
+            size="xs"
+            title="Simulate a loading state"
+            @click="channel.emit('queries:set:asyncStatus', selectedQuery.key, 'loading')"
+          >
+            Simulate loading
+          </UButton>
+
+          <UButton
+            class="theme-error"
+            size="xs"
+            title="Simulate an Error state"
+            @click="
+              channel.emit('queries:set:state', selectedQuery.key, {
+                ...selectedQuery.state,
+                status: 'error',
+                error: new Error('Simulated error'),
+              })
+            "
+          >
+            Simulate error
+          </UButton>
+        </div>
+      </UCollapse>
+
+      <UCollapse title="Data">
+        <div class="py-1">
+          <pre class="rounded p-1 overflow-auto max-h-[1200px]">{{ selectedQuery.state.data }}</pre>
+        </div>
+      </UCollapse>
+
+      <UCollapse title="Options" :open="false">
+        <div class="py-1">
+          <pre class="rounded bg-neutral-500/20 p-1 overflow-auto max-h-[1200px]">{{
+            selectedQuery.options
           }}</pre>
         </div>
+      </UCollapse>
+    </template>
 
-        <div v-if="selectedItem.state.error" class="space-y-2">
-          <h4 class="font-medium">Error</h4>
-          <pre class="bg-error-500 bg-opacity-10 text-error-500 p-3 rounded text-sm">{{
-            JSON.stringify(selectedItem.state.error, null, 2)
-          }}</pre>
-        </div>
-      </div>
-
-      <div v-else class="flex flex-col items-center justify-center h-full text-ui-text-muted">
-        <div class="text-lg">Select a query to view details</div>
-      </div>
-    </Pane>
-
-    <!-- Timeline/Metadata Panel -->
-    <Pane min-size="10" :size="50" class="p-4">
-      <div v-if="selectedItem" class="space-y-4">
-        <h3 class="font-medium border-b border(--ui-border) pb-2">Timeline & Metadata</h3>
-
-        <div class="space-y-2">
-          <h4 class="text-sm font-medium">Last Updated</h4>
-          <div>{{ new Date().toLocaleString() }}</div>
-        </div>
-
-        <div class="space-y-2">
-          <h4 class="text-sm font-medium">Additional Info</h4>
-          <div class="text-sm text-ui-text-muted">
-            {{ selectedItem.devtools.history }}
-          </div>
-        </div>
-      </div>
-
-      <div v-else class="flex flex-col items-center justify-center h-full text-ui-text-muted">
-        <div class="text-sm">Select an item to view metadata</div>
-      </div>
-    </Pane>
-  </Splitpanes>
+    <template v-else>
+      <p>Select a Query</p>
+    </template>
+  </div>
 </template>

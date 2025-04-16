@@ -2,11 +2,19 @@
 import { miniJsonParse } from '@pinia/colada-devtools/shared'
 import type { UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
 import { computed } from 'vue'
-import { getQueryStatus, STATUS_COLOR_CLASSES } from '../utils/query-state';
+import { getQueryStatus, STATUS_COLOR_CLASSES } from '../utils/query-state'
+import { useRouter } from 'vue-router'
 
 const { entry } = defineProps<{
   entry: UseQueryEntryPayload
 }>()
+const router = useRouter()
+
+function unselect(event: MouseEvent) {
+  event.preventDefault()
+  event.stopPropagation()
+  router.push('/queries')
+}
 
 // TODO: colorize the output based on the type of value
 const formattedKey = computed(() => {
@@ -14,7 +22,7 @@ const formattedKey = computed(() => {
     let value: unknown = rawValue
     try {
       value = typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue
-    } catch (_e) {
+    } catch {
       // If parsing fails, keep the original value
     }
     return value && typeof value === 'object' ? miniJsonParse(value) : String(value)
@@ -55,7 +63,7 @@ const status = computed(() => getQueryStatus(entry))
         :href
         class="hover:cursor-pointer block overflow-hidden"
         :title="entry.active ? 'Active query' : 'Inactive query'"
-        @click="navigate"
+        @click="isActive ? unselect($event) : navigate($event)"
       >
         <ol class="flex font-mono flex-grow gap-0.5 overflow-auto items-center">
           <template v-for="(key, i) in formattedKey" :key="key">
@@ -68,8 +76,7 @@ const status = computed(() => getQueryStatus(entry))
       <span
         class="bg-neutral-200 text-(--ui-text) dark:bg-neutral-800 rounded px-1 text-center text-sm ring-inset ring ring-(--ui-text)/30"
         title="Amount of times this query has ran"
-        >{{ entry.devtools.count.total }}</span
-      >
+      >{{ entry.devtools.count.total }}</span>
     </div>
   </RouterLink>
 </template>

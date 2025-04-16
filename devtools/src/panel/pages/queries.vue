@@ -40,8 +40,7 @@ const queriesGrouped = computed<
     pending: [],
     inactive: filteredItems.value.filter((item) => !item.active),
     ...Object.groupBy(filteredItems.value, (item) =>
-      item.asyncStatus === 'loading' ? 'loading' : item.state.status,
-    ),
+      item.asyncStatus === 'loading' ? 'loading' : item.state.status),
   }
 })
 </script>
@@ -68,7 +67,7 @@ const queriesGrouped = computed<
           :title="`${queryGroup?.length ?? 0} ${status} queries (after filtering)`"
         >
           <div class="rounded-full size-2" :class="STATUS_COLOR_CLASSES[status].base" />
-          <span class="@max-[800px]:hidden">{{ status }}</span>
+          <span class="@max-[750px]:hidden">{{ status }}</span>
           <div
             class="px-1.5 py-0.5 rounded"
             :class="

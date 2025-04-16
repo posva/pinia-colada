@@ -8,6 +8,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    ICarbonArrowLeft: typeof import('~icons/carbon/arrow-left')['default']
     ICarbonCheckmark: typeof import('~icons/carbon/checkmark')['default']
     ICarbonClose: typeof import('~icons/carbon/close')['default']
     ICarbonIntentRequestInactive: typeof import('~icons/carbon/intent-request-inactive')['default']
@@ -24,6 +25,9 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     UButton: typeof import('./src/panel/components/UButton.ce.vue')['default']
     'UButton.ce': typeof import('./src/panel/components/UButton.ce.vue')['default']
+    UCollapse: typeof import('./src/panel/components/UCollapse.ce.vue')['default']
+    'UCollapse.ce': typeof import('./src/panel/components/UCollapse.ce.vue')['default']
+    UCollapsible: typeof import('./src/panel/components/UCollapsible.vue')['default']
     UInput: typeof import('./src/panel/components/UInput.ce.vue')['default']
     'UInput.ce': typeof import('./src/panel/components/UInput.ce.vue')['default']
   }
