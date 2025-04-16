@@ -115,12 +115,13 @@ export function _testTypes() {
   server.emit('queries:clear', { key: [''] })
 }
 
-function toRawDeep<T>(val: T): T {
+function toRawDeep<T>(val: T): T
+function toRawDeep(val: unknown): unknown {
   if (Array.isArray(val)) {
-    return val.map((item) => toRawDeep(item)) as T
+    return val.map((item) => toRawDeep(item))
   }
   if (val && typeof val === 'object') {
-    return Object.fromEntries(Object.entries(val).map(([key, value]) => [key, toRawDeep(value)])) as T
+    return Object.fromEntries(Object.entries(val).map(([key, value]) => [key, toRawDeep(value)]))
   }
   return toRaw(val)
 }

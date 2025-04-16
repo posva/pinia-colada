@@ -2,14 +2,8 @@
  * Pinia Colada plugin that counts how many times a query has been fetched, has resolved, rejected, etc.
  *
  */
+import type { DataState, QueryCache, UseQueryEntry } from '@pinia/colada'
 
-import type { AsyncStatus, DataState, QueryCache, UseQueryEntry } from '@pinia/colada'
-import type { UnwrapRef } from 'vue'
-
-/**
- * Delays the `asyncStatus` of a query by a certain amount of time to avoid flickering between refreshes.
- * @param options - Pinia Colada Delay Loading plugin options
- */
 export function addDevtoolsInfo(queryCache: QueryCache): void {
   if (installationMap.has(queryCache)) {
     return

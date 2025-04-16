@@ -5,9 +5,9 @@ import {
   createQueryEntryPayload,
   DuplexChannel,
   useEventListener,
+  addDevtoolsInfo,
 } from '@pinia/colada-devtools/shared'
 import type { AppEmits, DevtoolsEmits } from '@pinia/colada-devtools/shared'
-import { addDevtoolsInfo } from './shared/plugins/fetch-count'
 
 const queryCache = useQueryCache()
 addDevtoolsInfo(queryCache)
@@ -86,6 +86,22 @@ transmitter.on('queries:refetch', (key) => {
 })
 transmitter.on('queries:invalidate', (key) => {
   queryCache.invalidateQueries({ key, exact: true })
+})
+
+transmitter.on('queries:set:state', (key, state) => {
+  const entry = queryCache.getEntries({ key, exact: true })[0]
+  if (entry) {
+    queryCache.setEntryState(entry, state)
+    transmitter.emit('queries:update', createQueryEntryPayload(entry))
+  }
+})
+
+transmitter.on('queries:set:asyncStatus', (key, status) => {
+  const entry = queryCache.getEntries({ key, exact: true })[0]
+  if (entry) {
+    entry.asyncStatus.value = status
+    transmitter.emit('queries:update', createQueryEntryPayload(entry))
+  }
 })
 
 // PiP window handling
