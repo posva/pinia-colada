@@ -5,7 +5,7 @@ const modelValue = defineModel<string | number>()
 <template>
   <input
     v-model="modelValue"
-    class="py-1.5 pl-8 pr-2 rounded bg-ui-bg-elevated border border-(--ui-border) focus:ring-1 focus:ring-theme focus:outline-none transition-colors theme-primary"
+    class="py-1.5 pl-8 pr-2 rounded border border-(--ui-border) focus:ring-1 focus:ring-theme focus:outline-none transition-colors theme-primary"
     placeholder="Search Queries"
   >
 </template>

@@ -37,29 +37,6 @@
   /* --ui-border-muted: light-dark(var(--color-gray-200), var(--color-gray-700)); */
   /* --ui-border-accented: light-dark(var(--color-gray-300), var(--color-gray-700)); */
   /* --ui-border-inverted: light-dark(var(--color-gray-900), var(--color-white)); */
-}
-
-:host:has(.dark) {
-  color-scheme: dark;
-}
-
-:host:has(.light) {
-  color-scheme: light;
-}
-
-[class|='p'] {
-  color: pink;
-  @variant dark {
-    --ui-text: var(--ui-text-inverted);
-  }
-}
-
-/* same as a body selector */
-#root {
-  color: var(--ui-text);
-  background-color: var(--ui-bg);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 
   @variant dark {
     --color-primary-50: var(--color-yellow-50);
@@ -86,6 +63,29 @@
     --color-secondary-900: var(--color-lime-900);
     --color-secondary-950: var(--color-lime-950);
   }
+}
+
+:host:has(.dark) {
+  color-scheme: dark;
+}
+
+:host:has(.light) {
+  color-scheme: light;
+}
+
+/* [class|='p'] { */
+/*   color: pink; */
+/*   @variant dark { */
+/*     --ui-text: var(--ui-text-inverted); */
+/*   } */
+/* } */
+
+/* same as a body selector */
+#root {
+  color: var(--ui-text);
+  background-color: var(--ui-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 @theme static {
@@ -194,7 +194,7 @@
   --ui-text: var(--ui-text-inverted);
 }
 
-[class*='bg-theme'] {
+[class*='bg-theme'][class*='hover:'] {
   @variant hover {
     color: var(--ui-text);
     /* Neutral by default */

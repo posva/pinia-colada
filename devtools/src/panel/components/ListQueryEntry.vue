@@ -2,6 +2,7 @@
 import { miniJsonParse } from '@pinia/colada-devtools/shared'
 import type { UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
 import { computed } from 'vue'
+import { getQueryStatus, STATUS_COLOR_CLASSES } from '../utils/query-state';
 
 const { entry } = defineProps<{
   entry: UseQueryEntryPayload
@@ -20,25 +21,7 @@ const formattedKey = computed(() => {
   })
 })
 
-const status = computed(() => {
-  if (entry.asyncStatus === 'loading') {
-    return 'loading'
-  }
-  if (entry.state.status === 'error') {
-    return 'error'
-  }
-  if (entry.stale) {
-    return 'stale'
-  }
-  if (entry.state.status === 'success') {
-    return 'success'
-  }
-  if (entry.state.status === 'pending') {
-    return 'pending'
-  }
-
-  return 'unknown'
-})
+const status = computed(() => getQueryStatus(entry))
 </script>
 
 <template>
@@ -54,17 +37,12 @@ const status = computed(() => {
         entry.active ? '' : 'text-(--ui-text)/50',
       ]"
     >
-      <div
-        class="h-full w-1 relative"
-        :class="{
-          'theme-neutral': status === 'loading',
-          'theme-success': status === 'success',
-          'theme-error': status === 'error',
-          'theme-info': status === 'stale',
-          'theme-warning': status === 'pending',
-        }"
-      >
-        <div class="absolute -inset-1 bg-theme right-0" :title="status" />
+      <div class="h-full w-1 relative">
+        <div
+          class="absolute -inset-1 right-0"
+          :class="STATUS_COLOR_CLASSES[status].base"
+          :title="status"
+        />
         <!-- <i-carbon-intent-request-inactive -->
         <!--   v-if="status === 'loading'" -->
         <!--   class="animate-spin" -->
@@ -88,7 +66,7 @@ const status = computed(() => {
       </a>
 
       <span
-        class="bg-neutral-200 text-(--ui-text) dark:bg-neutral-800 rounded w-4 text-center text-sm ring-inset ring ring-(--ui-text)/30"
+        class="bg-neutral-200 text-(--ui-text) dark:bg-neutral-800 rounded px-1 text-center text-sm ring-inset ring ring-(--ui-text)/30"
         title="Amount of times this query has ran"
         >{{ entry.devtools.count.total }}</span
       >

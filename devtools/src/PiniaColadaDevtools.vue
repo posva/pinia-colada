@@ -26,6 +26,15 @@ queryCache.$onAction(({ name, after, onError, args }) => {
     || name === 'fetch'
   ) {
     const [entry] = args
+
+    // on fetch we want to see it loading
+    if (name === 'fetch') {
+      const payload = createQueryEntryPayload(entry)
+      // NOTE: pinia colada does not expose an action for this
+      payload.asyncStatus = 'loading'
+      transmitter.emit('queries:update', payload)
+    }
+
     // TODO: throttle
     after(() => {
       transmitter.emit('queries:update', createQueryEntryPayload(entry))
@@ -42,6 +51,10 @@ queryCache.$onAction(({ name, after, onError, args }) => {
       }
     })
     onError(() => {
+      transmitter.emit('queries:update', createQueryEntryPayload(entry))
+    })
+  } else if (name === 'create') {
+    after((entry) => {
       transmitter.emit('queries:update', createQueryEntryPayload(entry))
     })
   }
@@ -108,7 +121,7 @@ function openPiPWindow() {
 
   const windowWidth = Math.max(devtoolsRootEl.offsetWidth, 400)
   const windowHeight = Math.max(devtoolsRootEl.offsetHeight, 400)
-  console.info(`Opening PiP window ${windowWidth}x${windowHeight}`)
+  // console.info(`Opening PiP window ${windowWidth}x${windowHeight}`)
 
   const pip = window.open(
     '',
@@ -140,7 +153,6 @@ function openPiPWindow() {
   pip.addEventListener(
     'unload',
     () => {
-      console.log('PiP window closed')
       pipWindow.value = null
     },
     { passive: true },
