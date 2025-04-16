@@ -757,10 +757,10 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * @param state - the new state of the entry
    */
   const setEntryState = action(
-    <TResult, TError>(
-      entry: UseQueryEntry<TResult, TError>,
+    <TResult, TError, TDataInitial extends TResult | undefined = TResult | undefined>(
+      entry: UseQueryEntry<TResult, TError, TDataInitial>,
       // NOTE: NoInfer ensures correct inference of TResult and TError
-      state: DataState<NoInfer<TResult>, NoInfer<TError>>,
+      state: DataState<NoInfer<TResult>, NoInfer<TError>, NoInfer<TDataInitial>>,
     ) => {
       entry.state.value = state
       entry.when = Date.now()
