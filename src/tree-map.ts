@@ -34,7 +34,7 @@ export class TreeMapNode<T = unknown> {
    * Sets the value while building the tree. If the value is nullish, it will
    * unset the value and clean up empty subtrees.
    *
-   * @param keys - key as an array
+   * @param {EntryNodeKey[]} keys - key as an array
    * @param value - value to set
    */
   set([top, ...otherKeys]: EntryNodeKey[], value?: T) {
@@ -78,7 +78,7 @@ export class TreeMapNode<T = unknown> {
   /**
    * Finds the node at the given path of keys.
    *
-   * @param keys - path of keys
+   * @param {EntryNodeKey[]} keys - path of keys
    */
   find([top, ...otherKeys]: EntryNodeKey[]): this | undefined {
     return top ? this.children?.get(top)?.find(otherKeys) : this
