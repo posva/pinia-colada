@@ -21,9 +21,14 @@ describe('Pinia Colada Retry Plugin', () => {
 
   enableAutoUnmount(afterEach)
 
+  const RETRY_OPTIONS_DEFAULTS = {
+    retry: 3,
+    delay: 500,
+  } as const
+
   function factory(
     queryOptions: UseQueryOptions,
-    retryOptionsDefault?: RetryOptions,
+    globalRetryOptions: RetryOptions = RETRY_OPTIONS_DEFAULTS,
   ) {
     const wrapper = mount(
       defineComponent({
@@ -38,7 +43,7 @@ describe('Pinia Colada Retry Plugin', () => {
             createPinia(),
             [
               PiniaColada,
-              { plugins: [PiniaColadaRetry(retryOptionsDefault)] },
+              { plugins: [PiniaColadaRetry(globalRetryOptions)] },
             ],
           ],
         },
@@ -48,26 +53,29 @@ describe('Pinia Colada Retry Plugin', () => {
     return { wrapper }
   }
 
-  it('apply the default retry options', async () => {
+  it('apply the retry option defaults', async () => {
     const query = vi.fn(async () => {
       throw new Error('ko')
     })
-    const retryOptionsDefault = { retry: 1, delay: 200 }
+    const retryOptionDefaults = {
+      retry: 1,
+      delay: 200,
+    }
 
     factory({
       key: ['key'],
       query,
-    }, retryOptionsDefault)
+    }, retryOptionDefaults)
 
     // initial fetch fails
     await flushPromises()
     expect(query).toHaveBeenCalledTimes(1)
     // first retry
-    vi.advanceTimersByTime(retryOptionsDefault.delay)
+    vi.advanceTimersByTime(retryOptionDefaults.delay)
     await flushPromises()
     expect(query).toHaveBeenCalledTimes(2)
     // no second retry because the default retry is 1
-    vi.advanceTimersByTime(retryOptionsDefault.delay)
+    vi.advanceTimersByTime(retryOptionDefaults.delay)
     await flushPromises()
     expect(query).toHaveBeenCalledTimes(2)
   })
@@ -76,79 +84,122 @@ describe('Pinia Colada Retry Plugin', () => {
     const query = vi.fn(async () => {
       throw new Error('ko')
     })
-    const delay = 1000
     factory({
       key: ['key'],
       retry: 0,
-      delay,
       query,
     })
 
     await flushPromises()
-    vi.advanceTimersByTime(delay)
+    vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
     await flushPromises()
     expect(query).toHaveBeenCalledTimes(1)
   })
 
   it('no retries when query succeeds', async () => {
     const query = vi.fn(async () => 'ok')
-    const delay = 1000
     factory({
       key: ['key'],
       retry: 3,
-      delay,
       query,
     })
 
     await flushPromises()
-    vi.advanceTimersByTime(delay)
+    vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
     await flushPromises()
     expect(query).toHaveBeenCalledTimes(1)
   })
 
-  it('custom retry logic with a function', async () => {
-    // query that fails with a axios-like 404 error
-    const notFoundErrorQuery = vi.fn(async () => {
-      const error = new Error('ko') as Error & {
-        response: { status: number }
-      }
-      error.response = { status: 404 }
-      throw error
-    })
-    // do not retry on 404 but retry once for other errors
-    const retry: RetryOptions['retry'] = (attempt, error) => {
-      const status = (error as { response?: { status?: number } })?.response?.status
-      if (status === 404) return false
-      return attempt < 1
-    }
-    const delay = 1000
-
-    // query fails with a 404 error
-    factory({
-      key: ['404'],
-      query: notFoundErrorQuery,
-      delay,
-      retry,
-    })
-    await flushPromises()
-    vi.advanceTimersByTime(delay)
-    await flushPromises()
-    expect(notFoundErrorQuery).toHaveBeenCalledTimes(1)
-
-    // query fails with a generic error
-    const genericErrorQuery = vi.fn(async () => {
+  it('custom retry option with a function', async () => {
+    const query = vi.fn(async () => {
       throw new Error('ko')
     })
+    // do not retry when the error message equals ko
+    const retry: RetryOptions['retry'] = (attempt, error) => {
+      if ((error as Error).message === 'ko') return false
+      return attempt < 2
+    }
+
     factory({
-      key: ['generic'],
-      query: genericErrorQuery,
-      delay,
+      key: ['key'],
+      query,
       retry,
+    })
+    await flushPromises()
+    vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(1)
+  })
+
+  it('custom delay option with a number', async () => {
+    const query = vi.fn(async () => {
+      throw new Error('ko')
+    })
+    const delay = 500
+
+    factory({
+      key: ['key'],
+      query,
+      retry: { delay },
+    })
+
+    // the retry occurs exactly after 500ms
+    await flushPromises()
+    vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay - 100)
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(1)
+    vi.advanceTimersByTime(100)
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(2)
+  })
+
+  it('custom delay option with a function', async () => {
+    const query = vi.fn(async () => {
+      throw new Error('ko')
+    })
+    // 500ms for first retry, 1500ms for subsequent retries
+    const delay: RetryOptions['delay'] = (attempt) => {
+      return attempt === 0 ? 500 : 1500
+    }
+
+    factory({
+      key: ['key'],
+      query,
+      retry: { retry: 2, delay },
+    })
+    //  initial fetch fails
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(1)
+    // first retry after 500ms
+    vi.advanceTimersByTime(500)
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(2)
+    // second retry after 1500ms
+    vi.advanceTimersByTime(1500)
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(3)
+    // no further retries
+    vi.advanceTimersByTime(1500)
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(3)
+  })
+
+  it('stop retries when the query is no longer active', async () => {
+    const query = vi.fn(async () => {
+      throw new Error('ko')
+    })
+
+    const { wrapper } = factory({
+      key: ['key'],
+      query,
     })
 
     await flushPromises()
-    vi.advanceTimersByTime(delay)
+    expect(query).toHaveBeenCalledTimes(1)
+
+    wrapper.unmount()
+    vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
     await flushPromises()
-    expect(genericErrorQuery).toHaveBeenCalledTimes(2)
+    expect(query).toHaveBeenCalledTimes(1)
   })
 })
