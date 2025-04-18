@@ -22,14 +22,11 @@ describe('Pinia Colada Retry Plugin', () => {
   enableAutoUnmount(afterEach)
 
   const RETRY_OPTIONS_DEFAULTS = {
-    retry: 3,
+    retry: 1,
     delay: 500,
   } as const
 
-  function factory(
-    queryOptions: UseQueryOptions,
-    globalRetryOptions: RetryOptions = RETRY_OPTIONS_DEFAULTS,
-  ) {
+  function factory(queryOptions: UseQueryOptions) {
     const wrapper = mount(
       defineComponent({
         template: '<div></div>',
@@ -43,7 +40,7 @@ describe('Pinia Colada Retry Plugin', () => {
             createPinia(),
             [
               PiniaColada,
-              { plugins: [PiniaColadaRetry(globalRetryOptions)] },
+              { plugins: [PiniaColadaRetry(RETRY_OPTIONS_DEFAULTS)] },
             ],
           ],
         },
@@ -53,68 +50,60 @@ describe('Pinia Colada Retry Plugin', () => {
     return { wrapper }
   }
 
-  it('apply the retry option defaults', async () => {
+  it('apply global retry options', async () => {
     const query = vi.fn(async () => {
       throw new Error('ko')
     })
-    const retryOptionDefaults = {
-      retry: 1,
-      delay: 200,
-    }
 
     factory({
       key: ['key'],
       query,
-    }, retryOptionDefaults)
+    })
 
     // initial fetch fails
     await flushPromises()
     expect(query).toHaveBeenCalledTimes(1)
     // first retry
-    vi.advanceTimersByTime(retryOptionDefaults.delay)
+    vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
     await flushPromises()
     expect(query).toHaveBeenCalledTimes(2)
     // no second retry because the default retry is 1
-    vi.advanceTimersByTime(retryOptionDefaults.delay)
+    vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
     await flushPromises()
     expect(query).toHaveBeenCalledTimes(2)
   })
 
-  it('no retries when retry is 0', async () => {
+  it('retry option with a number', async () => {
     const query = vi.fn(async () => {
       throw new Error('ko')
     })
+
     factory({
       key: ['key'],
-      retry: 0,
       query,
+      retry: 2,
     })
-
-    await flushPromises()
-    vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
     await flushPromises()
     expect(query).toHaveBeenCalledTimes(1)
-  })
-
-  it('no retries when query succeeds', async () => {
-    const query = vi.fn(async () => 'ok')
-    factory({
-      key: ['key'],
-      retry: 3,
-      query,
-    })
-
-    await flushPromises()
+    // first retry
     vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
     await flushPromises()
-    expect(query).toHaveBeenCalledTimes(1)
+    expect(query).toHaveBeenCalledTimes(2)
+    // second retry
+    vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(3)
+    // no further retries
+    vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(3)
   })
 
-  it('custom retry option with a function', async () => {
+  it('retry option with a function', async () => {
     const query = vi.fn(async () => {
       throw new Error('ko')
     })
-    // do not retry when the error message equals ko
+    // stop retry when the error message is "ko"
     const retry: RetryOptions['retry'] = (attempt, error) => {
       if ((error as Error).message === 'ko') return false
       return attempt < 2
@@ -131,7 +120,7 @@ describe('Pinia Colada Retry Plugin', () => {
     expect(query).toHaveBeenCalledTimes(1)
   })
 
-  it('custom delay option with a number', async () => {
+  it('delay option with a number', async () => {
     const query = vi.fn(async () => {
       throw new Error('ko')
     })
@@ -143,7 +132,7 @@ describe('Pinia Colada Retry Plugin', () => {
       retry: { delay },
     })
 
-    // the retry occurs exactly after 500ms
+    // retry occurs exactly after 500ms
     await flushPromises()
     vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay - 100)
     await flushPromises()
@@ -153,7 +142,7 @@ describe('Pinia Colada Retry Plugin', () => {
     expect(query).toHaveBeenCalledTimes(2)
   })
 
-  it('custom delay option with a function', async () => {
+  it('delay option with a function', async () => {
     const query = vi.fn(async () => {
       throw new Error('ko')
     })
@@ -184,6 +173,37 @@ describe('Pinia Colada Retry Plugin', () => {
     expect(query).toHaveBeenCalledTimes(3)
   })
 
+  it('no retries when retry is 0', async () => {
+    const query = vi.fn(async () => {
+      throw new Error('ko')
+    })
+    factory({
+      key: ['key'],
+      retry: 0,
+      query,
+    })
+
+    await flushPromises()
+    vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(1)
+  })
+
+  it('no retries when query succeeds', async () => {
+    const query = vi.fn(async () => 'ok')
+    factory({
+      key: ['key'],
+      retry: 3,
+      query,
+    })
+
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(1)
+    vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(1)
+  })
+
   it('stop retries when the query is no longer active', async () => {
     const query = vi.fn(async () => {
       throw new Error('ko')
@@ -201,5 +221,36 @@ describe('Pinia Colada Retry Plugin', () => {
     vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
     await flushPromises()
     expect(query).toHaveBeenCalledTimes(1)
+  })
+
+  it('reset retry count on manual fetch', async () => {
+    const query = vi.fn(async () => {
+      throw new Error('ko')
+    })
+
+    const { wrapper } = factory({
+      key: ['key'],
+      query,
+      retry: 1,
+    })
+    // initial fetch fails
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(1)
+    // first retry
+    vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(2)
+    // manual fetch resets retry count
+    wrapper.vm.refetch()
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(3)
+    // new retry
+    vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(4)
+    // no further retries
+    vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(4)
   })
 })
