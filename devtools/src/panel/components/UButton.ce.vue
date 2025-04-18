@@ -22,7 +22,7 @@ const padding = computed(() => {
 <template>
   <button
     type="button"
-    class="bg-theme-400 hover:bg-theme-600 dark:bg-theme-400 dark:hover:bg-theme-300 font-medium hover:cursor-pointer focus-visible:outline-theme focus-visible:outline-offset-2 focus-visible:outline-2 transition-colors text-(--color-gray-900) flex items-center"
+    class="bg-theme-400 hover:bg-theme-600 dark:bg-theme-400 dark:hover:bg-theme-300 font-medium hover:cursor-pointer focus-visible:outline-theme focus-visible:outline-offset-2 focus-visible:outline-2 transition-colors text-(--color-gray-900) flex items-center disabled:cursor-not-allowed disabled:text-(--color-gray-700)"
     :class="[`text-${size}`, padding, `rounded-${size}`]"
   >
     <slot />

@@ -2,7 +2,7 @@ import type { UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
 
 export type UseQueryEntryPayloadStatus =
   | 'loading'
-  | 'success'
+  | 'fresh'
   | 'error'
   | 'stale'
   | 'pending'
@@ -15,26 +15,33 @@ export function getQueryStatus(entry: UseQueryEntryPayload): UseQueryEntryPayloa
   if (entry.state.status === 'error') {
     return 'error'
   }
+  if (entry.state.status === 'pending') {
+    return 'pending'
+  }
   if (entry.stale) {
     return 'stale'
   }
   if (entry.state.status === 'success') {
-    return 'success'
-  }
-  if (entry.state.status === 'pending') {
-    return 'pending'
+    return 'fresh'
   }
 
   return 'unknown'
 }
 
-export const STATUS_COLOR_CLASSES = {
+export const STATUS_COLOR_CLASSES: Record<
+  UseQueryEntryPayloadStatus | 'inactive',
+  {
+    base: string
+    clear: string
+    text: string
+  }
+> = {
   loading: {
     base: 'bg-purple-400',
     clear: 'bg-purple-200',
     text: 'text-purple-100',
   },
-  success: {
+  fresh: {
     base: 'bg-success-500',
     clear: 'bg-success-200',
     text: 'text-success-100',

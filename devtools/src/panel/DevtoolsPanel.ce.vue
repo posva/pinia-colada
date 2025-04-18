@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, provide, onErrorCaptured } from 'vue'
+import { ref, watch, onMounted, onUnmounted, provide } from 'vue'
 import type { UseQueryEntryPayload, DevtoolsEmits, AppEmits } from '@pinia/colada-devtools/shared'
 import { DuplexChannel } from '@pinia/colada-devtools/shared'
 import { DUPLEX_CHANNEL_KEY, QUERIES_KEY } from './composables/duplex-channel'

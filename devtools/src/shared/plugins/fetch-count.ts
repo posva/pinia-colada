@@ -3,6 +3,7 @@
  *
  */
 import type { DataState, QueryCache, UseQueryEntry } from '@pinia/colada'
+import { toValue } from 'vue'
 
 const now = () => performance.timeOrigin + performance.now()
 
@@ -31,32 +32,51 @@ export function addDevtoolsInfo(queryCache: QueryCache): void {
       const [entry] = args
       entry[DEVTOOLS_INFO_KEY].count.total++
       entry[DEVTOOLS_INFO_KEY].updatedAt = Date.now()
+      const createdAt = now()
       const historyEntry: UseQueryEntryHistoryEntry = {
         key: entry.key,
         state: entry.state.value,
-        updatedAt: now(),
+        updatedAt: createdAt,
+        createdAt,
+        fetchTime: null,
       }
+
+      const isEnabled = toValue(entry.options?.enabled) ?? true
+      if (isEnabled) {
+        historyEntry.fetchTime = {
+          start: createdAt,
+          end: null,
+        }
+      }
+
       entry[DEVTOOLS_INFO_KEY].history.unshift(historyEntry)
       // limit history to 10 entries
       entry[DEVTOOLS_INFO_KEY].history = entry[DEVTOOLS_INFO_KEY].history.slice(0, 10)
 
       after(() => {
-        entry[DEVTOOLS_INFO_KEY].count.succeed++
-        entry[DEVTOOLS_INFO_KEY].updatedAt = now()
-        historyEntry.state = entry.state.value
-        historyEntry.updatedAt = now()
+        if (isEnabled) {
+          historyEntry.fetchTime!.end = now()
+          entry[DEVTOOLS_INFO_KEY].count.succeed++
+          // set by the setEntryState
+          // entry[DEVTOOLS_INFO_KEY].updatedAt = now()
+          historyEntry.state = entry.state.value
+          historyEntry.updatedAt = now()
+        }
       })
       onError(() => {
-        entry[DEVTOOLS_INFO_KEY].count.errored++
-        entry[DEVTOOLS_INFO_KEY].updatedAt = now()
-        historyEntry.state = entry.state.value
-        historyEntry.updatedAt = now()
+        if (isEnabled) {
+          historyEntry.fetchTime!.end = now()
+          entry[DEVTOOLS_INFO_KEY].count.errored++
+          // set by the setEntryState
+          // entry[DEVTOOLS_INFO_KEY].updatedAt = now()
+          historyEntry.state = entry.state.value
+          historyEntry.updatedAt = now()
+        }
       })
     } else if (name === 'cancel') {
       const [entry] = args
       if (entry.pending) {
         entry[DEVTOOLS_INFO_KEY].count.cancelled++
-        entry[DEVTOOLS_INFO_KEY].updatedAt = now()
       }
     } else if (name === 'setEntryState') {
       const [entry] = args
@@ -77,7 +97,24 @@ export const DEVTOOLS_INFO_KEY = Symbol('fetch-count-pinia-colada-plugin')
 
 export interface UseQueryEntryHistoryEntry extends Pick<UseQueryEntry, 'key'> {
   state: DataState<unknown, unknown, unknown>
+
+  /**
+   * When was the last time the entry was updated.
+   */
   updatedAt: number
+
+  /**
+   * When was the entry created.
+   */
+  createdAt: number
+
+  /**
+   * The time it took to fetch the entry.
+   */
+  fetchTime: {
+    start: number
+    end: number | null
+  } | null
 }
 
 export interface UseQueryDevtoolsInfo {

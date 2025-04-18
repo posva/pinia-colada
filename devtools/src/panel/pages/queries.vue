@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { Pane, Splitpanes } from '@posva/splitpanes'
 import { useQueryEntries } from '../composables/duplex-channel'
-import { STATUS_COLOR_CLASSES } from '../utils/query-state'
+import { getQueryStatus, STATUS_COLOR_CLASSES } from '../utils/query-state'
 import type { UseQueryEntryPayloadStatus } from '../utils/query-state'
 import type { UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
 
@@ -35,12 +35,11 @@ const queriesGrouped = computed<
 >(() => {
   return {
     loading: [],
-    success: [],
+    fresh: [],
     error: [],
     pending: [],
     inactive: filteredItems.value.filter((item) => !item.active),
-    ...Object.groupBy(filteredItems.value, (item) =>
-      item.asyncStatus === 'loading' ? 'loading' : item.state.status),
+    ...Object.groupBy(filteredItems.value, (item) => getQueryStatus(item)),
   }
 })
 </script>

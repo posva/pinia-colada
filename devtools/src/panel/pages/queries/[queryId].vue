@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
-import { computed, ref, useTemplateRef, watch, isVNode } from 'vue'
-import type { ComponentInternalInstance } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useDuplexChannel, useQueryEntries } from '../../composables/duplex-channel'
 import { useRoute } from 'vue-router'
 import type { DataStateStatus } from '@pinia/colada'
@@ -34,47 +33,23 @@ const lastUpdate = useTimeAgo(() => selectedQuery.value?.devtools.updatedAt ?? 0
   updateInterval: 3_000,
 })
 
-// TODO: we should be able to highlight components using this query. Not sure about vapor mode
-const el = useTemplateRef('me')
-watch(
-  () => [el.value, selectedQuery.value?.id] as const,
-  ([el]) => {
-    if (!el) return []
-    console.time('find elements')
-    const tw = document.createTreeWalker(el.ownerDocument.body, NodeFilter.SHOW_ELEMENT)
-
-    const observingComponents = {} as Record<number, ComponentInternalInstance | undefined>
-
-    const componentObservers = new Set<number>(
-      selectedQuery.value?.deps.filter((c) => c.type === 'component').map((c) => c.uid) ?? [],
-    )
-    while (tw.nextNode()) {
-      const node = tw.currentNode
-      if (!(node instanceof HTMLElement)) {
-        continue
-      }
-      // TODO: type internals of Vue
-      const component = ((node as any).__vueParentComponent
-        || (node as any).__vue_app_?._instance) as ComponentInternalInstance | null
-      if (!component) {
-        continue
-      }
-
-      if (componentObservers.has(component.uid)) {
-        observingComponents[component.uid] = component
-        componentObservers.delete(component.uid)
-
-        // can't find more
-        if (componentObservers.size === 0) {
-          break
-        }
-      }
-    }
-
-    console.timeEnd('find elements')
-    console.log('elements', observingComponents)
-  },
-)
+// TODO: we should be able to highlight components using this query
+// const el = useTemplateRef('me')
+// TODO: add ref="me" to the div
+// watch(
+//   // also trigger if the selectedQuery changes
+//   () => [el.value, selectedQuery.value?.id] as const,
+//   ([el]) => {
+//     if (!el || !selectedQuery.value) return
+//
+//     const observingComponents = findVueComponents(
+//       el,
+//       selectedQuery.value.deps.filter((c) => c.type === 'component').map((c) => c.uid) ?? [],
+//     )
+//
+//     console.log('elements', observingComponents)
+//   },
+// )
 
 const channel = useDuplexChannel()
 
@@ -101,10 +76,7 @@ watch(
 </script>
 
 <template>
-  <div
-    ref="me"
-    class="flex flex-col divide-y dark:divide-(--ui-border) divide-(--ui-border-accented)"
-  >
+  <div class="flex flex-col divide-y dark:divide-(--ui-border) divide-(--ui-border-accented)">
     <template v-if="selectedQuery">
       <UCollapse title="Details" :icon="IInfoCircle">
         <div class="py-1 text-sm">
@@ -115,16 +87,40 @@ watch(
             </span>
           </p>
 
-          <p class="grid grid-cols-[auto_1fr] gap-x-2">
+          <p class="grid grid-cols-[auto_1fr] gap-x-2" title="When was the query entry last updated">
             <span>Last update:</span>
             <span class="font-bold">{{ lastUpdate }}</span>
           </p>
 
           <p
-            class="grid grid-cols-[auuo_1fr] gap-x-2"
+            class="grid grid-cols-[auto_1fr] gap-x-2"
             title="How many components and effects are using this query"
           >
             <span>Observers: <span class="font-bold">{{ selectedQuery.deps.length }}</span></span>
+          </p>
+
+          <p
+            v-if="!selectedQuery.active && selectedQuery.options"
+            class="grid grid-cols-[auto_1fr] gap-x-2"
+            title="When is this query entry garbace collected"
+          >
+            <template
+              v-if="
+                typeof selectedQuery.options.gcTime === 'number'
+                  && Number.isFinite(selectedQuery.options.gcTime)
+              "
+            >
+              <span>Will be <i>gced</i></span>
+              <span class="font-bold">{{
+                formatTimeAgo(
+                  new Date(selectedQuery.devtools.updatedAt + selectedQuery.options.gcTime),
+                  {
+                    ...TIME_AGO_OPTIONS,
+                    max: undefined,
+                  },
+                )
+              }}</span>
+            </template>
           </p>
         </div>
       </UCollapse>
@@ -135,6 +131,7 @@ watch(
             class="theme-info"
             size="sm"
             title="Refetch this query"
+            :disabled="selectedQuery.options?.enabled === false"
             @click="channel.emit('queries:refetch', selectedQuery.key)"
           >
             <i-lucide-refresh-cw class="size-3.5" /> Refetch
@@ -174,7 +171,10 @@ watch(
 
       <UCollapse v-model:open="isDataOpen" title="Data" :icon="IFileText">
         <div class="py-1">
-          <pre class="rounded p-1 overflow-auto max-h-[1200px]">{{ selectedQuery.state.data }}</pre>
+          <pre v-if="selectedQuery.state.data !== undefined" class="rounded p-1 overflow-auto max-h-[1200px]">{{ selectedQuery.state.data }}</pre>
+          <p v-else class="text-neutral-500/50">
+            No data
+          </p>
         </div>
       </UCollapse>
 
@@ -235,7 +235,7 @@ watch(
     </template>
 
     <template v-else>
-      <p>Select a Query</p>
+      <p class="py-6 mx-auto">Select a Query on the left</p>
     </template>
   </div>
 </template>
