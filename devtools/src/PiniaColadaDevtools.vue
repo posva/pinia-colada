@@ -90,6 +90,17 @@ transmitter.on('queries:refetch', (key) => {
 transmitter.on('queries:invalidate', (key) => {
   queryCache.invalidateQueries({ key, exact: true })
 })
+transmitter.on('queries:reset', (key) => {
+  const entry = queryCache.getEntries({ key, exact: true })[0]
+  if (entry) {
+    queryCache.cancel(entry)
+    queryCache.setEntryState(entry, {
+      status: 'pending',
+      data: undefined,
+      error: null,
+    })
+  }
+})
 
 transmitter.on('queries:set:state', (key, state) => {
   const entry = queryCache.getEntries({ key, exact: true })[0]
@@ -99,16 +110,24 @@ transmitter.on('queries:set:state', (key, state) => {
   }
 })
 
-transmitter.on('queries:set:asyncStatus', (key, status) => {
+transmitter.on('queries:simulate:loading', (key) => {
   const entry = queryCache.getEntries({ key, exact: true })[0]
   if (entry) {
-    entry.asyncStatus.value = status
+    entry.asyncStatus.value = 'loading'
     entry[DEVTOOLS_INFO_KEY].simulate = 'loading'
     transmitter.emit('queries:update', createQueryEntryPayload(entry))
   }
 })
+transmitter.on('queries:simulate:loading:stop', (key) => {
+  const entry = queryCache.getEntries({ key, exact: true })[0]
+  if (entry && entry[DEVTOOLS_INFO_KEY].simulate === 'loading') {
+    entry.asyncStatus.value = 'idle'
+    entry[DEVTOOLS_INFO_KEY].simulate = null
+    transmitter.emit('queries:update', createQueryEntryPayload(entry))
+  }
+})
 
-transmitter.on('queries:simulate-error', (key) => {
+transmitter.on('queries:simulate:error', (key) => {
   const entry = queryCache.getEntries({ key, exact: true })[0]
   if (entry) {
     queryCache.cancel(entry)
@@ -117,7 +136,23 @@ transmitter.on('queries:simulate-error', (key) => {
       status: 'error',
       error: new Error('Simulated error'),
     })
+    // we set after because setting the entry state resets the simulation
     entry[DEVTOOLS_INFO_KEY].simulate = 'error'
+    transmitter.emit('queries:update', createQueryEntryPayload(entry))
+  }
+})
+
+transmitter.on('queries:simulate:error:stop', (key) => {
+  const entry = queryCache.getEntries({ key, exact: true })[0]
+  if (entry && entry[DEVTOOLS_INFO_KEY].simulate === 'error') {
+    queryCache.cancel(entry)
+    queryCache.setEntryState(entry, {
+      ...entry.state.value,
+      status: entry.state.value.data !== undefined ? 'success' : 'pending',
+      error: null,
+    })
+    entry[DEVTOOLS_INFO_KEY].simulate = null
+    transmitter.emit('queries:update', createQueryEntryPayload(entry))
   }
 })
 

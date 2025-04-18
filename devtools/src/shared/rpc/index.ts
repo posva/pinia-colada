@@ -1,4 +1,4 @@
-import type { AsyncStatus, DataState, EntryNodeKey, UseQueryEntryFilter } from '@pinia/colada'
+import type { DataState, EntryNodeKey, UseQueryEntryFilter } from '@pinia/colada'
 import type { UseQueryEntryPayload } from '../query-serialized'
 import { toRaw } from 'vue'
 
@@ -89,9 +89,14 @@ export interface DevtoolsEmits {
   'queries:clear': [] | [filters: UseQueryEntryFilter]
   'queries:refetch': [entryKey: EntryNodeKey[]]
   'queries:invalidate': [entryKey: EntryNodeKey[]]
-  'queries:set:asyncStatus': [entryKey: EntryNodeKey[], asyncStatus: AsyncStatus]
+  'queries:reset': [entryKey: EntryNodeKey[]]
+
+  'queries:simulate:error': [entryKey: EntryNodeKey[]]
+  'queries:simulate:error:stop': [entryKey: EntryNodeKey[]]
+  'queries:simulate:loading': [entryKey: EntryNodeKey[]]
+  'queries:simulate:loading:stop': [entryKey: EntryNodeKey[]]
+
   'queries:set:state': [entryKey: EntryNodeKey[], state: DataState<unknown, unknown, unknown>]
-  'queries:simulate-error': [entryKey: EntryNodeKey[]]
 
   // for testing
   'ping': []

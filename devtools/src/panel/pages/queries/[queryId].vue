@@ -2,6 +2,7 @@
 import type { UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
 import { computed, ref, watch } from 'vue'
 import { useDuplexChannel, useQueryEntries } from '../../composables/duplex-channel'
+import { formatDuration } from '../../utils/time'
 import { useRoute } from 'vue-router'
 import type { DataStateStatus } from '@pinia/colada'
 
@@ -87,16 +88,49 @@ watch(
             </span>
           </p>
 
-          <p class="grid grid-cols-[auto_1fr] gap-x-2" title="When was the query entry last updated">
+          <p
+            class="grid grid-cols-[auto_1fr] gap-x-2"
+            title="When was the query entry last updated"
+          >
             <span>Last update:</span>
             <span class="font-bold">{{ lastUpdate }}</span>
+          </p>
+
+          <p
+            v-if="selectedQuery.devtools.history.at(0)?.fetchTime"
+            class="grid grid-cols-[auto_1fr] gap-x-2"
+            title="When was the last time the query was fetched"
+          >
+            <span>Last fetch:</span>
+            <span class="font-bold">{{
+              formatTimeAgo(new Date(selectedQuery.devtools.history.at(0)!.fetchTime!.start), {
+                ...TIME_AGO_OPTIONS,
+                max: undefined,
+              })
+            }}</span>
+          </p>
+
+          <p
+            v-if="selectedQuery.devtools.history.at(0)?.fetchTime?.end"
+            class="grid grid-cols-[auto_1fr] gap-x-2"
+            title="How long did the last query take to fetch"
+          >
+            <span>Fetch duration:</span>
+            <span class="font-bold">{{
+              formatDuration(
+                selectedQuery.devtools.history.at(0)!.fetchTime!.end! -
+                  selectedQuery.devtools.history.at(0)!.fetchTime!.start,
+              )
+            }}</span>
           </p>
 
           <p
             class="grid grid-cols-[auto_1fr] gap-x-2"
             title="How many components and effects are using this query"
           >
-            <span>Observers: <span class="font-bold">{{ selectedQuery.deps.length }}</span></span>
+            <span
+              >Observers: <span class="font-bold">{{ selectedQuery.deps.length }}</span></span
+            >
           </p>
 
           <p
@@ -106,8 +140,8 @@ watch(
           >
             <template
               v-if="
-                typeof selectedQuery.options.gcTime === 'number'
-                  && Number.isFinite(selectedQuery.options.gcTime)
+                typeof selectedQuery.options.gcTime === 'number' &&
+                Number.isFinite(selectedQuery.options.gcTime)
               "
             >
               <span>Will be <i>gced</i></span>
@@ -126,7 +160,7 @@ watch(
       </UCollapse>
 
       <UCollapse title="Actions" :icon="IWrench">
-        <div class="py-2 flex gap-2 flex-wrap">
+        <div class="py-2 gap-2 flex flex-wrap items-center justify-items-start">
           <UButton
             class="theme-info"
             size="sm"
@@ -147,34 +181,64 @@ watch(
           </UButton>
 
           <UButton
+            v-if="selectedQuery.devtools.simulate !== 'loading'"
+            class="theme-purple"
+            size="sm"
+            title="Restore the previous state"
+            @click="channel.emit('queries:simulate:loading', selectedQuery.key)"
+          >
+            <i-lucide-loader />
+            Simulate loading
+          </UButton>
+          <UButton
+            v-else
             class="theme-purple"
             size="sm"
             title="Simulate a loading state"
-            @click="channel.emit('queries:set:asyncStatus', selectedQuery.key, 'loading')"
+            @click="channel.emit('queries:simulate:loading:stop', selectedQuery.key)"
           >
-            <i-lucide-loader
-              :class="{ 'animate-spin': selectedQuery.devtools.simulate === 'loading' }"
-            />
-            Simulate loading
+            <i-lucide-loader class="animate-spin" />
+            Stop loading
           </UButton>
 
           <UButton
+            v-if="selectedQuery.devtools.simulate !== 'error'"
             class="theme-error"
             size="sm"
             title="Simulate an Error state"
-            @click="channel.emit('queries:simulate-error', selectedQuery.key)"
+            @click="channel.emit('queries:simulate:error', selectedQuery.key)"
           >
-            <i-lucide-ban class="size-3.5" /> Simulate error
+            <i-lucide-x-octagon /> Simulate error
+          </UButton>
+          <UButton
+            v-else
+            class="theme-error"
+            size="sm"
+            title="Restore the previous state"
+            @click="channel.emit('queries:simulate:error:stop', selectedQuery.key)"
+          >
+            <i-lucide-rotate-ccw /> Remove error
+          </UButton>
+
+          <UButton
+            class="theme-warning"
+            size="sm"
+            title="Reset this query to its initial (pending) state"
+            @click="channel.emit('queries:reset', selectedQuery.key)"
+          >
+            <i-lucide-trash /> Reset
           </UButton>
         </div>
       </UCollapse>
 
       <UCollapse v-model:open="isDataOpen" title="Data" :icon="IFileText">
         <div class="py-1">
-          <pre v-if="selectedQuery.state.data !== undefined" class="rounded p-1 overflow-auto max-h-[1200px]">{{ selectedQuery.state.data }}</pre>
-          <p v-else class="text-neutral-500/50">
-            No data
-          </p>
+          <pre
+            v-if="selectedQuery.state.data !== undefined"
+            class="rounded p-1 overflow-auto max-h-[1200px]"
+            >{{ selectedQuery.state.data }}</pre
+          >
+          <p v-else class="text-neutral-500/50">No data</p>
         </div>
       </UCollapse>
 
@@ -183,9 +247,7 @@ watch(
           <pre v-if="selectedQuery.state.error" class="rounded p-1 overflow-auto max-h-[1200px]">{{
             selectedQuery.state.error
           }}</pre>
-          <p v-else class="text-neutral-500/50">
-            No error
-          </p>
+          <p v-else class="text-neutral-500/50">No error</p>
         </div>
       </UCollapse>
 
@@ -235,7 +297,12 @@ watch(
     </template>
 
     <template v-else>
-      <p class="py-6 mx-auto">Select a Query on the left</p>
+      <div class="py-6 mx-auto">
+        <p class="flex flex-col text-center items-center gap-2 text-lg px-2">
+          Select a Query to inspect
+          <i-lucide-mouse-pointer-click />
+        </p>
+      </div>
     </template>
   </div>
 </template>
