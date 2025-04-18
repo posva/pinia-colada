@@ -4,11 +4,14 @@ import type { UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
 import { computed } from 'vue'
 import { getQueryStatus, STATUS_COLOR_CLASSES } from '../utils/query-state'
 import { useRouter } from 'vue-router'
+import { useNow } from '@vueuse/core'
 
 const { entry } = defineProps<{
   entry: UseQueryEntryPayload
 }>()
 const router = useRouter()
+
+const now = useNow({ interval: Math.max(100, (entry.options?.gcTime || 0) / 30) })
 
 function unselect(event: MouseEvent) {
   event.preventDefault()
@@ -52,10 +55,22 @@ const status = computed(() => getQueryStatus(entry))
           :title="status"
         >
           <i-lucide-loader v-if="status === 'loading'" title="Loading" aria-label="Loading icon" />
-          <i-lucide-check-check v-else-if="status === 'fresh'" title="Fresh successful data" aria-label="Fresh successful data icon" />
-          <i-lucide-x-octagon v-else-if="status === 'error'" title="Error" aria-label="Error icon" />
+          <i-lucide-check-check
+            v-else-if="status === 'fresh'"
+            title="Fresh successful data"
+            aria-label="Fresh successful data icon"
+          />
+          <i-lucide-x-octagon
+            v-else-if="status === 'error'"
+            title="Error"
+            aria-label="Error icon"
+          />
           <i-lucide-check v-else-if="status === 'stale'" title="Stale" aria-label="Stale icon" />
-          <i-lucide-pause v-else-if="status === 'pending'" title="Pending" aria-label="Pending icon" />
+          <i-lucide-pause
+            v-else-if="status === 'pending'"
+            title="Pending"
+            aria-label="Pending icon"
+          />
         </div>
         <!-- <i-carbon-intent-request-inactive -->
         <!--   v-if="status === 'loading'" -->
@@ -84,6 +99,23 @@ const status = computed(() => getQueryStatus(entry))
           <i-lucide-circle-slash aria-hidden />
           <span class="@max-md:hidden">disabled</span>
         </span>
+      </div>
+      <div
+        v-else-if="
+          !entry.active
+            && entry.gcTimeout
+            && entry.devtools.inactiveAt
+            && typeof entry.options?.gcTime === 'number'
+            && Number.isFinite(entry.options.gcTime)
+            && entry.options.gcTime <= 30_000
+        "
+        title="This query will be garbage collected"
+      >
+        <UCircleProgress
+          class="size-[1em] dark:text-neutral-500 text-neutral-400"
+          :max="entry.options.gcTime"
+          :value="entry.devtools.inactiveAt + entry.options.gcTime - now.getTime()"
+        />
       </div>
     </div>
   </RouterLink>

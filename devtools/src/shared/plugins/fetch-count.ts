@@ -24,6 +24,7 @@ export function addDevtoolsInfo(queryCache: QueryCache): void {
             cancelled: 0,
           },
           updatedAt: now(),
+          inactiveAt: 0,
           simulate: null,
           history: [],
         }
@@ -89,6 +90,13 @@ export function addDevtoolsInfo(queryCache: QueryCache): void {
           lastHistoryEntry.updatedAt = now()
         }
       })
+    } else if (name === 'untrack') {
+      const [entry] = args
+      after(() => {
+        if (!entry.active) {
+          entry[DEVTOOLS_INFO_KEY].inactiveAt = now()
+        }
+      })
     }
   })
 }
@@ -126,6 +134,11 @@ export interface UseQueryDevtoolsInfo {
   }
 
   updatedAt: number
+
+  /**
+   * When was this entry last inactive. 0 if it has never been inactive.
+   */
+  inactiveAt: number
 
   simulate: 'error' | 'loading' | null
 

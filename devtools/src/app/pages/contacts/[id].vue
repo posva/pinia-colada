@@ -25,7 +25,7 @@ const {
       { signal },
     ),
 
-  // gcTime: 25_000
+  gcTime: 5_000,
 })
 
 const { mutate: updateContact } = useMutation({

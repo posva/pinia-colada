@@ -35,6 +35,8 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     UButton: typeof import('./src/panel/components/UButton.ce.vue')['default']
     'UButton.ce': typeof import('./src/panel/components/UButton.ce.vue')['default']
+    UCircleProgress: typeof import('./src/panel/components/UCircleProgress.ce.vue')['default']
+    'UCircleProgress.ce': typeof import('./src/panel/components/UCircleProgress.ce.vue')['default']
     UCollapse: typeof import('./src/panel/components/UCollapse.ce.vue')['default']
     'UCollapse.ce': typeof import('./src/panel/components/UCollapse.ce.vue')['default']
     UInput: typeof import('./src/panel/components/UInput.ce.vue')['default']
