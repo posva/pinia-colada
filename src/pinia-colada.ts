@@ -41,7 +41,7 @@ export interface PiniaColadaOptions {
  * @param app - Vue App
  * @param options - Pinia Colada options
  */
-export const PiniaColada: Plugin<PiniaColadaOptions> = (
+export const PiniaColada: Plugin<[options?: PiniaColadaOptions]> = (
   app: App,
   options: PiniaColadaOptions = {},
 ): void => {
