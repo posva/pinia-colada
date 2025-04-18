@@ -235,7 +235,9 @@ watch(
     </template>
 
     <template v-else>
-      <p class="py-6 mx-auto">Select a Query on the left</p>
+      <p class="py-6 mx-auto">
+        Select a Query on the left
+      </p>
     </template>
   </div>
 </template>
