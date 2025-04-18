@@ -57,7 +57,9 @@
   },
   "devDependencies": {
     "@iconify-json/carbon": "^1.2.8",
+    "@iconify-json/lucide": "^1.2.37",
     "@iconify-json/mdi": "^1.2.3",
+    "@iconify-json/solar": "^1.2.2",
     "@pinia/colada": "workspace:^*",
     "@posva/splitpanes": "^4.0.6",
     "@tailwindcss/vite": "^4.1.3",

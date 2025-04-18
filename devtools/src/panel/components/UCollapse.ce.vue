@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import type { Component } from 'vue'
+
 defineProps<{
   title?: string
+  icon?: Component
 }>()
 
 const open = defineModel<boolean>('open', {
@@ -22,9 +25,12 @@ function scrollIfNeeded(event: TransitionEvent) {
 <template>
   <div class="collapse collapse-arrow">
     <input v-model="open" type="checkbox">
-    <div class="collapse-title px-2 py-0.5 bg-neutral-300 dark:bg-neutral-800 theme-neutral">
+    <div class="collapse-title px-2 py-0.5 bg-neutral-200 dark:bg-neutral-800 theme-neutral">
       <slot name="title" :open :title>
-        <h3 class="font-semibold text-sm">
+        <h3 class="font-semibold text-sm flex gap-x-1 items-center">
+          <slot name="icon">
+            <component :is="icon" v-if="icon" class="size-4" />
+          </slot>
           {{ title ?? 'Group' }}
         </h3>
       </slot>

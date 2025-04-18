@@ -63,7 +63,7 @@ channel.on('queries:delete', (q) => {
 
 <template>
   <PiPContainer id="root" :is-pip>
-    <main class="w-full h-full grid grid-rows-[auto_1fr] bg-ui-bg text-ui-text">
+    <main class="w-full h-full grid grid-rows-[auto_1fr] bg-ui-bg text-ui-text font-sans">
       <!-- Merged Header with Tabs Navigation -->
       <div class="flex items-center border-b border-(--ui-border) select-none">
         <!-- Logo -->

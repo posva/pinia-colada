@@ -4,6 +4,8 @@
  */
 import type { DataState, QueryCache, UseQueryEntry } from '@pinia/colada'
 
+const now = () => performance.timeOrigin + performance.now()
+
 export function addDevtoolsInfo(queryCache: QueryCache): void {
   if (installationMap.has(queryCache)) {
     return
@@ -20,7 +22,8 @@ export function addDevtoolsInfo(queryCache: QueryCache): void {
             errored: 0,
             cancelled: 0,
           },
-          updatedAt: Date.now(),
+          updatedAt: now(),
+          simulate: null,
           history: [],
         }
       })
@@ -31,7 +34,7 @@ export function addDevtoolsInfo(queryCache: QueryCache): void {
       const historyEntry: UseQueryEntryHistoryEntry = {
         key: entry.key,
         state: entry.state.value,
-        updatedAt: Date.now(),
+        updatedAt: now(),
       }
       entry[DEVTOOLS_INFO_KEY].history.unshift(historyEntry)
       // limit history to 10 entries
@@ -39,31 +42,31 @@ export function addDevtoolsInfo(queryCache: QueryCache): void {
 
       after(() => {
         entry[DEVTOOLS_INFO_KEY].count.succeed++
-        entry[DEVTOOLS_INFO_KEY].updatedAt = Date.now()
+        entry[DEVTOOLS_INFO_KEY].updatedAt = now()
         historyEntry.state = entry.state.value
-        historyEntry.updatedAt = Date.now()
+        historyEntry.updatedAt = now()
       })
       onError(() => {
         entry[DEVTOOLS_INFO_KEY].count.errored++
-        entry[DEVTOOLS_INFO_KEY].updatedAt = Date.now()
+        entry[DEVTOOLS_INFO_KEY].updatedAt = now()
         historyEntry.state = entry.state.value
-        historyEntry.updatedAt = Date.now()
+        historyEntry.updatedAt = now()
       })
     } else if (name === 'cancel') {
       const [entry] = args
       if (entry.pending) {
         entry[DEVTOOLS_INFO_KEY].count.cancelled++
-        entry[DEVTOOLS_INFO_KEY].updatedAt = Date.now()
+        entry[DEVTOOLS_INFO_KEY].updatedAt = now()
       }
     } else if (name === 'setEntryState') {
       const [entry] = args
       let lastHistoryEntry = entry[DEVTOOLS_INFO_KEY].history[0]
       after(() => {
-        entry[DEVTOOLS_INFO_KEY].updatedAt = Date.now()
+        entry[DEVTOOLS_INFO_KEY].updatedAt = now()
         lastHistoryEntry ??= entry[DEVTOOLS_INFO_KEY].history[0]
         if (lastHistoryEntry) {
           lastHistoryEntry.state = entry.state.value
-          lastHistoryEntry.updatedAt = Date.now()
+          lastHistoryEntry.updatedAt = now()
         }
       })
     }
@@ -86,6 +89,8 @@ export interface UseQueryDevtoolsInfo {
   }
 
   updatedAt: number
+
+  simulate: 'error' | 'loading' | null
 
   /**
    * Only the last 10 entries are kept.

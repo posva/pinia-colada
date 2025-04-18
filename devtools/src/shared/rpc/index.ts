@@ -91,6 +91,7 @@ export interface DevtoolsEmits {
   'queries:invalidate': [entryKey: EntryNodeKey[]]
   'queries:set:asyncStatus': [entryKey: EntryNodeKey[], asyncStatus: AsyncStatus]
   'queries:set:state': [entryKey: EntryNodeKey[], state: DataState<unknown, unknown, unknown>]
+  'queries:simulate-error': [entryKey: EntryNodeKey[]]
 
   // for testing
   'ping': []
@@ -120,8 +121,15 @@ function toRawDeep(val: unknown): unknown {
   if (Array.isArray(val)) {
     return val.map((item) => toRawDeep(item))
   }
-  if (val && typeof val === 'object') {
+  // TODO: custom classes?
+  if (val && typeof val === 'object' && !isError(val)) {
     return Object.fromEntries(Object.entries(val).map(([key, value]) => [key, toRawDeep(value)]))
   }
   return toRaw(val)
+}
+
+function isError(err: unknown): err is Error {
+  return 'isError' in Error && typeof Error.isError === 'function'
+    ? Error.isError(err)
+    : err instanceof Error
 }

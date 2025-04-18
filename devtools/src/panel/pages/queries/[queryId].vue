@@ -1,24 +1,112 @@
 <script setup lang="ts">
 import type { UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
-import { computed } from 'vue'
+import { computed, ref, useTemplateRef, watch, isVNode } from 'vue'
+import type { ComponentInternalInstance } from 'vue'
 import { useDuplexChannel, useQueryEntries } from '../../composables/duplex-channel'
 import { useRoute } from 'vue-router'
+import type { DataStateStatus } from '@pinia/colada'
+
+import IWrench from '~icons/lucide/wrench'
+import IInfoCircle from '~icons/lucide/info'
+import IFileText from '~icons/lucide/file-text'
+import ICircleX from '~icons/lucide/circle-x'
+import IBraces from '~icons/lucide/braces'
+import IHistory from '~icons/lucide/history'
+import ISigmaSquare from '~icons/lucide/sigma-square'
+import { useTimeAgo, formatTimeAgo } from '@vueuse/core'
+import type { FormatTimeAgoOptions } from '@vueuse/core'
 
 const route = useRoute('/queries/[queryId]')
 const queries = useQueryEntries()
 
-// Selection management
 const selectedQuery = computed<UseQueryEntryPayload | null>(() => {
   return queries.value.find((entry) => entry.id === route.params.queryId) ?? null
 })
 
+const TIME_AGO_OPTIONS: FormatTimeAgoOptions = {
+  showSecond: true,
+  rounding: 'floor',
+  max: 1000 * 60 * 5, // 5 minutes
+}
+
+const lastUpdate = useTimeAgo(() => selectedQuery.value?.devtools.updatedAt ?? 0, {
+  ...TIME_AGO_OPTIONS,
+  updateInterval: 3_000,
+})
+
+// TODO: we should be able to highlight components using this query. Not sure about vapor mode
+const el = useTemplateRef('me')
+watch(
+  () => [el.value, selectedQuery.value?.id] as const,
+  ([el]) => {
+    if (!el) return []
+    console.time('find elements')
+    const tw = document.createTreeWalker(el.ownerDocument.body, NodeFilter.SHOW_ELEMENT)
+
+    const observingComponents = {} as Record<number, ComponentInternalInstance | undefined>
+
+    const componentObservers = new Set<number>(
+      selectedQuery.value?.deps.filter((c) => c.type === 'component').map((c) => c.uid) ?? [],
+    )
+    while (tw.nextNode()) {
+      const node = tw.currentNode
+      if (!(node instanceof HTMLElement)) {
+        continue
+      }
+      // TODO: type internals of Vue
+      const component = ((node as any).__vueParentComponent
+        || (node as any).__vue_app_?._instance) as ComponentInternalInstance | null
+      if (!component) {
+        continue
+      }
+
+      if (componentObservers.has(component.uid)) {
+        observingComponents[component.uid] = component
+        componentObservers.delete(component.uid)
+
+        // can't find more
+        if (componentObservers.size === 0) {
+          break
+        }
+      }
+    }
+
+    console.timeEnd('find elements')
+    console.log('elements', observingComponents)
+  },
+)
+
 const channel = useDuplexChannel()
+
+const isDataOpen = ref(false)
+let wasDataOpen = isDataOpen.value
+let lastStatus: DataStateStatus | null = null
+const isErrorOpen = ref(false)
+watch(
+  () => selectedQuery.value?.state,
+  (state) => {
+    if (!state || lastStatus === state.status) return
+    lastStatus = state.status
+    if (state.status === 'error') {
+      isErrorOpen.value = true
+      // preserve it for later
+      wasDataOpen = isDataOpen.value
+      isDataOpen.value = false
+    } else if (state.status === 'success') {
+      isDataOpen.value = wasDataOpen
+      isErrorOpen.value = false
+    }
+  },
+)
 </script>
 
 <template>
-  <div class="flex flex-col divide-y divide-(--ui-border)">
+  <div
+    ref="me"
+    class="flex flex-col divide-y dark:divide-(--ui-border) divide-(--ui-border-accented)"
+  >
     <template v-if="selectedQuery">
-      <UCollapse title="Details">
+      <UCollapse title="Details" :icon="IInfoCircle">
         <div class="py-1 text-sm">
           <p class="grid grid-cols-[auto_1fr] gap-1">
             <span>key:</span>
@@ -26,66 +114,118 @@ const channel = useDuplexChannel()
               <code class="rounded bg-neutral-500/20 p-0.5">{{ selectedQuery.key }}</code>
             </span>
           </p>
+
           <p class="grid grid-cols-[auto_1fr] gap-x-2">
             <span>Last update:</span>
-            <span>{{ new Date(selectedQuery.devtools.updatedAt).toLocaleTimeString() }}</span>
+            <span class="font-bold">{{ lastUpdate }}</span>
+          </p>
+
+          <p
+            class="grid grid-cols-[auuo_1fr] gap-x-2"
+            title="How many components and effects are using this query"
+          >
+            <span>Observers: <span class="font-bold">{{ selectedQuery.deps.length }}</span></span>
           </p>
         </div>
       </UCollapse>
 
-      <UCollapse title="Actions">
-        <div class="py-2 flex gap-x-2">
+      <UCollapse title="Actions" :icon="IWrench">
+        <div class="py-2 flex gap-2 flex-wrap">
           <UButton
             class="theme-info"
-            size="xs"
+            size="sm"
             title="Refetch this query"
             @click="channel.emit('queries:refetch', selectedQuery.key)"
           >
-            Refetch
+            <i-lucide-refresh-cw class="size-3.5" /> Refetch
           </UButton>
 
           <UButton
             class="theme-neutral"
-            size="xs"
+            size="sm"
             title="Invalidate this query"
             @click="channel.emit('queries:invalidate', selectedQuery.key)"
           >
-            Invalidate
+            <i-lucide-timer-reset /> Invalidate
           </UButton>
 
           <UButton
-            class="theme-warning"
-            size="xs"
+            class="theme-purple"
+            size="sm"
             title="Simulate a loading state"
             @click="channel.emit('queries:set:asyncStatus', selectedQuery.key, 'loading')"
           >
+            <i-lucide-loader
+              :class="{ 'animate-spin': selectedQuery.devtools.simulate === 'loading' }"
+            />
             Simulate loading
           </UButton>
 
           <UButton
             class="theme-error"
-            size="xs"
+            size="sm"
             title="Simulate an Error state"
-            @click="
-              channel.emit('queries:set:state', selectedQuery.key, {
-                ...selectedQuery.state,
-                status: 'error',
-                error: new Error('Simulated error'),
-              })
-            "
+            @click="channel.emit('queries:simulate-error', selectedQuery.key)"
           >
-            Simulate error
+            <i-lucide-ban class="size-3.5" /> Simulate error
           </UButton>
         </div>
       </UCollapse>
 
-      <UCollapse title="Data">
+      <UCollapse v-model:open="isDataOpen" title="Data" :icon="IFileText">
         <div class="py-1">
           <pre class="rounded p-1 overflow-auto max-h-[1200px]">{{ selectedQuery.state.data }}</pre>
         </div>
       </UCollapse>
 
-      <UCollapse title="Options" :open="false">
+      <UCollapse v-model:open="isErrorOpen" title="Error" :icon="ICircleX">
+        <div class="py-1">
+          <pre v-if="selectedQuery.state.error" class="rounded p-1 overflow-auto max-h-[1200px]">{{
+            selectedQuery.state.error
+          }}</pre>
+          <p v-else class="text-neutral-500/50">
+            No error
+          </p>
+        </div>
+      </UCollapse>
+
+      <UCollapse title="Call count" :icon="ISigmaSquare" :open="false">
+        <div class="py-1">
+          <p class="grid grid-cols-[auto_1fr] gap-1">
+            <span>Calls:</span>
+            <span>
+              <code class="font-bold">{{ selectedQuery.devtools.count.total }}</code>
+            </span>
+            <span>Success:</span>
+            <span>
+              <code class="font-bold">{{ selectedQuery.devtools.count.succeed }}</code>
+            </span>
+            <span>Errors:</span>
+            <span>
+              <code class="font-bold">{{ selectedQuery.devtools.count.errored }}</code>
+            </span>
+            <span>Cancelled:</span>
+            <span>
+              <code class="font-bold">{{ selectedQuery.devtools.count.cancelled }}</code>
+            </span>
+          </p>
+        </div>
+      </UCollapse>
+
+      <UCollapse title="History" :icon="IHistory" :open="false">
+        <div class="py-1">
+          <UCollapse
+            v-for="(entry, i) of selectedQuery.devtools.history"
+            :key="entry.updatedAt"
+            :title="`Entry ${i} (${formatTimeAgo(new Date(entry.updatedAt), TIME_AGO_OPTIONS)})`"
+            :open="false"
+          >
+            <pre class="rounded p-1 overflow-auto max-h-[1200px]">{{ entry }}</pre>
+          </UCollapse>
+        </div>
+      </UCollapse>
+
+      <UCollapse title="Options" :open="false" :icon="IBraces">
         <div class="py-1">
           <pre class="rounded bg-neutral-500/20 p-1 overflow-auto max-h-[1200px]">{{
             selectedQuery.options

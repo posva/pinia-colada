@@ -6,7 +6,10 @@ import { routes } from 'vue-router/auto-routes'
 export function configureApp(app: VueApp<unknown>) {
   const router = createRouter({
     history: createMemoryHistory(),
-    routes,
+    routes: [
+      { path: '/', redirect: '/queries' },
+      ...routes,
+    ],
   })
 
   // preserve the location in local storage

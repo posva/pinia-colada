@@ -6,6 +6,7 @@ import {
   DuplexChannel,
   useEventListener,
   addDevtoolsInfo,
+  DEVTOOLS_INFO_KEY,
 } from '@pinia/colada-devtools/shared'
 import type { AppEmits, DevtoolsEmits } from '@pinia/colada-devtools/shared'
 
@@ -24,6 +25,7 @@ queryCache.$onAction(({ name, after, onError, args }) => {
     || name === 'cancel'
     || name === 'invalidate'
     || name === 'fetch'
+    || name === 'setEntryState'
   ) {
     const [entry] = args
 
@@ -37,6 +39,7 @@ queryCache.$onAction(({ name, after, onError, args }) => {
 
     // TODO: throttle
     after(() => {
+      entry[DEVTOOLS_INFO_KEY].simulate = null
       transmitter.emit('queries:update', createQueryEntryPayload(entry))
 
       // emit an update when the data becomes stale
@@ -100,7 +103,21 @@ transmitter.on('queries:set:asyncStatus', (key, status) => {
   const entry = queryCache.getEntries({ key, exact: true })[0]
   if (entry) {
     entry.asyncStatus.value = status
+    entry[DEVTOOLS_INFO_KEY].simulate = 'loading'
     transmitter.emit('queries:update', createQueryEntryPayload(entry))
+  }
+})
+
+transmitter.on('queries:simulate-error', (key) => {
+  const entry = queryCache.getEntries({ key, exact: true })[0]
+  if (entry) {
+    queryCache.cancel(entry)
+    queryCache.setEntryState(entry, {
+      ...entry.state.value,
+      status: 'error',
+      error: new Error('Simulated error'),
+    })
+    entry[DEVTOOLS_INFO_KEY].simulate = 'error'
   }
 })
 

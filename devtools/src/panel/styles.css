@@ -351,12 +351,31 @@
   --color-theme-950: var(--color-neutral-950);
 }
 
+.theme-purple {
+  --ui-text: var(--ui-text-inverted);
+  --ui-bg: var(--color-theme);
+
+  --color-theme: var(--color-purple-400);
+
+  --color-theme-50: var(--color-purple-50);
+  --color-theme-100: var(--color-purple-100);
+  --color-theme-200: var(--color-purple-200);
+  --color-theme-300: var(--color-purple-300);
+  --color-theme-400: var(--color-purple-400);
+  --color-theme-500: var(--color-purple-500);
+  --color-theme-600: var(--color-purple-600);
+  --color-theme-700: var(--color-purple-700);
+  --color-theme-800: var(--color-purple-800);
+  --color-theme-900: var(--color-purple-900);
+  --color-theme-950: var(--color-purple-950);
+}
+
 .variant-ghost {
   --ui-text: var(--color-theme);
   color: var(--color-theme);
   background-color: transparent;
   &:hover {
-    color: var(--color-theme);
+    /* color: var(--color-theme); */
     /* color: var(--ui-bg-inverted); */
     background-color: color-mix(in hsl, var(--ui-bg) 10%, transparent);
   }

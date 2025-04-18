@@ -8,12 +8,26 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    ICarbonClose: typeof import('~icons/carbon/close')['default']
+    ICarbonPopup: typeof import('~icons/carbon/popup')['default']
+    ICarbonSearch: typeof import('~icons/carbon/search')['default']
+    ILucideBan: typeof import('~icons/lucide/ban')['default']
+    ILucideLoader: typeof import('~icons/lucide/loader')['default']
+    ILucideRefresh: typeof import('~icons/lucide/refresh')['default']
+    ILucideRefreshCcw: typeof import('~icons/lucide/refresh-ccw')['default']
+    ILucideRefreshCw: typeof import('~icons/lucide/refresh-cw')['default']
+    ILucideTimerReset: typeof import('~icons/lucide/timer-reset')['default']
+    ISolarRefreshCircleBoldDuotone: typeof import('~icons/solar/refresh-circle-bold-duotone')['default']
+    ISolarRefreshCircleLineDuotone: typeof import('~icons/solar/refresh-circle-line-duotone')['default']
     ListQueryEntry: typeof import('./src/panel/components/ListQueryEntry.vue')['default']
     PiPContainer: typeof import('./src/panel/components/PiPContainer.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    UButton: typeof import('./src/panel/components/UButton.ce.vue')['default']
     'UButton.ce': typeof import('./src/panel/components/UButton.ce.vue')['default']
+    UCollapse: typeof import('./src/panel/components/UCollapse.ce.vue')['default']
     'UCollapse.ce': typeof import('./src/panel/components/UCollapse.ce.vue')['default']
+    UInput: typeof import('./src/panel/components/UInput.ce.vue')['default']
     'UInput.ce': typeof import('./src/panel/components/UInput.ce.vue')['default']
   }
 }

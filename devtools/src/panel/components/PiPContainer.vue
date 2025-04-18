@@ -16,12 +16,24 @@ const colorTheme = computed(() => {
 const containerClasses = computed(() => {
   return isPip
     ? ['h-full']
-    : ['fixed', 'max-h-[80%]', 'min-h-[20vh]', 'bottom-0', 'left-0', 'right-0', 'overflow-hidden', 'z-[9999]', 'h-[500px]']
+    : [
+        'fixed',
+        'max-h-[80%]',
+        'min-h-[20vh]',
+        'bottom-0',
+        'left-0',
+        'right-0',
+        'overflow-hidden',
+        'z-[9999]',
+        'h-[500px]',
+        'border-t',
+        'border-(--ui-border)',
+      ]
 })
 </script>
 
 <template>
-  <aside :class="[colorTheme, containerClasses]" class="w-full ">
+  <aside :class="[colorTheme, containerClasses]" class="w-full">
     <slot />
   </aside>
 </template>

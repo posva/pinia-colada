@@ -72,11 +72,6 @@ const status = computed(() => getQueryStatus(entry))
           </template>
         </ol>
       </a>
-
-      <span
-        class="bg-neutral-200 text-(--ui-text) dark:bg-neutral-800 rounded px-1 text-center text-sm ring-inset ring ring-(--ui-text)/30"
-        title="Amount of times this query has ran"
-      >{{ entry.devtools.count.total }}</span>
     </div>
   </RouterLink>
 </template>
