@@ -118,8 +118,8 @@ watch(
             <span>Fetch duration:</span>
             <span class="font-bold">{{
               formatDuration(
-                selectedQuery.devtools.history.at(0)!.fetchTime!.end! -
-                  selectedQuery.devtools.history.at(0)!.fetchTime!.start,
+                selectedQuery.devtools.history.at(0)!.fetchTime!.end!
+                  - selectedQuery.devtools.history.at(0)!.fetchTime!.start,
               )
             }}</span>
           </p>
@@ -128,9 +128,7 @@ watch(
             class="grid grid-cols-[auto_1fr] gap-x-2"
             title="How many components and effects are using this query"
           >
-            <span
-              >Observers: <span class="font-bold">{{ selectedQuery.deps.length }}</span></span
-            >
+            <span>Observers: <span class="font-bold">{{ selectedQuery.deps.length }}</span></span>
           </p>
 
           <p
@@ -140,8 +138,8 @@ watch(
           >
             <template
               v-if="
-                typeof selectedQuery.options.gcTime === 'number' &&
-                Number.isFinite(selectedQuery.options.gcTime)
+                typeof selectedQuery.options.gcTime === 'number'
+                  && Number.isFinite(selectedQuery.options.gcTime)
               "
             >
               <span>Will be <i>gced</i></span>
@@ -236,9 +234,10 @@ watch(
           <pre
             v-if="selectedQuery.state.data !== undefined"
             class="rounded p-1 overflow-auto max-h-[1200px]"
-            >{{ selectedQuery.state.data }}</pre
-          >
-          <p v-else class="text-neutral-500/50">No data</p>
+          >{{ selectedQuery.state.data }}</pre>
+          <p v-else class="text-neutral-500/50">
+            No data
+          </p>
         </div>
       </UCollapse>
 
@@ -247,7 +246,9 @@ watch(
           <pre v-if="selectedQuery.state.error" class="rounded p-1 overflow-auto max-h-[1200px]">{{
             selectedQuery.state.error
           }}</pre>
-          <p v-else class="text-neutral-500/50">No error</p>
+          <p v-else class="text-neutral-500/50">
+            No error
+          </p>
         </div>
       </UCollapse>
 
