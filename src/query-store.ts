@@ -339,7 +339,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           ext: START_EXT,
           options,
           get stale() {
-            return !this.when || Date.now() >= this.when + this.options!.staleTime
+            return !this.options || !this.when || Date.now() >= this.when + this.options.staleTime
           },
           get active() {
             return this.deps.size > 0
