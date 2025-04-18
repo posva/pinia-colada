@@ -241,7 +241,7 @@ watch(
         </div>
       </UCollapse>
 
-      <UCollapse v-model:open="isErrorOpen" title="Error" :icon="ICircleX">
+      <UCollapse v-model:open="isErrorOpen" :title="`Error${selectedQuery.state.status === 'error' ? ' (!)' : ''}`" :icon="ICircleX">
         <div class="py-1">
           <pre v-if="selectedQuery.state.error" class="rounded p-1 overflow-auto max-h-[1200px]">{{
             selectedQuery.state.error
@@ -275,12 +275,12 @@ watch(
         </div>
       </UCollapse>
 
-      <UCollapse title="History" :icon="IHistory" :open="false">
+      <UCollapse :title="`History (${selectedQuery.devtools.history.length})`" :icon="IHistory" :open="false">
         <div class="py-1">
           <UCollapse
-            v-for="(entry, i) of selectedQuery.devtools.history"
+            v-for="entry of selectedQuery.devtools.history"
             :key="entry.updatedAt"
-            :title="`Entry ${i} (${formatTimeAgo(new Date(entry.updatedAt), TIME_AGO_OPTIONS)})`"
+            :title="`Entry nº${entry.id} (${formatTimeAgo(new Date(entry.updatedAt), TIME_AGO_OPTIONS)})`"
             :open="false"
           >
             <pre class="rounded p-1 overflow-auto max-h-[1200px]">{{ entry }}</pre>
