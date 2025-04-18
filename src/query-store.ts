@@ -433,6 +433,10 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     entry.deps.delete(effect)
     triggerCache()
 
+    scheduleGarbageCollection(entry)
+  }
+
+  function scheduleGarbageCollection(entry: UseQueryEntry) {
     // schedule a garbage collection if the entry is not active
     if (entry.deps.size > 0 || !entry.options) return
     clearTimeout(entry.gcTimeout)
@@ -770,7 +774,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   )
 
   /**
-   * Set the data of a query entry in the cache. It assumes an already successfully fetched entry.
+   * Set the data of a query entry in the cache. It also sets the `status` to `success`.
    *
    * @param key - the key of the query
    * @param data - the new data to set
@@ -793,11 +797,12 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       }
 
       setEntryState(entry, {
-        // if we don't cast, this is not technically correct
-        // the user is responsible for setting the data
-        ...(entry.state.value as DataState_Success<TResult>),
+        // we assume the data accounts for a successful state
+        error: null,
+        status: 'success',
         data: toValueWithArgs(data, entry.state.value.data),
       })
+      scheduleGarbageCollection(entry)
       triggerCache()
     },
   )
