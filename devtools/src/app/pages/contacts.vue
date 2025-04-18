@@ -1,7 +1,15 @@
 <script lang="ts" setup>
+import { useQueryCache } from '@pinia/colada'
 import { useContactSearch } from '../composables/contacts'
+import { getContactById } from '../api/contacts'
 
 const { data: searchResult, asyncStatus, searchText } = useContactSearch()
+
+const queryCache = useQueryCache()
+
+async function prefetchContact(id: number) {
+  queryCache.setQueryData(['contacts', id], await getContactById(id))
+}
 </script>
 
 <template>
@@ -9,6 +17,12 @@ const { data: searchResult, asyncStatus, searchText } = useContactSearch()
     <h1 class="mb-12">
       📇 My Contacts
     </h1>
+
+    <div>
+      <button @click="prefetchContact(2)">
+        Prefetch Contact 2
+      </button>
+    </div>
 
     <div class="gap-4 contacts-search md:flex">
       <div>

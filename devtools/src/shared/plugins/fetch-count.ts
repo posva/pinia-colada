@@ -98,6 +98,15 @@ export function addDevtoolsInfo(queryCache: QueryCache): void {
           entry[DEVTOOLS_INFO_KEY].inactiveAt = now()
         }
       })
+    } else if (name === 'setQueryData') {
+      // setQueryData can also trigger gc
+      const [key] = args
+      after(() => {
+        const entry = queryCache.getEntries({ key, exact: true })[0]
+        if (entry && !entry.active) {
+          entry[DEVTOOLS_INFO_KEY].inactiveAt = now()
+        }
+      })
     }
   })
 }

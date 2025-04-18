@@ -241,7 +241,11 @@ watch(
         </div>
       </UCollapse>
 
-      <UCollapse v-model:open="isErrorOpen" :title="`Error${selectedQuery.state.status === 'error' ? ' (!)' : ''}`" :icon="ICircleX">
+      <UCollapse
+        v-model:open="isErrorOpen"
+        :title="`Error${selectedQuery.state.status === 'error' ? ' (!)' : ''}`"
+        :icon="ICircleX"
+      >
         <div class="py-1">
           <pre v-if="selectedQuery.state.error" class="rounded p-1 overflow-auto max-h-[1200px]">{{
             selectedQuery.state.error
@@ -275,7 +279,11 @@ watch(
         </div>
       </UCollapse>
 
-      <UCollapse :title="`History (${selectedQuery.devtools.history.length})`" :icon="IHistory" :open="false">
+      <UCollapse
+        :title="`History (${selectedQuery.devtools.history.length})`"
+        :icon="IHistory"
+        :open="false"
+      >
         <div class="py-1">
           <UCollapse
             v-for="entry of selectedQuery.devtools.history"
@@ -290,9 +298,14 @@ watch(
 
       <UCollapse title="Options" :open="false" :icon="IBraces">
         <div class="py-1">
-          <pre class="rounded bg-neutral-500/20 p-1 overflow-auto max-h-[1200px]">{{
-            selectedQuery.options
-          }}</pre>
+          <pre
+            v-if="selectedQuery.options"
+            class="rounded bg-neutral-500/20 p-1 overflow-auto max-h-[1200px]"
+          >{{ selectedQuery.options }}</pre>
+          <p v-else>
+            This Query entry has no options. It might have been created from the server or manually set with
+            <code>queryCache.setQueryData()</code> for prefetching.
+          </p>
         </div>
       </UCollapse>
     </template>
