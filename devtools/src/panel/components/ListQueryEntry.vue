@@ -72,12 +72,6 @@ const status = computed(() => getQueryStatus(entry))
             aria-label="Pending icon"
           />
         </div>
-        <!-- <i-carbon-intent-request-inactive -->
-        <!--   v-if="status === 'loading'" -->
-        <!--   class="animate-spin" -->
-        <!-- /> -->
-        <!-- <i-carbon-warning v-else-if="status === 'error'" class="" /> -->
-        <!-- <i-carbon-checkmark v-else-if="status === 'stale' || status === 'success'" class="" /> -->
       </div>
 
       <a

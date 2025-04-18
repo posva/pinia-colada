@@ -370,12 +370,12 @@
   --color-theme-950: var(--color-purple-950);
 }
 
-.variant-ghost {
+.variant-ghost.variant-ghost {
   --ui-text: var(--color-theme);
   color: var(--color-theme);
   background-color: transparent;
   &:hover {
-    /* color: var(--color-theme); */
+    color: var(--color-theme);
     /* color: var(--ui-bg-inverted); */
     background-color: color-mix(in hsl, var(--ui-bg) 10%, transparent);
   }

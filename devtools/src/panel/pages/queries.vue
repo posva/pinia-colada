@@ -49,7 +49,7 @@ const queriesGrouped = computed<
     <!-- Search & Actions Bar -->
     <div class="flex items-center p-2 border-b border-(--ui-border) gap-2">
       <div class="relative flex-grow">
-        <i-carbon-search
+        <i-lucide-search
           class="absolute left-2 top-1/2 -translate-y-1/2 text-ui-text-muted size-4"
         />
         <UInput v-model="searchQuery" type="search" class="w-full" placeholder="Search Queries" />
@@ -79,11 +79,6 @@ const queriesGrouped = computed<
           </div>
         </div>
       </div>
-
-      <!-- <UButton class="variant-ghost theme-error flex items-center gap-1.5" @click="clearCache"> -->
-      <!--   <i-carbon-trash-can class="w-4 h-4" /> -->
-      <!--   <span>Clear</span> -->
-      <!-- </UButton> -->
     </div>
 
     <Splitpanes class="overflow-hidden">

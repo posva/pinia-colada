@@ -98,8 +98,8 @@ channel.on('queries:delete', (q) => {
             :title="isPip ? 'Close popup' : 'Open in popup'"
             @click="emit('togglePip')"
           >
-            <i-carbon-popup v-if="!isPip" class="w-5 h-5" />
-            <i-carbon-close v-else class="w-5 h-5" />
+            <i-lucide-picture-in-picture v-if="!isPip" class="w-5 h-5" />
+            <i-lucide-x v-else class="w-5 h-5" />
           </UButton>
         </div>
       </div>
