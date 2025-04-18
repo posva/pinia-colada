@@ -1,3 +1,38 @@
+## [0.15.0](https://github.com/posva/pinia-colada/compare/v0.14.2...v0.15.0) (2025-04-18)
+
+### ⚠ BREAKING CHANGES
+
+- **mutations:** mutations are now created each time they are invoked. This
+  change will only affect users directly creating entries with the mutation store
+  (which should be avoided except in very advanced cases). Given the new
+  structure of mutation entries and the fact that they are recreated for each
+  mutation in order to keep a history of mutations, the new process simplifies
+  things and reduces bundle size. The actions `create` and `ensure` in the
+  mutation store are now simpler and take less arguments (many were redundant).
+  Alongside these changes, the mutation store has fixed many subtle bugs.
+
+### Features
+
+- add gcTime option for global mutations ([2850167](https://github.com/posva/pinia-colada/commit/2850167182c8f35bd2caaa22c0d0df9b40c5496f))
+- add mutation id ([8c8edd5](https://github.com/posva/pinia-colada/commit/8c8edd535f7171a6b5dd7f77aeaaf73b6c967ba6))
+- **hmr:** refetch on component change ([56aad7a](https://github.com/posva/pinia-colada/commit/56aad7aa268d90d17824837342e6260968216d8c))
+- **mutations:** simplify the entry creation in the mutation store ([a96a8ff](https://github.com/posva/pinia-colada/commit/a96a8ff1ff75939ee21947cd629ddfaf6b284d74))
+- untrack mutation entries ([6b65f19](https://github.com/posva/pinia-colada/commit/6b65f19485bda159afb5ba8a1a1bdc7c71d4567e))
+
+### Bug Fixes
+
+- an entry with no options is stale ([3f59d6c](https://github.com/posva/pinia-colada/commit/3f59d6ce524ebadea483f379e968957708716e65))
+- **defineQuery:** avoid pausing still active ([fe00447](https://github.com/posva/pinia-colada/commit/fe00447eea2520d995275724f8aa9be0a8bd3b1f)), closes [#246](https://github.com/posva/pinia-colada/issues/246)
+- **mutations:** create entries for each individual mutation ([3def820](https://github.com/posva/pinia-colada/commit/3def8204007030235b1703aa45ddb6528da117c1))
+- **query:** avoid deleting children of gced queries ([5ec6dcc](https://github.com/posva/pinia-colada/commit/5ec6dcc25661aab6d70c41f5fb6c2026d5653d49))
+- setQueryData sets the status and trigger gc if possible ([8137fbd](https://github.com/posva/pinia-colada/commit/8137fbd3fd27f5171466e6948371d0315c0494d6))
+- **types:** allow tuples in keys ([f8e8087](https://github.com/posva/pinia-colada/commit/f8e808780c58b899b8e4d7dce188f309b7b95627))
+- **types:** infer initial data in setEntryState ([0a94887](https://github.com/posva/pinia-colada/commit/0a94887727184d4021d5992c668fdb53f1bac595))
+
+### Reverts
+
+- Revert "refactor: deprecate onMutate in favor of onBeforeMutate" ([02add4a](https://github.com/posva/pinia-colada/commit/02add4a70c934f46bcf6218a488fec56a5788723)). **This change never actually made it, it's here for the trace.**
+
 ## [0.14.2](https://github.com/posva/pinia-colada/compare/v0.14.1...v0.14.2) (2025-03-26)
 
 ### Features
@@ -61,8 +96,8 @@ Remember to commit changes before running the codemods.
 
 - Replace `serialize` with `serializeTreeMap`
 
-* Removed `reviveTreeMap` (not needed)
-* Removed internal `createdQueryEntry`
+- Removed `reviveTreeMap` (not needed)
+- Removed internal `createdQueryEntry`
 
 ### Features
 
