@@ -4,14 +4,15 @@ import type { UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
 import { computed } from 'vue'
 import { getQueryStatus, STATUS_COLOR_CLASSES } from '../utils/query-state'
 import { useRouter } from 'vue-router'
-import { useNow } from '@vueuse/core'
+import { usePerformanceNow } from '../composables/performance-now'
 
 const { entry } = defineProps<{
   entry: UseQueryEntryPayload
 }>()
 const router = useRouter()
 
-const now = useNow({ interval: Math.max(100, (entry.options?.gcTime || 0) / 30) })
+const now = usePerformanceNow()
+// const now = useNow({ interval: Math.max(100, (entry.options?.gcTime || 0) / 30) })
 
 function unselect(event: MouseEvent) {
   event.preventDefault()
@@ -108,7 +109,7 @@ const status = computed(() => getQueryStatus(entry))
         <UCircleProgress
           class="size-[1em] dark:text-neutral-500 text-neutral-400"
           :max="entry.options.gcTime"
-          :value="entry.devtools.inactiveAt + entry.options.gcTime - now.getTime()"
+          :value="entry.devtools.inactiveAt + entry.options.gcTime - now"
         />
       </div>
     </div>

@@ -60,6 +60,15 @@ queryCache.$onAction(({ name, after, onError, args }) => {
     after((entry) => {
       transmitter.emit('queries:update', createQueryEntryPayload(entry))
     })
+  } else if (name === 'setQueryData') {
+    // we need to track changes to invalidatedAt
+    const [key] = args
+    after(() => {
+      const entry = queryCache.getEntries({ key, exact: true })[0]
+      if (entry) {
+        transmitter.emit('queries:update', createQueryEntryPayload(entry))
+      }
+    })
   }
 })
 
