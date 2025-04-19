@@ -12,14 +12,20 @@ import type { PiniaColadaPluginContext } from '@pinia/colada'
  */
 export interface RetryOptions {
   /**
-   * The delay between retries. Can be a duration in ms or a function that receives the attempt number (starts at 0) and returns a duration in ms. By default, it will wait 2^attempt * 1000 ms, but never more than 30 seconds.
+   * The delay between retries. Can be a duration in ms or a function that
+   * receives the attempt number (starts at 0) and returns a duration in ms. By
+   * default, it will wait 2^attempt * 1000 ms, but never more than 30 seconds.
+   *
    * @param attempt -
    * @returns
    */
   delay?: number | ((attempt: number) => number)
 
   /**
-   * The maximum number of times to retry the operation. Set to 0 to disable or to Infinity to retry forever. It can also be a function that receives the failure count and the error and returns if it should retry. Defaults to 3. **Must be a positive number**.
+   * The maximum number of times to retry the operation. Set to 0 to disable or
+   * to Infinity to retry forever. It can also be a function that receives the
+   * failure count and the error and returns if it should retry. Defaults to 3.
+   * **Must be a positive number**.
    */
   retry?: number | ((failureCount: number, error: unknown) => boolean)
 }
