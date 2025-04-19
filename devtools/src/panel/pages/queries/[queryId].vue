@@ -145,7 +145,7 @@ watch(
               <span>Will be <i>gced</i></span>
               <span class="font-bold">{{
                 formatTimeAgo(
-                  new Date(selectedQuery.devtools.updatedAt + selectedQuery.options.gcTime),
+                  new Date(selectedQuery.devtools.inactiveAt + selectedQuery.options.gcTime),
                   {
                     ...TIME_AGO_OPTIONS,
                     max: undefined,
