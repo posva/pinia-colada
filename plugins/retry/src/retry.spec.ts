@@ -173,7 +173,7 @@ describe('Pinia Colada Retry Plugin', () => {
     expect(query).toHaveBeenCalledTimes(3)
   })
 
-  it('no retries when retry is 0', async () => {
+  it('no retries when retry option is 0', async () => {
     const query = vi.fn(async () => {
       throw new Error('ko')
     })
@@ -204,7 +204,7 @@ describe('Pinia Colada Retry Plugin', () => {
     expect(query).toHaveBeenCalledTimes(1)
   })
 
-  it('stop retries when the query is no longer active', async () => {
+  it('stop retries after the query becomes inactive', async () => {
     const query = vi.fn(async () => {
       throw new Error('ko')
     })
@@ -221,6 +221,33 @@ describe('Pinia Colada Retry Plugin', () => {
     vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
     await flushPromises()
     expect(query).toHaveBeenCalledTimes(1)
+  })
+
+  it('reset retry count after the query becomes inactive', async () => {
+    const queryOptions = {
+      key: ['key'],
+      query: vi.fn(async () => {
+        throw new Error('ko')
+      }),
+      retry: 1,
+    }
+    const { wrapper } = factory(queryOptions)
+    // initial fetch and first retry
+    await flushPromises()
+    expect(queryOptions.query).toHaveBeenCalledTimes(1)
+    vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
+    await flushPromises()
+    expect(queryOptions.query).toHaveBeenCalledTimes(2)
+    // deactivate query
+    wrapper.unmount()
+    // reactivate query and new initial fetch
+    factory(queryOptions)
+    await flushPromises()
+    expect(queryOptions.query).toHaveBeenCalledTimes(3)
+    // ensure retry count starts fresh
+    vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
+    await flushPromises()
+    expect(queryOptions.query).toHaveBeenCalledTimes(4)
   })
 
   it('reset retry count on manual fetch', async () => {
