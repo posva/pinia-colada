@@ -3,6 +3,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitepress'
 import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
+import llmstxt from 'vitepress-plugin-llms'
 import { extraFiles } from '../twoslash/files'
 import { ModuleKind, ModuleResolutionKind, ScriptTarget } from 'typescript'
 import typedocSidebar from '../../api/typedoc-sidebar.json'
@@ -44,6 +45,14 @@ export function slugify(str: string): string {
 export default defineConfig({
   title: 'Pinia Colada',
   appearance: 'dark',
+
+  vite: {
+    plugins: [
+      llmstxt({
+        ignoreFiles: [path.join(__dirname, '../'), path.join(__dirname, '../../public/')],
+      }),
+    ],
+  },
 
   markdown: {
     theme: {
