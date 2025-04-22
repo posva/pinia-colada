@@ -1,6 +1,3 @@
-/**
- * @vitest-environment happy-dom
- */
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent } from 'vue'
