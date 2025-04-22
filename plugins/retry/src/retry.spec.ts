@@ -8,7 +8,6 @@ import { createPinia } from 'pinia'
 import { useQuery, PiniaColada } from '@pinia/colada'
 import type { UseQueryOptions } from '@pinia/colada'
 import { PiniaColadaRetry } from '.'
-import type { RetryOptions } from '.'
 
 describe('Pinia Colada Retry Plugin', () => {
   beforeEach(() => {
@@ -103,16 +102,15 @@ describe('Pinia Colada Retry Plugin', () => {
     const query = vi.fn(async () => {
       throw new Error('ko')
     })
-    // stop retry when the error message is "ko"
-    const retry: RetryOptions['retry'] = (attempt, error) => {
-      if ((error as Error).message === 'ko') return false
-      return attempt < 2
-    }
 
     factory({
       key: ['key'],
       query,
-      retry,
+      retry: (attempt, error) => {
+        // stop retry when the error message is "ko"
+        if ((error as Error).message === 'ko') return false
+        return attempt < 2
+      },
     })
     await flushPromises()
     vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
@@ -124,12 +122,11 @@ describe('Pinia Colada Retry Plugin', () => {
     const query = vi.fn(async () => {
       throw new Error('ko')
     })
-    const delay = 500
 
     factory({
       key: ['key'],
       query,
-      retry: { delay },
+      retry: { delay: 500 },
     })
 
     // retry occurs exactly after 500ms
@@ -147,14 +144,16 @@ describe('Pinia Colada Retry Plugin', () => {
       throw new Error('ko')
     })
     // 500ms for first retry, 1500ms for subsequent retries
-    const delay: RetryOptions['delay'] = (attempt) => {
-      return attempt === 0 ? 500 : 1500
-    }
 
     factory({
       key: ['key'],
       query,
-      retry: { retry: 2, delay },
+      retry: {
+        retry: 2,
+        delay: (attempt) => {
+          return attempt === 0 ? 500 : 1500
+        },
+      },
     })
     //  initial fetch fails
     await flushPromises()
@@ -230,7 +229,8 @@ describe('Pinia Colada Retry Plugin', () => {
         throw new Error('ko')
       }),
       retry: 1,
-    }
+    } satisfies UseQueryOptions
+
     const { wrapper } = factory(queryOptions)
     // initial fetch and first retry
     await flushPromises()
