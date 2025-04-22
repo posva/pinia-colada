@@ -119,6 +119,10 @@ export function PiniaColadaRetry(
           if (shouldRetry) {
             const delayTime = typeof delay === 'function' ? delay(entry.retryCount) : delay
             entry.timeoutId = setTimeout(() => {
+              if (!queryEntry.active) {
+                retryMap.delete(key)
+                return
+              }
               // NOTE: we could add some default error handler
               isInternalCall = true
               Promise.resolve(queryCache.fetch(queryEntry)).catch(
