@@ -72,7 +72,11 @@ export class TreeMapNode<T = unknown> {
    * Returns whether the node and all its children are empty.
    */
   isEmpty(): boolean {
-    return this.value == null && (this.children?.values() || []).every((child) => child.isEmpty())
+    // TODO: remove `Array.from()` once support for every in iterators is widely available
+    return (
+      this.value == null
+      && Array.from(this.children?.values() || []).every((child) => child.isEmpty())
+    )
   }
 
   /**
