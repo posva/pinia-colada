@@ -30,7 +30,7 @@
     "@nuxt/kit": "^3.16.2"
   },
   "peerDependencies": {
-    "@pinia/colada": "workspace:^"
+    "@pinia/colada": "workspace:>="
   },
   "devDependencies": {
     "@nuxt/devtools": "^2.3.2",

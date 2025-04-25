@@ -64,7 +64,7 @@
     "test": "vitest --ui"
   },
   "peerDependencies": {
-    "@pinia/colada": "workspace:^"
+    "@pinia/colada": "workspace:>="
   },
   "devDependencies": {
     "@pinia/colada": "workspace:^"
