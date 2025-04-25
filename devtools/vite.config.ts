@@ -17,6 +17,10 @@ export default defineConfig({
   resolve: {
     alias: [
       {
+        find: /^@pinia\/colada$/,
+        replacement: resolve(__dirname, '../src/index.ts'),
+      },
+      {
         find: /^@pinia\/colada-devtools$/,
         replacement: resolve(__dirname, './src/index.ts'),
       },
