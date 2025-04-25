@@ -32,7 +32,7 @@ export function addDevtoolsInfo(queryCache: QueryCache): void {
     } else if (name === 'fetch') {
       const [entry] = args
       entry[DEVTOOLS_INFO_KEY].count.total++
-      entry[DEVTOOLS_INFO_KEY].updatedAt = Date.now()
+      entry[DEVTOOLS_INFO_KEY].updatedAt = now()
       const createdAt = now()
       const historyEntry: UseQueryEntryHistoryEntry = {
         id: (entry[DEVTOOLS_INFO_KEY].history.at(0)?.id ?? -1) + 1,
