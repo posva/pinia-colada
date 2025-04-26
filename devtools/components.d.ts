@@ -24,6 +24,7 @@ declare module 'vue' {
     ILucideXOctagon: typeof import('~icons/lucide/x-octagon')['default']
     ListQueryEntry: typeof import('./src/panel/components/ListQueryEntry.vue')['default']
     PiPContainer: typeof import('./src/panel/components/PiPContainer.vue')['default']
+    ResizablePanel: typeof import('./src/panel/components/ResizablePanel.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     UButton: typeof import('./src/panel/components/UButton.ce.vue')['default']
