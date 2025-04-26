@@ -1,3 +1,9 @@
+## [0.15.1](https://github.com/posva/pinia-colada/compare/v0.15.0...v0.15.1) (2025-04-26)
+
+### Bug Fixes
+
+- support node 18 ([3466bdf](https://github.com/posva/pinia-colada/commit/3466bdf8aec00466340cd99a06bd400e3904797f))
+
 ## [0.15.0](https://github.com/posva/pinia-colada/compare/v0.14.2...v0.15.0) (2025-04-18)
 
 ### ⚠ BREAKING CHANGES
