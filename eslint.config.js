@@ -30,6 +30,7 @@ export default antfu(
       'perfectionist/sort-named-imports': 'off',
       'perfectionist/sort-exports': 'off',
       'unused-imports/no-unused-imports': 'warn',
+      'no-dupe-class-members': 'error',
       // NOTE: initially came from 'eslint-plugin-import-newlines' but the indent is off
       // since I preffer the one added by prettier
       //  'import-newlines/enforce': [
