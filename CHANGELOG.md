@@ -1,3 +1,9 @@
+## [0.15.2](https://github.com/posva/pinia-colada/compare/v0.15.1...v0.15.2) (2025-05-03)
+
+### Bug Fixes
+
+- check false refetchOnWindowFocus ([c6400d7](https://github.com/posva/pinia-colada/commit/c6400d72a319221969a39b172e36e0bfbe56fe6f)), closes [#272](https://github.com/posva/pinia-colada/issues/272)
+
 ## [0.15.1](https://github.com/posva/pinia-colada/compare/v0.15.0...v0.15.1) (2025-04-26)
 
 ### Bug Fixes
