@@ -1128,6 +1128,54 @@ describe('useQuery', () => {
     })
   })
 
+  describe('refetchOnReconnect', () => {
+    it('refreshes after staleTime if refetchOnReconnect returns true', async () => {
+      const { query } = mountSimple({
+        staleTime: 1000,
+        refetchOnReconnect: () => true,
+      })
+
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+
+      vi.advanceTimersByTime(1001)
+      window.dispatchEvent(new Event('online'))
+      await flushPromises()
+
+      expect(query).toHaveBeenCalledTimes(2)
+    })
+
+    it('always refreshes if refetchOnReconnect is "always"', async () => {
+      const { query } = mountSimple({
+        refetchOnReconnect: 'always',
+      })
+
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+
+      window.dispatchEvent(new Event('online'))
+      await flushPromises()
+
+      expect(query).toHaveBeenCalledTimes(2)
+    })
+
+    it('does not refresh if refetchOnReconnect is false', async () => {
+      const { query } = mountSimple({
+        staleTime: 1000,
+        refetchOnReconnect: () => false,
+      })
+
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+
+      vi.advanceTimersByTime(1001)
+      window.dispatchEvent(new Event('online'))
+      await flushPromises()
+
+      expect(query).toHaveBeenCalledTimes(1)
+    })
+  })
+
   it('can be cancelled through the queryCache without refetching', async () => {
     const { query } = mountSimple({
       key: ['key'],

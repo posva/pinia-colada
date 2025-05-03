@@ -259,15 +259,15 @@ export function useQuery<
   // we could also call fetch instead but forcing a refresh is more interesting
   if (hasCurrentInstance) {
     onMounted(() => {
-      if (
-        (refetchOnMount
-          // always fetch initially if no value is present
-          || queryReturn.status.value === 'pending')
-        && toValue(enabled)
-      ) {
-        if (refetchOnMount === 'always') {
+      if (toValue(enabled)) {
+        const refetchControl = toValue(refetchOnMount)
+        if (refetchControl === 'always') {
           refetch()
-        } else {
+        } else if (
+          refetchControl
+          // always refetch if the query is not enabled
+          || queryReturn.status.value === 'pending'
+        ) {
           refresh()
         }
       }
@@ -293,9 +293,10 @@ export function useQuery<
     if (refetchOnReconnect) {
       useEventListener(window, 'online', () => {
         if (toValue(enabled)) {
-          if (toValue(refetchOnReconnect) === 'always') {
+          const refetchControl = toValue(refetchOnReconnect)
+          if (refetchControl === 'always') {
             refetch()
-          } else {
+          } else if (refetchControl) {
             refresh()
           }
         }
