@@ -1080,6 +1080,54 @@ describe('useQuery', () => {
     })
   })
 
+  describe('refetchOnWindowFocus', () => {
+    it('refreshes after staleTime if refetchOnWindowFocus returns true', async () => {
+      const { query } = mountSimple({
+        staleTime: 1000,
+        refetchOnWindowFocus: () => true,
+      })
+
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+
+      vi.advanceTimersByTime(1001)
+      document.dispatchEvent(new Event('visibilitychange'))
+      await flushPromises()
+
+      expect(query).toHaveBeenCalledTimes(2)
+    })
+
+    it('always refreshes if refetchOnWindowFocus is "always"', async () => {
+      const { query } = mountSimple({
+        refetchOnWindowFocus: 'always',
+      })
+
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+
+      document.dispatchEvent(new Event('visibilitychange'))
+      await flushPromises()
+
+      expect(query).toHaveBeenCalledTimes(2)
+    })
+
+    it('does not refresh if refetchOnWindowFocus is false', async () => {
+      const { query } = mountSimple({
+        staleTime: 1000,
+        refetchOnWindowFocus: () => false,
+      })
+
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+
+      vi.advanceTimersByTime(1001)
+      document.dispatchEvent(new Event('visibilitychange'))
+      await flushPromises()
+
+      expect(query).toHaveBeenCalledTimes(1)
+    })
+  })
+
   it('can be cancelled through the queryCache without refetching', async () => {
     const { query } = mountSimple({
       key: ['key'],

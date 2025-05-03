@@ -278,10 +278,12 @@ export function useQuery<
   if (IS_CLIENT) {
     if (refetchOnWindowFocus) {
       useEventListener(document, 'visibilitychange', () => {
+        const refetchControl = toValue(refetchOnWindowFocus)
+        console.log({ refetchControl })
         if (document.visibilityState === 'visible' && toValue(enabled)) {
-          if (toValue(refetchOnWindowFocus) === 'always') {
+          if (refetchControl === 'always') {
             refetch()
-          } else {
+          } else if (refetchControl) {
             refresh()
           }
         }
