@@ -272,8 +272,8 @@ importers:
         specifier: 0.17.4
         version: 0.17.4
       npm-run-all2:
-        specifier: ^7.0.2
-        version: 7.0.2
+        specifier: ^8.0.1
+        version: 8.0.1
       tailwindcss:
         specifier: ^4.1.3
         version: 4.1.3
@@ -1355,6 +1355,7 @@ packages:
 
   '@oxc-parser/wasm@0.60.0':
     resolution: {integrity: sha512-Dkf9/D87WGBCW3L0+1DtpAfL4SrNsgeRvxwjpKCtbH7Kf6K+pxrT0IridaJfmWKu1Ml+fDvj+7HEyBcfUC/TXQ==}
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
 
   '@oxc-project/types@0.56.5':
     resolution: {integrity: sha512-skY3kOJwp22W4RkaadH1hZ3hqFHjkRrIIE0uQ4VUg+/Chvbl+2pF+B55IrIk2dgsKXS57YEUsJuN6I6s4rgFjA==}
@@ -4731,9 +4732,9 @@ packages:
     resolution: {integrity: sha512-TZKxPvItzai9kN9H/TkmCtx/ZN/hvr3vUycjlfmH0ootY9yFBzNOpiXAdIn1Iteqsvk4lQn6B5PTrt+n6h8k/w==}
     engines: {node: ^18.17.0 || >=20.5.0}
 
-  npm-run-all2@7.0.2:
-    resolution: {integrity: sha512-7tXR+r9hzRNOPNTvXegM+QzCuMjzUIIq66VDunL6j60O4RrExx32XUhlrS7UK4VcdGw5/Wxzb3kfNcFix9JKDA==}
-    engines: {node: ^18.17.0 || >=20.5.0, npm: '>= 9'}
+  npm-run-all2@8.0.1:
+    resolution: {integrity: sha512-jkhE0AsELQeCtScrcJ/7mSIdk+ZsnWjvKk3KwE96HZ6+OFVB74XhxQtHT1W6kdUfn92fRnBb29Mz82j9bV2XEQ==}
+    engines: {node: ^20.5.0 || >=22.0.0, npm: '>= 10'}
     hasBin: true
 
   npm-run-path@5.3.0:
@@ -11543,12 +11544,12 @@ snapshots:
 
   npm-normalize-package-bin@4.0.0: {}
 
-  npm-run-all2@7.0.2:
+  npm-run-all2@8.0.1:
     dependencies:
       ansi-styles: 6.2.1
       cross-spawn: 7.0.6
       memorystream: 0.3.1
-      minimatch: 9.0.5
+      minimatch: 10.0.1
       pidtree: 0.6.0
       read-package-json-fast: 4.0.0
       shell-quote: 1.8.2
