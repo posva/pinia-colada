@@ -19,9 +19,7 @@ const pinia = createPinia()
 app.use(pinia)
 app.use(PiniaColada, {
   // Optionally provide global options here for queries
-  queryOptions: {
-    gcTime: 300_000, // 5 minutes, the default
-  },
+  gcTime: 300_000, // 5 minutes, the default
 })
 ```
 
