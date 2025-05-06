@@ -1,3 +1,9 @@
+## [0.15.3](https://github.com/posva/pinia-colada/compare/v0.15.2...v0.15.3) (2025-05-06)
+
+### Bug Fixes
+
+- correctly handle refetchOn\* when false ([262c090](https://github.com/posva/pinia-colada/commit/262c0909931e7c37768abd0bc792180de2264e51))
+
 ## [0.15.2](https://github.com/posva/pinia-colada/compare/v0.15.1...v0.15.2) (2025-05-03)
 
 ### Bug Fixes
