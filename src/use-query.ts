@@ -279,7 +279,6 @@ export function useQuery<
     if (refetchOnWindowFocus) {
       useEventListener(document, 'visibilitychange', () => {
         const refetchControl = toValue(refetchOnWindowFocus)
-        console.log({ refetchControl })
         if (document.visibilityState === 'visible' && toValue(enabled)) {
           if (refetchControl === 'always') {
             refetch()
