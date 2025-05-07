@@ -13,7 +13,7 @@
   },
   "license": "MIT",
   "funding": "https://github.com/sponsors/posva",
-  "homepage": "https://github.com/posva/pinia-colada#readme",
+  "homepage": "https://pinia-colada.esm.dev",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/posva/pinia-colada.git"
