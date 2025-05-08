@@ -49,7 +49,32 @@ export default defineConfig({
   vite: {
     plugins: [
       llmstxt({
-        ignoreFiles: [path.join(__dirname, '../'), path.join(__dirname, '../../public/')],
+        description: 'Smart data fetching for Vue.js',
+        details: `
+- Automatic caching
+- Request deduplication
+- Opmitistic updates
+- Async state management
+- Sensible defaults
+- Extensible
+
+Pinia Colada is a smart data fetching layer for Vue.js. It consist of two main concepts:
+
+- Queries: they are designed to read data from a server. They are automatically cached and deduplicated. They are mainly defined with the "useQuery" function.
+- Mutations: they are designed to write data to a server. They can be used to update the cache and create optimistic updates. They are mainly defined with the "useMutation" function.
+
+On top of that Pinia Colada is highly extensible. You can create your own plugins to extend the functionality of Pinia Colada. You can also use Pinia Colada with Nuxt.js and Vue Router.
+`.trim(),
+        ignoreFiles: [
+          //
+          // path.join(__dirname, '../'),
+          // path.join(__dirname, '../../public/'),
+          // path.join(__dirname, '../../api/**/*'),
+          // path.join(__dirname, '../../index.md'),
+          'index.md',
+          // 'api/*',
+          'api/**/*',
+        ],
       }),
     ],
   },
