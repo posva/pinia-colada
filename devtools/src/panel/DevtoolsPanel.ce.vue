@@ -3,6 +3,7 @@ import { ref, watch, onMounted, onUnmounted, provide } from 'vue'
 import type { UseQueryEntryPayload, DevtoolsEmits, AppEmits } from '@pinia/colada-devtools/shared'
 import { DuplexChannel } from '@pinia/colada-devtools/shared'
 import { DUPLEX_CHANNEL_KEY, QUERIES_KEY } from './composables/duplex-channel'
+import ResizablePanel from './components/ResizablePanel.vue'
 
 const { port, isPip } = defineProps<{
   port: MessagePort
@@ -63,49 +64,52 @@ channel.on('queries:delete', (q) => {
 
 <template>
   <PiPContainer id="root" :is-pip>
-    <main class="w-full h-full grid grid-rows-[auto_1fr] bg-ui-bg text-ui-text font-sans">
-      <!-- Merged Header with Tabs Navigation -->
-      <div class="flex items-center border-b border-(--ui-border) select-none">
-        <!-- Logo -->
-        <div class="flex items-center p-2 mr-2">
-          <span class="text-xl">🍹</span>
+    <!-- How to wrap ResizePanel around PiPContainer? -->
+    <ResizablePanel>
+      <main class="w-full h-full grid grid-rows-[auto_1fr] bg-ui-bg text-ui-text font-sans">
+        <!-- Merged Header with Tabs Navigation -->
+        <div class="flex items-center border-b border-(--ui-border) select-none">
+          <!-- Logo -->
+          <div class="flex items-center p-2 mr-2">
+            <span class="text-xl">🍹</span>
+          </div>
+
+          <!-- Tabs -->
+          <RouterLink
+            v-for="link in ['/queries', '/mutations']"
+            :key="link"
+            v-slot="{ isActive, href, navigate }"
+            custom
+            :to="link"
+          >
+            <a
+              :href
+              :class="isActive ? 'border-theme' : 'border-transparent text-(--ui-text-dimmed)'"
+              class="px-4 py-2 font-medium transition-colors hover:bg-theme-400 relative theme-primary border-b-2 hover:border-theme-300"
+              @click="navigate"
+            >
+              {{ link.slice(1, 2).toUpperCase() + link.slice(2) }}
+            </a>
+          </RouterLink>
+
+          <div class="flex-grow" />
+
+          <!-- PiP toggle button -->
+          <div class="flex items-center py-1 gap-1 pr-1">
+            <UButton
+              class="variant-ghost theme-neutral"
+              :title="isPip ? 'Close popup' : 'Open in popup'"
+              @click="emit('togglePip')"
+            >
+              <i-lucide-picture-in-picture v-if="!isPip" class="w-5 h-5" />
+              <i-lucide-x v-else class="w-5 h-5" />
+            </UButton>
+          </div>
         </div>
 
-        <!-- Tabs -->
-        <RouterLink
-          v-for="link in ['/queries', '/mutations']"
-          :key="link"
-          v-slot="{ isActive, href, navigate }"
-          custom
-          :to="link"
-        >
-          <a
-            :href
-            :class="isActive ? 'border-theme' : 'border-transparent text-(--ui-text-dimmed)'"
-            class="px-4 py-2 font-medium transition-colors hover:bg-theme-400 relative theme-primary border-b-2 hover:border-theme-300"
-            @click="navigate"
-          >
-            {{ link.slice(1, 2).toUpperCase() + link.slice(2) }}
-          </a>
-        </RouterLink>
-
-        <div class="flex-grow" />
-
-        <!-- PiP toggle button -->
-        <div class="flex items-center py-1 gap-1 pr-1">
-          <UButton
-            class="variant-ghost theme-neutral"
-            :title="isPip ? 'Close popup' : 'Open in popup'"
-            @click="emit('togglePip')"
-          >
-            <i-lucide-picture-in-picture v-if="!isPip" class="w-5 h-5" />
-            <i-lucide-x v-else class="w-5 h-5" />
-          </UButton>
-        </div>
-      </div>
-
-      <RouterView />
-    </main>
+        <RouterView />
+      </main>
+    </ResizablePanel>
   </PiPContainer>
 </template>
 
