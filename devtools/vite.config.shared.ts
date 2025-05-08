@@ -1,6 +1,7 @@
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
+import type { Plugin } from 'vite'
 import Vue from '@vitejs/plugin-vue'
 import Dts from 'vite-plugin-dts'
 
@@ -28,7 +29,6 @@ export default defineConfig({
   },
 
   plugins: [
-    //
     Vue({
       template: {
         compilerOptions: {
@@ -37,7 +37,8 @@ export default defineConfig({
           },
         },
       },
-    }),
+      // FIXME: should go away in an update
+    }) as Plugin,
     Dts({ rollupTypes: true }),
   ],
 })

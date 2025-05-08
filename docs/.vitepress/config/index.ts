@@ -3,6 +3,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitepress'
 import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
+import llmstxt from 'vitepress-plugin-llms'
 import { extraFiles } from '../twoslash/files'
 import { ModuleKind, ModuleResolutionKind, ScriptTarget } from 'typescript'
 import typedocSidebar from '../../api/typedoc-sidebar.json'
@@ -44,6 +45,39 @@ export function slugify(str: string): string {
 export default defineConfig({
   title: 'Pinia Colada',
   appearance: 'dark',
+
+  vite: {
+    plugins: [
+      llmstxt({
+        description: 'Smart data fetching for Vue.js',
+        details: `
+- Automatic caching
+- Request deduplication
+- Opmitistic updates
+- Async state management
+- Sensible defaults
+- Extensible
+
+Pinia Colada is a smart data fetching layer for Vue.js. It consist of two main concepts:
+
+- Queries: they are designed to read data from a server. They are automatically cached and deduplicated. They are mainly defined with the "useQuery" function.
+- Mutations: they are designed to write data to a server. They can be used to update the cache and create optimistic updates. They are mainly defined with the "useMutation" function.
+
+On top of that Pinia Colada is highly extensible. You can create your own plugins to extend the functionality of Pinia Colada. You can also use Pinia Colada with Nuxt.js and Vue Router.
+`.trim(),
+        ignoreFiles: [
+          //
+          // path.join(__dirname, '../'),
+          // path.join(__dirname, '../../public/'),
+          // path.join(__dirname, '../../api/**/*'),
+          // path.join(__dirname, '../../index.md'),
+          'index.md',
+          // 'api/*',
+          'api/**/*',
+        ],
+      }),
+    ],
+  },
 
   markdown: {
     theme: {
