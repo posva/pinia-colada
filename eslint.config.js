@@ -31,6 +31,9 @@ export default antfu(
       'perfectionist/sort-exports': 'off',
       'unused-imports/no-unused-imports': 'warn',
       'no-dupe-class-members': 'error',
+      'func-names': ['error', 'always'],
+      // TODO: find a rule that is actually usable to enforce named functions
+      // 'func-style': ['error', 'declaration', { allowArrowFunctions: false }],
       // NOTE: initially came from 'eslint-plugin-import-newlines' but the indent is off
       // since I preffer the one added by prettier
       //  'import-newlines/enforce': [
