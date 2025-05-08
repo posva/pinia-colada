@@ -8,6 +8,7 @@
   "description": "Pinia Colada Nuxt module",
   "license": "MIT",
   "repository": "posva/pinia-colada",
+  "homepage": "https://pinia-colada.esm.dev/nuxt.html",
   "exports": {
     ".": "./dist/module.mjs"
   },
