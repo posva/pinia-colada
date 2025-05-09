@@ -16,8 +16,22 @@ let currentDefineQueryEffect: undefined | EffectScope
  * Options to define a query with `defineQuery()`. Similar to {@link UseQueryOptions} but disallows reactive values as
  * `defineQuery()` is used outside of an effect scope.
  */
-export interface DefineQueryOptions<TResult = unknown, TError = ErrorDefault>
-  extends _RemoveMaybeRef<UseQueryOptions<TResult, TError>> {}
+export type DefineQueryOptions<
+  TData = unknown,
+  TError = ErrorDefault,
+  TDataInitial extends TData | undefined = TData | undefined,
+> = _RemoveMaybeRef<UseQueryOptions<TData, TError, TDataInitial>> & {
+  // NOTE: we need to duplicate the types for initialData and placeholderData to make everything work
+  // we omit the descriptions because they are inherited from the original type
+  initialData?: () => TDataInitial
+
+  placeholderData?:
+    | NoInfer<TDataInitial>
+    | NoInfer<TData>
+    | (<T extends TData>(
+        previousData: T | undefined,
+      ) => NoInfer<TDataInitial> | NoInfer<TData> | undefined)
+}
 
 // NOTE: no setter because it cannot be set outside of defineQuery()
 

@@ -1,6 +1,6 @@
 import { inject } from 'vue'
 import type { InjectionKey, MaybeRefOrGetter } from 'vue'
-import type { EntryKey } from './entry-options'
+import type { EntryKeyTagged } from './entry-options'
 import type { ErrorDefault } from './types-extension'
 
 /**
@@ -97,6 +97,7 @@ export interface UseQueryOptions<
   // eslint-disable-next-line unused-imports/no-unused-vars
   TError = ErrorDefault,
   TDataInitial extends TResult | undefined = TResult | undefined,
+  TDataTag = TResult | TDataInitial,
 > extends Pick<
     UseQueryOptionsGlobal,
     | 'gcTime'
@@ -124,7 +125,7 @@ export interface UseQueryOptions<
    * })
    * ```
    */
-  key: MaybeRefOrGetter<EntryKey>
+  key: MaybeRefOrGetter<EntryKeyTagged<TDataTag>>
 
   /**
    * The function that will be called to fetch the data. It **must** be async.

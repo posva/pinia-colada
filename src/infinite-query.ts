@@ -14,7 +14,7 @@ export interface UseInfiniteQueryOptions<
   TDataInitial extends TResult | undefined = TResult | undefined,
   TPages = unknown,
 > extends Omit<
-    UseQueryOptions<TResult, TError, TDataInitial>,
+    UseQueryOptions<TResult, TError, TDataInitial, TPages>,
     'query' | 'initialData' | 'placeholderData'
   > {
   /**

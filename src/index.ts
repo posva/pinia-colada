@@ -20,7 +20,7 @@ export type {
   DataState_Success,
   DataStateStatus,
 } from './data-state'
-export { type EntryKey } from './entry-options'
+export type { dataTagSymbol, EntryKey, EntryKeyTagged } from './entry-options'
 export type {
   RefetchOnControl,
   UseQueryOptions,

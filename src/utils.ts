@@ -233,13 +233,25 @@ export function warnOnce(message: string, id: string = message) {
 }
 
 /**
+ * @internal
+ */
+export type _IsMaybeRefOrGetter<T> = [T] extends [MaybeRefOrGetter<infer U>]
+  ? MaybeRefOrGetter<U> extends T // must match the wrapper, not just any function
+    ? true
+    : false
+  : false
+
+/**
+ * @internal
+ */
+export type _UnwrapMaybeRefOrGetter<T> = T extends MaybeRefOrGetter<infer U> ? U : T
+
+/**
  * Removes the `MaybeRefOrGetter` wrapper from all fields of an object.
  * @internal
  */
 export type _RemoveMaybeRef<T> = {
-  [K in keyof T]: T[K] extends MaybeRefOrGetter<infer U>
-    ? MaybeRefOrGetter<U> extends T[K]
-      ? U
-      : T[K]
+  [K in keyof T]: _IsMaybeRefOrGetter<NonNullable<T[K]>> extends true
+    ? _UnwrapMaybeRefOrGetter<T[K]>
     : T[K]
 }

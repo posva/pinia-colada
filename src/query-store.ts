@@ -10,8 +10,8 @@ import {
   toValue,
 } from 'vue'
 import type { App, ComponentInternalInstance, EffectScope, ShallowRef } from 'vue'
-import type { AsyncStatus, DataState, DataState_Success, DataStateStatus } from './data-state'
-import type { EntryKey } from './entry-options'
+import type { AsyncStatus, DataState, DataStateStatus } from './data-state'
+import type { EntryKey, EntryKeyTagged } from './entry-options'
 import { useQueryOptions } from './query-options'
 import type { UseQueryOptions, UseQueryOptionsWithDefaults } from './query-options'
 import type {
@@ -158,7 +158,7 @@ export interface UseQueryEntryFilter {
   /**
    * A key to filter the entries.
    */
-  key?: EntryKey
+  key?: EntryKey // TODO: could be use EntryKeyTagged instead and type everything?
 
   /**
    * If true, it will only match the exact key, not the children.
@@ -782,18 +782,18 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * @see {@link setEntryState}
    */
   const setQueryData = action(
-    <TResult = unknown>(
-      key: EntryKey,
-      data: TResult | ((oldData: TResult | undefined) => TResult),
+    <TData = unknown>(
+      key: EntryKeyTagged<TData>,
+      data: NoInfer<TData> | ((oldData: NoInfer<TData> | undefined) => NoInfer<TData>),
     ) => {
       const cacheKey = toCacheKey(key)
-      let entry = cachesRaw.get(cacheKey) as UseQueryEntry<TResult> | undefined
+      let entry = cachesRaw.get(cacheKey) as UseQueryEntry<TData> | undefined
 
       // if the entry doesn't exist, we create it to set the data
       // it cannot be refreshed or fetched since the options
       // will be missing
       if (!entry) {
-        cachesRaw.set(cacheKey, (entry = create<TResult, any, TResult | undefined>(cacheKey)))
+        cachesRaw.set(cacheKey, (entry = create<TData, any, TData | undefined>(cacheKey)))
       }
 
       setEntryState(entry, {
@@ -812,8 +812,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    *
    * @param key - the key of the query
    */
-  function getQueryData<TResult = unknown>(key: EntryKey): TResult | undefined {
-    return caches.value.get(toCacheKey(key))?.state.value.data as TResult | undefined
+  function getQueryData<TData = unknown>(key: EntryKeyTagged<TData>): TData {
+    return caches.value.get(toCacheKey(key))?.state.value.data as TData
   }
 
   /**
