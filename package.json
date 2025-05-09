@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.15.3",
   "packageManager": "pnpm@10.7.0",
-  "description": "The smart data fetching layer for Pinia",
+  "description": "The smart data fetching layer for Vue.js",
   "publishConfig": {
     "access": "public"
   },

@@ -2,7 +2,7 @@
 layout: home
 
 title: Pinia Colada
-titleTemplate: The Data Fetching layer for pinia
+titleTemplate: The smart data fetching layer for Vue.js
 
 hero:
   name: Pinia Colada
