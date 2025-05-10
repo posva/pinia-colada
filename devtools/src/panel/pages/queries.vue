@@ -5,6 +5,9 @@ import { useQueryEntries } from '../composables/duplex-channel'
 import { getQueryStatus, STATUS_COLOR_CLASSES } from '../utils/query-state'
 import type { UseQueryEntryPayloadStatus } from '../utils/query-state'
 import type { UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
+import { useWindowSize } from '@vueuse/core'
+
+const { width: screenWidth } = useWindowSize()
 
 const searchQuery = ref('')
 
@@ -81,7 +84,7 @@ const queriesGrouped = computed<
       </div>
     </div>
 
-    <Splitpanes class="overflow-hidden">
+    <Splitpanes class="overflow-hidden" :horizontal="screenWidth < 800">
       <!-- List Panel -->
       <Pane min-size="15" :size="30" class="flex flex-col">
         <ol role="list" class="divide-y divide-(--ui-border)">
