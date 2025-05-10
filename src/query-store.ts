@@ -134,6 +134,7 @@ export interface UseQueryEntry<
   __hmr?: {
     /**
      * Reference count of the components using this query.
+     * Key is a composite key of component hmrId and instance uid.
      */
     ids: Map<string, number>
   }
@@ -421,11 +422,15 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     // clear any HMR to avoid letting the set grow
     if (process.env.NODE_ENV !== 'production') {
       if ('type' in effect && '__hmrId' in effect.type && entry.__hmr) {
-        const count = (entry.__hmr.ids.get(effect.type.__hmrId) ?? 1) - 1
+        const id = effect.type.__hmrId
+        // Create composite key with uid to match the one used in ensure
+        const instanceKey = `${id}:${effect.uid}`
+
+        const count = (entry.__hmr.ids.get(instanceKey) ?? 1) - 1
         if (count > 0) {
-          entry.__hmr.ids.set(effect.type.__hmrId, count)
+          entry.__hmr.ids.set(instanceKey, count)
         } else {
-          entry.__hmr.ids.delete(effect.type.__hmrId)
+          entry.__hmr.ids.delete(instanceKey)
         }
       }
     }
@@ -561,11 +566,14 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
             = currentInstance.type?.__hmrId
 
           if (id) {
-            if (entry.__hmr.ids.has(id)) {
+            // Create a composite key using both hmrId and uid to uniquely identify component instances
+            const instanceKey = `${id}:${currentInstance.uid}`
+
+            if (entry.__hmr.ids.has(instanceKey)) {
               invalidate(entry)
             }
-            const count = (entry.__hmr.ids.get(id) ?? 0) + 1
-            entry.__hmr.ids.set(id, count)
+            const count = (entry.__hmr.ids.get(instanceKey) ?? 0) + 1
+            entry.__hmr.ids.set(instanceKey, count)
           }
         }
       }
