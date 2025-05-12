@@ -869,5 +869,34 @@ describe('defineQuery', () => {
       await flushPromises()
       expect(query).toHaveBeenCalledTimes(1)
     })
+
+    it('avoids refetching when a query is within a component of v-for', async () => {
+      const query = vi.fn(async () => 42)
+      const useMyQuery = defineQuery({ key: ['id'], query, staleTime: 1_000 })
+
+      const ArtworkCard = defineComponent({
+        render: () => null,
+        setup() {
+          return { ...useMyQuery() }
+        },
+      })
+
+      mount(
+        defineComponent({
+          components: { ArtworkCard },
+          __hmrId: 'hmr-id',
+          template: `<div><ArtworkCard v-for="i in 10" :key="i" /></div>`,
+        }),
+        {
+          global: {
+            plugins: [createPinia(), PiniaColada],
+          },
+        },
+      )
+
+      await flushPromises()
+
+      expect(query).toHaveBeenCalledTimes(1)
+    })
   })
 })
