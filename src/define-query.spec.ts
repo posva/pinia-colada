@@ -342,12 +342,12 @@ describe('defineQuery', () => {
     })
 
     it('refetches if refetchOnMount is always', async () => {
-      const spy = vi.fn(async () => {
+      const query = vi.fn(async () => {
         return 'todos'
       })
       const useTodoList = defineQuery({
         key: ['todos'],
-        query: spy,
+        query,
         refetchOnMount: 'always',
         staleTime: 100,
       })
@@ -370,16 +370,18 @@ describe('defineQuery', () => {
       await flushPromises()
 
       const { data, status } = returnedValues
-      expect(spy).toHaveBeenCalledTimes(1)
+      expect(query).toHaveBeenCalledTimes(1)
       expect(status.value).toBe('success')
       expect(data.value).toEqual('todos')
 
+      query.mockClear()
+      await flushPromises()
       mount(Component, {
         global: {
           plugins: [pinia, PiniaColada],
         },
       })
-      expect(spy).toHaveBeenCalledTimes(2)
+      expect(query).toHaveBeenCalledTimes(1)
     })
 
     it('does not refetch if refetchOnMount is false', async () => {
