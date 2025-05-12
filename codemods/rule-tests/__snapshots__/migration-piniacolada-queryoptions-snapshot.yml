@@ -30,7 +30,7 @@ snapshots:
       start: 24
       end: 77
   'app.use(PiniaColada, { enabled: () => true, gcTime })':
-    fixed: "app.use(PiniaColada, {\n  queryOptions: {\n    enabled: () => true,\ngcTime\n  },\n  \n})"
+    fixed: "app.use(PiniaColada, {\n  queryOptions: {\n    enabled: () => true,\n    gcTime\n  },\n  \n})"
     labels:
     - source: '{ enabled: () => true, gcTime }'
       style: primary
@@ -49,7 +49,7 @@ snapshots:
       app.use(PiniaColada, {
         queryOptions: {
           enabled: () => true,
-      gcTime
+          gcTime
         },
         pinia
       })
@@ -92,7 +92,7 @@ snapshots:
       app.use(PiniaColada, {
         queryOptions: {
           enabled: () => true,
-      gcTime
+          gcTime
         },
         plugins
       })
@@ -116,7 +116,7 @@ snapshots:
           enabled: () => true
         },
         plugins,
-      pinia
+        pinia
       })
     labels:
     - source: '{ plugins, enabled: () => true, pinia }'

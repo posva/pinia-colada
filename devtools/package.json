@@ -56,14 +56,14 @@
     "build": "pnpm run --stream '/^build:/'"
   },
   "devDependencies": {
-    "@iconify-json/lucide": "^1.2.41",
+    "@iconify-json/lucide": "^1.2.42",
     "@pinia/colada": "workspace:^*",
     "@posva/splitpanes": "^4.0.6",
-    "@tailwindcss/vite": "^4.1.5",
+    "@tailwindcss/vite": "^4.1.6",
     "@vueuse/core": "^13.1.0",
     "mande": "^2.0.9",
     "pinia": "^3.0.2",
-    "tailwindcss": "^4.1.5",
+    "tailwindcss": "^4.1.6",
     "unplugin-icons": "^22.1.0",
     "unplugin-vue-components": "^28.5.0",
     "unplugin-vue-router": "^0.12.0",
