@@ -163,7 +163,10 @@
     ],
     "patchedDependencies": {
       "@vue/runtime-dom": "patches/@vue__runtime-dom.patch"
-    }
+    },
+    "ignoredBuiltDependencies": [
+      "unrs-resolver"
+    ]
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm lint-staged",
