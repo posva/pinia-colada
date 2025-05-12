@@ -1479,7 +1479,15 @@ describe('useQuery', () => {
       expect(wrapper.vm.error).toEqual(new Error('fail'))
     })
 
-    it.todo('initialData is ignored if there is already data in the cache')
+    it('initialData is ignored if there is already data in the cache', async () => {
+      const caches = [createSerializedTreeNodeEntry('key', 2, null, Date.now())]
+      const initialData = vi.fn(() => 42)
+      const pinia = createHydratedCache(caches)
+      const { wrapper } = mountSimple({ refetchOnMount: false, initialData }, { plugins: [pinia] })
+
+      expect(wrapper.vm.data).toBe(2)
+      expect(initialData).toHaveBeenCalledTimes(0)
+    })
 
     it('refreshes the data even with initial values after staleTime is elapsed', async () => {
       const pinia = createHydratedCache([
