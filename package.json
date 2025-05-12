@@ -137,7 +137,7 @@
     "execa": "^9.5.2",
     "globby": "^14.1.0",
     "happy-dom": "^17.4.6",
-    "lint-staged": "^15.5.2",
+    "lint-staged": "^16.0.0",
     "minimist": "^1.2.8",
     "p-series": "^3.0.0",
     "pinia": "^3.0.2",
