@@ -101,7 +101,8 @@ export function defineQuery(optionsOrSetup: DefineQueryOptions | (() => unknown)
     // this ensures the refetchOnMount option is respected
     if (hasBeenEnsured) {
       ensuredEntries.forEach((entry) => {
-        // TODO: should happen in useQuery and defineQuery
+        // since defined query can be activated multiple times without executing useQuery,
+        // we need to execute it here too
         if (entry.options?.refetchOnMount && toValue(entry.options.enabled)) {
           if (toValue(entry.options.refetchOnMount) === 'always') {
             queryCache.fetch(entry)

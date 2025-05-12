@@ -21,7 +21,7 @@ import type {
 } from './tree-map'
 import { appendSerializedNodeToTree, TreeMapNode } from './tree-map'
 import type { ErrorDefault } from './types-extension'
-import { noop, toCacheKey, toValueWithArgs, warnOnce } from './utils'
+import { isSameArray, noop, toCacheKey, toValueWithArgs, warnOnce } from './utils'
 
 /**
  * Allows defining extensions to the query entry that are returned by `useQuery()`.
@@ -530,6 +530,13 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
         )
       }
 
+      // do not reinitialize the entry
+      // because of the immediate watcher in useQuery, the `ensure()` action is called twice on mount
+      // we return early to avoid pushing to currentDefineQueryEntry
+      if (previousEntry && isSameArray(key, previousEntry.key)) {
+        return previousEntry
+      }
+
       // Since ensure() is called within a computed, we cannot let Vue track cache, so we use the raw version instead
       let entry = cachesRaw.get(key) as UseQueryEntry<TResult, TError, TDataInitial> | undefined
       // ensure the state
@@ -540,10 +547,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           entry.placeholderData = toValueWithArgs(
             options.placeholderData,
             // pass the previous entry placeholder data if it was in placeholder state
-            // NOTE: the build needs a cast or it thinks it's never
             isEntryUsingPlaceholderData(previousEntry)
               ? previousEntry.placeholderData
-              : (previousEntry as UseQueryEntry<TResult, TError, TDataInitial> | undefined)?.state.value.data,
+              : previousEntry?.state.value.data,
           )
         }
         triggerCache()

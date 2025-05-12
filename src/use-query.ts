@@ -18,6 +18,7 @@ import { useQueryOptions } from './query-options'
 import type { UseQueryOptions, UseQueryOptionsWithDefaults } from './query-options'
 import type { ErrorDefault } from './types-extension'
 import { getCurrentDefineQueryEffect } from './define-query'
+import type { DefineQueryOptions } from './define-query'
 import type { AsyncStatus, DataState, DataStateStatus, DataState_Success } from './data-state'
 
 // TODO: Rename TResult to TData for consistency
@@ -102,19 +103,23 @@ export function useQuery<
   TError = ErrorDefault,
   TDataInitial extends TResult | undefined = undefined,
 >(
-  _options: UseQueryOptions<TResult, TError, TDataInitial>,
+  _options:
+    | UseQueryOptions<TResult, TError, TDataInitial>
+    | (() => DefineQueryOptions<TResult, TError, TDataInitial>),
 ): UseQueryReturn<TResult, TError, TDataInitial> {
   const queryCache = useQueryCache()
   const optionDefaults = useQueryOptions()
-  // const effect = (getActivePinia() as any)._e as EffectScope
   const hasCurrentInstance = getCurrentInstance()
   const currentEffect = getCurrentDefineQueryEffect() || getCurrentScope()
 
-  const options = {
-    ...optionDefaults,
-    ..._options,
-  } satisfies UseQueryOptionsWithDefaults<TResult, TError, TDataInitial>
-  const { refetchOnMount, refetchOnReconnect, refetchOnWindowFocus, enabled } = options
+  const options = computed(
+    () =>
+      ({
+        ...optionDefaults,
+        ...toValue(_options),
+      }) satisfies UseQueryOptionsWithDefaults<TResult, TError, TDataInitial>,
+  )
+  const enabled = (): boolean => toValue(options.value.enabled)
 
   // NOTE: here we used to check if the same key was previously called with a different query
   // but it ended up creating too many false positives and was removed. We could add it back
@@ -132,7 +137,7 @@ export function useQuery<
     // @ts-expect-error: _isPaused is private
     currentEffect?._isPaused
       ? lastEntry!
-      : (lastEntry = queryCache.ensure<TResult, TError, TDataInitial>(options, lastEntry)),
+      : (lastEntry = queryCache.ensure<TResult, TError, TDataInitial>(options.value, lastEntry)),
   )
   // we compute the entry here and reuse this across
   lastEntry = entry.value
@@ -140,7 +145,7 @@ export function useQuery<
   // adapter that returns the entry state
   const errorCatcher = () => entry.value.state.value
   const refresh = (throwOnError?: boolean) =>
-    queryCache.refresh(entry.value, options).catch(
+    queryCache.refresh(entry.value, options.value).catch(
       // true is not allowed but it works per spec as only callable onRejected are used
       // https://tc39.es/ecma262/multipage/control-abstraction-objects.html#sec-performpromisethen
       // In other words `Promise.rejects('ok').catch(true)` still rejects
@@ -148,7 +153,7 @@ export function useQuery<
       (throwOnError as false | undefined) || errorCatcher,
     )
   const refetch = (throwOnError?: boolean) =>
-    queryCache.fetch(entry.value, options).catch(
+    queryCache.fetch(entry.value, options.value).catch(
       // same as above
       (throwOnError as false | undefined) || errorCatcher,
     )
@@ -259,8 +264,8 @@ export function useQuery<
   // we could also call fetch instead but forcing a refresh is more interesting
   if (hasCurrentInstance) {
     onMounted(() => {
-      if (toValue(enabled)) {
-        const refetchControl = toValue(refetchOnMount)
+      if (enabled()) {
+        const refetchControl = toValue(options.value.refetchOnMount)
         if (refetchControl === 'always') {
           refetch()
         } else if (
@@ -276,31 +281,27 @@ export function useQuery<
   // TODO: we could save the time it was fetched to avoid fetching again. This is useful to not refetch during SSR app but do refetch in SSG apps if the data is stale. Careful with timers and timezones
 
   if (IS_CLIENT) {
-    if (refetchOnWindowFocus) {
-      useEventListener(document, 'visibilitychange', () => {
-        const refetchControl = toValue(refetchOnWindowFocus)
-        if (document.visibilityState === 'visible' && toValue(enabled)) {
-          if (refetchControl === 'always') {
-            refetch()
-          } else if (refetchControl) {
-            refresh()
-          }
+    useEventListener(document, 'visibilitychange', () => {
+      const refetchControl = toValue(options.value.refetchOnWindowFocus)
+      if (document.visibilityState === 'visible' && toValue(enabled)) {
+        if (refetchControl === 'always') {
+          refetch()
+        } else if (refetchControl) {
+          refresh()
         }
-      })
-    }
+      }
+    })
 
-    if (refetchOnReconnect) {
-      useEventListener(window, 'online', () => {
-        if (toValue(enabled)) {
-          const refetchControl = toValue(refetchOnReconnect)
-          if (refetchControl === 'always') {
-            refetch()
-          } else if (refetchControl) {
-            refresh()
-          }
+    useEventListener(window, 'online', () => {
+      if (toValue(enabled)) {
+        const refetchControl = toValue(options.value.refetchOnReconnect)
+        if (refetchControl === 'always') {
+          refetch()
+        } else if (refetchControl) {
+          refresh()
         }
-      })
-    }
+      }
+    })
   }
 
   return queryReturn

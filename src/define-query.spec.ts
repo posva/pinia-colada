@@ -145,11 +145,12 @@ describe('defineQuery', () => {
       )
 
       await flushPromises()
-      expect(key).toHaveBeenCalledTimes(1)
+      // we only care about after the unmount
+      key.mockClear()
       wrapper.unmount()
       routeId.value = 2
       await flushPromises()
-      expect(key).toHaveBeenCalledTimes(1)
+      expect(key).toHaveBeenCalledTimes(0)
     })
 
     it('avoids reading the key if not active (v-if toggle)', async () => {
@@ -185,19 +186,20 @@ describe('defineQuery', () => {
       )
 
       await flushPromises()
+      key.mockClear()
       routeId.value = 2
       await flushPromises()
-      expect(key).toHaveBeenCalledTimes(1)
+      expect(key).toHaveBeenCalledTimes(0)
     })
 
     it('reactivates if a new component mounts', async () => {
       const routeId = ref(1)
-      const key = vi.fn(() => ['key', routeId.value])
+      const key = vi.fn(() => {
+        return ['key', routeId.value]
+      })
+      const query = vi.fn(async () => ({ name: 'Eduardo', id: routeId.value }))
       const useProfile = defineQuery(() => {
-        return useQuery({
-          key,
-          query: async () => ({ name: 'Eduardo' }),
-        })
+        return useQuery({ key, query, staleTime: 1_000 })
       })
 
       const ViewComponent = defineComponent({
@@ -223,11 +225,28 @@ describe('defineQuery', () => {
       )
 
       await flushPromises()
+      query.mockClear()
+      key.mockClear()
       routeId.value = 2
       await flushPromises()
+      // they shouldn't be computed while the component is not used
+      expect(query).toHaveBeenCalledTimes(0)
+      expect(key).toHaveBeenCalledTimes(0)
+
+      // query is still stale
       routeId.value = 1
       await flushPromises()
-      expect(key).toHaveBeenCalledTimes(2)
+      expect(query).toHaveBeenCalledTimes(0)
+
+      // a tick
+      routeId.value = 2
+      await flushPromises()
+
+      // ensure the query is stale so it refetches
+      vi.advanceTimersByTime(1_001)
+      routeId.value = 1
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
     })
 
     // https://github.com/posva/pinia-colada/issues/246
