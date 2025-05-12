@@ -23,8 +23,9 @@ export interface PiniaColadaAutoRefetchOptions {
 
 /**
  * To store timeouts in the entry extensions.
+ * @internal
  */
-const refetchTimeoutKey = Symbol()
+export const REFETCH_TIMEOUT_KEY = Symbol()
 
 /**
  * Plugin that automatically refreshes queries when they become stale
@@ -42,7 +43,7 @@ export function PiniaColadaAutoRefetch(
       if (!entry.active) return
 
       // Always clear existing timeout first
-      clearTimeout(entry.ext[refetchTimeoutKey])
+      clearTimeout(entry.ext[REFETCH_TIMEOUT_KEY])
 
       // Schedule next refetch
       const timeout = setTimeout(() => {
@@ -56,7 +57,7 @@ export function PiniaColadaAutoRefetch(
         }
       }, options.staleTime)
 
-      entry.ext[refetchTimeoutKey] = timeout
+      entry.ext[REFETCH_TIMEOUT_KEY] = timeout
     }
 
     queryCache.$onAction(({ name, args, after }) => {
@@ -83,7 +84,7 @@ export function PiniaColadaAutoRefetch(
         const [entry] = args
 
         // Clear any existing timeout before scheduling a new one
-        clearTimeout(entry.ext[refetchTimeoutKey])
+        clearTimeout(entry.ext[REFETCH_TIMEOUT_KEY])
 
         after(async () => {
           if (!entry.options) return
@@ -96,7 +97,7 @@ export function PiniaColadaAutoRefetch(
       // Clean up timeouts when entry is removed
       if (name === 'remove') {
         const [entry] = args
-        clearTimeout(entry.ext[refetchTimeoutKey])
+        clearTimeout(entry.ext[REFETCH_TIMEOUT_KEY])
       }
     })
   }
@@ -115,6 +116,6 @@ declare module '@pinia/colada' {
      * Used to store the timeout for the auto-refetch plugin.
      * @internal
      */
-    [refetchTimeoutKey]?: ReturnType<typeof setTimeout>
+    [REFETCH_TIMEOUT_KEY]?: ReturnType<typeof setTimeout>
   }
 }
