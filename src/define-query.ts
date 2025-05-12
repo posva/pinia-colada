@@ -57,9 +57,9 @@ export function getCurrentDefineQueryEffect() {
  * })
  * ```
  */
-export function defineQuery<TResult, TError = ErrorDefault>(
-  options: DefineQueryOptions<TResult, TError>,
-): () => UseQueryReturn<TResult, TError>
+export function defineQuery<TData, TError = ErrorDefault>(
+  options: DefineQueryOptions<TData, TError>,
+): () => UseQueryReturn<TData, TError>
 
 /**
  * Define a query with a setup function. Allows to return arbitrary values from the query function, create contextual

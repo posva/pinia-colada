@@ -22,13 +22,13 @@ import type { _EmptyObject } from './utils'
  * ```
  */
 export function defineMutation<
-  TResult,
+  TData,
   TVars = void,
   TError = ErrorDefault,
   TContext extends Record<any, any> = _EmptyObject,
 >(
-  options: UseMutationOptions<TResult, TVars, TError, TContext>,
-): () => UseMutationReturn<TResult, TVars, TError>
+  options: UseMutationOptions<TData, TVars, TError, TContext>,
+): () => UseMutationReturn<TData, TVars, TError>
 
 /**
  * Define a mutation with a function setup. Allows to return arbitrary values from the mutation function, create

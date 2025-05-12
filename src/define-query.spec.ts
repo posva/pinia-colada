@@ -563,8 +563,8 @@ describe('defineQuery', () => {
 
   describe('gcTime', () => {
     describe('with component', () => {
-      function mountSimple<TResult = string>(
-        options: Partial<UseQueryOptions<TResult>> = {},
+      function mountSimple<TData = string>(
+        options: Partial<UseQueryOptions<TData>> = {},
         mountOptions?: GlobalMountOptions,
       ) {
         const queryFunction = options.query

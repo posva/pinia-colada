@@ -21,20 +21,18 @@ import { getCurrentDefineQueryEffect } from './define-query'
 import type { DefineQueryOptions } from './define-query'
 import type { AsyncStatus, DataState, DataStateStatus, DataState_Success } from './data-state'
 
-// TODO: Rename TResult to TData for consistency
-
 /**
  * Return type of `useQuery()`.
  */
 export interface UseQueryReturn<
-  TResult = unknown,
+  TData = unknown,
   TError = ErrorDefault,
-  TDataInitial extends TResult | undefined = undefined,
-> extends UseQueryEntryExtensions<TResult, TError, TDataInitial> {
+  TDataInitial extends TData | undefined = undefined,
+> extends UseQueryEntryExtensions<TData, TError, TDataInitial> {
   /**
    * The state of the query. Contains its data, error, and status.
    */
-  state: ComputedRef<DataState<TResult, TError, TDataInitial>>
+  state: ComputedRef<DataState<TData, TError, TDataInitial>>
 
   /**
    * Status of the query. Becomes `'loading'` while the query is being fetched, is `'idle'` otherwise.
@@ -46,7 +44,7 @@ export interface UseQueryReturn<
    *
    * @see {@link state}
    */
-  data: ShallowRef<TResult | TDataInitial>
+  data: ShallowRef<TData | TDataInitial>
 
   /**
    * The error rejected by the query. Alias for `state.value.error`.
@@ -83,14 +81,14 @@ export interface UseQueryReturn<
    * @param throwOnError - whether to throw an error if the refresh fails. Defaults to `false`
    * @returns a promise that resolves when the refresh is done
    */
-  refresh: (throwOnError?: boolean) => Promise<DataState<TResult, TError, TDataInitial>>
+  refresh: (throwOnError?: boolean) => Promise<DataState<TData, TError, TDataInitial>>
 
   /**
    * Ignores fresh data and triggers a new fetch
    * @param throwOnError - whether to throw an error if the fetch fails. Defaults to `false`
    * @returns a promise that resolves when the fetch is done
    */
-  refetch: (throwOnError?: boolean) => Promise<DataState<TResult, TError, TDataInitial>>
+  refetch: (throwOnError?: boolean) => Promise<DataState<TData, TError, TDataInitial>>
 }
 
 /**
@@ -99,14 +97,14 @@ export interface UseQueryReturn<
  * @param _options - The options of the query
  */
 export function useQuery<
-  TResult,
+  TData,
   TError = ErrorDefault,
-  TDataInitial extends TResult | undefined = undefined,
+  TDataInitial extends TData | undefined = undefined,
 >(
   _options:
-    | UseQueryOptions<TResult, TError, TDataInitial>
-    | (() => DefineQueryOptions<TResult, TError, TDataInitial>),
-): UseQueryReturn<TResult, TError, TDataInitial> {
+    | UseQueryOptions<TData, TError, TDataInitial>
+    | (() => DefineQueryOptions<TData, TError, TDataInitial>),
+): UseQueryReturn<TData, TError, TDataInitial> {
   const queryCache = useQueryCache()
   const optionDefaults = useQueryOptions()
   const hasCurrentInstance = getCurrentInstance()
@@ -117,7 +115,7 @@ export function useQuery<
       ({
         ...optionDefaults,
         ...toValue(_options),
-      }) satisfies UseQueryOptionsWithDefaults<TResult, TError, TDataInitial>,
+      }) satisfies UseQueryOptionsWithDefaults<TData, TError, TDataInitial>,
   )
   const enabled = (): boolean => toValue(options.value.enabled)
 
@@ -128,7 +126,7 @@ export function useQuery<
   // This plain variable is not reactive and allows us to use the currentEntry
   // without triggering watchers and creating entries. It is used during
   // unmounting and mounting
-  let lastEntry: UseQueryEntry<TResult, TError, TDataInitial>
+  let lastEntry: UseQueryEntry<TData, TError, TDataInitial>
   const entry = computed(() =>
     // NOTE: there should be a `paused` property on the effect later on
     // if the effect is paused, we don't want to compute the entry because its key
@@ -137,7 +135,7 @@ export function useQuery<
     // @ts-expect-error: _isPaused is private
     currentEffect?._isPaused
       ? lastEntry!
-      : (lastEntry = queryCache.ensure<TResult, TError, TDataInitial>(options.value, lastEntry)),
+      : (lastEntry = queryCache.ensure<TData, TError, TDataInitial>(options.value, lastEntry)),
   )
   // we compute the entry here and reuse this across
   lastEntry = entry.value
@@ -158,13 +156,13 @@ export function useQuery<
       (throwOnError as false | undefined) || errorCatcher,
     )
   const isPlaceholderData = computed(() => isEntryUsingPlaceholderData(entry.value))
-  const state = computed<DataState<TResult, TError, TDataInitial>>(() =>
+  const state = computed<DataState<TData, TError, TDataInitial>>(() =>
     isPlaceholderData.value
       ? ({
           status: 'success',
           data: entry.value.placeholderData!,
           error: null,
-        } satisfies DataState_Success<TResult>)
+        } satisfies DataState_Success<TData>)
       : entry.value.state.value,
   )
 
@@ -173,21 +171,20 @@ export function useQuery<
   for (const key in lastEntry.ext) {
     extensions[key] = computed<unknown>({
       get: () =>
-        toValue<unknown>(entry.value.ext[key as keyof UseQueryEntryExtensions<TResult, TError>]),
+        toValue<unknown>(entry.value.ext[key as keyof UseQueryEntryExtensions<TData, TError>]),
       set(value) {
-        const target = entry.value.ext[key as keyof UseQueryEntryExtensions<TResult, TError>]
+        const target = entry.value.ext[key as keyof UseQueryEntryExtensions<TData, TError>]
         if (isRef(target)) {
           ;(target as Ref | ShallowRef).value = value
         } else {
-          ;(entry.value.ext[key as keyof UseQueryEntryExtensions<TResult, TError>] as unknown)
-            = value
+          ;(entry.value.ext[key as keyof UseQueryEntryExtensions<TData, TError>] as unknown) = value
         }
       },
     })
   }
 
   const queryReturn = {
-    ...(extensions as UseQueryEntryExtensions<TResult, TError, TDataInitial>),
+    ...(extensions as UseQueryEntryExtensions<TData, TError, TDataInitial>),
     state,
 
     status: computed(() => state.value.status),
@@ -201,7 +198,7 @@ export function useQuery<
 
     refresh,
     refetch,
-  } satisfies UseQueryReturn<TResult, TError, TDataInitial>
+  } satisfies UseQueryReturn<TData, TError, TDataInitial>
 
   if (hasCurrentInstance) {
     // only happens on server, app awaits this

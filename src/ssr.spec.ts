@@ -11,11 +11,11 @@ import { PiniaColada } from './pinia-colada'
 import { createPinia } from 'pinia'
 
 describe('SSR', () => {
-  function renderApp<TResult = number, TError = Error>({
+  function renderApp<TData = number, TError = Error>({
     options = {},
     appSetup,
   }: {
-    options?: Partial<UseQueryOptions<TResult>>
+    options?: Partial<UseQueryOptions<TData>>
     appSetup?: () => void
   } = {}) {
     const query = options.query
@@ -27,7 +27,7 @@ describe('SSR', () => {
     const InnerComp = defineComponent({
       render: () => null,
       setup() {
-        const useQueryResult = useQuery<TResult, TError>({
+        const useQueryResult = useQuery<TData, TError>({
           key: ['key'],
           ...options,
           // @ts-expect-error: generic unmatched but types work

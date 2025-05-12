@@ -9,20 +9,20 @@ import type { ErrorDefault } from './types-extension'
  * @experimental See https://github.com/posva/pinia-colada/issues/178
  */
 export interface UseInfiniteQueryOptions<
-  TResult,
+  TData,
   TError,
-  TDataInitial extends TResult | undefined = TResult | undefined,
+  TDataInitial extends TData | undefined = TData | undefined,
   TPages = unknown,
 > extends Omit<
-    UseQueryOptions<TResult, TError, TDataInitial, TPages>,
+    UseQueryOptions<TData, TError, TDataInitial, TPages>,
     'query' | 'initialData' | 'placeholderData'
   > {
   /**
    * The function that will be called to fetch the data. It **must** be async.
    */
-  query: (pages: NoInfer<TPages>, context: UseQueryFnContext) => Promise<TResult>
+  query: (pages: NoInfer<TPages>, context: UseQueryFnContext) => Promise<TData>
   initialPage: TPages | (() => TPages)
-  merge: (result: NoInfer<TPages>, current: NoInfer<TResult>) => NoInfer<TPages>
+  merge: (result: NoInfer<TPages>, current: NoInfer<TData>) => NoInfer<TPages>
 }
 
 /**
@@ -34,8 +34,8 @@ export interface UseInfiniteQueryOptions<
  *
  * @experimental See https://github.com/posva/pinia-colada/issues/178
  */
-export function useInfiniteQuery<TResult, TError = ErrorDefault, TPage = unknown>(
-  options: UseInfiniteQueryOptions<TResult, TError, TResult | undefined, TPage>,
+export function useInfiniteQuery<TData, TError = ErrorDefault, TPage = unknown>(
+  options: UseInfiniteQueryOptions<TData, TError, TData | undefined, TPage>,
 ) {
   let pages: TPage = toValue(options.initialPage)
 
@@ -46,7 +46,7 @@ export function useInfiniteQuery<TResult, TError = ErrorDefault, TPage = unknown
     // like usual
     staleTime: Infinity,
     async query(context) {
-      const data: TResult = await options.query(pages, context)
+      const data: TData = await options.query(pages, context)
       return (pages = options.merge(pages, data))
     },
   })

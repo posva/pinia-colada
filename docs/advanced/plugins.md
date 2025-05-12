@@ -63,14 +63,13 @@ export interface PiniaColadaAutoRefetchOptions {
 
 // Add types for the new option
 declare module '@pinia/colada' {
-
-  interface UseQueryOptions<TResult, TError, TDataInitial> extends PiniaColadaAutoRefetchOptions {}
+  interface UseQueryOptions<TData, TError, TDataInitial> extends PiniaColadaAutoRefetchOptions {}
 
   interface UseQueryOptionsGlobal extends PiniaColadaAutoRefetchOptions {}
 }
 ```
 
-To avoid repetition, define the options in a separate interface and augment both `UseQueryOptions` and `UseQueryOptionsGlobal` in a module augmentation. Note you need to write the three type params, `TResult`, `TError`, and `TDataInitial`, even if you don't use them and they must be named exactly like that.
+To avoid repetition, define the options in a separate interface and augment both `UseQueryOptions` and `UseQueryOptionsGlobal` in a module augmentation. Note you need to write the three type params, `TData`, `TError`, and `TDataInitial`, even if you don't use them and they must be named exactly like that.
 
 ## Examples
 
@@ -128,8 +127,7 @@ export function PiniaColadaDataUpdatedAtPlugin(): PiniaColadaPlugin {
 
 // Add the property to the types
 declare module '@pinia/colada' {
-
-  interface UseQueryEntryExtensions<TResult, TError> {
+  interface UseQueryEntryExtensions<TData, TError> {
     /**
      * Time stamp of the last time the data was updated.
      */

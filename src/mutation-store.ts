@@ -15,7 +15,7 @@ import type { EntryKey } from './entry-options'
  * A mutation entry in the cache.
  */
 export interface UseMutationEntry<
-  TResult = unknown,
+  TData = unknown,
   TVars = unknown,
   TError = unknown,
   TContext extends Record<any, any> = _EmptyObject,
@@ -28,7 +28,7 @@ export interface UseMutationEntry<
   /**
    * The state of the mutation. Contains the data, error and status.
    */
-  state: ShallowRef<DataState<TResult, TError>>
+  state: ShallowRef<DataState<TData, TError>>
 
   /**
    * The async status of the mutation.
@@ -53,7 +53,7 @@ export interface UseMutationEntry<
   /**
    * Options used to create the mutation.
    */
-  options: UseMutationOptions<TResult, TVars, TError, TContext>
+  options: UseMutationOptions<TData, TVars, TError, TContext>
 
   /**
    * Timeout id that scheduled a garbage collection. It is set here to clear it when the entry is used by a different component.
@@ -146,20 +146,20 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
    */
   const create = action(
     <
-      TResult = unknown,
+      TData = unknown,
       TVars = unknown,
       TError = unknown,
       TContext extends Record<any, any> = _EmptyObject,
     >(
-      options: UseMutationOptions<TResult, TVars, TError, TContext>,
+      options: UseMutationOptions<TData, TVars, TError, TContext>,
       key?: EntryNodeKey[] | undefined,
       vars?: TVars,
-    ): UseMutationEntry<TResult, TVars, TError, TContext> =>
+    ): UseMutationEntry<TData, TVars, TError, TContext> =>
       scope.run(
         () =>
           ({
             id: '', // not a real id yet, indicates that the entry is not in the cache
-            state: shallowRef<DataState<TResult, TError>>({
+            state: shallowRef<DataState<TData, TError>>({
               status: 'pending',
               data: undefined,
               error: null,
@@ -170,7 +170,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
             vars,
             key,
             options,
-          }) satisfies UseMutationEntry<TResult, TVars, TError, TContext>,
+          }) satisfies UseMutationEntry<TData, TVars, TError, TContext>,
       )!,
   )
 
@@ -181,14 +181,14 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
    * @param vars - variables to call the mutation with
    */
   function ensure<
-    TResult = unknown,
+    TData = unknown,
     TVars = unknown,
     TError = unknown,
     TContext extends Record<any, any> = _EmptyObject,
   >(
-    entry: UseMutationEntry<TResult, TVars, TError, TContext>,
+    entry: UseMutationEntry<TData, TVars, TError, TContext>,
     vars: NoInfer<TVars>,
-  ): UseMutationEntry<TResult, TVars, TError, TContext> {
+  ): UseMutationEntry<TData, TVars, TError, TContext> {
     const options = entry.options
     const id = generateMutationId()
     const cacheKey: EntryNodeKey[] = mutationCacheKey(
@@ -246,14 +246,14 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
    */
   const setEntryState = action(
     <
-      TResult = unknown,
+      TData = unknown,
       TVars = unknown,
       TError = unknown,
       TContext extends Record<any, any> = _EmptyObject,
     >(
-      entry: UseMutationEntry<TResult, TVars, TError, TContext>,
-      // NOTE: NoInfer ensures correct inference of TResult and TError
-      state: DataState<NoInfer<TResult>, NoInfer<TError>>,
+      entry: UseMutationEntry<TData, TVars, TError, TContext>,
+      // NOTE: NoInfer ensures correct inference of TData and TError
+      state: DataState<NoInfer<TData>, NoInfer<TError>>,
     ) => {
       entry.state.value = state
       entry.when = Date.now()
@@ -267,12 +267,12 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
    */
   const remove = action(
     <
-      TResult = unknown,
+      TData = unknown,
       TVars = unknown,
       TError = unknown,
       TContext extends Record<any, any> = _EmptyObject,
     >(
-      entry: UseMutationEntry<TResult, TVars, TError, TContext>,
+      entry: UseMutationEntry<TData, TVars, TError, TContext>,
     ) => {
       if (entry.key != null) {
         cachesRaw.set(entry.key)
@@ -308,12 +308,12 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
    */
   const untrack = action(
     <
-      TResult = unknown,
+      TData = unknown,
       TVars = unknown,
       TError = unknown,
       TContext extends Record<any, any> = _EmptyObject,
     >(
-      entry: UseMutationEntry<TResult, TVars, TError, TContext>,
+      entry: UseMutationEntry<TData, TVars, TError, TContext>,
     ) => {
       // schedule a garbage collection if the entry is not active
       if (entry.gcTimeout) return
@@ -333,11 +333,11 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
    * @param entry - the entry to mutate
    */
   async function mutate<
-    TResult = unknown,
+    TData = unknown,
     TVars = unknown,
     TError = unknown,
     TContext extends Record<any, any> = _EmptyObject,
-  >(entry: UseMutationEntry<TResult, TVars, TError, TContext>): Promise<TResult> {
+  >(entry: UseMutationEntry<TData, TVars, TError, TContext>): Promise<TData> {
     // the vars is set when the entry is ensured, we warn against it below
     const { vars, options } = entry as typeof entry & { vars: TVars }
 
@@ -364,16 +364,16 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     entry.asyncStatus.value = 'loading'
 
     // TODO: AbortSignal that is aborted when the mutation is called again so we can throw in pending
-    let currentData: TResult | undefined
+    let currentData: TData | undefined
     let currentError: TError | undefined
     type OnMutateContext = Parameters<
-      Required<UseMutationOptions<TResult, TVars, TError, TContext>>['onMutate']
+      Required<UseMutationOptions<TData, TVars, TError, TContext>>['onMutate']
     >['1']
     type OnSuccessContext = Parameters<
-      Required<UseMutationOptions<TResult, TVars, TError, TContext>>['onSuccess']
+      Required<UseMutationOptions<TData, TVars, TError, TContext>>['onSuccess']
     >['2']
     type OnErrorContext = Parameters<
-      Required<UseMutationOptions<TResult, TVars, TError, TContext>>['onError']
+      Required<UseMutationOptions<TData, TVars, TError, TContext>>['onError']
     >['2']
 
     let context: OnMutateContext | OnErrorContext | OnSuccessContext = {}

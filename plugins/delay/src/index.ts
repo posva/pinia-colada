@@ -71,12 +71,12 @@ export function PiniaColadaDelay(options?: PiniaColadaDelayOptions): PiniaColada
 
 declare module '@pinia/colada' {
   // eslint-disable-next-line unused-imports/no-unused-vars
-  interface UseQueryOptions<TResult, TError, TDataInitial> extends PiniaColadaDelayOptions {}
+  interface UseQueryOptions<TData, TError, TDataInitial> extends PiniaColadaDelayOptions {}
 
   interface UseQueryOptionsGlobal extends PiniaColadaDelayOptions {}
 
   // eslint-disable-next-line unused-imports/no-unused-vars
-  interface UseQueryEntryExtensions<TResult, TError> {
+  interface UseQueryEntryExtensions<TData, TError> {
     /**
      * Returns whether the query is currently delaying its `asyncStatus` from becoming `'loading'`. Requires the {@link PiniaColadaDelay} plugin.
      */

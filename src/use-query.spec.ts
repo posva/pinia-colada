@@ -32,11 +32,11 @@ describe('useQuery', () => {
   mockConsoleError()
 
   function mountSimple<
-    TResult = number,
+    TData = number,
     TError = Error,
-    TDataInitial extends TResult | undefined = TResult | undefined,
+    TDataInitial extends TData | undefined = TData | undefined,
   >(
-    options: Partial<UseQueryOptions<TResult, TError, TDataInitial>> = {},
+    options: Partial<UseQueryOptions<TData, TError, TDataInitial>> = {},
     mountOptions?: GlobalMountOptions,
   ) {
     const query = options.query
@@ -60,7 +60,7 @@ describe('useQuery', () => {
       defineComponent({
         render: () => null,
         setup() {
-          const useQueryResult = useQuery<TResult, TError, TDataInitial>({
+          const useQueryResult = useQuery<TData, TError, TDataInitial>({
             key: ['key'],
             ...options,
             // @ts-expect-error: generic unmatched but types work
@@ -778,8 +778,8 @@ describe('useQuery', () => {
   })
 
   describe('refresh data', () => {
-    function mountDynamicKey<TResult = { id: number, when: number }, TError = Error>(
-      options: Partial<UseQueryOptions<TResult>> & { initialId?: number } = {},
+    function mountDynamicKey<TData = { id: number, when: number }, TError = Error>(
+      options: Partial<UseQueryOptions<TData>> & { initialId?: number } = {},
       mountOptions?: GlobalMountOptions,
     ) {
       let query!: MockInstance
@@ -806,7 +806,7 @@ describe('useQuery', () => {
                 // renders again
                 await nextTick()
               },
-              ...useQuery<TResult, TError>({
+              ...useQuery<TData, TError>({
                 key: () => ['data', id.value],
                 ...options,
                 // @ts-expect-error: generic unmatched but types work

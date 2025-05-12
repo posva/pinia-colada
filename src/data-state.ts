@@ -9,11 +9,11 @@ export type DataStateStatus = 'pending' | 'error' | 'success'
 /**
  * Internal base type for data state.
  */
-export interface _DataState_Base<TResult, TError> {
+export interface _DataState_Base<TData, TError> {
   /**
    * The last successfully resolved data.
    */
-  data: TResult
+  data: TData
 
   /**
    * The last rejected error.
@@ -27,12 +27,12 @@ export interface _DataState_Base<TResult, TError> {
   status: DataStateStatus
 }
 
-export interface DataState_Success<TResult> extends _DataState_Base<TResult, null> {
+export interface DataState_Success<TData> extends _DataState_Base<TData, null> {
   status: 'success'
 }
 
-export interface DataState_Error<TResult, TError, TDataInitial>
-  extends _DataState_Base<TResult | TDataInitial, TError> {
+export interface DataState_Error<TData, TError, TDataInitial>
+  extends _DataState_Base<TData | TDataInitial, TError> {
   status: 'error'
 }
 
@@ -43,9 +43,9 @@ export interface DataState_Pending<TDataInitial> extends _DataState_Base<TDataIn
 /**
  * Possible states for data based on its status.
  */
-export type DataState<TResult, TError, TDataInitial = undefined> =
-  | DataState_Success<TResult>
-  | DataState_Error<TResult, TError, TDataInitial>
+export type DataState<TData, TError, TDataInitial = undefined> =
+  | DataState_Success<TData>
+  | DataState_Error<TData, TError, TDataInitial>
   | DataState_Pending<TDataInitial>
 
 /**

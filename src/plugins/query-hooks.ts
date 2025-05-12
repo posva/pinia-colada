@@ -10,7 +10,7 @@ export interface PiniaColadaQueryHooksPluginOptions {
    *
    * @param data - data returned by the query
    */
-  onSuccess?: <TResult = unknown>(data: TResult, entry: UseQueryEntry<TResult, unknown>) => unknown
+  onSuccess?: <TData = unknown>(data: TData, entry: UseQueryEntry<TData, unknown>) => unknown
 
   /**
    * Global handler for when a query is settled (either successfully or with an error). Will await for the `onSuccess`
@@ -19,10 +19,10 @@ export interface PiniaColadaQueryHooksPluginOptions {
    * @param data - data returned by the query if any
    * @param error - error thrown if any
    */
-  onSettled?: <TResult = unknown, TError = unknown>(
-    data: TResult | undefined,
+  onSettled?: <TData = unknown, TError = unknown>(
+    data: TData | undefined,
     error: TError | null,
-    entry: UseQueryEntry<TResult, TError>,
+    entry: UseQueryEntry<TData, TError>,
   ) => unknown
 
   /**

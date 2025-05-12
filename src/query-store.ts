@@ -28,11 +28,11 @@ import { isSameArray, noop, toCacheKey, toValueWithArgs, warnOnce } from './util
  */
 
 export interface UseQueryEntryExtensions<
-  TResult,
+  TData,
   /* eslint-disable-next-line unused-imports/no-unused-vars */
   TError,
   /* eslint-disable-next-line unused-imports/no-unused-vars */
-  TDataInitial extends TResult | undefined = TResult | undefined,
+  TDataInitial extends TData | undefined = TData | undefined,
 > {}
 
 /**
@@ -44,20 +44,20 @@ export interface UseQueryEntryExtensions<
  * A query entry in the cache.
  */
 export interface UseQueryEntry<
-  TResult = unknown,
+  TData = unknown,
   TError = unknown,
-  TDataInitial extends TResult | undefined = TResult | undefined,
+  TDataInitial extends TData | undefined = TData | undefined,
 > {
   /**
    * The state of the query. Contains the data, error and status.
    */
-  state: ShallowRef<DataState<TResult, TError, TDataInitial>>
+  state: ShallowRef<DataState<TData, TError, TDataInitial>>
 
   /**
    * A placeholder `data` that is initially shown while the query is loading for the first time. This will also show the
    * `status` as `success` until the query finishes loading (no matter the outcome).
    */
-  placeholderData: TDataInitial | TResult | null | undefined
+  placeholderData: TDataInitial | TData | null | undefined
 
   /**
    * The status of the query.
@@ -96,7 +96,7 @@ export interface UseQueryEntry<
     /**
      * The promise created by `queryCache.fetch` that is currently pending.
      */
-    refreshCall: Promise<DataState<TResult, TError, TDataInitial>>
+    refreshCall: Promise<DataState<TData, TError, TDataInitial>>
     /**
      * When was this `pending` object created.
      */
@@ -108,7 +108,7 @@ export interface UseQueryEntry<
    * `store.ensure()` sets this property. Note these options might be shared by multiple query entries when the key is
    * dynamic and that's why some methods like {@link fetch} receive the options as an argument.
    */
-  options: UseQueryOptionsWithDefaults<TResult, TError, TDataInitial> | null
+  options: UseQueryOptionsWithDefaults<TData, TError, TDataInitial> | null
 
   /**
    * Whether the data is stale or not, requires `options.staleTime` to be set.
@@ -123,7 +123,7 @@ export interface UseQueryEntry<
   /**
    * Extensions to the query entry added by plugins.
    */
-  ext: UseQueryEntryExtensions<TResult, TError, TDataInitial>
+  ext: UseQueryEntryExtensions<TData, TError, TDataInitial>
 
   /**
    * Internal property to store the HMR ids of the components that are using
@@ -211,9 +211,9 @@ export const START_EXT = {}
  * @param entry.state.value - value of the data state
  * @returns Serialized version of the entry
  */
-export const queryEntry_toJSON: <TResult, TError>(
-  entry: UseQueryEntry<TResult, TError>,
-) => _UseQueryEntryNodeValueSerialized<TResult, TError> = ({ state: { value }, when }) => [
+export const queryEntry_toJSON: <TData, TError>(
+  entry: UseQueryEntry<TData, TError>,
+) => _UseQueryEntryNodeValueSerialized<TData, TError> = ({ state: { value }, when }) => [
   value.data,
   value.error,
   when,
@@ -227,9 +227,9 @@ export const queryEntry_toJSON: <TResult, TError>(
  * @param entry - entry to serialize
  * @returns Stringified version of the entry
  */
-export const queryEntry_toString: <TResult, TError>(
-  entry: UseQueryEntry<TResult, TError>,
-) => string = (entry) => String(queryEntry_toJSON(entry))
+export const queryEntry_toString: <TData, TError>(entry: UseQueryEntry<TData, TError>) => string = (
+  entry,
+) => String(queryEntry_toJSON(entry))
 
 /**
  * The id of the store used for queries.
@@ -303,15 +303,15 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * @param [when] - when was the data or error fetched
    */
   const create = action(
-    <TResult, TError, TDataInitial extends TResult | undefined>(
+    <TData, TError, TDataInitial extends TData | undefined>(
       key: EntryNodeKey[],
-      options: UseQueryOptionsWithDefaults<TResult, TError, TDataInitial> | null = null,
+      options: UseQueryOptionsWithDefaults<TData, TError, TDataInitial> | null = null,
       initialData?: TDataInitial,
       error: TError | null = null,
       when: number = 0,
-    ): UseQueryEntry<TResult, TError, TDataInitial> =>
+    ): UseQueryEntry<TData, TError, TDataInitial> =>
       scope.run(() => {
-        const state = shallowRef<DataState<TResult, TError, TDataInitial>>(
+        const state = shallowRef<DataState<TData, TError, TDataInitial>>(
           // @ts-expect-error: to make the code shorter we are using one declaration instead of multiple ternaries
           {
             // NOTE: we could move the `initialData` parameter before `options` and make it required
@@ -323,7 +323,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
         )
         const asyncStatus = shallowRef<AsyncStatus>('idle')
         // we markRaw to avoid unnecessary vue traversal
-        return markRaw<UseQueryEntry<TResult, TError, TDataInitial>>({
+        return markRaw<UseQueryEntry<TData, TError, TDataInitial>>({
           key,
           state,
           placeholderData: null,
@@ -344,7 +344,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           get active() {
             return this.deps.size > 0
           },
-        } satisfies UseQueryEntry<TResult, TError, TDataInitial>)
+        } satisfies UseQueryEntry<TData, TError, TDataInitial>)
       })!,
   )
 
@@ -510,15 +510,11 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * @param previousEntry - the previous entry that was associated with the same options
    */
   const ensure = action(
-    <
-      TResult = unknown,
-      TError = ErrorDefault,
-      TDataInitial extends TResult | undefined = undefined,
-    >(
-      opts: UseQueryOptions<TResult, TError, TDataInitial>,
-      previousEntry?: UseQueryEntry<TResult, TError, TDataInitial>,
-    ): UseQueryEntry<TResult, TError, TDataInitial> => {
-      const options: UseQueryOptionsWithDefaults<TResult, TError, TDataInitial> = {
+    <TData = unknown, TError = ErrorDefault, TDataInitial extends TData | undefined = undefined>(
+      opts: UseQueryOptions<TData, TError, TDataInitial>,
+      previousEntry?: UseQueryEntry<TData, TError, TDataInitial>,
+    ): UseQueryEntry<TData, TError, TDataInitial> => {
+      const options: UseQueryOptionsWithDefaults<TData, TError, TDataInitial> = {
         ...optionDefaults,
         ...opts,
       }
@@ -538,7 +534,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       }
 
       // Since ensure() is called within a computed, we cannot let Vue track cache, so we use the raw version instead
-      let entry = cachesRaw.get(key) as UseQueryEntry<TResult, TError, TDataInitial> | undefined
+      let entry = cachesRaw.get(key) as UseQueryEntry<TData, TError, TDataInitial> | undefined
       // ensure the state
       if (!entry) {
         cachesRaw.set(key, (entry = create(key, options, options.initialData?.())))
@@ -581,7 +577,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
 
       // extend the entry with plugins the first time only
       if (entry.ext === START_EXT) {
-        entry.ext = {} as UseQueryEntryExtensions<TResult, TError>
+        entry.ext = {} as UseQueryEntryExtensions<TData, TError>
         extend(entry)
       }
 
@@ -598,7 +594,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * @param _entry - the entry of the query to extend
    */
   const extend = action(
-    <TResult = unknown, TError = ErrorDefault>(_entry: UseQueryEntry<TResult, TError>) => {},
+    <TData = unknown, TError = ErrorDefault>(_entry: UseQueryEntry<TData, TError>) => {},
   )
 
   /**
@@ -628,10 +624,10 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * @see {@link fetch}
    */
   const refresh = action(
-    async <TResult, TError, TDataInitial extends TResult | undefined>(
-      entry: UseQueryEntry<TResult, TError, TDataInitial>,
+    async <TData, TError, TDataInitial extends TData | undefined>(
+      entry: UseQueryEntry<TData, TError, TDataInitial>,
       options = entry.options,
-    ): Promise<DataState<TResult, TError, TDataInitial>> => {
+    ): Promise<DataState<TData, TError, TDataInitial>> => {
       if (process.env.NODE_ENV !== 'production' && !options) {
         throw new Error(
           `"entry.refresh()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`,
@@ -653,10 +649,10 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * @param options - the options to use for the fetch
    */
   const fetch = action(
-    async <TResult, TError, TDataInitial extends TResult | undefined>(
-      entry: UseQueryEntry<TResult, TError, TDataInitial>,
+    async <TData, TError, TDataInitial extends TData | undefined>(
+      entry: UseQueryEntry<TData, TError, TDataInitial>,
       options = entry.options,
-    ): Promise<DataState<TResult, TError, TDataInitial>> => {
+    ): Promise<DataState<TData, TError, TDataInitial>> => {
       if (process.env.NODE_ENV !== 'production' && !options) {
         throw new Error(
           `"entry.fetch()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`,
@@ -767,10 +763,10 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * @param state - the new state of the entry
    */
   const setEntryState = action(
-    <TResult, TError, TDataInitial extends TResult | undefined = TResult | undefined>(
-      entry: UseQueryEntry<TResult, TError, TDataInitial>,
-      // NOTE: NoInfer ensures correct inference of TResult and TError
-      state: DataState<NoInfer<TResult>, NoInfer<TError>, NoInfer<TDataInitial>>,
+    <TData, TError, TDataInitial extends TData | undefined = TData | undefined>(
+      entry: UseQueryEntry<TData, TError, TDataInitial>,
+      // NOTE: NoInfer ensures correct inference of TData and TError
+      state: DataState<NoInfer<TData>, NoInfer<TError>, NoInfer<TDataInitial>>,
     ) => {
       entry.state.value = state
       entry.when = Date.now()

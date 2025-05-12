@@ -158,11 +158,11 @@ export function appendSerializedNodeToTree<T>(
  * Raw data of a query entry. Can be serialized from the server and used to hydrate the store.
  * @internal
  */
-export type _UseQueryEntryNodeValueSerialized<TResult = unknown, TError = unknown> = [
+export type _UseQueryEntryNodeValueSerialized<TData = unknown, TError = unknown> = [
   /**
    * The data returned by the query.
    */
-  data: TResult | undefined,
+  data: TData | undefined,
 
   /**
    * The error thrown by the query.

@@ -26,8 +26,8 @@ describe('useMutation', () => {
   mockWarn()
   mockConsoleError()
 
-  function mountSimple<TResult = number, TParams = void>(
-    options: Partial<UseMutationOptions<TResult, TParams>> = {},
+  function mountSimple<TData = number, TParams = void>(
+    options: Partial<UseMutationOptions<TData, TParams>> = {},
     mountOptions?: GlobalMountOptions,
   ) {
     const mutation = options.mutation
@@ -40,7 +40,7 @@ describe('useMutation', () => {
         render: () => null,
         setup() {
           return {
-            ...useMutation<TResult, TParams>({
+            ...useMutation<TData, TParams>({
               ...options,
               // @ts-expect-error: generic unmatched but types work
               mutation,

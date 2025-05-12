@@ -109,7 +109,7 @@ export const USE_MUTATION_DEFAULTS = {
  * Options to create a mutation.
  */
 export interface UseMutationOptions<
-  TResult = unknown,
+  TData = unknown,
   TVars = void,
   TError = ErrorDefault,
   TContext extends Record<any, any> = _EmptyObject,
@@ -117,7 +117,7 @@ export interface UseMutationOptions<
   /**
    * The key of the mutation. If the mutation is successful, it will invalidate the mutation with the same key and refetch it
    */
-  mutation: (vars: TVars, context: _ReduceContext<NoInfer<TContext>>) => Promise<TResult>
+  mutation: (vars: TVars, context: _ReduceContext<NoInfer<TContext>>) => Promise<TData>
 
   /**
    * Optional key to identify the mutation globally and access it through other
@@ -164,7 +164,7 @@ export interface UseMutationOptions<
     /**
      * The result of the mutation.
      */
-    data: NoInfer<TResult>,
+    data: NoInfer<TData>,
     /**
      * The variables passed to the mutation.
      */
@@ -206,7 +206,7 @@ export interface UseMutationOptions<
     /**
      * The result of the mutation. `undefined` if the mutation failed.
      */
-    data: NoInfer<TResult> | undefined,
+    data: NoInfer<TData> | undefined,
     /**
      * The error thrown by the mutation. `undefined` if the mutation was successful.
      */

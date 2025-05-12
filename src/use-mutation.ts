@@ -59,14 +59,14 @@ export interface UseMutationGlobalContext {}
 
 // export const USE_MUTATIONS_DEFAULTS = {} satisfies Partial<UseMutationsOptions>
 
-export interface UseMutationReturn<TResult, TVars, TError> {
+export interface UseMutationReturn<TData, TVars, TError> {
   key?: EntryKey | ((vars: NoInfer<TVars>) => EntryKey)
 
   /**
    * The combined state of the mutation. Contains its data, error, and status.
    * It enables type narrowing based on the {@link UseMutationReturn['status']}.
    */
-  state: ComputedRef<DataState<TResult, TError>>
+  state: ComputedRef<DataState<TData, TError>>
 
   /**
    * The status of the mutation.
@@ -83,7 +83,7 @@ export interface UseMutationReturn<TResult, TVars, TError> {
   /**
    * The result of the mutation. `undefined` if the mutation has not been called yet.
    */
-  data: ShallowRef<TResult | undefined>
+  data: ShallowRef<TData | undefined>
 
   /**
    * The error of the mutation. `null` if the mutation has not been called yet or if it was successful.
@@ -105,9 +105,7 @@ export interface UseMutationReturn<TResult, TVars, TError> {
    *
    * @param vars - parameters to pass to the mutation
    */
-  mutateAsync: unknown | void extends TVars
-    ? () => Promise<TResult>
-    : (vars: TVars) => Promise<TResult>
+  mutateAsync: unknown | void extends TVars ? () => Promise<TData> : (vars: TVars) => Promise<TData>
 
   /**
    * Calls the mutation without returning a promise to avoid unhandled promise rejections.
@@ -139,19 +137,19 @@ export interface UseMutationReturn<TResult, TVars, TError> {
  * ```
  */
 export function useMutation<
-  TResult,
+  TData,
   TVars = void,
   TError = ErrorDefault,
   TContext extends Record<any, any> = _EmptyObject,
 >(
-  options: UseMutationOptions<TResult, TVars, TError, TContext>,
-): UseMutationReturn<TResult, TVars, TError> {
+  options: UseMutationOptions<TData, TVars, TError, TContext>,
+): UseMutationReturn<TData, TVars, TError> {
   const mutationCache = useMutationCache()
   const hasCurrentInstance = getCurrentInstance()
   const currentEffect = getCurrentScope()
 
   // always create an initial entry with no key (cannot be computed without vars)
-  const entry = shallowRef<UseMutationEntry<TResult, TVars, TError, TContext>>(
+  const entry = shallowRef<UseMutationEntry<TData, TVars, TError, TContext>>(
     mutationCache.create(options),
   )
 
@@ -174,7 +172,7 @@ export function useMutation<
   const asyncStatus = computed(() => entry.value.asyncStatus.value)
   const variables = computed(() => entry.value.vars)
 
-  async function mutateAsync(vars: TVars): Promise<TResult> {
+  async function mutateAsync(vars: TVars): Promise<TData> {
     return mutationCache.mutate(
       // ensures we reuse the initial empty entry and adapt it or create a new one
       (entry.value = mutationCache.ensure(entry.value, vars)),

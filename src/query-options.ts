@@ -93,11 +93,11 @@ export interface UseQueryFnContext {
  * ```
  */
 export interface UseQueryOptions<
-  TResult = unknown,
+  TData = unknown,
   // eslint-disable-next-line unused-imports/no-unused-vars
   TError = ErrorDefault,
-  TDataInitial extends TResult | undefined = TResult | undefined,
-  TDataTag = TResult | TDataInitial,
+  TDataInitial extends TData | undefined = TData | undefined,
+  TDataTag = TData | TDataInitial,
 > extends Pick<
     UseQueryOptionsGlobal,
     | 'gcTime'
@@ -130,7 +130,7 @@ export interface UseQueryOptions<
   /**
    * The function that will be called to fetch the data. It **must** be async.
    */
-  query: (context: UseQueryFnContext) => Promise<TResult>
+  query: (context: UseQueryFnContext) => Promise<TData>
 
   /**
    * The data which is initially set to the query while the query is loading
@@ -147,12 +147,12 @@ export interface UseQueryOptions<
    */
   placeholderData?:
     | NoInfer<TDataInitial>
-    | NoInfer<TResult>
+    | NoInfer<TData>
     // NOTE: the generic here allows to make UseQueryOptions<T> assignable to UseQueryOptions<unknown>
     // https://www.typescriptlang.org/play/?#code/JYOwLgpgTgZghgYwgAgPIAczAPYgM4A8AKsgLzICuIA1iNgO4gB8yA3gFDLICOAXMgAoAlGRYAFKNgC2wPBGJNOydAH5eSrgHpNyABZwAbqADmyMLpRwoxilIjhkAIygQ41PMmBgNyAD6CBdBcjbAo8ABE4MDh+ADlsAEkQGGgFP0oQABMIGFAITJFSFniklKgFIR9tZCJdWWQDaDwcEGR6bCh3Kp1-AWISCAAPSCyPIiZA4JwwyOj+IhJ-KmzckHzCliJKgF92dlBIWEQUAFFwKABPYjIM2gZmNiVsTBa8fgwsXEJx9JAKABt-uxduwYFQEJ9WggAPr2MCXBQCZ6Qt5oF5fNL+P6AoT8M7wq4-DhcFxgChQVqsZDI17IXa7BBfMDIDzkNb0ZAAZQgYAI+MuE0qeAAdHBMpkBDC4ZcBMSuDx+HA8BcQAhBBtkAAWABMABofOh+AIQBrWgBCNkA-7IFTIVoAKmQ2uQ-E1wKElSAA
-    | (<T extends TResult>(
+    | (<T extends TData>(
         previousData: T | undefined,
-      ) => NoInfer<TDataInitial> | NoInfer<TResult> | undefined)
+      ) => NoInfer<TDataInitial> | NoInfer<TData> | undefined)
 }
 
 /**
@@ -169,10 +169,10 @@ export const USE_QUERY_DEFAULTS = {
 } satisfies UseQueryOptionsGlobal
 
 export type UseQueryOptionsWithDefaults<
-  TResult = unknown,
+  TData = unknown,
   TError = ErrorDefault,
-  TDataInitial extends TResult | undefined = undefined,
-> = UseQueryOptions<TResult, TError, TDataInitial> & typeof USE_QUERY_DEFAULTS
+  TDataInitial extends TData | undefined = undefined,
+> = UseQueryOptions<TData, TError, TDataInitial> & typeof USE_QUERY_DEFAULTS
 
 /**
  * Global default options for `useQuery()`.
