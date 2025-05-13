@@ -3,8 +3,6 @@ import { ref, watch, onMounted, onUnmounted, provide } from 'vue'
 import type { UseQueryEntryPayload, DevtoolsEmits, AppEmits } from '@pinia/colada-devtools/shared'
 import { DuplexChannel } from '@pinia/colada-devtools/shared'
 import { DUPLEX_CHANNEL_KEY, QUERIES_KEY } from './composables/duplex-channel'
-import ResizablePanel from './components/ResizablePanel.vue'
-
 
 const { port, isPip } = defineProps<{
   port: MessagePort
@@ -66,7 +64,6 @@ channel.on('queries:delete', (q) => {
 <template>
   <PiPContainer id="root" :is-pip>
     <!-- How to wrap ResizePanel around PiPContainer? -->
-   <ResizablePanel>
     <main class="w-full h-full grid grid-rows-[auto_1fr] bg-ui-bg text-ui-text font-sans">
       <!-- Merged Header with Tabs Navigation -->
       <div class="flex items-center border-b border-(--ui-border) select-none">
@@ -110,7 +107,6 @@ channel.on('queries:delete', (q) => {
 
       <RouterView />
     </main>
-    </ResizablePanel>
   </PiPContainer>
 </template>
 

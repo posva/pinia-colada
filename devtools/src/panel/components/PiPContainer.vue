@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useColorMode } from '@vueuse/core'
 import { computed } from 'vue'
+import ResizablePanel from './ResizablePanel.vue'
 
 const { isPip } = defineProps<{
   isPip: boolean
@@ -33,7 +34,9 @@ const containerClasses = computed(() => {
 </script>
 
 <template>
-  <aside :class="[colorTheme, containerClasses]" class="w-full">
-    <slot />
-  </aside>
+  <ResizablePanel>
+    <aside :class="[colorTheme]" class="w-full">
+      <slot />
+    </aside>
+  </ResizablePanel>
 </template>
