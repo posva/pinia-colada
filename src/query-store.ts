@@ -438,6 +438,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
 
   function scheduleGarbageCollection(entry: UseQueryEntry) {
     // schedule a garbage collection if the entry is not active
+    // and we know its gcTime value
     if (entry.deps.size > 0 || !entry.options) return
     clearTimeout(entry.gcTimeout)
     // avoid setting a timeout with false, Infinity or NaN
