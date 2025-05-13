@@ -810,6 +810,41 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   )
 
   /**
+   * Sets the data of all queries in the cache that are children of a key. It
+   * also sets the `status` to `success`. Differently from {@link
+   * setQueryData}, this method recursively sets the data for all queries. This
+   * is why it requires a function to set the data.
+   *
+   * @param rootKey - the key on the query cache to start setting data
+   * @param dataSetter - the function to set the data
+   *
+   * @example
+   * ```ts
+   * // let's suppose we want to optimistically update all contacts in the cache
+   * setQueriesData(['contacts', 'list'], (contactList: Contact[]) => {
+   *   const contactToReplaceIndex = contactList.findIndex(c => c.id === updatedContact.id)
+   *   return contactList.toSpliced(contactToReplaceIndex, 1, updatedContact)
+   * })
+   * ```
+   *
+   * @see {@link setQueryData}
+   */
+  function setQueriesData<TData = unknown>(
+    filters: UseQueryEntryFilter,
+    updater: (previous: TData | undefined) => TData,
+  ): void {
+    for (const entry of getEntries(filters)) {
+      setEntryState(entry, {
+        error: null,
+        status: 'success',
+        data: updater(entry.state.value.data as TData | undefined),
+      })
+      scheduleGarbageCollection(entry)
+    }
+    triggerCache()
+  }
+
+  /**
    * Gets the data of a query entry in the cache based on the key of the query.
    *
    * @param key - the key of the query
@@ -839,6 +874,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
      */
     _s: markRaw(scope),
     setQueryData,
+    setQueriesData,
     getQueryData,
 
     invalidateQueries,

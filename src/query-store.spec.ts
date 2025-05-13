@@ -131,6 +131,17 @@ describe('Query Cache store', () => {
     expect(queryCache.getEntries({ key: ['a', 'b', 'c'] })).toHaveLength(1)
   })
 
+  it('sets the data of multiple entries with setQueriesData', () => {
+    const queryCache = useQueryCache()
+    queryCache.setQueryData(['a', 'b', 'c'], 'abc')
+    queryCache.setQueryData(['a', 'b', 'd'], 'abd')
+    queryCache.setQueryData(['a', 'b'], 'ab')
+    queryCache.setQueriesData<string>({ key: ['a', 'b'] }, (data) => `!${data ?? 'empty'}`)
+    expect(queryCache.getQueryData(['a', 'b'])).toBe('!ab')
+    expect(queryCache.getQueryData(['a', 'b', 'c'])).toBe('!abc')
+    expect(queryCache.getQueryData(['a', 'b', 'd'])).toBe('!abd')
+  })
+
   describe('plugins', () => {
     it('triggers the create hook once when creating data', () => {
       const pinia = getActivePinia()!
