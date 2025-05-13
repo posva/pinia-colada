@@ -494,6 +494,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
 
     if (!node) return []
 
+    // TODO: Iterator.from(node) in 2028 once widely available? or maybe not worth it
     return (filters.exact ? (node.value ? [node.value] : []) : [...node]).filter(
       (entry) =>
         (filters.stale == null || entry.stale === filters.stale)
