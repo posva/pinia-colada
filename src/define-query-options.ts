@@ -35,9 +35,23 @@ export function defineQueryOptions<
 ): DefineQueryOptions<TData, TError, TDataInitial>
 
 /**
- * Define query options. Can be static or dynamic.
+ * Define type-safe query options. Can be static or dynamic. Define the arguments based
+ * on what's needed on the query and the key. Use an object if you need
+ * multiple properties.
  *
  * @param setupOrOptions - The query options or a function that returns the query options.
+ *
+ * @example
+ * ```ts
+ * import { defineQueryOptions } from '@pinia/colada'
+ *
+ * const documentDetailsQuery = defineQueryOptions((id: number ) => ({
+ *   key: ['documents', id],
+ *   query: () => fetchDocument(id),
+ * }))
+ *
+ * queryCache.getQueryData(documentDetailsQuery(4).key) // typed
+ * ```
  *
  * @__NO_SIDE_EFFECTS__
  */
