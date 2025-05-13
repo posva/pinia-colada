@@ -62,8 +62,31 @@ export function defineQueryOptions<const Options extends DefineQueryOptions, Par
 }
 
 /**
+ * NOTE: intentionally split `useQuery` and `useDynamicQuery`:
+ * - Simpler types
+ * - Test out the API without interfering with the core useQuery API
+ */
+
+/**
  * Like {@link useQuery} but allows for typed query keys. Requires options
  * defined with {@link defineQueryOptions}.
+ *
+ * @param setupOptions - options defined with {@link defineQueryOptions}
+ * @param paramsGetter - a getter or ref that returns the parameters for the `setupOptions`
+ *
+ * @example
+ * ```ts
+ * import { defineQueryOptions, useDynamicQuery } from '@pinia/colada'
+ *
+ * const documentDetailsQuery = defineQueryOptions((id: number ) => ({
+ *   key: ['documents', id],
+ *   query: () => fetchDocument(id),
+ * }))
+ *
+ * useDynamicQuery(documentDetailsQuery, 4)
+ * useDynamicQuery(documentDetailsQuery, () => route.params.id)
+ * useDynamicQuery(documentDetailsQuery, () => props.id)
+ * ```
  */
 export function useDynamicQuery<Params, TData, TError, TDataInitial extends TData | undefined>(
   setupOptions: (params: Params) => DefineQueryOptions<TData, TError, TDataInitial>,
