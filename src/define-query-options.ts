@@ -93,10 +93,7 @@ export function useDynamicQuery<Params, TData, TError, TDataInitial extends TDat
   paramsGetter: MaybeRefOrGetter<NoInfer<Params>>,
 ): UseQueryReturn<TData, TError, TDataInitial> {
   return useQuery<TData, TError, TDataInitial>(
-    //
-    setupOptions(
-      // FIXME: make this reactive
-      toValue(paramsGetter),
-    ),
+    // FIXME: add tests
+    () => setupOptions(toValue(paramsGetter)),
   )
 }
