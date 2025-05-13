@@ -21,7 +21,7 @@ import type {
 } from './tree-map'
 import { appendSerializedNodeToTree, TreeMapNode } from './tree-map'
 import type { ErrorDefault } from './types-extension'
-import { isSameArray, noop, toCacheKey, toValueWithArgs, warnOnce } from './utils'
+import { isSameKey, noop, toCacheKey, toValueWithArgs, warnOnce } from './utils'
 
 /**
  * Allows defining extensions to the query entry that are returned by `useQuery()`.
@@ -529,7 +529,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       // do not reinitialize the entry
       // because of the immediate watcher in useQuery, the `ensure()` action is called twice on mount
       // we return early to avoid pushing to currentDefineQueryEntry
-      if (previousEntry && isSameArray(key, previousEntry.key)) {
+      if (previousEntry && isSameKey(key, previousEntry.key)) {
         return previousEntry
       }
 

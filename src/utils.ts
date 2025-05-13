@@ -203,15 +203,15 @@ export const setReactiveValue = Object.assign as <T>(value: T, ...args: T[]) => 
 export interface _EmptyObject {}
 
 /**
- * Compares two arrays to check if they are the same. Used for keys.
+ * Compares if two keys are the same.
  *
- * @param arr1 - first array to compare
- * @param arr2 - second array to compare
+ * @param keyA - first key to compare
+ * @param keyB - second key to compare
  */
-export function isSameArray(arr1: unknown[], arr2: unknown[]): boolean {
-  if (arr1.length !== arr2.length) return false
-  for (let i = 0; i < arr1.length; i++) {
-    if (arr1[i] !== arr2[i]) return false
+export function isSameKey(keyA: EntryNodeKey[], keyB: EntryNodeKey[]): boolean {
+  if (keyA.length !== keyB.length) return false
+  for (let i = 0; i < keyA.length; i++) {
+    if (keyA[i] !== keyB[i]) return false
   }
   return true
 }
