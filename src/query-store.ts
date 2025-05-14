@@ -752,7 +752,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   const setQueryData = action(
     <TData = unknown>(
       key: EntryKeyTagged<TData>,
-      data: NoInfer<TData> | ((oldData: NoInfer<TData> | undefined) => NoInfer<TData>),
+      data: TData | ((oldData: TData | undefined) => TData),
     ) => {
       const keyHash = toCacheKey(key)
       let entry = cachesRaw.get(keyHash) as UseQueryEntry<TData> | undefined

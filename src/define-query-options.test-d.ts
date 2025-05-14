@@ -117,5 +117,46 @@ describe('typed query keys', () => {
         return `a:5` as const
       })
     })
+
+    it('hehe', () => {
+      const DOCUMENTS_KEYS = {
+        root: ['documents'],
+        byId: (id: string) => [...DOCUMENTS_KEYS.root, id],
+        byIdWithComments: (id: string) => [...DOCUMENTS_KEYS.byId(id), 'comments'],
+      } as const
+
+      const queryCache = useQueryCache()
+
+      const docQueryById = defineQueryOptions((id: string) => ({
+        key: DOCUMENTS_KEYS.byId(id),
+        async query() {
+          return { toto: 22 }
+        },
+      }))
+
+      const { data } = useDynamicQuery(docQueryById, () => '2')
+      expectTypeOf(data.value).toEqualTypeOf<{ toto: number } | undefined>()
+
+      expectTypeOf(queryCache.getQueryData(docQueryById('2').key)).toEqualTypeOf<
+        | {
+            toto: number
+          }
+        | undefined
+      >()
+
+      useQuery({
+        key: DOCUMENTS_KEYS.byId('1'),
+        async query() {
+          return []
+        },
+      })
+
+      queryCache.setQueryData(docQueryById('2').key, undefined)
+      queryCache.setQueryData(docQueryById('2').key, (oldData) => ({
+        toto: oldData?.toto ?? 0 + 1,
+      }))
+      queryCache.setQueryData(docQueryById('2').key, { toto: 47 })
+      queryCache.setQueryData(DOCUMENTS_KEYS.byId('1'), { toto: true })
+    })
   })
 })
