@@ -46,16 +46,15 @@ export {
   hydrateQueryCache,
   type QueryCache,
   serializeQueryCache,
-  serializeTreeMap,
   useQueryCache,
   type UseQueryEntry,
   type UseQueryEntryExtensions,
   type UseQueryEntryFilter,
 } from './query-store'
 
-export { type EntryNodeKey, TreeMapNode } from './tree-map'
+export { type _Awaitable, type _EmptyObject, type _MaybeArray } from './utils'
 
-export { type _Awaitable, type _EmptyObject, type _MaybeArray, toCacheKey } from './utils'
+export { toCacheKey } from './entry-keys'
 
 export type { TypesConfig } from './types-extension'
 

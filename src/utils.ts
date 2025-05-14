@@ -1,9 +1,5 @@
 import { computed, getCurrentScope, onScopeDispose } from 'vue'
 import type { MaybeRefOrGetter, Ref, ShallowRef } from 'vue'
-import type { EntryKey } from './entry-options'
-import type { EntryNodeKey } from './tree-map'
-import type { QueryCache } from './query-store'
-import type { UseQueryOptions } from './query-options'
 
 /**
  * Adds an event listener to Window that is automatically removed on scope dispose.
@@ -110,50 +106,15 @@ export interface _ObjectFlat {
 export type _JSONValue = _JSONPrimitive | _JSONValue[] | { [key: string]: _JSONValue }
 
 /**
- * Utility type to represent a nested object that can be stringified with
- * `JSON.stringify`, ensuring stable key order.
- *
- * @internal
- */
-export interface _JSONObject extends Record<string, _JSONValue> {}
-
-/**
- * Stringifies an object no matter the order of keys. This is used to create a hash for a given object. It only works
- * with flat objects. It can contain arrays of primitives only. `undefined` values are skipped.
+ * Stringifies an object no matter the order of keys. This is used to create a
+ * hash for a given object. It only works with flat objects. It can contain
+ * arrays of primitives only. `undefined` values are skipped.
  *
  * @param obj - object to stringify
  */
 export function stringifyFlatObject(obj: _ObjectFlat | _JSONPrimitive): string {
   return obj && typeof obj === 'object' ? JSON.stringify(obj, Object.keys(obj).sort()) : String(obj)
 }
-
-function sortJSONValue(obj: _JSONValue): _JSONValue {
-  return Array.isArray(obj)
-    ? obj.map(sortJSONValue)
-    : obj && typeof obj === 'object'
-      ? Object.fromEntries(
-          Object.entries(obj)
-            .sort(([a], [b]) => a.localeCompare(b))
-            .map(
-              ([k, v]) =>
-                [k, v && typeof v === 'object' ? sortJSONValue(v) : v] satisfies [
-                  key: string,
-                  value: _JSONValue,
-                ],
-            ),
-        )
-      : obj
-}
-
-export function stableStringifyJSON(obj: _JSONValue): string {
-  return JSON.stringify(sortJSONValue(obj))
-}
-
-/**
- * Creates a {@link QueryCache}'s `caches` key from an entry's {@link UseQueryOptions#key}.
- * @param key - key of the entry
- */
-export const toCacheKey = (key: EntryKey): EntryNodeKey[] => key.map(stringifyFlatObject)
 
 /**
  * Merges two types when the second one can be null | undefined. Allows to safely use the returned type for { ...a,
@@ -201,20 +162,6 @@ export const setReactiveValue = Object.assign as <T>(value: T, ...args: T[]) => 
  * @internal
  */
 export interface _EmptyObject {}
-
-/**
- * Compares if two keys are the same.
- *
- * @param keyA - first key to compare
- * @param keyB - second key to compare
- */
-export function isSameKey(keyA: EntryNodeKey[], keyB: EntryNodeKey[]): boolean {
-  if (keyA.length !== keyB.length) return false
-  for (let i = 0; i < keyA.length; i++) {
-    if (keyA[i] !== keyB[i]) return false
-  }
-  return true
-}
 
 /**
  * Dev only warning that is only shown once.

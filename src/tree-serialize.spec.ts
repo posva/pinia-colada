@@ -1,26 +1,33 @@
 import { describe, expect, it } from 'vitest'
-import { TreeMapNode } from './tree-map'
-import type { UseQueryEntry } from './query-store'
-import { serializeTreeMap, useQueryCache } from './query-store'
+import { serializeQueryCache, useQueryCache } from './query-store'
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 
-describe('tree-map serialization', () => {
+// TODO: move to query-store.spec.ts
+
+describe('query cache serialization', () => {
   it('basic serialization', () => {
-    const tree = new TreeMapNode<UseQueryEntry>()
     const pinia = createPinia()
     const app = createApp({})
     app.use(pinia)
     const queryCache = useQueryCache(pinia)
-    tree.set(['a'], queryCache.create(['a'], null, 'a'))
-    tree.set(['a', 'b'], queryCache.create(['a', 'b'], null, 'ab'))
-    tree.set(['a', 'b', 'c'], queryCache.create(['a', 'b', 'c'], null, 'abc'))
-    tree.set(['d', 'e', 'f'], queryCache.create(['d', 'e', 'f'], null, 'def'))
-    expect(serializeTreeMap(tree)).toMatchSnapshot()
+    queryCache.setQueryData(['a'], 'a')
+    queryCache.setQueryData(['a', 'b'], 'ab')
+    queryCache.setQueryData(['a', 'b', 'c'], 'abc')
+    queryCache.setQueryData(['d', 'e', 'f'], 'def')
+    expect(serializeQueryCache(queryCache)).toEqual({
+      '["a","b","c"]': ['abc', null, expect.any(Number)],
+      '["a","b"]': ['ab', null, expect.any(Number)],
+      '["a"]': ['a', null, expect.any(Number)],
+      '["d","e","f"]': ['def', null, expect.any(Number)],
+    })
   })
 
   it('works with empty', () => {
-    const tree = new TreeMapNode<UseQueryEntry>()
-    expect(serializeTreeMap(tree)).toEqual([])
+    const pinia = createPinia()
+    const app = createApp({})
+    app.use(pinia)
+    const queryCache = useQueryCache(pinia)
+    expect(serializeQueryCache(queryCache)).toEqual({})
   })
 })

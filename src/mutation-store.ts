@@ -1,11 +1,12 @@
-import type { ComponentInternalInstance, EffectScope, ShallowRef } from 'vue'
+import type { ShallowRef } from 'vue'
 import type { AsyncStatus, DataState, DataStateStatus } from './data-state'
-import type { EntryNodeKey } from './tree-map'
 import { defineStore, skipHydrate } from 'pinia'
-import { customRef, getCurrentScope, markRaw, shallowRef } from 'vue'
-import { TreeMapNode } from './tree-map'
+import { customRef, getCurrentScope, shallowRef } from 'vue'
+import { EntryMap } from './tree-map'
+import type { EntryFilter } from './tree-map'
 import type { _EmptyObject } from './utils'
-import { noop, stringifyFlatObject, toCacheKey, toValueWithArgs } from './utils'
+import { noop, toValueWithArgs } from './utils'
+import { toCacheKey } from './entry-keys'
 import type { _ReduceContext } from './use-mutation'
 import { useMutationOptions } from './mutation-options'
 import type { UseMutationOptions } from './mutation-options'
@@ -43,7 +44,13 @@ export interface UseMutationEntry<
   /**
    * The serialized key associated with this mutation entry.
    */
-  key: EntryNodeKey[] | undefined
+  key: EntryKey | undefined
+
+  /**
+   * Seriaized version of the key. Used to retrieve the entry from the cache.
+   * Can be `undefined` if the entry has no key.
+   */
+  keyHash: string | undefined
 
   /**
    * The variables used to call the mutation.
@@ -62,38 +69,9 @@ export interface UseMutationEntry<
 }
 
 /**
- * Filter to get mutation entries from the cache.
+ * Filter to get entries from the mutation cache.
  */
-export interface UseMutationEntryFilter {
-  /**
-   * A key to filter the entries.
-   */
-  key?: EntryKey
-
-  /**
-   * If true, it will only match the exact key, not the children.
-   *
-   * @example
-   * ```ts
-   * { key: ['a'], exact: true }
-   *  // will match ['a'] but not ['a', 'b'], while
-   * { key: ['a'] }
-   * // will match both
-   * ```
-   */
-  exact?: boolean
-
-  /**
-   * If defined, it will only return the entries with the given status.
-   */
-  status?: DataStateStatus
-
-  /**
-   * Pass a predicate to filter the entries. This will be executed for each entry matching the other filters.
-   * @param entry - entry to filter
-   */
-  predicate?: (entry: UseMutationEntry) => boolean
-}
+export type UseMutationEntryFilter = EntryFilter<UseMutationEntry>
 
 export const MUTATION_STORE_ID = '_pc_mutation'
 
@@ -107,7 +85,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
   // inside computed properties
   // We have two versions of the cache, one that track changes and another that doesn't so the actions can be used
   // inside computed properties
-  const cachesRaw = new TreeMapNode<UseMutationEntry<unknown, any, unknown, any>>()
+  const cachesRaw = new EntryMap<UseMutationEntry<unknown, any, unknown, any>>()
   let triggerCache!: () => void
   const caches = skipHydrate(
     customRef(
@@ -152,7 +130,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
       TContext extends Record<any, any> = _EmptyObject,
     >(
       options: UseMutationOptions<TData, TVars, TError, TContext>,
-      key?: EntryNodeKey[] | undefined,
+      key?: EntryKey | undefined,
       vars?: TVars,
     ): UseMutationEntry<TData, TVars, TError, TContext> =>
       scope.run(
@@ -169,6 +147,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
             when: 0,
             vars,
             key,
+            keyHash: toCacheKey(key),
             options,
           }) satisfies UseMutationEntry<TData, TVars, TError, TContext>,
       )!,
@@ -191,13 +170,11 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
   ): UseMutationEntry<TData, TVars, TError, TContext> {
     const options = entry.options
     const id = generateMutationId()
-    const cacheKey: EntryNodeKey[] = mutationCacheKey(
-      toValueWithArgs(options.key || [], vars).map(stringifyFlatObject),
-      id,
-    )
+    const key: EntryKey = [...toValueWithArgs(options.key || [], vars), id]
+    const keyHash = toCacheKey(key)
 
     if (process.env.NODE_ENV !== 'production') {
-      const badKey = cacheKey
+      const badKey = key
         ?.slice(0, -1) // the last part is the id
         .find(
           (k) =>
@@ -210,13 +187,14 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
       }
     }
 
-    entry = entry.id ? (untrack(entry), create(options, cacheKey, vars)) : entry
+    entry = entry.id ? (untrack(entry), create(options, key, vars)) : entry
     entry.id = id
-    entry.key = cacheKey
+    entry.key = key
+    entry.keyHash = keyHash
     entry.vars = vars
 
     // store the entry with a generated key
-    cachesRaw.set(cacheKey, entry as unknown as UseMutationEntry)
+    cachesRaw.set(keyHash, entry as unknown as UseMutationEntry)
     triggerCache()
 
     return entry
@@ -274,8 +252,8 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     >(
       entry: UseMutationEntry<TData, TVars, TError, TContext>,
     ) => {
-      if (entry.key != null) {
-        cachesRaw.set(entry.key)
+      if (entry.keyHash) {
+        cachesRaw.delete(entry.keyHash)
         triggerCache()
       }
     },
@@ -287,15 +265,15 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
    * @param filters - filters to apply to the entries
    */
   const getEntries = action((filters: UseMutationEntryFilter = {}): UseMutationEntry[] => {
-    const node = filters.key ? caches.value.find(toCacheKey(filters.key)) : caches.value
-
-    if (!node) return []
-
-    return (filters.exact ? (node.value ? [node.value] : []) : [...node]).filter(
-      (entry) =>
-        (filters.status == null || entry.state.value.status === filters.status)
-        && (!filters.predicate || filters.predicate(entry)),
-    )
+    return filters.exact
+      ? filters.key
+        ? [caches.value.get(toCacheKey(filters.key))].filter((v) => !!v)
+        : [] // no key, no exact entry
+      : [...caches.value.find(filters.key)].filter(
+          (entry) =>
+            (filters.status == null || entry.state.value.status === filters.status)
+            && (!filters.predicate || filters.predicate(entry)),
+        )
   })
 
   /**
@@ -449,15 +427,3 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     untrack,
   }
 })
-
-/**
- * Generates a mutation cache key by appending the id of the mutation. This
- * allows the cache to store multiple mutations with the same key.
- *
- * @param [keys] - Original keys of the mutation
- * @param {number} id - id of the mutation
- */
-const mutationCacheKey = (keys: EntryNodeKey[] | undefined = [], id: string): EntryNodeKey[] => [
-  ...keys,
-  id,
-]

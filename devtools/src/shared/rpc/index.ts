@@ -1,4 +1,4 @@
-import type { DataState, EntryNodeKey, UseQueryEntryFilter } from '@pinia/colada'
+import type { DataState, EntryKey, UseQueryEntryFilter } from '@pinia/colada'
 import type { UseQueryEntryPayload } from '../query-serialized'
 import { toRaw } from 'vue'
 
@@ -87,16 +87,16 @@ export interface AppEmits {
 
 export interface DevtoolsEmits {
   'queries:clear': [] | [filters: UseQueryEntryFilter]
-  'queries:refetch': [entryKey: EntryNodeKey[]]
-  'queries:invalidate': [entryKey: EntryNodeKey[]]
-  'queries:reset': [entryKey: EntryNodeKey[]]
+  'queries:refetch': [entryKey: EntryKey]
+  'queries:invalidate': [entryKey: EntryKey]
+  'queries:reset': [entryKey: EntryKey]
 
-  'queries:simulate:error': [entryKey: EntryNodeKey[]]
-  'queries:simulate:error:stop': [entryKey: EntryNodeKey[]]
-  'queries:simulate:loading': [entryKey: EntryNodeKey[]]
-  'queries:simulate:loading:stop': [entryKey: EntryNodeKey[]]
+  'queries:simulate:error': [entryKey: EntryKey]
+  'queries:simulate:error:stop': [entryKey: EntryKey]
+  'queries:simulate:loading': [entryKey: EntryKey]
+  'queries:simulate:loading:stop': [entryKey: EntryKey]
 
-  'queries:set:state': [entryKey: EntryNodeKey[], state: DataState<unknown, unknown, unknown>]
+  'queries:set:state': [entryKey: EntryKey, state: DataState<unknown, unknown, unknown>]
 
   // for testing
   'ping': []

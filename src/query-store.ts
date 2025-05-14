@@ -14,14 +14,11 @@ import type { AsyncStatus, DataState, DataStateStatus } from './data-state'
 import type { EntryKey, EntryKeyTagged } from './entry-options'
 import { useQueryOptions } from './query-options'
 import type { UseQueryOptions, UseQueryOptionsWithDefaults } from './query-options'
-import type {
-  _UseQueryEntryNodeValueSerialized,
-  EntryNodeKey,
-  UseQueryEntryNodeSerialized,
-} from './tree-map'
-import { appendSerializedNodeToTree, TreeMapNode } from './tree-map'
+import type { _UseQueryEntryNodeValueSerialized, EntryFilter } from './tree-map'
+import { EntryMap } from './tree-map'
 import type { ErrorDefault } from './types-extension'
-import { isSameKey, noop, toCacheKey, toValueWithArgs, warnOnce } from './utils'
+import { noop, toValueWithArgs, warnOnce } from './utils'
+import { toCacheKey } from './entry-keys'
 
 /**
  * Allows defining extensions to the query entry that are returned by `useQuery()`.
@@ -73,7 +70,12 @@ export interface UseQueryEntry<
   /**
    * The serialized key associated with this query entry.
    */
-  key: EntryNodeKey[]
+  key: EntryKey
+
+  /**
+   * Seriaized version of the key. Used to retrieve the entry from the cache.
+   */
+  keyHash: string
 
   /**
    * Components and effects scopes that use this query entry.
@@ -151,53 +153,11 @@ export function isEntryUsingPlaceholderData<TDataInitial>(
   return entry?.placeholderData != null && entry.state.value.status === 'pending'
 }
 
-/**
- * Filter to get entries from the cache.
- */
-export interface UseQueryEntryFilter {
-  /**
-   * A key to filter the entries.
-   */
-  key?: EntryKey // TODO: could be use EntryKeyTagged instead and type everything?
-
-  /**
-   * If true, it will only match the exact key, not the children.
-   *
-   * @example
-   * ```ts
-   * { key: ['a'], exact: true }
-   *  // will match ['a'] but not ['a', 'b'], while
-   * { key: ['a'] }
-   * // will match both
-   * ```
-   */
-  exact?: boolean
-
-  /**
-   * If `true` or `false`, it will only return entries that match the stale status. If set to `null` or `undefined`, it matches both.
-   * Requires `entry.options` to be set.
-   */
-  stale?: boolean | null
-
-  /**
-   * If `true` or `false`, it will only return entries that match the active status. If set to `null` or `undefined`, it matches both.
-   */
-  active?: boolean | null
-
-  /**
-   * If it has a non _nullish_ value, it only returns the entries with the given status.
-   */
-  status?: DataStateStatus | null
-
-  /**
-   * Pass a predicate to filter the entries. This will be executed for each entry matching the other filters.
-   * @param entry - entry to filter
-   */
-  predicate?: (entry: UseQueryEntry) => boolean
-}
+export type UseQueryEntryFilter = EntryFilter<UseQueryEntry>
 
 /**
  * Empty starting object for extensions that allows to detect when to update.
+ *
  * @internal
  */
 export const START_EXT = {}
@@ -254,7 +214,7 @@ type DefineQueryEntry = [
 export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ action }) => {
   // We have two versions of the cache, one that track changes and another that doesn't so the actions can be used
   // inside computed properties
-  const cachesRaw = new TreeMapNode<UseQueryEntry<unknown, unknown, unknown>>()
+  const cachesRaw = new EntryMap<UseQueryEntry<unknown, unknown, unknown>>()
   let triggerCache!: () => void
   const caches = skipHydrate(
     customRef(
@@ -304,7 +264,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    */
   const create = action(
     <TData, TError, TDataInitial extends TData | undefined>(
-      key: EntryNodeKey[],
+      key: EntryKey,
       options: UseQueryOptionsWithDefaults<TData, TError, TDataInitial> | null = null,
       initialData?: TDataInitial,
       error: TError | null = null,
@@ -325,6 +285,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
         // we markRaw to avoid unnecessary vue traversal
         return markRaw<UseQueryEntry<TData, TError, TDataInitial>>({
           key,
+          keyHash: toCacheKey(key),
           state,
           placeholderData: null,
           when,
@@ -490,12 +451,14 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * @param filters - filters to apply to the entries
    */
   const getEntries = action((filters: UseQueryEntryFilter = {}): UseQueryEntry[] => {
-    const node = filters.key ? caches.value.find(toCacheKey(filters.key)) : caches.value
-
-    if (!node) return []
-
     // TODO: Iterator.from(node) in 2028 once widely available? or maybe not worth it
-    return (filters.exact ? (node.value ? [node.value] : []) : [...node]).filter(
+    return (
+      filters.exact
+        ? filters.key
+          ? [caches.value.get(toCacheKey(filters.key))].filter((v) => !!v)
+          : [] // exact with no key can't match anything
+        : [...caches.value.find(filters.key)]
+    ).filter(
       (entry) =>
         (filters.stale == null || entry.stale === filters.stale)
         && (filters.active == null || entry.active === filters.active)
@@ -520,9 +483,10 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
         ...optionDefaults,
         ...opts,
       }
-      const key = toCacheKey(toValue(options.key))
+      const key = toValue(options.key)
+      const keyHash = toCacheKey(key)
 
-      if (process.env.NODE_ENV !== 'production' && key.length === 0) {
+      if (process.env.NODE_ENV !== 'production' && keyHash === '[]') {
         throw new Error(
           `useQuery() was called with an empty array as the key. It must have at least one element.`,
         )
@@ -531,15 +495,15 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       // do not reinitialize the entry
       // because of the immediate watcher in useQuery, the `ensure()` action is called twice on mount
       // we return early to avoid pushing to currentDefineQueryEntry
-      if (previousEntry && isSameKey(key, previousEntry.key)) {
+      if (previousEntry && keyHash === previousEntry.keyHash) {
         return previousEntry
       }
 
       // Since ensure() is called within a computed, we cannot let Vue track cache, so we use the raw version instead
-      let entry = cachesRaw.get(key) as UseQueryEntry<TData, TError, TDataInitial> | undefined
+      let entry = cachesRaw.get(keyHash) as UseQueryEntry<TData, TError, TDataInitial> | undefined
       // ensure the state
       if (!entry) {
-        cachesRaw.set(key, (entry = create(key, options, options.initialData?.())))
+        cachesRaw.set(keyHash, (entry = create(key, options, options.initialData?.())))
         // the placeholderData is only used if the entry is initially loading
         if (options.placeholderData && entry.state.value.status === 'pending') {
           entry.placeholderData = toValueWithArgs(
@@ -790,14 +754,14 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       key: EntryKeyTagged<TData>,
       data: NoInfer<TData> | ((oldData: NoInfer<TData> | undefined) => NoInfer<TData>),
     ) => {
-      const cacheKey = toCacheKey(key)
-      let entry = cachesRaw.get(cacheKey) as UseQueryEntry<TData> | undefined
+      const keyHash = toCacheKey(key)
+      let entry = cachesRaw.get(keyHash) as UseQueryEntry<TData> | undefined
 
       // if the entry doesn't exist, we create it to set the data
       // it cannot be refreshed or fetched since the options
       // will be missing
       if (!entry) {
-        cachesRaw.set(cacheKey, (entry = create<TData, any, TData | undefined>(cacheKey)))
+        cachesRaw.set(keyHash, (entry = create<TData, any, TData | undefined>(key)))
       }
 
       setEntryState(entry, {
@@ -817,8 +781,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * setQueryData}, this method recursively sets the data for all queries. This
    * is why it requires a function to set the data.
    *
-   * @param rootKey - the key on the query cache to start setting data
-   * @param dataSetter - the function to set the data
+   * @param filters - filters used to get the entries
+   * @param updater - the function to set the data
    *
    * @example
    * ```ts
@@ -862,7 +826,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    */
   const remove = action((entry: UseQueryEntry) => {
     // setting without a value is like setting it to undefined
-    cachesRaw.set(entry.key)
+    cachesRaw.delete(entry.keyHash)
     triggerCache()
   })
 
@@ -904,47 +868,28 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
 export type QueryCache = ReturnType<typeof useQueryCache>
 
 /**
- * Transform a tree into a compressed array.
- * @param root - root node of the tree
- * @returns Array representation of the tree
- */
-export function serializeTreeMap(root: TreeMapNode<UseQueryEntry>): UseQueryEntryNodeSerialized[] {
-  return root.children ? [...root.children.entries()].map(_serialize) : []
-}
-
-/**
- * Internal function to recursively transform the tree into a compressed array.
- * @internal
- */
-function _serialize([key, tree]: [
-  key: EntryNodeKey,
-  tree: TreeMapNode<UseQueryEntry>,
-]): UseQueryEntryNodeSerialized {
-  return [
-    key,
-    tree.value && queryEntry_toJSON(tree.value),
-    tree.children && [...tree.children.entries()].map(_serialize),
-  ]
-}
-
-/**
  * Hydrates the query cache with the serialized cache. Used during SSR.
  * @param queryCache - query cache
  * @param serializedCache - serialized cache
  */
 export function hydrateQueryCache(
   queryCache: QueryCache,
-  serializedCache: UseQueryEntryNodeSerialized[],
+  serializedCache: Record<string, _UseQueryEntryNodeValueSerialized>,
 ) {
-  for (const entryData of serializedCache) {
-    appendSerializedNodeToTree(queryCache.caches, entryData, queryCache.create)
+  for (const keyHash in serializedCache) {
+    const entryData = serializedCache[keyHash] ?? []
+    queryCache.caches.set(keyHash, queryCache.create(JSON.parse(keyHash), undefined, ...entryData))
   }
 }
 
 /**
- * Serializes the query cache to a compressed array. Used during SSR.
+ * Serializes the query cache to a compressed version. Used during SSR.
+ *
  * @param queryCache - query cache
  */
-export function serializeQueryCache(queryCache: QueryCache): UseQueryEntryNodeSerialized[] {
-  return serializeTreeMap(queryCache.caches)
+export function serializeQueryCache(queryCache: QueryCache) {
+  return Object.fromEntries(
+    // TODO: 2028: directly use .map on the iterator
+    [...queryCache.caches.entries()].map(([keyHash, entry]) => [keyHash, queryEntry_toJSON(entry)]),
+  )
 }

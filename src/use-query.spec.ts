@@ -8,11 +8,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { computed, createApp, defineComponent, isRef, nextTick, ref } from 'vue'
 import type { PropType } from 'vue'
 import { mockConsoleError, mockWarn } from '../test/mock-warn'
-import { createSerializedTreeNodeEntry, delay, isSpy, promiseWithResolvers } from '../test/utils'
+import { delay, isSpy, promiseWithResolvers } from '../test/utils'
 import { PiniaColada } from './pinia-colada'
 import { hydrateQueryCache, QUERY_STORE_ID, useQueryCache } from './query-store'
-import type { UseQueryEntryNodeSerialized } from './tree-map'
-import { entryNodeSize } from './tree-map'
+import type { _UseQueryEntryNodeValueSerialized } from './tree-map'
 import { useQuery } from './use-query'
 
 describe('useQuery', () => {
@@ -361,7 +360,7 @@ describe('useQuery', () => {
       const cache = useQueryCache()
 
       await flushPromises()
-      expect(cache.getQueryData(['1'])).toBe(42)
+      expect(cache.getQueryData([1])).toBe(42)
 
       // trigger a new entry
       key.value = 2
@@ -370,13 +369,13 @@ describe('useQuery', () => {
       // let the query finish
       await flushPromises()
 
-      expect(cache.getQueryData(['2'])).toBe(42)
+      expect(cache.getQueryData([2])).toBe(42)
       // still not deleted
-      expect(cache.getQueryData(['1'])).toBe(42)
+      expect(cache.getQueryData([1])).toBe(42)
 
       // trigger cleanup
       vi.advanceTimersByTime(1000)
-      expect(cache.getQueryData(['1'])).toBeUndefined()
+      expect(cache.getQueryData([1])).toBeUndefined()
     })
 
     it('keeps the cache if the query key changes before the delay', async () => {
@@ -394,11 +393,11 @@ describe('useQuery', () => {
       await flushPromises()
 
       // check the values are still there
-      expect(cache.getQueryData(['1'])).toBe(42)
-      expect(cache.getQueryData(['2'])).toBe(42)
+      expect(cache.getQueryData([1])).toBe(42)
+      expect(cache.getQueryData([2])).toBe(42)
 
       vi.advanceTimersByTime(999)
-      expect(cache.getQueryData(['1'])).toBe(42)
+      expect(cache.getQueryData([1])).toBe(42)
 
       // go back to 1
       key.value = 1
@@ -406,8 +405,8 @@ describe('useQuery', () => {
       await flushPromises()
 
       // should not have deleted it
-      expect(cache.getQueryData(['1'])).toBe(42)
-      expect(cache.getQueryData(['2'])).toBe(42)
+      expect(cache.getQueryData([1])).toBe(42)
+      expect(cache.getQueryData([2])).toBe(42)
     })
 
     it.todo('works with effectScope too')
@@ -1378,22 +1377,12 @@ describe('useQuery', () => {
       await flushPromises()
 
       const queryCache = useQueryCache()
-      expect(entryNodeSize(queryCache.caches)).toBe(1)
+      expect(queryCache.caches.size).toBe(1)
 
       mountSimple({ key: ['todos', 2] }, { plugins: [pinia] })
       await flushPromises()
 
-      expect(entryNodeSize(queryCache.caches)).toBe(2)
-    })
-
-    it('populates the entry registry', async () => {
-      const pinia = createPinia()
-      mountSimple({ key: ['todos', 5] }, { plugins: [pinia] })
-      mountSimple({ key: ['todos', 2] }, { plugins: [pinia] })
-      await flushPromises()
-
-      const cacheClient = useQueryCache()
-      expect(entryNodeSize(cacheClient.caches)).toBe(3)
+      expect(queryCache.caches.size).toBe(2)
     })
 
     it('order in object keys does not matter', async () => {
@@ -1405,12 +1394,14 @@ describe('useQuery', () => {
       await flushPromises()
 
       const cacheClient = useQueryCache()
-      expect(entryNodeSize(cacheClient.caches)).toBe(2)
+      expect(cacheClient.caches.size).toBe(1)
     })
   })
 
   describe('hydration', () => {
-    function createHydratedCache(caches: UseQueryEntryNodeSerialized[]) {
+    function createPiniawithHydratedCache(
+      caches: Record<string, _UseQueryEntryNodeValueSerialized>,
+    ) {
       const pinia = createPinia()
       const app = createApp({})
       app.use(pinia)
@@ -1430,7 +1421,9 @@ describe('useQuery', () => {
     })
 
     it('uses initial data if present in store', async () => {
-      const pinia = createHydratedCache([createSerializedTreeNodeEntry('key', 2, null, Date.now())])
+      const pinia = createPiniawithHydratedCache({
+        '["key"]': [2, null, Date.now()],
+      })
 
       const { wrapper } = mountSimple({ staleTime: 1000 }, { plugins: [pinia] })
 
@@ -1439,7 +1432,9 @@ describe('useQuery', () => {
     })
 
     it('avoids fetching if initial data is fresh', async () => {
-      const pinia = createHydratedCache([createSerializedTreeNodeEntry('key', 2, null, Date.now())])
+      const pinia = createPiniawithHydratedCache({
+        '["key"]': [2, null, Date.now()],
+      })
 
       const { wrapper, query } = mountSimple(
         // 1s stale time
@@ -1454,10 +1449,9 @@ describe('useQuery', () => {
     })
 
     it('sets the error if the initial data is an error', async () => {
-      const caches = [
-        createSerializedTreeNodeEntry('key', undefined, new Error('fail'), Date.now()),
-      ]
-      const pinia = createHydratedCache(caches)
+      const pinia = createPiniawithHydratedCache({
+        '["key"]': [undefined, new Error('fail'), Date.now()],
+      })
       const { wrapper } = mountSimple({ refetchOnMount: false }, { plugins: [pinia] })
 
       expect(wrapper.vm.status).toBe('error')
@@ -1466,10 +1460,9 @@ describe('useQuery', () => {
     })
 
     it('sets the initial error even with initialData', async () => {
-      const caches = [
-        createSerializedTreeNodeEntry('key', undefined, new Error('fail'), Date.now()),
-      ]
-      const pinia = createHydratedCache(caches)
+      const pinia = createPiniawithHydratedCache({
+        '["key"]': [undefined, new Error('fail'), Date.now()],
+      })
       const { wrapper } = mountSimple(
         { refetchOnMount: false, initialData: () => 42 },
         { plugins: [pinia] },
@@ -1480,9 +1473,10 @@ describe('useQuery', () => {
     })
 
     it('initialData is ignored if there is already data in the cache', async () => {
-      const caches = [createSerializedTreeNodeEntry('key', 2, null, Date.now())]
       const initialData = vi.fn(() => 42)
-      const pinia = createHydratedCache(caches)
+      const pinia = createPiniawithHydratedCache({
+        '["key"]': [2, null, Date.now()],
+      })
       const { wrapper } = mountSimple({ refetchOnMount: false, initialData }, { plugins: [pinia] })
 
       expect(wrapper.vm.data).toBe(2)
@@ -1490,9 +1484,9 @@ describe('useQuery', () => {
     })
 
     it('refreshes the data even with initial values after staleTime is elapsed', async () => {
-      const pinia = createHydratedCache([
-        createSerializedTreeNodeEntry('key', 60, null, Date.now()),
-      ])
+      const pinia = createPiniawithHydratedCache({
+        '["key"]': [60, null, Date.now()],
+      })
       const { wrapper, query } = mountSimple(
         {
           staleTime: 100,

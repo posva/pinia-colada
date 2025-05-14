@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, getActivePinia, setActivePinia } from 'pinia'
 import type { UseQueryEntry } from './query-store'
-import { QUERY_STORE_ID, useQueryCache } from './query-store'
+import { useQueryCache } from './query-store'
 import { USE_QUERY_DEFAULTS } from './query-options'
 import { flushPromises } from '@vue/test-utils'
 import { createApp } from 'vue'
-import type { UseQueryEntryNodeSerialized } from './tree-map'
 import { useQuery } from './use-query'
+import type { _UseQueryEntryNodeValueSerialized } from './tree-map'
 
 describe('Query Cache store', () => {
   let app!: ReturnType<typeof createApp>
@@ -41,6 +41,45 @@ describe('Query Cache store', () => {
       expect(queryCache.getEntries({ key: ['a', 'a'] })).toMatchObject([{ key: ['a', 'a'] }])
     })
 
+    // https://github.com/posva/pinia-colada/issues/149
+    it('filters partial matches on keys', () => {
+      const k_1 = [
+        '__ORPC__',
+        ['planet', 'list', 'infinite'],
+        { type: 'query', input: { keyword: 'abc', limit: 9 } },
+      ]
+      const k_2 = [
+        '__ORPC__',
+        ['planet', 'list', 'infinite'],
+        { type: 'query', input: { keyword: 'other', limit: 9 } },
+      ]
+
+      const queryCache = useQueryCache()
+      queryCache.setQueryData(k_1, 'abc')
+      queryCache.setQueryData(k_2, 'other')
+
+      expect(queryCache.getEntries({ key: ['__ORPC__', ['planet']] })).toHaveLength(2)
+      expect(queryCache.getEntries({ key: ['__ORPC__', ['planet'], {}] })).toHaveLength(2)
+      expect(queryCache.getEntries({ key: ['__ORPC__', ['planet', 'nope']] })).toHaveLength(0)
+
+      expect(
+        queryCache.getEntries({ key: ['__ORPC__', ['planet'], { type: 'query' }] }),
+      ).toHaveLength(2)
+      expect(
+        queryCache.getEntries({ key: ['__ORPC__', ['planet'], { type: 'query', input: {} }] }),
+      ).toHaveLength(2)
+      expect(
+        queryCache.getEntries({
+          key: ['__ORPC__', ['planet'], { type: 'query', input: { keyword: 'abc' } }],
+        }),
+      ).toHaveLength(1)
+      expect(
+        queryCache.getEntries({
+          key: ['__ORPC__', ['planet'], { type: 'query', input: { limit: 9 } }],
+        }),
+      ).toHaveLength(2)
+    })
+
     it('filters based on exact key', () => {
       const queryCache = useQueryCache()
       createEntries([['a'], ['b'], ['a', 'a']])
@@ -48,6 +87,12 @@ describe('Query Cache store', () => {
       expect(queryCache.getEntries({ exact: true, key: ['a', 'a'] })).toMatchObject([
         { key: ['a', 'a'] },
       ])
+    })
+
+    it('returns nothing if exact but no key', () => {
+      const queryCache = useQueryCache()
+      createEntries([['a'], ['b'], ['a', 'a']])
+      expect(queryCache.getEntries({ exact: true })).toHaveLength(0)
     })
 
     it('filters based on predicate', () => {
@@ -111,15 +156,6 @@ describe('Query Cache store', () => {
     expect(entry.state.value.data).toBe('ok')
   })
 
-  it('can get entries by key with initial state', () => {
-    const pinia = getActivePinia()!
-    pinia.state.value[QUERY_STORE_ID] = {
-      caches: [['key', [60, null, Date.now()]]] satisfies UseQueryEntryNodeSerialized[],
-    }
-    const queryCache = useQueryCache(pinia)
-    queryCache.getEntries({ key: ['key'] })
-  })
-
   it('can remove an entry without removing the children', () => {
     const queryCache = useQueryCache()
     queryCache.setQueryData(['a', 'b', 'c'], 'abc')
@@ -145,9 +181,6 @@ describe('Query Cache store', () => {
   describe('plugins', () => {
     it('triggers the create hook once when creating data', () => {
       const pinia = getActivePinia()!
-      pinia.state.value[QUERY_STORE_ID] = {
-        caches: [['key', [60, null, Date.now()]]] satisfies UseQueryEntryNodeSerialized[],
-      }
       const queryCache = useQueryCache(pinia)
       const onActionCreate = vi.fn()
       queryCache.$onAction((action) => {

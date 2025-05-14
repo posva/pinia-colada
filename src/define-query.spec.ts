@@ -657,7 +657,7 @@ describe('defineQuery', () => {
         const cache = useQueryCache()
 
         await flushPromises()
-        expect(cache.getQueryData(['1'])).toBe('todos')
+        expect(cache.getQueryData([1])).toBe('todos')
 
         // trigger a new entry
         key.value = 2
@@ -665,13 +665,13 @@ describe('defineQuery', () => {
         // let the query finish
         await flushPromises()
 
-        expect(cache.getQueryData(['2'])).toBe('todos')
+        expect(cache.getQueryData([2])).toBe('todos')
         // still not deleted
-        expect(cache.getQueryData(['1'])).toBe('todos')
+        expect(cache.getQueryData([1])).toBe('todos')
 
         // trigger cleanup
         vi.advanceTimersByTime(1000)
-        expect(cache.getQueryData(['1'])).toBeUndefined()
+        expect(cache.getQueryData([1])).toBeUndefined()
       })
 
       it('keeps the cache if the query key changes before the delay', async () => {
@@ -680,7 +680,7 @@ describe('defineQuery', () => {
         const cache = useQueryCache()
 
         await flushPromises()
-        expect(cache.getQueryData(['1'])).toBe('todos')
+        expect(cache.getQueryData([1])).toBe('todos')
 
         // trigger a new entry
         key.value = 2
@@ -689,19 +689,19 @@ describe('defineQuery', () => {
         await flushPromises()
 
         // check the values are still there
-        expect(cache.getQueryData(['1'])).toBe('todos')
-        expect(cache.getQueryData(['2'])).toBe('todos')
+        expect(cache.getQueryData([1])).toBe('todos')
+        expect(cache.getQueryData([2])).toBe('todos')
 
         vi.advanceTimersByTime(999)
-        expect(cache.getQueryData(['1'])).toBe('todos')
+        expect(cache.getQueryData([1])).toBe('todos')
 
         // go back to 1
         key.value = 1
         await flushPromises()
 
         // should not have deleted it
-        expect(cache.getQueryData(['1'])).toBe('todos')
-        expect(cache.getQueryData(['2'])).toBe('todos')
+        expect(cache.getQueryData([1])).toBe('todos')
+        expect(cache.getQueryData([2])).toBe('todos')
       })
     })
 
@@ -789,7 +789,7 @@ describe('defineQuery', () => {
           const cache = useQueryCache()
 
           await flushPromises()
-          expect(cache.getQueryData(['1'])).toBe('todos')
+          expect(cache.getQueryData([1])).toBe('todos')
 
           // trigger a new entry
           key.value = 2
@@ -797,13 +797,13 @@ describe('defineQuery', () => {
           // let the query finish
           await flushPromises()
 
-          expect(cache.getQueryData(['2'])).toBe('todos')
+          expect(cache.getQueryData([2])).toBe('todos')
           // still not deleted
-          expect(cache.getQueryData(['1'])).toBe('todos')
+          expect(cache.getQueryData([1])).toBe('todos')
 
           // trigger cleanup
           vi.advanceTimersByTime(1000)
-          expect(cache.getQueryData(['1'])).toBeUndefined()
+          expect(cache.getQueryData([1])).toBeUndefined()
         })
       })
 
@@ -816,7 +816,7 @@ describe('defineQuery', () => {
           const cache = useQueryCache()
 
           await flushPromises()
-          expect(cache.getQueryData(['1'])).toBe('todos')
+          expect(cache.getQueryData([1])).toBe('todos')
 
           // trigger a new entry
           key.value = 2
@@ -825,19 +825,19 @@ describe('defineQuery', () => {
           await flushPromises()
 
           // check the values are still there
-          expect(cache.getQueryData(['1'])).toBe('todos')
-          expect(cache.getQueryData(['2'])).toBe('todos')
+          expect(cache.getQueryData([1])).toBe('todos')
+          expect(cache.getQueryData([2])).toBe('todos')
 
           vi.advanceTimersByTime(999)
-          expect(cache.getQueryData(['1'])).toBe('todos')
+          expect(cache.getQueryData([1])).toBe('todos')
 
           // go back to 1
           key.value = 1
           await flushPromises()
 
           // should not have deleted it
-          expect(cache.getQueryData(['1'])).toBe('todos')
-          expect(cache.getQueryData(['2'])).toBe('todos')
+          expect(cache.getQueryData([1])).toBe('todos')
+          expect(cache.getQueryData([2])).toBe('todos')
         })
       })
     })

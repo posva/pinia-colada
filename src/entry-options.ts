@@ -1,10 +1,8 @@
-import type { EntryNodeKey } from './tree-map'
-import type { _ObjectFlat } from './utils'
-
 /**
- * Key used to identify a query or a mutation. Always an array.
+ * Key used to identify a query or a mutation. Must be a JSON serializable
+ * value. Type is unknwon to avoid deep type recursion.
  */
-export type EntryKey = Readonly<Array<EntryNodeKey | _ObjectFlat>>
+export type EntryKey = readonly unknown[]
 
 /**
  * Internal symbol used to tag the data type of the entry key.
