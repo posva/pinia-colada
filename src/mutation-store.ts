@@ -10,7 +10,7 @@ import { toCacheKey } from './entry-keys'
 import type { _ReduceContext } from './use-mutation'
 import { useMutationOptions } from './mutation-options'
 import type { UseMutationOptions } from './mutation-options'
-import type { EntryKey } from './entry-options'
+import type { EntryKey } from './entry-keys'
 
 /**
  * A mutation entry in the cache.

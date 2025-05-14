@@ -1,6 +1,6 @@
 import { inject } from 'vue'
 import type { InjectionKey, MaybeRefOrGetter } from 'vue'
-import type { EntryKeyTagged } from './entry-options'
+import type { EntryKeyTagged } from './entry-keys'
 import type { ErrorDefault } from './types-extension'
 
 /**

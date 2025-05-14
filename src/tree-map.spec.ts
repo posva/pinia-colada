@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { EntryMap } from './tree-map'
 import { toCacheKey } from './entry-keys'
-import type { EntryKey } from './entry-options'
+import type { EntryKey } from './entry-keys'
 
 // TODO: remove this file and move tests to query-store.spec.ts to avoid testing the implementation detail
 

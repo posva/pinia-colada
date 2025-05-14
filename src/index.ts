@@ -20,7 +20,7 @@ export type {
   DataState_Success,
   DataStateStatus,
 } from './data-state'
-export type { dataTagSymbol, EntryKey, EntryKeyTagged } from './entry-options'
+export type { dataTagSymbol, EntryKey, EntryKeyTagged, toCacheKey } from './entry-keys'
 export type {
   RefetchOnControl,
   UseQueryOptions,
@@ -53,8 +53,6 @@ export {
 } from './query-store'
 
 export { type _Awaitable, type _EmptyObject, type _MaybeArray } from './utils'
-
-export { toCacheKey } from './entry-keys'
 
 export type { TypesConfig } from './types-extension'
 

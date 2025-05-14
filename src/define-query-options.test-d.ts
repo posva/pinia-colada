@@ -3,7 +3,7 @@ import type { App } from 'vue'
 import { PiniaColada } from './pinia-colada'
 import { useQuery } from './use-query'
 import { useQueryCache } from '@pinia/colada'
-import type { EntryKeyTagged } from './entry-options'
+import type { EntryKeyTagged } from './entry-keys'
 import { defineQueryOptions, useDynamicQuery } from './define-query-options'
 
 declare const app: App

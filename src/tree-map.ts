@@ -1,6 +1,6 @@
 import type { DataStateStatus } from './data-state'
 import { isSubsetOf } from './entry-keys'
-import type { EntryKey } from './entry-options'
+import type { EntryKey } from './entry-keys'
 
 /**
  * @deprecated this type is not used anymore, use {@link `EntryKey`} instead

@@ -11,7 +11,7 @@ import {
 } from 'vue'
 import type { App, ComponentInternalInstance, EffectScope, ShallowRef } from 'vue'
 import type { AsyncStatus, DataState, DataStateStatus } from './data-state'
-import type { EntryKey, EntryKeyTagged } from './entry-options'
+import type { EntryKeyTagged, EntryKey } from './entry-keys'
 import { useQueryOptions } from './query-options'
 import type { UseQueryOptions, UseQueryOptionsWithDefaults } from './query-options'
 import type { _UseQueryEntryNodeValueSerialized, EntryFilter } from './tree-map'

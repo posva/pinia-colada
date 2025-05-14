@@ -1,6 +1,6 @@
 import type { ComputedRef, ShallowRef } from 'vue'
 import type { AsyncStatus, DataState, DataStateStatus } from './data-state'
-import type { EntryKey } from './entry-options'
+import type { EntryKey } from './entry-keys'
 import type { ErrorDefault } from './types-extension'
 import {
   computed,
