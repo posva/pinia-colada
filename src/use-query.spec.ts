@@ -142,6 +142,35 @@ describe('useQuery', () => {
       await flushPromises()
       expect(query).toHaveBeenCalledTimes(1)
     })
+
+    it('skips initial fetch if initialData is set', async () => {
+      const { wrapper, query } = mountSimple({
+        initialData: () => 24,
+        staleTime: 1000,
+      })
+
+      expect(query).toHaveBeenCalledTimes(0)
+      expect(wrapper.vm.data).toBe(24)
+      expect(wrapper.vm.isLoading).toBe(false)
+      expect(wrapper.vm.isPending).toBe(false)
+      expect(wrapper.vm.status).toBe('success')
+      expect(wrapper.vm.error).toBeNull()
+    })
+
+    it('still fetches with initialData is staleTime is 0', async () => {
+      const { wrapper, query } = mountSimple({
+        initialData: () => 24,
+        staleTime: 0,
+      })
+
+      expect(query).toHaveBeenCalledTimes(1)
+      await flushPromises()
+      expect(wrapper.vm.data).toBe(42)
+      expect(wrapper.vm.isLoading).toBe(false)
+      expect(wrapper.vm.isPending).toBe(false)
+      expect(wrapper.vm.status).toBe('success')
+      expect(wrapper.vm.error).toBeNull()
+    })
   })
 
   describe('staleTime', () => {

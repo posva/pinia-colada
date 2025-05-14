@@ -268,7 +268,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       options: UseQueryOptionsWithDefaults<TData, TError, TDataInitial> | null = null,
       initialData?: TDataInitial,
       error: TError | null = null,
-      when: number = 0,
+      when: number = initialData === undefined ? 0 : Date.now(),
     ): UseQueryEntry<TData, TError, TDataInitial> =>
       scope.run(() => {
         const state = shallowRef<DataState<TData, TError, TDataInitial>>(
