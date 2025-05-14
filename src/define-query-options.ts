@@ -92,8 +92,5 @@ export function useDynamicQuery<Params, TData, TError, TDataInitial extends TDat
   setupOptions: (params: Params) => DefineQueryOptions<TData, TError, TDataInitial>,
   paramsGetter: MaybeRefOrGetter<NoInfer<Params>>,
 ): UseQueryReturn<TData, TError, TDataInitial> {
-  return useQuery<TData, TError, TDataInitial>(
-    // FIXME: add tests
-    () => setupOptions(toValue(paramsGetter)),
-  )
+  return useQuery<TData, TError, TDataInitial>(() => setupOptions(toValue(paramsGetter)))
 }

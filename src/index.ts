@@ -9,8 +9,6 @@ export { useMutation } from './use-mutation'
 export { defineQuery } from './define-query'
 export { useQuery, type UseQueryReturn } from './use-query'
 
-// export { type UseQueryKeyList } from './query-keys'
-
 export type {
   _DataState_Base,
   AsyncStatus,
@@ -20,7 +18,11 @@ export type {
   DataState_Success,
   DataStateStatus,
 } from './data-state'
+
 export type { dataTagSymbol, EntryKey, EntryKeyTagged, toCacheKey } from './entry-keys'
+
+export { defineQueryOptions, useDynamicQuery } from './define-query-options'
+
 export type {
   RefetchOnControl,
   UseQueryOptions,

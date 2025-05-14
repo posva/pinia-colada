@@ -1,12 +1,7 @@
 import { describe, expectTypeOf, it } from 'vitest'
-import type { App } from 'vue'
-import { PiniaColada } from './pinia-colada'
 import { useQuery } from './use-query'
-import { useQueryCache } from '@pinia/colada'
-import type { EntryKeyTagged } from './entry-keys'
-import { defineQueryOptions, useDynamicQuery } from './define-query-options'
-
-declare const app: App
+import { useQueryCache, defineQueryOptions, useDynamicQuery } from '@pinia/colada'
+import type { EntryKeyTagged } from '@pinia/colada'
 
 describe('typed query keys', () => {
   const queryCache = useQueryCache()
@@ -20,11 +15,7 @@ describe('typed query keys', () => {
       })
 
       expectTypeOf(optsStatic.key).toEqualTypeOf<EntryKeyTagged<string | undefined>>()
-      // typed
-      expectTypeOf(
-        //
-        queryCache.getQueryData(optsStatic.key),
-      ).toEqualTypeOf<string | undefined>()
+      expectTypeOf(queryCache.getQueryData(optsStatic.key)).toEqualTypeOf<string | undefined>()
     })
 
     it('dynamic', () => {
@@ -65,25 +56,25 @@ describe('typed query keys', () => {
       useQuery(o2)
       queryCache.getQueryData(o2.key)
     })
-  })
 
-  const key = ['a']
-  async function query() {
-    return 'ok'
-  }
+    const key = ['a']
+    async function query() {
+      return 'ok'
+    }
 
-  it('fails on invalid initialData type', () => {
-    defineQueryOptions({
-      key,
-      query,
-      initialData: () => 'YES',
-    })
+    it('fails on invalid initialData type', () => {
+      defineQueryOptions({
+        key,
+        query,
+        initialData: () => 'YES',
+      })
 
-    // @ts-expect-error: initialData must be a function
-    defineQueryOptions({
-      key,
-      query,
-      initialData: 'YES',
+      // @ts-expect-error: initialData must be a function
+      defineQueryOptions({
+        key,
+        query,
+        initialData: 'YES',
+      })
     })
 
     it('allows function options like initialData', () => {
@@ -95,16 +86,36 @@ describe('typed query keys', () => {
 
       expectTypeOf(queryCache.getQueryData(optsStatic.key)).toEqualTypeOf<`a:${number}`>()
     })
-  })
 
-  it('allows global queryOptions', () => {
-    app.use(PiniaColada, {
-      plugins: [],
-      queryOptions: {
-        enabled: true,
-        refetchOnMount: true,
-        refetchOnReconnect: true,
-      },
+    const optsStatic = defineQueryOptions({
+      key: ['a', 2],
+      query: async () => `a:${2}` as `a:${number}`,
+      // initialData: () => 'a',
+    })
+
+    const optsDynamic = defineQueryOptions((id: number) => ({
+      key: ['a', id],
+      query: async () => `a:${id}` as const,
+    }))
+
+    it('types when using setQueryData and static options', () => {
+      const queryCache = useQueryCache()
+      queryCache.setQueryData(optsStatic.key, undefined)
+      queryCache.setQueryData(optsStatic.key, 'a:2')
+      queryCache.setQueryData(optsStatic.key, (oldData) => {
+        expectTypeOf(oldData).toEqualTypeOf<`a:${number}` | undefined>()
+        return `a:5` as const
+      })
+    })
+
+    it('types when using setQueryData and dynamic options', () => {
+      const queryCache = useQueryCache()
+      queryCache.setQueryData(optsDynamic(2).key, undefined)
+      queryCache.setQueryData(optsDynamic(2).key, 'a:2')
+      queryCache.setQueryData(optsDynamic(2).key, (oldData) => {
+        expectTypeOf(oldData).toEqualTypeOf<`a:${number}` | undefined>()
+        return `a:5` as const
+      })
     })
   })
 })
