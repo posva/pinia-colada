@@ -83,7 +83,6 @@ const { mutate } = useMutation({
       text,
       // we need to fill every required field
       id: crypto.randomUUID(),
-
     }
     // create a copy of the current todo list with the new todo
     const newTodoList: TodoItem[] = [
@@ -138,6 +137,18 @@ const { mutate } = useMutation({
 ```
 
 As you see, depending on the mutation, you might need to update multiple queries in different ways. Optimistic updates are a very powerful tool, but they also require more care to handle errors and edge cases. Because of this, Pinia Colada provides a low level API to cater to all use cases!
+
+::: tip Type Safety
+
+In large projects, you might face two issues:
+
+- `key` isn't type so it's very easy to have a typo in a query key: _was it **todos** or **todo**?_
+- You have to manually pass a type parameter (here `TodoItem[]`) to `getQueryData()` and `setQueryData()` to ensure type safety
+
+This is so
+This can be solved by using [Key Factories](./query-keys.md#Managing-query-keys-key-factories-) and by [defining options with `defineQueryOptions()`](./query-keys.md#Typing-query-keys).
+
+:::
 
 ## Via the UI
 
