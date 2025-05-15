@@ -84,7 +84,9 @@ describe('typed query keys', () => {
         initialData: () => 'a:0' as const,
       })
 
-      expectTypeOf(queryCache.getQueryData(optsStatic.key)).toEqualTypeOf<`a:${number}`>()
+      expectTypeOf(queryCache.getQueryData(optsStatic.key)).toEqualTypeOf<
+        `a:${number}` | undefined
+      >()
     })
 
     const optsStatic = defineQueryOptions({

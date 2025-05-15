@@ -815,7 +815,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    *
    * @param key - the key of the query
    */
-  function getQueryData<TData = unknown>(key: EntryKeyTagged<TData>): TData {
+  function getQueryData<TData = unknown>(key: EntryKeyTagged<TData>): TData | undefined {
     return caches.value.get(toCacheKey(key))?.state.value.data as TData
   }
 
