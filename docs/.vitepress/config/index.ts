@@ -1,10 +1,7 @@
-import fs from 'node:fs'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitepress'
 import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
 import llmstxt from 'vitepress-plugin-llms'
-import { extraFiles } from '../twoslash/files'
+import { extraFiles, readSnippets } from '../twoslash/files'
 import { ModuleKind, ModuleResolutionKind, ScriptTarget } from 'typescript'
 import typedocSidebar from '../../api/typedoc-sidebar.json'
 
@@ -16,13 +13,6 @@ export const META_DESCRIPTION = 'The smart Data Fetching layer for Pinia'
 const rControl = /[\u0000-\u001F]/g
 const rSpecial = /[\s~`!@#$%^&*()\-_+=[\]{}|\\;:"'“”‘’<>,.?/]+/g
 const rCombining = /[\u0300-\u036F]/g
-
-// get all code snippets
-const __dirname = fileURLToPath(new URL('.', import.meta.url))
-const mutations_todos = fs.readFileSync(
-  path.join(__dirname, '../code-snippets/mutations/todos.ts'),
-  'utf-8',
-)
 
 /**
  * Default slugification function
@@ -106,11 +96,7 @@ On top of that Pinia Colada is highly extensible. You can create your own plugin
           },
           extraFiles: {
             ...extraFiles,
-            'mutations/todos.ts': mutations_todos,
-            'api/todos.ts': fs.readFileSync(
-              path.join(__dirname, '../code-snippets/api/todos.ts'),
-              'utf-8',
-            ),
+            ...readSnippets(),
           },
         },
       }),
