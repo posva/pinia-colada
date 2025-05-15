@@ -33,7 +33,7 @@ describe('useQuery', () => {
   function mountSimple<
     TData = number,
     TError = Error,
-    TDataInitial extends TData | undefined = TData | undefined,
+    TDataInitial extends TData | undefined = undefined,
   >(
     options: Partial<UseQueryOptions<TData, TError, TDataInitial>> = {},
     mountOptions?: GlobalMountOptions,
@@ -806,8 +806,12 @@ describe('useQuery', () => {
   })
 
   describe('refresh data', () => {
-    function mountDynamicKey<TData = { id: number, when: number }, TError = Error>(
-      options: Partial<UseQueryOptions<TData>> & { initialId?: number } = {},
+    function mountDynamicKey<
+      TData = { id: number, when: number },
+      TError = Error,
+      TDataInitial extends TData | undefined = undefined,
+    >(
+      options: Partial<UseQueryOptions<TData, TError, TDataInitial>> & { initialId?: number } = {},
       mountOptions?: GlobalMountOptions,
     ) {
       let query!: MockInstance
@@ -834,7 +838,7 @@ describe('useQuery', () => {
                 // renders again
                 await nextTick()
               },
-              ...useQuery<TData, TError>({
+              ...useQuery<TData, TError, undefined>({
                 key: () => ['data', id.value],
                 ...options,
                 // @ts-expect-error: generic unmatched but types work

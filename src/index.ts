@@ -21,7 +21,7 @@ export type {
 
 export type { dataTagSymbol, EntryKey, EntryKeyTagged, toCacheKey } from './entry-keys'
 
-export { defineQueryOptions, useDynamicQuery } from './define-query-options'
+export { defineQueryOptions } from './define-query-options'
 
 export type {
   RefetchOnControl,

@@ -1,13 +1,10 @@
-import { toValue } from 'vue'
-import type { MaybeRefOrGetter } from 'vue'
 import type { DefineQueryOptions } from './define-query'
 import { useQuery } from './use-query'
-import type { UseQueryReturn } from './use-query'
 
 /**
  * Define dynamic query options by passing a function that accepts an arbitrary
  * parameter and returns the query options. Enables type-safe query keys.
- * Must be called with {@link useDynamicQuery}.
+ * Must be passed to {@link useQuery} alongside a getter for the params.
  *
  * @param setupOptions - A function that returns the query options.
  */
@@ -59,38 +56,4 @@ export function defineQueryOptions<const Options extends DefineQueryOptions, Par
   setupOrOptions: Options | ((params: Params) => Options),
 ): Options | ((params: Params) => Options) {
   return setupOrOptions
-}
-
-/**
- * NOTE: intentionally split `useQuery` and `useDynamicQuery`:
- * - Simpler types
- * - Test out the API without interfering with the core useQuery API
- */
-
-/**
- * Like {@link useQuery} but allows for typed query keys. Requires options
- * defined with {@link defineQueryOptions}.
- *
- * @param setupOptions - options defined with {@link defineQueryOptions}
- * @param paramsGetter - a getter or ref that returns the parameters for the `setupOptions`
- *
- * @example
- * ```ts
- * import { defineQueryOptions, useDynamicQuery } from '@pinia/colada'
- *
- * const documentDetailsQuery = defineQueryOptions((id: number ) => ({
- *   key: ['documents', id],
- *   query: () => fetchDocument(id),
- * }))
- *
- * useDynamicQuery(documentDetailsQuery, 4)
- * useDynamicQuery(documentDetailsQuery, () => route.params.id)
- * useDynamicQuery(documentDetailsQuery, () => props.id)
- * ```
- */
-export function useDynamicQuery<Params, TData, TError, TDataInitial extends TData | undefined>(
-  setupOptions: (params: Params) => DefineQueryOptions<TData, TError, TDataInitial>,
-  paramsGetter: MaybeRefOrGetter<NoInfer<Params>>,
-): UseQueryReturn<TData, TError, TDataInitial> {
-  return useQuery<TData, TError, TDataInitial>(() => setupOptions(toValue(paramsGetter)))
 }

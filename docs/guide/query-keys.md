@@ -198,3 +198,15 @@ const documentByIdQuery = defineQueryOptions(
   }),
 )
 ```
+
+To use dynamic query options, pass an extra parameter to `useQuery`:
+
+```ts
+import { DOCUMENT_QUERY_KEYS } from './queries/keys'
+import { useQuery } from '@pinia/colada'
+
+const route = useRoute()
+useQuery(documentByIdQuery, () => ({ id: route.params.id }))
+```
+
+This second parameter can be a `ref`, a `computed`, or a _getter_ function (just like `key`).

@@ -1,6 +1,6 @@
 import { describe, expectTypeOf, it } from 'vitest'
 import { useQuery } from './use-query'
-import { useQueryCache, defineQueryOptions, useDynamicQuery } from '@pinia/colada'
+import { useQueryCache, defineQueryOptions } from '@pinia/colada'
 import type { EntryKeyTagged } from '@pinia/colada'
 
 describe('typed query keys', () => {
@@ -24,11 +24,40 @@ describe('typed query keys', () => {
         query: async () => `a:${id}`,
       }))
 
-      const { state, data } = useDynamicQuery(optsDynamic, () => 4)
+      const { state: s1, data: d1 } = useQuery(optsDynamic, () => 4)
       expectTypeOf(queryCache.getQueryData(optsDynamic(4).key)).toEqualTypeOf<string | undefined>()
 
-      expectTypeOf(data.value).toEqualTypeOf<string | undefined>()
-      expectTypeOf(state.value.data).toEqualTypeOf<string | undefined>()
+      expectTypeOf(d1.value).toEqualTypeOf<string | undefined>()
+      expectTypeOf(s1.value.data).toEqualTypeOf<string | undefined>()
+
+      const optsDynamic2 = defineQueryOptions(({ id = 0 }: { id?: number }) => ({
+        key: ['a', id],
+        query: async () => ({ id, name: 'Eduardo' }),
+      }))
+
+      const { state: s2, data: d2 } = useQuery(optsDynamic2, () => ({ id: 4 }))
+      expectTypeOf(queryCache.getQueryData(optsDynamic2({}).key)).toEqualTypeOf<
+        | {
+            id: number
+            name: string
+          }
+        | undefined
+      >()
+
+      expectTypeOf(d2.value).toEqualTypeOf<
+        | {
+            id: number
+            name: string
+          }
+        | undefined
+      >()
+      expectTypeOf(s2.value.data).toEqualTypeOf<
+        | {
+            id: number
+            name: string
+          }
+        | undefined
+      >()
     })
 
     it('can be composed with keys', () => {
@@ -45,7 +74,7 @@ describe('typed query keys', () => {
         // only allow dynamic properties?
       }))
 
-      useDynamicQuery(o, () => 4)
+      useQuery(o, () => 4)
       queryCache.getQueryData(o(4).key)
 
       const o2 = defineQueryOptions({
@@ -136,7 +165,7 @@ describe('typed query keys', () => {
         },
       }))
 
-      const { data } = useDynamicQuery(docQueryById, () => '2')
+      const { data } = useQuery(docQueryById, () => '2')
       expectTypeOf(data.value).toEqualTypeOf<{ toto: number } | undefined>()
 
       expectTypeOf(queryCache.getQueryData(docQueryById('2').key)).toEqualTypeOf<

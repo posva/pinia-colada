@@ -197,6 +197,11 @@ describe('useQuery type inference', () => {
     expectTypeOf(data.value).toBeNumber()
     expectTypeOf(state.value.data).toBeNumber()
   })
+
+  it('disallows passing a second argument', () => {
+    // @ts-expect-error: should fail
+    useQuery({ key: ['id'], query: async () => 42 }, () => ({}))
+  })
 })
 
 export class MyCustomError extends Error {

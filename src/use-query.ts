@@ -1,4 +1,4 @@
-import type { ComputedRef, Ref, ShallowRef } from 'vue'
+import type { ComputedRef, MaybeRefOrGetter, Ref, ShallowRef } from 'vue'
 import {
   computed,
   getCurrentInstance,
@@ -94,17 +94,87 @@ export interface UseQueryReturn<
 /**
  * Ensures and return a shared query state based on the `key` option.
  *
- * @param _options - The options of the query
+ * @param options - The options of the query
+ *
+ * @example
+ * ```ts
+ * const { state } = useQuery({
+ *   key: ['documents'],
+ *   query: () => getDocuments(),
+ * })
+ * ```
  */
 export function useQuery<
   TData,
   TError = ErrorDefault,
   TDataInitial extends TData | undefined = undefined,
 >(
-  _options:
+  options:
     | UseQueryOptions<TData, TError, TDataInitial>
     | (() => DefineQueryOptions<TData, TError, TDataInitial>),
+): UseQueryReturn<TData, TError, TDataInitial>
+
+/**
+ * `useQuery` for dynamic typed query keys. Requires options defined with
+ * {@link defineQueryOptions}.
+ *
+ * @param setupOptions - options defined with {@link defineQueryOptions}
+ * @param paramsGetter - a getter or ref that returns the parameters for the `setupOptions`
+ *
+ * @example
+ * ```ts
+ * import { defineQueryOptions, useQuery } from '@pinia/colada'
+ *
+ * const documentDetailsQuery = defineQueryOptions((id: number ) => ({
+ *   key: ['documents', id],
+ *   query: () => fetchDocument(id),
+ * }))
+ *
+ * useQuery(documentDetailsQuery, 4)
+ * useQuery(documentDetailsQuery, () => route.params.id)
+ * useQuery(documentDetailsQuery, () => props.id)
+ * ```
+ */
+export function useQuery<Params, TData, TError, TDataInitial extends TData | undefined>(
+  setupOptions: (params: Params) => DefineQueryOptions<TData, TError, TDataInitial>,
+  paramsGetter: MaybeRefOrGetter<NoInfer<Params>>,
+): UseQueryReturn<TData, TError, TDataInitial>
+
+/**
+ * Ensures and return a shared query state based on the `key` option.
+ *
+ * @param _options - The options of the query
+ * @param paramsGetter - a getter or ref that returns the parameters for the `_options`
+ */
+export function useQuery<
+  TData,
+  TError = ErrorDefault,
+  TDataInitial extends TData | undefined = undefined,
+>(
+  // NOTE: this version has better type inference but still imperfect
+  ...[_options, paramsGetter]:
+    | [
+        | UseQueryOptions<TData, TError, TDataInitial>
+        | (() => DefineQueryOptions<TData, TError, TDataInitial>),
+      ]
+    | [
+        (params: unknown) => DefineQueryOptions<TData, TError, TDataInitial>,
+        paramsGetter?: MaybeRefOrGetter<unknown>,
+      ]
+  // _options:
+  //   | UseQueryOptions<TData, TError, TDataInitial>
+  //   | (() => DefineQueryOptions<TData, TError, TDataInitial>)
+  //   | ((params: unknown) => DefineQueryOptions<TData, TError, TDataInitial>),
+  // paramsGetter?: MaybeRefOrGetter<unknown>,
 ): UseQueryReturn<TData, TError, TDataInitial> {
+  if (paramsGetter != null) {
+    return useQuery(() =>
+      // NOTE: we manually type cast here because TS cannot infer correctly in overloads
+      (_options as (params: unknown) => DefineQueryOptions<TData, TError, TDataInitial>)(
+        toValue(paramsGetter),
+      ),
+    )
+  }
   const queryCache = useQueryCache()
   const optionDefaults = useQueryOptions()
   const hasCurrentInstance = getCurrentInstance()
@@ -114,7 +184,12 @@ export function useQuery<
     () =>
       ({
         ...optionDefaults,
-        ...toValue(_options),
+        ...toValue(
+          // NOTE: we manually type cast here because TS cannot infer correctly in overloads
+          _options as
+            | UseQueryOptions<TData, TError, TDataInitial>
+            | (() => DefineQueryOptions<TData, TError, TDataInitial>),
+        ),
       }) satisfies UseQueryOptionsWithDefaults<TData, TError, TDataInitial>,
   )
   const enabled = (): boolean => toValue(options.value.enabled)

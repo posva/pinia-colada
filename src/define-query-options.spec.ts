@@ -1,9 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
-import { defineQueryOptions, useDynamicQuery } from './define-query-options'
+import { defineQueryOptions } from './define-query-options'
 import { flushPromises, mount } from '@vue/test-utils'
 import { ref } from 'vue'
 import { createPinia } from 'pinia'
 import { PiniaColada } from './pinia-colada'
+import { useQuery } from './use-query'
 
 describe('defineQueryOptions', () => {
   it('can describe static options', () => {
@@ -48,7 +49,7 @@ describe('defineQueryOptions', () => {
         {
           setup() {
             return {
-              ...useDynamicQuery(opts, id),
+              ...useQuery(opts, id),
             }
           },
           template: `<div>{{ data }}</div>`,
