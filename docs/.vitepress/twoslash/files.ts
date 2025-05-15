@@ -30,11 +30,14 @@ declare module '*.vue' {
 
 /**
  * Recursively read files in ./code-snippets and return an object like:
+ *
+ * ```ts
  * {
  *   './api/documents.ts': '<file content>',
  *   './utils/helper.ts': '<file content>',
- *   ...
+ *   // ...
  * }
+ * ```
  */
 export function readSnippets(
   dir: string = path.join(__dirname, '../code-snippets'),
