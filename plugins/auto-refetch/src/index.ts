@@ -25,7 +25,8 @@ export interface PiniaColadaAutoRefetchOptions {
  * To store timeouts in the entry extensions.
  * @internal
  */
-export const REFETCH_TIMEOUT_KEY = Symbol()
+const REFETCH_TIMEOUT_KEY = Symbol()
+export { REFETCH_TIMEOUT_KEY as _REFETCH_TIMEOUT_KEY }
 
 /**
  * Plugin that automatically refreshes queries when they become stale
