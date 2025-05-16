@@ -17,9 +17,3 @@ export const useBasicQuery = defineQuery(() => {
     ...rest,
   }
 })
-
-export const DOCUMENTS_KEYS = {
-  root: ['documents'],
-  byId: (id: string) => [...DOCUMENTS_KEYS.root, id],
-  byIdWithComments: (id: string) => [...DOCUMENTS_KEYS.byId(id), 'comments'],
-} as const
