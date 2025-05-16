@@ -143,7 +143,8 @@ export function addDevtools(app: App, pinia: Pinia) {
           .getEntries({
             active,
             stale,
-            exact: filters?.includes('exact'),
+            // TODO: if there is an exact match, we should put it at the top
+            exact: false, // we also filter many
             predicate(entry) {
               // filter out by asyncStatus
               if (asyncStatus && entry.asyncStatus.value !== asyncStatus) return false

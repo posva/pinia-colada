@@ -92,6 +92,7 @@ describe('Query Cache store', () => {
     it('returns nothing if exact but no key', () => {
       const queryCache = useQueryCache()
       createEntries([['a'], ['b'], ['a', 'a']])
+      // @ts-expect-error: not valid in TS
       expect(queryCache.getEntries({ exact: true })).toHaveLength(0)
     })
 

@@ -10,11 +10,12 @@ import {
   toValue,
 } from 'vue'
 import type { App, ComponentInternalInstance, EffectScope, ShallowRef } from 'vue'
-import type { AsyncStatus, DataState, DataStateStatus } from './data-state'
+import type { AsyncStatus, DataState } from './data-state'
 import type { EntryKeyTagged, EntryKey } from './entry-keys'
 import { useQueryOptions } from './query-options'
 import type { UseQueryOptions, UseQueryOptionsWithDefaults } from './query-options'
-import type { _UseQueryEntryNodeValueSerialized, EntryFilter } from './tree-map'
+import type { _UseQueryEntryNodeValueSerialized } from './tree-map'
+import type { EntryFilter } from './entry-filter'
 import { EntryMap } from './tree-map'
 import type { ErrorDefault } from './types-extension'
 import { noop, toValueWithArgs, warnOnce } from './utils'
@@ -153,6 +154,13 @@ export function isEntryUsingPlaceholderData<TDataInitial>(
   return entry?.placeholderData != null && entry.state.value.status === 'pending'
 }
 
+/**
+ * Filter object to get entries from the query cache.
+ *
+ * @see {QueryCache.getEntries}
+ * @see {QueryCache.cancelQueries}
+ * @see {QueryCache.invalidateQueries}
+ */
 export type UseQueryEntryFilter = EntryFilter<UseQueryEntry>
 
 /**
@@ -887,7 +895,9 @@ export function hydrateQueryCache(
  *
  * @param queryCache - query cache
  */
-export function serializeQueryCache(queryCache: QueryCache) {
+export function serializeQueryCache(
+  queryCache: QueryCache,
+): Record<string, _UseQueryEntryNodeValueSerialized> {
   return Object.fromEntries(
     // TODO: 2028: directly use .map on the iterator
     [...queryCache.caches.entries()].map(([keyHash, entry]) => [keyHash, queryEntry_toJSON(entry)]),

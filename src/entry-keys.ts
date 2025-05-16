@@ -62,7 +62,7 @@ export type JSONValue = JSONPrimitive | JSONObject | JSONArray
  * @internal
  */
 export interface JSONObject {
-  [key: string]: JSONValue
+  readonly [key: string]: JSONValue | undefined
 }
 
 /**

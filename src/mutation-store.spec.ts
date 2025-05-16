@@ -65,6 +65,7 @@ describe('Mutation Cache store', () => {
     it('filters all entries if exact with no key', () => {
       const mutationCache = useMutationCache()
       createEntries([['a'], ['b'], ['a', 'a']])
+      // @ts-expect-error: exact must have a key
       expect(mutationCache.getEntries({ exact: true })).toHaveLength(0)
     })
 

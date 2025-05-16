@@ -73,6 +73,14 @@ export type {
   JSONValue as _JSONValue,
 } from './entry-keys'
 
+export type {
+  EntryFilter as _EntryFilter,
+  EntryFilter_Base as _EntryFilter_Base,
+  EntryFilter_Key as _EntryFilter_Key,
+  EntryFilter_NoKey as _EntryFilter_NoKey,
+} from './entry-filter'
+export type { _UseQueryEntryNodeValueSerialized } from './tree-map'
+
 export { type _Awaitable, type _EmptyObject, type _MaybeArray } from './utils'
 
 export type { _ReduceContext } from './use-mutation'

@@ -196,7 +196,7 @@ export function useQuery<
 
   // NOTE: here we used to check if the same key was previously called with a different query
   // but it ended up creating too many false positives and was removed. We could add it back
-  // to at least warn against the cases shown in https://pinia-colada.esm.dev/guide/queries.html#Reusable-Queries
+  // to at least warn against the cases shown in https://pinia-colada.esm.dev/guide/reusable-queries.html
 
   // This plain variable is not reactive and allows us to use the currentEntry
   // without triggering watchers and creating entries. It is used during

@@ -62,7 +62,7 @@ describe('typed query keys', () => {
 
     it('can be composed with keys', () => {
       const CONTACTS_QUERY_KEYS = {
-        root: ['contacts'],
+        root: ['contacts'] as const,
         byId: (id: number) => [...CONTACTS_QUERY_KEYS.root, id] as const,
         byIdWithFriends: (id: number) =>
           [...CONTACTS_QUERY_KEYS.root, id, { withFriends: true }] as const,
@@ -84,6 +84,22 @@ describe('typed query keys', () => {
 
       useQuery(o2)
       queryCache.getQueryData(o2.key)
+    })
+
+    it('allows undefined in objects', () => {
+      const DOCUMENT_QUERY_KEYS = {
+        root: ['documents'] as const,
+        byId: (id: string) => [...DOCUMENT_QUERY_KEYS.root, id] as const,
+        byIdWithComments: (id: string, withComments?: boolean) =>
+          [...DOCUMENT_QUERY_KEYS.root, id, { withComments }] as const,
+      }
+
+      defineQueryOptions(
+        ({ id, withComments = false }: { id: string, withComments?: boolean }) => ({
+          key: DOCUMENT_QUERY_KEYS.byIdWithComments(id, withComments),
+          query: async () => [2],
+        }),
+      )
     })
 
     const key = ['a']
@@ -149,7 +165,7 @@ describe('typed query keys', () => {
       })
     })
 
-    it('hehe', () => {
+    it('with keys as const and objects', () => {
       const DOCUMENTS_KEYS = {
         root: ['documents'],
         byId: (id: string) => [...DOCUMENTS_KEYS.root, id],

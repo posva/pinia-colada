@@ -70,8 +70,8 @@ describe('useQuery type inference', () => {
     })
   })
 
+  const query = async () => 42
   it('allows titeral in keys', () => {
-    const query = async () => 42
     useQuery({
       key: [
         'todos',
@@ -85,6 +85,9 @@ describe('useQuery type inference', () => {
       ],
       query,
     })
+  })
+
+  it('forbids non-idempotent serializable values', () => {
     useQuery({
       // @ts-expect-error: should fail because Error is not a valid key
       key: [new Error('hey')],
@@ -93,6 +96,34 @@ describe('useQuery type inference', () => {
     useQuery({
       // @ts-expect-error: should fail because Error is not a valid key
       key: [new Date()],
+      query,
+    })
+    useQuery({
+      // @ts-expect-error: should fail because Error is not a valid key
+      key: [undefined],
+      query,
+    })
+  })
+
+  it('allows loosely typed keys', () => {
+    const query = async () => 42
+    useQuery({
+      key: [] as (number | string)[],
+      query,
+    })
+
+    useQuery({
+      key: [] as (number | string | { a?: boolean })[],
+      query,
+    })
+
+    useQuery({
+      key: [] as (number | 'documents' | { a?: boolean })[],
+      query,
+    })
+
+    useQuery({
+      key: [] as (number | 'documents' | { a: boolean | undefined })[],
       query,
     })
   })
