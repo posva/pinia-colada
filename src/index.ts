@@ -2,15 +2,8 @@
  * Pinia Colada
  * @module @pinia/colada
  */
-export { defineMutation } from './define-mutation'
-export type { _ReduceContext, UseMutationReturn } from './use-mutation'
-export { useMutation } from './use-mutation'
-
-export { defineQuery } from './define-query'
-export { useQuery, type UseQueryReturn } from './use-query'
 
 export type {
-  _DataState_Base,
   AsyncStatus,
   DataState,
   DataState_Error,
@@ -19,7 +12,7 @@ export type {
   DataStateStatus,
 } from './data-state'
 
-export type { dataTagSymbol, EntryKey, EntryKeyTagged, toCacheKey } from './entry-keys'
+export type { EntryKey, EntryKeyTagged, toCacheKey } from './entry-keys'
 
 export { defineQueryOptions } from './define-query-options'
 
@@ -30,19 +23,10 @@ export type {
   UseQueryOptionsWithDefaults,
 } from './query-options'
 
-export type {
-  UseMutationOptions,
-  UseMutationOptionsGlobal,
-  UseMutationOptionsGlobalDefaults,
-} from './mutation-options'
+export { defineQuery } from './define-query'
+export { useQuery, type UseQueryReturn } from './use-query'
 
-export { PiniaColada } from './pinia-colada'
-export type { PiniaColadaOptions } from './pinia-colada'
-
-export {
-  PiniaColadaQueryHooksPlugin,
-  type PiniaColadaQueryHooksPluginOptions,
-} from './plugins/query-hooks'
+export { useInfiniteQuery, type UseInfiniteQueryOptions } from './infinite-query'
 
 export {
   hydrateQueryCache,
@@ -54,10 +38,39 @@ export {
   type UseQueryEntryFilter,
 } from './query-store'
 
-export { type _Awaitable, type _EmptyObject, type _MaybeArray } from './utils'
+export type {
+  UseMutationOptions,
+  UseMutationOptionsGlobal,
+  UseMutationOptionsGlobalDefaults,
+} from './mutation-options'
+
+export { defineMutation } from './define-mutation'
+export type { UseMutationReturn } from './use-mutation'
+export { useMutation } from './use-mutation'
+
+export { PiniaColada } from './pinia-colada'
+export type { PiniaColadaOptions } from './pinia-colada'
+
+export {
+  PiniaColadaQueryHooksPlugin,
+  type PiniaColadaQueryHooksPluginOptions,
+} from './plugins/query-hooks'
 
 export type { TypesConfig } from './types-extension'
 
 export type { PiniaColadaPlugin, PiniaColadaPluginContext } from './plugins'
 
-export { useInfiniteQuery, type UseInfiniteQueryOptions } from './infinite-query'
+// internals
+export type {
+  dataTagSymbol as _dataTagSymbol,
+  JSONArray as _JSONArray,
+  JSONObject as _JSONObject,
+  JSONPrimitive as _JSONPrimitive,
+  JSONValue as _JSONValue,
+} from './entry-keys'
+
+export { type _Awaitable, type _EmptyObject, type _MaybeArray } from './utils'
+
+export type { _ReduceContext } from './use-mutation'
+
+export type { _DataState_Base } from './data-state'
