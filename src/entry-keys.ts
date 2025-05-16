@@ -44,11 +44,40 @@ export function isSubsetOf(subsetKey: EntryKey, fullsetKey: EntryKey): boolean {
           )
         : false
 }
+
+/**
+ * Used for keys
+ * @internal
+ */
+export type JSONPrimitive = string | number | boolean | null
+
+/**
+ * Used for keys
+ * @internal
+ */
+export type JSONValue = JSONPrimitive | JSONObject | JSONArray
+
+/**
+ * Used for keys. Interface to avoid deep recursion.
+ * @internal
+ */
+export interface JSONObject {
+  [key: string]: JSONValue
+}
+
+/**
+ * Used for keys. Interface to avoid deep recursion.
+ * @internal
+ */
+export interface JSONArray extends Array<JSONValue> {}
+
 /**
  * Key used to identify a query or a mutation. Must be a JSON serializable
  * value. Type is unknwon to avoid deep type recursion.
  */
-export type EntryKey = readonly unknown[]
+export type EntryKey = readonly JSONValue[]
+// export type EntryKey = readonly (unknown)[]
+
 /**
  * Internal symbol used to tag the data type of the entry key.
  * @internal

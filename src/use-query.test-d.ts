@@ -70,6 +70,33 @@ describe('useQuery type inference', () => {
     })
   })
 
+  it('allows titeral in keys', () => {
+    const query = async () => 42
+    useQuery({
+      key: [
+        'todos',
+        2,
+        {},
+        null,
+        true,
+        [],
+        [2, 53, '', true, null, [{}, 2, [[]]]],
+        { array: [], obj: { o: true } },
+      ],
+      query,
+    })
+    useQuery({
+      // @ts-expect-error: should fail because Error is not a valid key
+      key: [new Error('hey')],
+      query,
+    })
+    useQuery({
+      // @ts-expect-error: should fail because Error is not a valid key
+      key: [new Date()],
+      query,
+    })
+  })
+
   it('can use a function as a key', () => {
     useQuery({
       query: async () => 42,
