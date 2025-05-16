@@ -253,8 +253,9 @@ In the mutation example we introduce the usage of the _Query Cache_. It allows u
 Pinia Colada offers a wealth of features to enhance your application's performance and user experience, all while helping you write more maintainable code. Explore the following guides to learn more:
 
 - [Why use Pinia Colada?](./why.md)
-- [Reusable Queries](./guide/queries.md#reusable-queries)
+- [Query Keys](./guide/query-keys.md)
 - [Mutations](./guide/mutations.md)
 - [Cache Invalidation](./guide/query-invalidation.md)
 - [Optimistic updates](./guide/optimistic-updates.md)
 - [Query Cache](./advanced/query-cache.md)
+- [Reusable Queries](./advanced/reusable-queries.md)

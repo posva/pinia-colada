@@ -6,7 +6,7 @@ Query keys are used to identify a query in the cache. Next to the `query` functi
 
 Static keys are the simplest form of keys. They are just an array of serializable properties. For example:
 
-```vue
+```vue{5}
 <script setup lang="ts">
 import { useQuery } from '@pinia/colada'
 
@@ -30,9 +30,9 @@ Anything that is serializable is valid in a key. These are all different keys:
 
 ## Dynamic keys with variables
 
-Dynamic keys are used when the key depends on some variables. For example, let's say you have a query that fetches a product by its ID:
+Dynamic keys are keys that depend on reactive variables (`ref`, `computed`, the _route_, etc). For example, let's say you have a query that fetches a product by its ID:
 
-```vue
+```vue{5,7}
 <script setup lang="ts">
 import { useQuery } from '@pinia/colada'
 import { useRoute } from 'vue-router'
@@ -45,7 +45,46 @@ const { state } = useQuery({
 </script>
 ```
 
-You will notice that the `key` property is a function to keep reactivity. It can also be a `ref` or a `computed`.
+You will notice that the `key` property is a getter function to keep reactivity. It can also directly be a `ref` or a `computed`. These are all valid uses:
+
+::: code-group
+
+```vue{2,4-6} [destructured props]
+<script setup lang="ts">
+const { id } = defineProps<{ id: number }>()
+useQuery({
+  // ‼️ Note that we still need a function to keep reactivity
+  // because Vue transforms this expression
+  key: () => ['products', id],
+  query: () => getProductById(id),
+})
+</script>
+```
+
+```vue{2,4} [props object]
+<script setup lang="ts">
+const props = defineProps<{ id: number }>()
+useQuery({
+  key: () => ['products', props.id],
+  query: () => getProductById(props.id),
+})
+</script>
+```
+
+```vue{2,3,5} [computed property]
+<script setup lang="ts">
+const props = defineProps<{ id: number }>()
+const productKey = computed(() => ['products', props.id])
+useQuery({
+  key: productKey,
+  query: () => getProductById(props.id),
+})
+</script>
+```
+
+:::
+
+In practice, the function getter is the simplest, most flexible, and easiest to read, so prefer it over the other two.
 
 ::: tip
 
@@ -88,26 +127,48 @@ useQuery({
 })
 ```
 
-Both queries have different keys, but they share the same root key `['products', productId]`. This allows us to invalidate all the data related to a specific product at once. You can read more about this in the [query invalidation section](./query-invalidation.md). When creating query keys, organize your keys precisely to take advantage of this feature.
+Both queries have different keys, but they share the same root key `['products', productId]`. This allows us to invalidate all the data related to a specific product at once with
 
-Keys can contain strings, numbers, objects, and arrays. Anything that is serializable to JSON can be used in a key.
+```ts
+queryCache.invalidateQueries({ key: ['products', productId.value] })
+// or even
+queryCache.invalidateQueries({
+  key: [
+    'products',
+    productId.value,
+    {}, // partially match { searchResult: true }
+  ],
+})
+```
+
+These _key filters_ are used in many places, [query invalidation](./query-invalidation.md) is just one of them.
+
+When creating query keys, organize your keys precisely to take advantage of this feature.
+
+Keys can contain strings, numbers, objects, and arrays. Anything that is serializable to JSON can be used in a key. Keep in mind these rules when writing keys:
+
+- `['doc', 2]` and `['doc', '2']` are different keys
+- Within objects, `undefined` is stripped out but `null` is not but `null` is not. Therefore `['doc', { withComments: undefined }]` is equivalent to `['doc', {}]` and matches both `withComments: true` and `withComments: false`
+- Arrays are also partially matched so `['doc', ['nested', 'array']]` is matched by `['doc', ['nested']]` but not by `['doc', ['nested', 'array', 'other']]`.
 
 ## Managing query keys (key factories)
 
-Hard coding query keys is fine when you have a few queries or when you don't interact with the query cache. In most projects, using [Optimistic Updates](./optimistic-updates.md) and [Query Invalidation](./query-invalidation.md) is common. In these cases, you will need to manage your query keys in a more structured way:
+Hard coding query keys is fine when you have a few queries or when you don't interact with the query cache. In most projects, using [Optimistic Updates](./optimistic-updates.md) and [Query Invalidation](./query-invalidation.md) is common. In these cases, you will need to manage your query keys in a more structured way to prevent typos:
 
-```ts
+```ts twoslash
 export const DOCUMENT_QUERY_KEYS = {
-  root: ['documents'],
-  byId: (id: number) => [...DOCUMENT_QUERY_KEYS.root, id],
-  byIdWithComments: (id: number) => [...DOCUMENT_QUERY_KEYS.root, id, { comments: true }],
-} as const
+  root: ['documents'] as const,
+  byId: (id: string) => [...DOCUMENT_QUERY_KEYS.root, id] as const,
+  byIdWithComments: (id: string) =>
+    [...DOCUMENT_QUERY_KEYS.byId(id), { withComments: true }] as const,
+}
 
 export const DOCUMENT_COMMENT_QUERY_KEYS = {
-  root: ['documents', 'comments'],
-  byId: (id: number) => [...DOCUMENT_COMMENT_QUERY_KEYS.root, id],
-  byIdWithReplies: (id: number) => [...DOCUMENT_COMMENT_QUERY_KEYS.root, id, { replies: true }],
-} as const
+  root: ['documents', 'comments'] as const,
+  byId: (id: string) => [...DOCUMENT_COMMENT_QUERY_KEYS.root, id] as const,
+  byIdWithReplies: (id: string) =>
+    [...DOCUMENT_COMMENT_QUERY_KEYS.root, id, { replies: true }] as const,
+}
 ```
 
 - `root` is the root key of the query and can contain multiple values like `['documents', 'comments']`
@@ -131,15 +192,17 @@ queryCache.invalidateQueries({
 })
 ```
 
-This ensures that you are using the same keys everywhere and avoids typos. It also makes it easier to change the keys in the future if needed. It is recommended to use this approach in any project that has more than a couple of queries or when you to interact with the query cache.
+This ensures that you are using the same keys everywhere and avoids typos. It also makes it easier to change the keys in the future if needed. It is recommended to use key factories in any project that has more than a couple of queries or if you to interact with the query cache.
 
 ## Typing query keys
 
 When interacting with the query cache, you can provide a type parameter to enforce the data type:
 
-```ts twoslash
-import { useQueryCache, defineQueryOptions } from '@pinia/colada'
+```ts{4} twoslash
+import { useQueryCache } from '@pinia/colada'
+// ---cut-start---
 import type { Doc } from './api/documents'
+// ---cut-end---
 
 const queryCache = useQueryCache()
 const docList = queryCache.getQueryData<Doc[]>(['documents', 'list'])
@@ -147,11 +210,13 @@ const docList = queryCache.getQueryData<Doc[]>(['documents', 'list'])
 //
 ```
 
-While this helps with types, it's not only manual but not strict. If we define query options with `defineQueryOptions`, the _key_ will be automatically _tagged_ with type information making it easier and stricter to use:
+While this helps with types, it's not only manual but not strict. If we define query options with `defineQueryOptions`, the _key_ will be automatically _tagged_ with type information inferred from `query`, making it easier and stricter to use:
 
-```ts twoslash
+```ts{3-6,9} twoslash
 import { useQueryCache, defineQueryOptions } from '@pinia/colada'
+// ---cut-start---
 import { getDocumentList } from './api/documents'
+// ---cut-end---
 
 const documentList = defineQueryOptions({
   key: ['documents', 'list'],
@@ -169,11 +234,13 @@ Combine this with the [key factories](#Managing-query-keys-key-factories-) to ha
 
 :::
 
+Differently from `useQuery()`, `defineQueryOptions` does not accept `MaybeRefOrGetter` versions of the properties (e.g. a function getter for the `key`), instead see [dynamic keys](#dynamic-typed-keys) below.
+
 ### Dynamic typed keys
 
 `defineQueryOptions` also allows you to define options with a function to create dynamic keys. In this case, it returns a function instead of an object:
 
-```ts twoslash
+```ts{4-7,10} twoslash
 import { defineQueryOptions, useQueryCache } from '@pinia/colada'
 import { getDocumentById } from './api/documents'
 
@@ -190,9 +257,9 @@ const docById = queryCache.getQueryData(documentByIdQuery('some-id').key)
 
 You are free to type the arguments of the function as you like, if you need multiple variables, use an object and destructure it:
 
-```ts
+```ts{2}
 const documentByIdQuery = defineQueryOptions(
-  ({ id, withComments = false }: { id: string, withComments?: boolean }) => ({
+  ({ id, withComments = false }: { id: string; withComments?: boolean }) => ({
     key: ['documents', id, { comments: withComments }],
     query: () => getDocumentById(id, withComments),
   }),
@@ -201,12 +268,17 @@ const documentByIdQuery = defineQueryOptions(
 
 To use dynamic query options, pass an extra parameter to `useQuery`:
 
-```ts
-import { DOCUMENT_QUERY_KEYS } from './queries/keys'
+```vue{6} twoslash
+<script setup lang="ts">
 import { useQuery } from '@pinia/colada'
+import { useRoute } from 'vue-router'
+import { documentByIdQuery } from './queries/documents'
 
 const route = useRoute()
-useQuery(documentByIdQuery, () => ({ id: route.params.id }))
+const { state } = useQuery(documentByIdQuery, () => ({
+  id: route.params.docId as string
+}))
+</script>
 ```
 
 This second parameter can be a `ref`, a `computed`, or a _getter_ function (just like `key`).

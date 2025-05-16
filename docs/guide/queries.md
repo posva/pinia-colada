@@ -4,11 +4,11 @@ Queries manage asynchronous state declaratively, allowing you to focus on the st
 
 Queries are designed to **read** data from asynchronous sources, such as handling `GET` requests in a REST API but they can be used along any function returning a Promise. For **writing** or mutating data, consider using [mutations](./mutations.md), which are better suited for those operations.
 
-Queries can be created with `useQuery()` or [`defineQuery()`](#Reusable-Queries).
+Queries are created with `useQuery()`. They can be combined with [`defineQueryOptions()` for organization and typing](./query-keys.md#Typing-query-keys) or [`defineQuery()`](../advanced/reusable-queries.md) for reusability.
 
-## Basic Usage
+## Foundations
 
-The most basic usage of Pinia Colada's queries is through `useQuery()`. This composable should feel familiar if you've used libraries like swrv or TanStack Query and should be the starting point for most of your async state management. If you want to reuse queries or better organize your code, use the [`defineQuery()`](#Reusable-Queries) below.
+The most basic usage of Pinia Colada's queries is through `useQuery()`. This composable should feel familiar if you've used libraries like swrv or TanStack Query and should be the starting point for most of your async state management.
 
 ```vue twoslash
 <script setup lang="ts">
@@ -84,120 +84,10 @@ Most of the time you will find yourself using just `state` and `asyncStatus` to 
 
   :::
 
-- `refresh()`: manually triggers the query deduplicates requests and reuses the cached data if it's still fresh.
-- `refetch()`: manually triggers the query, ignoring the cache and fetching the data again.
+- `refresh()`: manually triggers the query, deduplicates requests, and reuses the cached data if it's still fresh.
+- `refetch()`: manually triggers the query, ignoring the cache, and fetching the data again.
 - `data`, `error`, `status`: are aliases for the properties in `state` for convenience and facilitating migration. `state` allows for [type narrowing in TypeScript](#typescript-narrowing-data-and-errors-type-with-status) but depending on your template usage, you might not need it so we simply provide both approaches for convenience.
 - _For everything else, hover over the different properties in the code block above to see their types and documentation_ 😁.
-
-You can access the fetched data through the references returned by `useQuery()` (`data`), as well as other query state, such as its `status`, `error` and more. It also returns methods to manually trigger the query like `refresh()` and `refetch()`.
-
-## Reusable Queries
-
-While `useQuery()` can be directly called in components, we often need to reuse the same query across components or even add extra properties like consuming the route via `useRoute()` or passing a _search_ text to the API request. In those scenarios, it's more convenient to _define_ queries and reuse them where needed.
-
-<!--
-TODO: show example first, move explanation after within a details.
-Think about parameterized queries:
-  - the query
- -->
-
-But why is this necessary? Can't we just create a regular composable for this?
-
-```ts twoslash
-// src/queries/todos.ts
-import { useQuery } from '@pinia/colada'
-import { ref } from 'vue'
-
-export function useFilteredTodos() {
-  const search = ref('')
-  const query = useQuery({
-    key: () => ['todos', search.value],
-    query: () => fetch(`/api/todos?search=${search.value}`).then((res) => res.json()),
-  })
-  return { search, ...query }
-}
-```
-
-_Not exactly_ because we are mixing component state (`search`) with global state (`useQuery()` creates global state). There are two main issues with this approach:
-
-- The ref `search` isn't shared among components. Each component instance creates a new ref for themselves
-- If the query is reused across different components, there will be a de-synchronization between the `search` ref instantiated in each component and the one used in the query's key. Since the query is global, it's only instantiated once, and only the first `search` is used. Therefore, if we use this approach, only the changes to the `search` **of the component that first instantiated the query will take effect**.
-
-Because of this, Pinia Colada provides an alternative way of defining a query, through the `defineQuery` composable. Simply wrap your composable with it:
-
-::: code-group
-
-```ts [src/queries/todos.ts] twoslash
-import { defineQuery, useQuery } from '@pinia/colada'
-import { ref } from 'vue'
-
-export const useFilteredTodos = defineQuery(() => { // [!code ++]
-  // `search` is shared by all components using this query
-  const search = ref('')
-  const { state, ...rest } = useQuery({
-    key: () => ['todos', { search: search.value }],
-    query: () => fetch(`/api/todos?filter=${search.value}`, { method: 'GET' }),
-  })
-  return {
-    ...rest,
-    // we can rename properties for convenience too
-    todoList: state,
-    search,
-  }
-}) // [!code ++]
-```
-
-```vue [src/pages/todo-list.vue]
-<script setup lang="ts">
-import { useFilteredTodos } from '@/queries/todos'
-
-const { todoList, search } = useFilteredTodos()
-</script>
-```
-
-:::
-
-Consider `useFilteredTodos()` as a globally shared composable, instantiated only once. This ensures the `search` ref is shared across all components using this query, reflecting changes universally across components.
-
-When you just want to organize your queries, you can also pass an object of options to `defineQuery()`:
-
-```ts twoslash
-// src/queries/todos.ts
-import { defineQuery } from '@pinia/colada'
-
-export const useTodos = defineQuery({
-  key: ['todos'],
-  query: () => fetch('/api/todos').then((res) => res.json()),
-})
-```
-
-::: tip When to use `defineQuery()` over just `useQuery()`?
-
-If you find yourself with the same query (same `key` value) used in multiple components that are also mounted at the same time, you **must** use `defineQuery()`. This will ensure that the query is shared among all components.
-
-If you need to reuse a query in multiple components, move the query to a separate file (e.g. `src/queries/todos.ts`) and use `defineQuery()` to define it. This will ensure that the query code isn't partially updated in your code base.
-
-If you need to define custom parameters **that aren't global**, you don't need to do anything special, create a custom composable instead and call `useQuery()` within it.
-
-:::
-
-### Nuxt
-
-When using `defineQuery()` in Nuxt, `useRoute()` returns a different version of the route, **it is recommended to explicitly import it from `vue-router` instead of using the Nuxt version** (automatically imported):
-
-```ts{1}
-import { useRoute } from 'vue-router'
-
-export const useContactDetails = defineQuery(() => {
-  const route = useRoute()
-  return useQuery({
-    key: () => ['contacts', route.params.contactId],
-    query: () => fetch(`/api/contacts/${route.params.contactId}`).then((res) => res.json()),
-  })
-})
-```
-
-If you don't do this, you will see the query being triggered more than it should, specifically when navigating to or away from the page. It might be even `undefined`. This is due to how Nuxt internally handles the integration with Suspense.
 
 ## Using External Properties in Queries
 
@@ -219,6 +109,58 @@ const { state } = useQuery({
 
 Each unique `key` generates a new query entry in the cache. When you switch back to a previously cached entry, it reuses the cached data, avoiding unnecessary network requests. This enhances your application's performance and responsiveness, making navigations feel instant ✨.
 
+## Organizing Queries
+
+As your project grows and you start using more and more queries as well as concepts as [Optimistic Updates](./optimistic-updates.md), you will want to organize your queries. You can do this by using [`defineQueryOptions()`](../advanced/reusable-queries.md) and placing your query options **and their corresponding keys** in separate files:
+
+```
+./queries
+├── boards.ts
+├── documents.ts
+└── users.ts
+```
+
+Each file can expose keys and options related to specific domain, allowing you to keep the queries logic in one place and also considerably simplify the usage of `useQuery()` in Vue components.
+
+::: code-group
+
+```ts twoslash [./queries/documents.ts]
+import { defineQueryOptions } from '@pinia/colada'
+import { getDocumentById } from '@/api/documents'
+
+export const DOCUMENT_QUERY_KEYS = {
+  root: ['documents'] as const,
+  byId: (id: string) => [...DOCUMENT_QUERY_KEYS.root, id] as const,
+  // reuse the keys above to keep everything consistent
+  byIdWithComments: (id: string, withComments?: boolean) =>
+    [...DOCUMENT_QUERY_KEYS.byId(id), { withComments }] as const,
+}
+
+export const documentByIdQuery = defineQueryOptions(
+  ({ id, withComments = false }: { id: string, withComments?: boolean }) => ({
+    key: DOCUMENT_QUERY_KEYS.byIdWithComments(id, withComments),
+    query: () => getDocumentById(id, { withComments }),
+  }),
+)
+```
+
+```vue{4,7-9} twoslash [./pages/documents/[docId].vue]
+<script setup lang="ts">
+import { useRoute } from 'vue-router'
+import { useQuery } from '@pinia/colada'
+import { documentByIdQuery } from '@/queries/documents'
+
+const route = useRoute()
+const { data } = useQuery(documentByIdQuery, () => ({
+  id: route.params.docId as string,
+}))
+</script>
+```
+
+:::
+
+You will notice that the docs use a lot `useQuery()` with simple options. This is to keep this documentation simple and focused fewer concepts. In practice, **it is recommended to use** [key factories](./query-keys.md#Managing-query-keys-key-factories-) **and** [`defineQueryOptions()`](./query-keys.md#Typing-query-keys) to keep your queries organized and type-safe.
+
 ## Pausing queries
 
 It's possible to temporarily stopping a query from refreshing, like pausing it. This has many use cases and is especially handy when you have some kind of auto refetch happening.
@@ -229,9 +171,11 @@ export const useCurrentDeck = defineQuery(() => {
   const route = useRoute()
   const result = useQuery({
     key: () => ['decks', Number(route.params.deckId)],
-    query() {
-      return fetch(`/api/decks?deckId=${route.params.deckId}`)
-    },
+    query: () =>
+    // you might need to cast the param or suffix it with `!`
+    // for TS
+      fetch(`/api/decks?deckId=${route.params.deckId}`)
+        .then((res) => res.json()),
     // only enable the query when we are on /decks/some-deck-id
     enabled: () => 'deckId' in route.params,
   })
@@ -408,67 +352,4 @@ refetch(true).catch((error) => {
 
 In practice, aim to use `refresh()` as much as possible because it will **reuse any loading request** and **avoid unnecessary network calls** based on `staleTime`.
 
-Use `refetch()` when you are certain you need to refetch the data, regardless of the current status. This is useful when you want to force a new request, such as when the user explicitly requests a refresh.
-
-## Caveat: SSR and `defineQuery()`
-
-While `defineQuery()` looks like a [setup store](https://pinia.vuejs.org/core-concepts/#Setup-Stores) in pinia, it doesn't define a store, **the state returned is not serialized to the page**. This means that you are fully responsible for ensuring consistent values across the server and client for anything that is not returned by `useQuery()`. In short, this means that you cannot have code like this:
-
-```ts
-defineQuery(() => {
-  const search = ref('')
-  // ❌ different values on client and server
-  if (import.meta.env.SSR) {
-    search.value = fetchSomeInitialValue()
-  }
-  const query = useQuery({
-    key: ['todos', search.value],
-    query: () => fetch(`/api/todos?search=${search.value}`).then((res) => res.json()),
-  })
-  return {
-    search,
-    ...query,
-  }
-})
-```
-
-Instead, you will need to ensure the `search` state is serialized from the server to the client. The simplest way is to move it to a store:
-
-```ts twoslash
-import { defineStore, storeToRefs } from 'pinia'
-// ---cut-start---
-import 'vite/client'
-import { defineQuery, useQuery } from '@pinia/colada'
-import { ref } from 'vue'
-function getInitialValue() {
-  return 'initial value'
-}
-// ---cut-end---
-// @moduleResolution: bundler
-
-const useLocalStore = defineStore('query-search-store', () => {
-  const search = ref('')
-  return { search }
-})
-
-defineQuery(() => {
-  const { search } = storeToRefs(useLocalStore())
-  if (import.meta.env.SSR) {
-    search.value = getInitialValue()
-  }
-  const query = useQuery({
-    key: ['todos', search.value],
-    query: () => fetch(`/api/todos?search=${search.value}`).then((res) => res.json()),
-  })
-  return {
-    search,
-    ...query,
-  }
-})
-```
-
-::: tip
-
-If you are using Nuxt, you can simply replace the `ref()` with [Nuxt's `useState()`](https://nuxt.com/docs/api/composables/use-state) instead of creating a store.
-
-:::
+Use `refetch()` when you are certain you need to refetch the data, regardless of the current status. This is useful when you want to force a new request, such as when the user explicitly requests a _refresh_.

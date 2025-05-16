@@ -14,6 +14,8 @@ const rControl = /[\u0000-\u001F]/g
 const rSpecial = /[\s~`!@#$%^&*()\-_+=[\]{}|\\;:"'“”‘’<>,.?/]+/g
 const rCombining = /[\u0300-\u036F]/g
 
+const twoslashSnippets = readSnippets()
+
 /**
  * Default slugification function
  */
@@ -96,7 +98,9 @@ On top of that Pinia Colada is highly extensible. You can create your own plugin
           },
           extraFiles: {
             ...extraFiles,
-            ...readSnippets(),
+            ...twoslashSnippets,
+            '@/api/documents.ts': twoslashSnippets['./api/documents.ts'],
+            '@/queries/documents.ts': twoslashSnippets['./queries/documents.ts'],
           },
         },
       }),
@@ -242,6 +246,7 @@ On top of that Pinia Colada is highly extensible. You can create your own plugin
           text: 'Advanced',
           items: [
             { text: 'Query Cache', link: '/advanced/query-cache.html' },
+            { text: 'Reusable Queries', link: '/advanced/reusable-queries.html' },
             { text: 'Plugins', link: '/advanced/plugins.html' },
           ],
         },

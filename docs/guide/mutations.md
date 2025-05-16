@@ -66,7 +66,7 @@ Using mutations allows us to easily keep the changed data up to date. We have mu
 
 ## Reusable mutations
 
-[Similarly to queries](./queries.md#reusable-queries), mutations can be defined and reused across components with the `defineMutation()` function.
+[Similarly to queries](../advanced/reusable-queries.md), mutations can be defined and reused across components with the `defineMutation()` function.
 
 ::: code-group
 
