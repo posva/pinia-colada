@@ -8,13 +8,16 @@ import { useQuery } from './use-query'
 import type { _RemoveMaybeRef } from './utils'
 
 /**
- * The current effect scope where the function returned by `defineQuery` is being called. This allows `useQuery()` to know if it should be attached to an effect scope or not
+ * The current effect scope where the function returned by `defineQuery` is
+ * being called. This allows `useQuery()` to know if it should be attached to
+ * an effect scope or not
  */
 let currentDefineQueryEffect: undefined | EffectScope
 
 /**
- * Options to define a query with `defineQuery()`. Similar to {@link UseQueryOptions} but disallows reactive values as
- * `defineQuery()` is used outside of an effect scope.
+ * Options to define a query with `defineQuery()`. Similar to
+ * {@link UseQueryOptions} but disallows reactive values as `defineQuery()` is
+ * used outside of an effect scope.
  */
 export type DefineQueryOptions<
   TData = unknown,
@@ -36,8 +39,9 @@ export type DefineQueryOptions<
 // NOTE: no setter because it cannot be set outside of defineQuery()
 
 /**
- * Gets the current defineQuery effect scope. This is used internally by `useQuery` to attach the effect to the query
- * entry dependency list.
+ * Gets the current defineQuery effect scope. This is used internally by
+ * `useQuery` to attach the effect to the query entry dependency list.
+ *
  * @internal
  */
 export function getCurrentDefineQueryEffect() {
@@ -45,10 +49,13 @@ export function getCurrentDefineQueryEffect() {
 }
 
 /**
- * Define a query with the given options. Similar to `useQuery(options)` but allows you to reuse the query in multiple
- * places. It only allow static values in options. If you need dynamic values, use the function version.
+ * Define a query with the given options. Similar to `useQuery(options)` but
+ * allows you to reuse **all** of the query state in multiple places. It only
+ * allow static values in options. If you need dynamic values, use the function
+ * version.
  *
  * @param options - the options to define the query
+ *
  * @example
  * ```ts
  * const useTodoList = defineQuery({
@@ -62,11 +69,13 @@ export function defineQuery<TData, TError = ErrorDefault>(
 ): () => UseQueryReturn<TData, TError>
 
 /**
- * Define a query with a setup function. Allows to return arbitrary values from the query function, create contextual
- * refs, rename the returned values, etc. The setup function will be called only once, like stores, and **must be
+ * Define a query with a setup function. Allows to return arbitrary values from
+ * the query function, create contextual refs, rename the returned values, etc.
+ * The setup function will be called only once, like stores, and **must be
  * synchronous**.
  *
  * @param setup - a function to setup the query
+ *
  * @example
  * ```ts
  * const useFilteredTodos = defineQuery(() => {
