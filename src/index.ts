@@ -62,7 +62,7 @@ export type { PiniaColadaPlugin, PiniaColadaPluginContext } from './plugins'
 
 // internals
 export type {
-  dataTagSymbol as _dataTagSymbol,
+  DATA_TAG as _DATA_TAG,
   JSONArray as _JSONArray,
   JSONObject as _JSONObject,
   JSONPrimitive as _JSONPrimitive,

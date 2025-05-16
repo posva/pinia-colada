@@ -82,11 +82,10 @@ export type EntryKey = readonly JSONValue[]
  * Internal symbol used to tag the data type of the entry key.
  * @internal
  */
-
-export const dataTagSymbol = Symbol('Pinia Colada dataTag')
+export const DATA_TAG = Symbol('Pinia Colada dataTag')
 /**
  * Same as {@link EntryKey} but with a data tag that allows inference of the data type.
  * Used by `defineQueryOptions()`.
  */
 
-export type EntryKeyTagged<T> = EntryKey & { [dataTagSymbol]?: T }
+export type EntryKeyTagged<T> = EntryKey & { [DATA_TAG]?: T }
