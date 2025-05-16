@@ -26,7 +26,11 @@ export type {
 export { defineQuery } from './define-query'
 export { useQuery, type UseQueryReturn } from './use-query'
 
-export { useInfiniteQuery, type UseInfiniteQueryOptions } from './infinite-query'
+export {
+  useInfiniteQuery,
+  type UseInfiniteQueryOptions,
+  type UseInfiniteQueryReturn,
+} from './infinite-query'
 
 export {
   hydrateQueryCache,

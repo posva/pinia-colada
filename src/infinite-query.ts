@@ -1,6 +1,7 @@
 import { toValue } from 'vue'
 import type { UseQueryFnContext, UseQueryOptions } from './query-options'
 import { useQuery } from './use-query'
+import type { UseQueryReturn } from './use-query'
 import type { ErrorDefault } from './types-extension'
 
 /**
@@ -25,6 +26,11 @@ export interface UseInfiniteQueryOptions<
   merge: (result: NoInfer<TPages>, current: NoInfer<TData>) => NoInfer<TPages>
 }
 
+export interface UseInfiniteQueryReturn<TPage = unknown, TError = ErrorDefault>
+  extends Omit<UseQueryReturn<TPage, TError, TPage>, 'refetch' | 'refresh'> {
+  loadMore: () => Promise<unknown>
+}
+
 /**
  * Store and merge paginated data into a single cache entry. Allows to handle
  * infinite scrolling. This is an **experimental** API and is subject to
@@ -36,7 +42,7 @@ export interface UseInfiniteQueryOptions<
  */
 export function useInfiniteQuery<TData, TError = ErrorDefault, TPage = unknown>(
   options: UseInfiniteQueryOptions<TData, TError, TData | undefined, TPage>,
-) {
+): UseInfiniteQueryReturn<TPage, TError> {
   let pages: TPage = toValue(options.initialPage)
 
   const { refetch, refresh, ...query } = useQuery<TPage, TError, TPage>({
