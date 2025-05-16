@@ -163,7 +163,7 @@ You will notice that the docs use a lot `useQuery()` with simple options. This i
 
 ## Pausing queries
 
-It's possible to temporarily stopping a query from refreshing, like pausing it. This has many use cases and is especially handy when you have some kind of auto refetch happening.
+It's possible to temporarily stop a query from refreshing, like pausing it. This has many use cases and is especially handy when you have some kind of auto refetch happening.
 This is crucial when some of the data used to query is required but not always present. The most common example is using a _param_ or _query_ from the route in a query that is used across pages (e.g. within a store). Such usage will make the query trigger while not in the page, causing unnecessary network requests. It's easy to disable the query when the required data is absent:
 
 ```ts
