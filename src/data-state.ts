@@ -8,6 +8,7 @@ export type DataStateStatus = 'pending' | 'error' | 'success'
 
 /**
  * Internal base type for data state.
+ * @internal
  */
 export interface _DataState_Base<TData, TError> {
   /**
