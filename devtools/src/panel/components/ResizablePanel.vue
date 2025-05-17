@@ -1,66 +1,62 @@
 <script setup lang="ts">
-import { ref, useTemplateRef } from 'vue'
+import { ref, computed } from 'vue'
 import { useEventListener } from '@vueuse/core'
 
-const convertRemToPixels = (rem: number) => {
-  return rem * Number.parseFloat(getComputedStyle(document.documentElement).fontSize)
-}
+const props = defineProps({
+  translate: {
+    type: Number,
+    required: true,
+  },
+})
+
+const emit = defineEmits(['update:translate'])
 
 const isResizing = ref(false)
-const panelRef = useTemplateRef<HTMLElement>('panel')
-const panelHeight = ref('450px')
 
-const handleDrag = (event: MouseEvent) => {
-  const currentTarget = event.currentTarget as HTMLElement
-  const panelElement = currentTarget.parentElement
-  if (!panelElement) return
+const translateY = computed({
+  get: () => props.translate,
+  set: (val) => emit('update:translate', val),
+})
 
-  isResizing.value = true
-  const { height } = panelElement.getBoundingClientRect()
-  const startY = event.clientY
-  let newSize = 0
-  const minHeight = convertRemToPixels(3.5)
-
-  function runDrag(moveEvent: MouseEvent) {
-    moveEvent.preventDefault()
-
-    const valToAdd = startY - moveEvent.clientY
-    newSize = Math.round(height + valToAdd)
-    if (newSize < minHeight) {
-      newSize = minHeight
-    }
-
-    panelHeight.value = `${newSize}px`
+const panelStyle = computed(() => {
+  return {
+    transform: `translateY(-${translateY.value - 8}px)`,
   }
+})
 
-  const cleanupRunDrag = useEventListener(document, 'mousemove', runDrag)
-
-  useEventListener(document, 'mouseup', () => {
-    if (isResizing.value) {
-      isResizing.value = false
-    }
-    cleanupRunDrag()
-  })
+const onMouseDown = () => {
+  isResizing.value = true
 }
+
+const onMouseMove = (e: MouseEvent) => {
+  if (!isResizing.value) return
+
+  // The PiP container has a max height of 80% and a min height of 20vh, so we limit the translate value within that range
+  const maxTranslate = window.innerHeight * 0.8
+  const minTranslate = window.innerHeight * 0.2
+  let newTranslate = window.innerHeight - e.clientY
+
+  if (newTranslate > maxTranslate) newTranslate = maxTranslate
+  if (newTranslate < minTranslate) newTranslate = minTranslate
+
+  translateY.value = newTranslate
+}
+
+const onMouseUp = () => {
+  if (isResizing.value) {
+    isResizing.value = false
+  }
+}
+
+useEventListener(window, 'mousemove', onMouseMove)
+useEventListener(window, 'mouseup', onMouseUp)
 </script>
 
 <template>
   <div
-    ref="panelRef"
-    class="fixed left-0 right-0 p-4 shadow-lg rounded-lg bg-gray-900 z-50 overflow-auto"
-    :style="{
-      height: panelHeight,
-      width: '100vw',
-      bottom: '0',
-    }"
-  >
-    <div
-      class="absolute w-full h-2 cursor-move bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-t-lg top-0 left-0"
-      @mousedown="handleDrag"
-    />
-
-    <div class="mt-6 pt-2">
-      <slot />
-    </div>
-  </div>
+    class="h-3 w-full fixed left-0 bottom-0 z-9999 cursor-col-resize hover:bg-(--ui-border) transition-[background-color] duration-200"
+    :class="[isResizing && 'bg-(--ui-border) cursor-col-resize']"
+    :style="panelStyle"
+    @mousedown="onMouseDown"
+  />
 </template>

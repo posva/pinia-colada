@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { useColorMode } from '@vueuse/core'
+import { useColorMode, useLocalStorage } from '@vueuse/core'
 import { computed } from 'vue'
 import ResizablePanel from './ResizablePanel.vue'
 
 const { isPip } = defineProps<{
+  id: string
   isPip: boolean
 }>()
 
@@ -14,6 +15,13 @@ const colorTheme = computed(() => {
   return colorMode.value === 'auto' ? [] : colorMode.value
 })
 
+const pipContainerHeight = useLocalStorage('pinia-colada-devtools-pip-container-height', 400)
+
+const containerStyle = computed(() => {
+  return {
+    height: `${pipContainerHeight.value}px`,
+  }
+})
 const containerClasses = computed(() => {
   return isPip
     ? ['h-full']
@@ -26,7 +34,6 @@ const containerClasses = computed(() => {
         'right-0',
         'overflow-hidden',
         'z-[9999]',
-        'h-[500px]',
         'border-t',
         'border-(--ui-border)',
       ]
@@ -34,9 +41,8 @@ const containerClasses = computed(() => {
 </script>
 
 <template>
-  <ResizablePanel>
-    <aside :class="[colorTheme]" class="w-full">
-      <slot />
-    </aside>
-  </ResizablePanel>
+  <aside :class="[colorTheme, containerClasses]" :style="containerStyle" class="w-full">
+    <slot />
+  </aside>
+  <ResizablePanel v-model:translate="pipContainerHeight" />
 </template>
