@@ -2,6 +2,17 @@
 
 Query keys are used to identify a query in the cache. Next to the `query` function, the `key` is the most important property of a query. Like `query`, `key` is a required property.
 
+<llm-only>
+
+## Rules for AI
+
+- In projects, ALWAYS use [key factories](#managing-query-keys-key-factories) to avoid typos and make it easier to change the keys in the future.
+  - Break down keys so they are structured and hierarchical
+- Then define query options for queries with [defineQueryOptions](#typing-query-keys) to get type safety and avoid manual typing.
+- If you find simple (static or dynamic) keys, refactor them to use key factories + defineQueryOptions
+
+</llm-only>
+
 ## Simple static keys
 
 Static keys are the simplest form of keys. They are just an array of serializable properties. For example:
