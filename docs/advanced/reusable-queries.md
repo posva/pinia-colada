@@ -120,7 +120,7 @@ defineQuery(() => {
     search.value = fetchSomeInitialValue()
   }
   const query = useQuery({
-    key: ['todos', search.value],
+    key: () => ['todos', search.value],
     query: () => fetch(`/api/todos?search=${search.value}`).then((res) => res.json()),
   })
   return {
@@ -155,7 +155,7 @@ defineQuery(() => {
     search.value = getInitialValue()
   }
   const query = useQuery({
-    key: ['todos', search.value],
+    key: () => ['todos', search.value],
     query: () => fetch(`/api/todos?search=${search.value}`).then((res) => res.json()),
   })
   return {
