@@ -61,7 +61,7 @@ const queriesGrouped = computed<
         <div
           v-for="(queryGroup, status) in queriesGrouped"
           :key="status"
-          class="bg-theme-50 dark:bg-theme-800 theme-neutral rounded p-1 text-xs font-semibold flex items-center gap-x-1"
+          class="theme-neutral bg-(--ui-bg-muted) rounded p-1 text-xs font-semibold flex items-center gap-x-1"
           :class="(queryGroup?.length ?? 0) === 0 ? 'text-(--ui-text-muted)' : ''"
           :title="`${queryGroup?.length ?? 0} ${status} queries (after filtering)`"
         >
@@ -71,7 +71,7 @@ const queriesGrouped = computed<
             class="px-1.5 py-0.5 rounded"
             :class="
               (queryGroup?.length ?? 0) === 0
-                ? 'bg-theme-200 dark:bg-theme-700'
+                ? 'bg-(--ui-bg-accented)'
                 : [STATUS_COLOR_CLASSES[status].base, STATUS_COLOR_CLASSES[status].text]
             "
           >
