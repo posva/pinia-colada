@@ -1295,7 +1295,7 @@ describe('useQuery', () => {
 
   describe('invalidation', () => {
     it('can be invalidated through the queryCache to refetch', async () => {
-      const { query } = mountSimple({
+      const { query, pinia } = mountSimple({
         key: ['key'],
         query: async () => {
           await delay(100)
@@ -1303,61 +1303,210 @@ describe('useQuery', () => {
         },
       })
 
-      const queryCache = useQueryCache()
+      const queryCache = useQueryCache(pinia)
+      query.mockClear()
       queryCache.invalidateQueries({ key: ['key'] })
+      expect(queryCache.getEntries({ key: ['key'] })[0]?.stale).toBe(true)
+      expect(query).toHaveBeenCalledTimes(1)
 
+      // despite advanting the time
       vi.advanceTimersByTime(100)
       await flushPromises()
 
-      expect(query).toHaveBeenCalledTimes(2)
+      expect(query).toHaveBeenCalledTimes(1)
     })
 
-    it('should not invalidate query when enabled is false', async () => {
-      const { query } = mountSimple({ enabled: false })
-      const queryCache = useQueryCache()
+    it('should invalidate but not refetch disabled queries', async () => {
+      const { query, pinia } = mountSimple({ enabled: false })
+      const queryCache = useQueryCache(pinia)
 
       await flushPromises()
       expect(query).not.toHaveBeenCalled()
 
       queryCache.invalidateQueries({ key: ['key'] })
+      expect(queryCache.getEntries({ key: ['key'] })[0]?.stale).toBe(true)
       await flushPromises()
 
       expect(query).not.toHaveBeenCalled()
     })
 
-    it('should not invalidate query when enabled function returns false', async () => {
-      const { query } = mountSimple({ enabled: () => false })
-      const queryCache = useQueryCache()
+    it('should invalidate but not refetch query when enabled function returns false', async () => {
+      const { query, pinia } = mountSimple({ enabled: () => false })
+      const queryCache = useQueryCache(pinia)
 
       await flushPromises()
       expect(query).not.toHaveBeenCalled()
 
       queryCache.invalidateQueries({ key: ['key'] })
+      expect(queryCache.getEntries({ key: ['key'] })[0]?.stale).toBe(true)
       await flushPromises()
 
       expect(query).not.toHaveBeenCalled()
     })
 
-    it('should only invalidate active queries by default', async () => {
+    it('should only invalidate all and refetch active queries by default', async () => {
       const { pinia, wrapper, query } = mountSimple({ key: ['key'] })
       await flushPromises()
       expect(query).toHaveBeenCalledTimes(1)
+      query.mockClear()
 
       const queryCache = useQueryCache(pinia)
       wrapper.unmount()
       await queryCache.invalidateQueries({ key: ['key'] })
-      expect(query).toHaveBeenCalledTimes(1)
+      // stale but not refetched
+      expect(queryCache.getEntries({ key: ['key'] })[0]?.stale).toBe(true)
+      expect(query).toHaveBeenCalledTimes(0)
     })
 
-    it('allows invalidating all queries', async () => {
-      const { pinia, wrapper, query } = mountSimple({ key: ['key'] })
+    it('allows invalidating and refetching all queries active or not', async () => {
+      const pinia = createPinia()
+
+      const qRoot = vi.fn(async () => 'ok')
+      const wRoot = mount(
+        defineComponent({
+          render: () => null,
+          setup() {
+            return { ...useQuery({ key: ['key'], query: qRoot }) }
+          },
+        }),
+        { global: { plugins: [pinia, PiniaColada] } },
+      )
+
+      const q0 = vi.fn(async () => 'ok')
+      const w0 = mount(
+        defineComponent({
+          render: () => null,
+          setup() {
+            return { ...useQuery({ key: ['key', 0], query: q0 }) }
+          },
+        }),
+        { global: { plugins: [pinia, PiniaColada] } },
+      )
+
+      const q1 = vi.fn(async () => 'ok')
+      const w1 = mount(
+        defineComponent({
+          render: () => null,
+          setup() {
+            return { ...useQuery({ key: ['key', 1], query: q1 }) }
+          },
+        }),
+        { global: { plugins: [pinia, PiniaColada] } },
+      )
+
       await flushPromises()
-      expect(query).toHaveBeenCalledTimes(1)
+      qRoot.mockClear()
+      q0.mockClear()
+      q1.mockClear()
+
+      // makes the query inactive
+      wRoot.unmount()
 
       const queryCache = useQueryCache(pinia)
-      wrapper.unmount()
-      await queryCache.invalidateQueries({ key: ['key'], active: null })
-      expect(query).toHaveBeenCalledTimes(2)
+
+      // only `['key']` is active, others are just there
+      const eRoot = queryCache.getEntries({ key: ['key'], exact: true })[0]
+      const e0 = queryCache.getEntries({ key: ['key', 0], exact: true })[0]
+      const e1 = queryCache.getEntries({ key: ['key', 1], exact: true })[0]
+
+      expect(eRoot).toBeDefined()
+      expect(e0).toBeDefined()
+      expect(e1).toBeDefined()
+      expect(eRoot?.stale).toBe(false)
+      expect(e0?.stale).toBe(false)
+      expect(e1?.stale).toBe(false)
+      expect(eRoot?.active).toBe(false)
+      expect(e0?.active).toBe(true)
+      expect(e1?.active).toBe(true)
+
+      await queryCache.invalidateQueries({ key: ['key'] }, 'all')
+      // refetched and fresh
+      expect(qRoot).toHaveBeenCalledTimes(1)
+      expect(q0).toHaveBeenCalledTimes(1)
+      expect(q1).toHaveBeenCalledTimes(1)
+
+      // same state as above
+      expect(eRoot?.stale).toBe(false)
+      expect(e0?.stale).toBe(false)
+      expect(e1?.stale).toBe(false)
+      expect(eRoot?.active).toBe(false)
+      expect(e0?.active).toBe(true)
+      expect(e1?.active).toBe(true)
+
+      // to avoid warnings and because it should work
+      w0.unmount()
+      w1.unmount()
+    })
+
+    it('allows invalidating without refetching any query active or not', async () => {
+      const pinia = createPinia()
+
+      const qRoot = vi.fn(async () => 'ok')
+      const wRoot = mount(
+        defineComponent({
+          render: () => null,
+          setup() {
+            return { ...useQuery({ key: ['key'], query: qRoot }) }
+          },
+        }),
+        { global: { plugins: [pinia, PiniaColada] } },
+      )
+
+      const q0 = vi.fn(async () => 'ok')
+      const w0 = mount(
+        defineComponent({
+          render: () => null,
+          setup() {
+            return { ...useQuery({ key: ['key', 0], query: q0 }) }
+          },
+        }),
+        { global: { plugins: [pinia, PiniaColada] } },
+      )
+
+      const q1 = vi.fn(async () => 'ok')
+      const w1 = mount(
+        defineComponent({
+          render: () => null,
+          setup() {
+            return { ...useQuery({ key: ['key', 1], query: q1, enabled: false }) }
+          },
+        }),
+        { global: { plugins: [pinia, PiniaColada] } },
+      )
+
+      await flushPromises()
+      qRoot.mockClear()
+      q0.mockClear()
+      q1.mockClear()
+
+      // makes the query inactive
+      wRoot.unmount()
+
+      const queryCache = useQueryCache(pinia)
+
+      // only `['key']` is active, others are just there
+      const eRoot = queryCache.getEntries({ key: ['key'], exact: true })[0]
+      const e0 = queryCache.getEntries({ key: ['key', 0], exact: true })[0]
+      const e1 = queryCache.getEntries({ key: ['key', 1], exact: true })[0]
+
+      expect(eRoot).toBeDefined()
+      expect(e0).toBeDefined()
+      expect(e1).toBeDefined()
+
+      await queryCache.invalidateQueries({ key: ['key'] }, false)
+      // refetched and fresh
+      expect(qRoot).toHaveBeenCalledTimes(0)
+      expect(q0).toHaveBeenCalledTimes(0)
+      expect(q1).toHaveBeenCalledTimes(0)
+
+      // all should be stale
+      expect(eRoot?.stale).toBe(true)
+      expect(e0?.stale).toBe(true)
+      expect(e1?.stale).toBe(true)
+      //
+      // to avoid warnings and because it should work
+      w0.unmount()
+      w1.unmount()
     })
   })
 

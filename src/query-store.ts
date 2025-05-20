@@ -419,9 +419,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   }
 
   /**
-   * Invalidates, cancel, and refetches (in parallel) all active queries in the
-   * cache that match the filters. If you need to further control which queries
-   * are invalidated, canceled, and/or refetched, you can use the filters, you
+   * Invalidates and cancel matched queries, and then refetches (in parallel)
+   * all active ones. If you need to further control which queries are
+   * invalidated, canceled, and/or refetched, you can use the filters, you
    * can direcly call {@link invalidate} on {@link getEntries}:
    *
    * ```ts
@@ -437,21 +437,26 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * ```
    *
    * @param filters - filters to apply to the entries
+   * @param refetchActive - whether to refetch active queries or not. Set
+   * to `'all'` to refetch all queries
    *
    * @see {@link invalidate}
    * @see {@link cancel}
    */
-  const invalidateQueries = action((filters?: UseQueryEntryFilter): Promise<unknown> => {
-    return Promise.all(
-      getEntries({
-        active: true,
-        ...filters,
-      }).map((entry) => {
-        invalidate(entry)
-        return toValue(entry.options?.enabled) && fetch(entry)
-      }),
-    )
-  })
+  const invalidateQueries = action(
+    (filters?: UseQueryEntryFilter, refetchActive: boolean | 'all' = true): Promise<unknown> => {
+      return Promise.all(
+        getEntries(filters).map((entry) => {
+          invalidate(entry)
+          return (
+            (refetchActive === 'all' || (entry.active && refetchActive))
+            && toValue(entry.options?.enabled)
+            && fetch(entry)
+          )
+        }),
+      )
+    },
+  )
 
   /**
    * Returns all the entries in the cache that match the filters.
