@@ -159,7 +159,7 @@ export function isEntryUsingPlaceholderData<TDataInitial>(
  *
  * @see {@link QueryCache.getEntries}
  * @see {@link QueryCache.cancelQueries}
- * @see {@link QueryCache.invalidateQueries}
+ * @see {@link QueryCache#invalidateQueries}
  */
 export type UseQueryEntryFilter = EntryFilter<UseQueryEntry>
 
