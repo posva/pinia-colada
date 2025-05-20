@@ -58,11 +58,14 @@ const PKG_FOLDERS = [
   join(__dirname, '..'),
   // @pinia/colada-nuxt
   join(__dirname, '../nuxt'),
+  // @pinia/colada-devtools
+  join(__dirname, '../devtools'),
   // globby expects `/` even on windows
   ...(await globby(join(__dirname, '../plugins/*').replace(/\\/g, '/'), {
     onlyFiles: false,
   })),
 ]
+
 // files to add and commit after building a new version
 const FILES_TO_COMMIT = [
   // comment for multiline format
@@ -72,6 +75,9 @@ const FILES_TO_COMMIT = [
   // plugins
   'plugins/*/package.json',
   'plugins/*/CHANGELOG.md',
+  // devtools
+  'devtools/*/package.json',
+  'devtools/*/CHANGELOG.md',
   // nuxt
   'nuxt/package.json',
   'nuxt/CHANGELOG.md',
