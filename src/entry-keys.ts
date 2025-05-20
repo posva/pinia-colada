@@ -6,7 +6,7 @@ export function toCacheKey(key: EntryKey | undefined): string | undefined
  *
  * @param key - The key to serialize.
  *
- * @see EntryKey
+ * @see {@link EntryKey}
  */
 export function toCacheKey(key: EntryKey | undefined): string | undefined {
   return (

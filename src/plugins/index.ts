@@ -18,7 +18,7 @@ export interface PiniaColadaPluginContext {
 
   /**
    * An effect scope to collect effects. It should be used if you use any reactivity API like `ref()`, `watch()`, `computed()`, etc.
-   * @see https://vuejs.org/api/reactivity-advanced.html#effectscope
+   * @see {@link https://vuejs.org/api/reactivity-advanced.html#effectscope}
    */
   scope: EffectScope
 }

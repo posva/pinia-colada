@@ -157,9 +157,9 @@ export function isEntryUsingPlaceholderData<TDataInitial>(
 /**
  * Filter object to get entries from the query cache.
  *
- * @see {QueryCache.getEntries}
- * @see {QueryCache.cancelQueries}
- * @see {QueryCache.invalidateQueries}
+ * @see {@link QueryCache.getEntries}
+ * @see {@link QueryCache.cancelQueries}
+ * @see {@link QueryCache.invalidateQueries}
  */
 export type UseQueryEntryFilter = EntryFilter<UseQueryEntry>
 
