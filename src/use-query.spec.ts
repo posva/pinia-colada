@@ -1275,70 +1275,72 @@ describe('useQuery', () => {
     expect(entry.stale).toBe(false)
   })
 
-  it('can be invalidated through the queryCache to refetch', async () => {
-    const { query } = mountSimple({
-      key: ['key'],
-      query: async () => {
-        await delay(100)
-        return 'ok'
-      },
+  describe('invalidation', () => {
+    it('can be invalidated through the queryCache to refetch', async () => {
+      const { query } = mountSimple({
+        key: ['key'],
+        query: async () => {
+          await delay(100)
+          return 'ok'
+        },
+      })
+
+      const queryCache = useQueryCache()
+      queryCache.invalidateQueries({ key: ['key'] })
+
+      vi.advanceTimersByTime(100)
+      await flushPromises()
+
+      expect(query).toHaveBeenCalledTimes(2)
     })
 
-    const queryCache = useQueryCache()
-    queryCache.invalidateQueries({ key: ['key'] })
+    it('should not invalidate query when enabled is false', async () => {
+      const { query } = mountSimple({ enabled: false })
+      const queryCache = useQueryCache()
 
-    vi.advanceTimersByTime(100)
-    await flushPromises()
+      await flushPromises()
+      expect(query).not.toHaveBeenCalled()
 
-    expect(query).toHaveBeenCalledTimes(2)
-  })
+      queryCache.invalidateQueries({ key: ['key'] })
+      await flushPromises()
 
-  it('should not invalidate query when enabled is false', async () => {
-    const { query } = mountSimple({ enabled: false })
-    const queryCache = useQueryCache()
+      expect(query).not.toHaveBeenCalled()
+    })
 
-    await flushPromises()
-    expect(query).not.toHaveBeenCalled()
+    it('should not invalidate query when enabled function returns false', async () => {
+      const { query } = mountSimple({ enabled: () => false })
+      const queryCache = useQueryCache()
 
-    queryCache.invalidateQueries({ key: ['key'] })
-    await flushPromises()
+      await flushPromises()
+      expect(query).not.toHaveBeenCalled()
 
-    expect(query).not.toHaveBeenCalled()
-  })
+      queryCache.invalidateQueries({ key: ['key'] })
+      await flushPromises()
 
-  it('should not invalidate query when enabled function returns false', async () => {
-    const { query } = mountSimple({ enabled: () => false })
-    const queryCache = useQueryCache()
+      expect(query).not.toHaveBeenCalled()
+    })
 
-    await flushPromises()
-    expect(query).not.toHaveBeenCalled()
+    it('should only invalidate active queries by default', async () => {
+      const { pinia, wrapper, query } = mountSimple({ key: ['key'] })
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
 
-    queryCache.invalidateQueries({ key: ['key'] })
-    await flushPromises()
+      const queryCache = useQueryCache(pinia)
+      wrapper.unmount()
+      await queryCache.invalidateQueries({ key: ['key'] })
+      expect(query).toHaveBeenCalledTimes(1)
+    })
 
-    expect(query).not.toHaveBeenCalled()
-  })
+    it('allows invalidating all queries', async () => {
+      const { pinia, wrapper, query } = mountSimple({ key: ['key'] })
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
 
-  it('should only invalidate active queries by default', async () => {
-    const { pinia, wrapper, query } = mountSimple({ key: ['key'] })
-    await flushPromises()
-    expect(query).toHaveBeenCalledTimes(1)
-
-    const queryCache = useQueryCache(pinia)
-    wrapper.unmount()
-    await queryCache.invalidateQueries({ key: ['key'] })
-    expect(query).toHaveBeenCalledTimes(1)
-  })
-
-  it('allows invalidating all queries', async () => {
-    const { pinia, wrapper, query } = mountSimple({ key: ['key'] })
-    await flushPromises()
-    expect(query).toHaveBeenCalledTimes(1)
-
-    const queryCache = useQueryCache(pinia)
-    wrapper.unmount()
-    await queryCache.invalidateQueries({ key: ['key'], active: null })
-    expect(query).toHaveBeenCalledTimes(2)
+      const queryCache = useQueryCache(pinia)
+      wrapper.unmount()
+      await queryCache.invalidateQueries({ key: ['key'], active: null })
+      expect(query).toHaveBeenCalledTimes(2)
+    })
   })
 
   it('should not create entries while unmounting', async () => {
