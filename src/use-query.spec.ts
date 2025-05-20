@@ -1009,6 +1009,24 @@ describe('useQuery', () => {
       expect(query).toBeCalledTimes(1)
     })
 
+    it('can be fresh despite being disabled', async () => {
+      mountSimple({ enabled: false, staleTime: 100 })
+
+      await flushPromises()
+      const queryCache = useQueryCache()
+      const entry = queryCache.getEntries({ key: ['key'] })[0]
+      expect(entry).toBeDefined()
+      if (!entry) throw new Error('for typing')
+      // no data
+      expect(entry.stale).toBe(true)
+
+      queryCache.setQueryData(['key'], 42)
+      expect(entry.stale).toBe(false)
+
+      vi.advanceTimersByTime(100)
+      expect(entry.stale).toBe(true)
+    })
+
     it('refetch still resolves on error', async () => {
       const { wrapper, query } = mountSimple({
         staleTime: 0,
