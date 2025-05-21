@@ -11,8 +11,11 @@ import type { _RemoveMaybeRef } from './utils'
  * The current effect scope where the function returned by `defineQuery` is
  * being called. This allows `useQuery()` to know if it should be attached to
  * an effect scope or not
+ *
+ * @internal
  */
-let currentDefineQueryEffect: undefined | EffectScope
+// eslint-disable-next-line import/no-mutable-exports
+export let currentDefineQueryEffect: undefined | EffectScope
 
 /**
  * Options to define a query with `defineQuery()`. Similar to
@@ -34,18 +37,6 @@ export type DefineQueryOptions<
     | (<T extends TData>(
         previousData: T | undefined,
       ) => NoInfer<TDataInitial> | NoInfer<TData> | undefined)
-}
-
-// NOTE: no setter because it cannot be set outside of defineQuery()
-
-/**
- * Gets the current defineQuery effect scope. This is used internally by
- * `useQuery` to attach the effect to the query entry dependency list.
- *
- * @internal
- */
-export function getCurrentDefineQueryEffect() {
-  return currentDefineQueryEffect
 }
 
 /**

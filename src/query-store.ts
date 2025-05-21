@@ -142,9 +142,13 @@ export interface UseQueryEntry<
   }
 }
 
-// keep track of the entry being defined so we can add the queries in ensure
-// this allows us to refresh the entry when a defined query is used again
-// and refetchOnMount is true
+/**
+ * Keep track of the entry being defined so we can add the queries in ensure
+ * this allows us to refresh the entry when a defined query is used again
+ * and refetchOnMount is true
+ *
+ * @internal
+ */
 // eslint-disable-next-line import/no-mutable-exports
 export let currentDefineQueryEntry: DefineQueryEntry | undefined | null
 

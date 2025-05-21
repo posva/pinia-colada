@@ -749,6 +749,56 @@ describe('defineQuery', () => {
         expect(cache.getQueryData([2])).toBe('todos')
       })
 
+      it('garbage collects all queries in dynamic queries', async () => {
+        const routeId = ref(1)
+        const key = vi.fn(() => ['key', routeId.value])
+        const query = vi.fn(async () => routeId.value)
+        const useProfile = defineQuery(() => {
+          return useQuery({ key, query, gcTime: 1_000 })
+        })
+
+        const ViewComponent = defineComponent({
+          setup() {
+            return { ...useProfile() }
+          },
+          template: `<div>{{ data }}</div>`,
+        })
+
+        const pinia = createPinia()
+        const wrapper = mount(
+          {
+            components: { ViewComponent },
+            setup() {
+              return { routeId }
+            },
+            template: `<div>{{ routeId }}:<ViewComponent v-if="routeId !== 0" /></div>`,
+          },
+          {
+            global: {
+              plugins: [pinia, PiniaColada],
+            },
+          },
+        )
+
+        // we need to go to one page, then change to the other
+        // so we have two entries in the cache
+        await flushPromises()
+        routeId.value = 2
+        await flushPromises()
+
+        // hide the View, should pause the effect
+        // and make all queries inactive
+        routeId.value = 0
+        await flushPromises()
+
+        const queryCache = useQueryCache(pinia)
+        vi.advanceTimersByTime(999)
+        expect(queryCache.getEntries({ key: ['key'] })).toHaveLength(2)
+        vi.advanceTimersByTime(1)
+        expect(queryCache.getEntries({ key: ['key'] })).toHaveLength(0)
+        wrapper.unmount()
+      })
+
       // NOTE: not sure if worth it, defineQuery should be used sparingly
       it.todo('stops the effect after gcTime if no active query is left')
     })

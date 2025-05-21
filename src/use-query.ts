@@ -17,7 +17,7 @@ import { currentDefineQueryEntry, isEntryUsingPlaceholderData, useQueryCache } f
 import { useQueryOptions } from './query-options'
 import type { UseQueryOptions, UseQueryOptionsWithDefaults } from './query-options'
 import type { ErrorDefault } from './types-extension'
-import { getCurrentDefineQueryEffect } from './define-query'
+import { currentDefineQueryEffect } from './define-query'
 import type { DefineQueryOptions } from './define-query'
 import type { AsyncStatus, DataState, DataStateStatus, DataState_Success } from './data-state'
 
@@ -178,7 +178,10 @@ export function useQuery<
   const queryCache = useQueryCache()
   const optionDefaults = useQueryOptions()
   const hasCurrentInstance = getCurrentInstance()
-  const currentEffect = getCurrentDefineQueryEffect() || getCurrentScope()
+  // this is the effect created by defineQuery in ensureDefinedQuery
+  // it shouldn't be tracked by the query cache otherwise it would never cleanup
+  const defineQueryEffect = currentDefineQueryEntry?.[2]
+  const currentEffect = currentDefineQueryEffect || getCurrentScope()
   const isPaused = currentDefineQueryEntry?.[3]
 
   const options = computed(
@@ -301,7 +304,7 @@ export function useQuery<
     })
   } else {
     isActive = true
-    if (currentEffect) {
+    if (currentEffect !== defineQueryEffect) {
       queryCache.track(lastEntry, currentEffect)
       onScopeDispose(() => {
         queryCache.untrack(lastEntry, currentEffect)
@@ -319,7 +322,9 @@ export function useQuery<
       }
       // track the current effect and component
       queryCache.track(entry, hasCurrentInstance)
-      queryCache.track(entry, currentEffect)
+      if (currentEffect !== defineQueryEffect) {
+        queryCache.track(entry, currentEffect)
+      }
 
       // TODO: does this trigger after unmount?
       if (toValue(enabled)) refresh()
