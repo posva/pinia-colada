@@ -1,4 +1,4 @@
-import { TreeMapNode, serializeTreeMap } from '@pinia/colada'
+import { isQueryCache, serializeQueryCache } from '@pinia/colada'
 import { definePayloadPlugin, definePayloadReducer, definePayloadReviver } from '#app'
 
 /**
@@ -6,12 +6,12 @@ import { definePayloadPlugin, definePayloadReducer, definePayloadReviver } from 
  */
 export default definePayloadPlugin(() => {
   definePayloadReducer('PiniaColada_TreeMapNode', (data: unknown) => {
-    return data instanceof TreeMapNode && serializeTreeMap(data)
+    return isQueryCache(data) && serializeQueryCache(data)
   })
 
   // we let pinia colada handle the revive
   definePayloadReviver(
     'PiniaColada_TreeMapNode',
-    (data: ReturnType<typeof serializeTreeMap>) => data,
+    (data: ReturnType<typeof serializeQueryCache>) => data,
   )
 })

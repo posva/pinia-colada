@@ -1,7 +1,7 @@
 import {
   useQueryCache,
   PiniaColada,
-  serializeTreeMap,
+  serializeQueryCache,
   type PiniaColadaOptions,
   hydrateQueryCache,
 } from '@pinia/colada'
@@ -17,21 +17,17 @@ export default defineNuxtPlugin({
       ...coladaOptions,
     } satisfies PiniaColadaOptions)
 
-    const pinia = nuxtApp.vueApp.config.globalProperties.$pinia
+    const queryCache = useQueryCache()
     if (import.meta.server) {
       nuxtApp.hook('app:rendered', ({ ssrContext }) => {
-        if (ssrContext && pinia.state.value._pc_query?.caches) {
-          ssrContext.payload.pinia_colada = markRaw(
-            serializeTreeMap(
-              // FIXME: this is empty in a new app...
-              pinia.state.value._pc_query?.caches,
-            ),
-          )
+        if (ssrContext) {
+          ssrContext.payload.pinia_colada = markRaw(serializeQueryCache(queryCache))
         }
       })
-    } else if (nuxtApp.payload && nuxtApp.payload.pinia_colada) {
+    }
+    else if (nuxtApp.payload && nuxtApp.payload.pinia_colada) {
       // we are inside of an injectable context so `useQueryCache()` works
-      hydrateQueryCache(useQueryCache(pinia), nuxtApp.payload.pinia_colada)
+      hydrateQueryCache(queryCache, nuxtApp.payload.pinia_colada)
     }
   },
 })

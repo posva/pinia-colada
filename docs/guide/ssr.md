@@ -13,14 +13,14 @@ If you use [devalue](https://github.com/Rich-Harris/devalue), you can follow the
 ```ts
 import devalue from 'devalue'
 import { markRaw } from 'vue'
-import { TreeMapNode, serializeTreeMap, hydrateQueryCache } from '@pinia/colada'
+import { isQueryCache, serializeQueryCache, hydrateQueryCache } from '@pinia/colada'
 
-const stringified = devalue.stringify(pinia.state.value, {
-  PiniaColada_TreeMapNode: (data: unknown) => data instanceof TreeMapNode && serializeTreeMap(data),
+const stringified = devalue.stringify(useQueryCache(pinia), {
+  PiniaColada_TreeMapNode: (data: unknown) => isQueryCache(data) && serializeQueryCache(data),
 })
 
 const revivedData = devalue.parse(stringified, {
-  PiniaColada_TreeMapNode: (data: ReturnType<typeof serializeTreeMap>) =>
+  PiniaColada_TreeMapNode: (data: ReturnType<typeof serializeQueryCache>) =>
     // We will use a custom hydration function
     data,
 })
