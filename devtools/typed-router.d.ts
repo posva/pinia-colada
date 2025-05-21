@@ -23,5 +23,6 @@ declare module 'vue-router/auto-routes' {
     '/queries': RouteRecordInfo<'/queries', '/queries', Record<never, never>, Record<never, never>>,
     '/queries/': RouteRecordInfo<'/queries/', '/queries', Record<never, never>, Record<never, never>>,
     '/queries/[queryId]': RouteRecordInfo<'/queries/[queryId]', '/queries/:queryId', { queryId: ParamValue<true> }, { queryId: ParamValue<false> }>,
+    '/settings': RouteRecordInfo<'/settings', '/settings', Record<never, never>, Record<never, never>>,
   }
 }
