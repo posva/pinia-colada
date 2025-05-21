@@ -2,11 +2,10 @@ import type { ShallowRef } from 'vue'
 import type { AsyncStatus, DataState } from './data-state'
 import { defineStore, skipHydrate } from 'pinia'
 import { customRef, getCurrentScope, shallowRef } from 'vue'
-import { EntryMap } from './tree-map'
+import { find, toCacheKey } from './entry-keys'
 import type { EntryFilter } from './entry-filter'
 import type { _EmptyObject } from './utils'
 import { noop, toValueWithArgs } from './utils'
-import { toCacheKey } from './entry-keys'
 import type { _ReduceContext } from './use-mutation'
 import { useMutationOptions } from './mutation-options'
 import type { UseMutationOptions } from './mutation-options'
@@ -85,7 +84,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
   // inside computed properties
   // We have two versions of the cache, one that track changes and another that doesn't so the actions can be used
   // inside computed properties
-  const cachesRaw = new EntryMap<UseMutationEntry<unknown, any, unknown, any>>()
+  const cachesRaw = new Map<string, UseMutationEntry<unknown, any, unknown, any>>()
   let triggerCache!: () => void
   const caches = skipHydrate(
     customRef(
@@ -269,7 +268,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
       ? filters.key
         ? [caches.value.get(toCacheKey(filters.key))].filter((v) => !!v)
         : [] // no key, no exact entry
-      : [...caches.value.find(filters.key)].filter(
+      : [...find(caches.value, filters.key)].filter(
           (entry) =>
             (filters.status == null || entry.state.value.status === filters.status)
             && (!filters.predicate || filters.predicate(entry)),

@@ -11,7 +11,7 @@ import { mockConsoleError, mockWarn } from '../test/mock-warn'
 import { delay, isSpy, promiseWithResolvers } from '../test/utils'
 import { PiniaColada } from './pinia-colada'
 import { hydrateQueryCache, QUERY_STORE_ID, useQueryCache } from './query-store'
-import type { _UseQueryEntryNodeValueSerialized } from './tree-map'
+import type { _UseQueryEntryNodeValueSerialized } from './query-store'
 import { useQuery } from './use-query'
 
 describe('useQuery', () => {

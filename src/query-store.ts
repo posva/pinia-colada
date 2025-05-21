@@ -14,12 +14,10 @@ import type { AsyncStatus, DataState } from './data-state'
 import type { EntryKeyTagged, EntryKey } from './entry-keys'
 import { useQueryOptions } from './query-options'
 import type { UseQueryOptions, UseQueryOptionsWithDefaults } from './query-options'
-import type { _UseQueryEntryNodeValueSerialized } from './tree-map'
 import type { EntryFilter } from './entry-filter'
-import { EntryMap } from './tree-map'
+import { find, toCacheKey } from './entry-keys'
 import type { ErrorDefault } from './types-extension'
 import { noop, toValueWithArgs, warnOnce } from './utils'
-import { toCacheKey } from './entry-keys'
 
 /**
  * Allows defining extensions to the query entry that are returned by `useQuery()`.
@@ -233,7 +231,7 @@ type DefineQueryEntry = [
 export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ action }) => {
   // We have two versions of the cache, one that track changes and another that doesn't so the actions can be used
   // inside computed properties
-  const cachesRaw = new EntryMap<UseQueryEntry<unknown, unknown, unknown>>()
+  const cachesRaw = new Map<string, UseQueryEntry<unknown, unknown, unknown>>()
   let triggerCache!: () => void
   const caches = skipHydrate(
     customRef(
@@ -484,7 +482,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
         ? filters.key
           ? [caches.value.get(toCacheKey(filters.key))].filter((v) => !!v)
           : [] // exact with no key can't match anything
-        : [...caches.value.find(filters.key)]
+        : [...find(caches.value, filters.key)]
     ).filter(
       (entry) =>
         (filters.stale == null || entry.stale === filters.stale)
@@ -893,6 +891,29 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
  * The cache of the queries. It's the store returned by {@link useQueryCache}.
  */
 export type QueryCache = ReturnType<typeof useQueryCache>
+
+/**
+ * Raw data of a query entry. Can be serialized from the server and used to
+ * hydrate the store.
+ *
+ * @internal
+ */
+export type _UseQueryEntryNodeValueSerialized<TData = unknown, TError = unknown> = [
+  /**
+   * The data returned by the query.
+   */
+  data: TData | undefined,
+
+  /**
+   * The error thrown by the query.
+   */
+  error: TError | null,
+
+  /**
+   * When was this data fetched the last time in ms
+   */
+  when?: number,
+]
 
 /**
  * Hydrates the query cache with the serialized cache. Used during SSR.

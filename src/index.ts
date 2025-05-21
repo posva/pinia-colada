@@ -79,10 +79,15 @@ export type {
   EntryFilter_Key as _EntryFilter_Key,
   EntryFilter_NoKey as _EntryFilter_NoKey,
 } from './entry-filter'
-export type { _UseQueryEntryNodeValueSerialized } from './tree-map'
+export type { _UseQueryEntryNodeValueSerialized } from './query-store'
 
 export { type _Awaitable, type _EmptyObject, type _MaybeArray } from './utils'
 
 export type { _ReduceContext } from './use-mutation'
 
 export type { _DataState_Base } from './data-state'
+
+/**
+ * @deprecated this type is not used anymore, use `EntryKey` instead
+ */
+export type EntryNodeKey = string | number

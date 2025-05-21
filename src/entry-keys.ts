@@ -89,3 +89,23 @@ export const DATA_TAG = Symbol('Pinia Colada dataTag')
  */
 
 export type EntryKeyTagged<T> = EntryKey & { [DATA_TAG]?: T }
+
+/**
+ * Finds entries that partially match the given key. If no key is provided, all
+ * entries are returned.
+ *
+ * @param map - The map to search in.
+ * @param partialKey - The key to match against. If not provided, all entries are yield.
+ *
+ * @internal
+ */
+export function* find<T extends { key: EntryKey | undefined }>(
+  map: Map<string, T>,
+  partialKey?: EntryKey,
+) {
+  for (const entry of map.values()) {
+    if (!partialKey || (entry.key && isSubsetOf(partialKey, entry.key))) {
+      yield entry
+    }
+  }
+}

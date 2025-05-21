@@ -1,12 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, getActivePinia, setActivePinia } from 'pinia'
-import type { UseQueryEntry } from './query-store'
+import type { UseQueryEntry, _UseQueryEntryNodeValueSerialized } from './query-store'
 import { useQueryCache } from './query-store'
 import { USE_QUERY_DEFAULTS } from './query-options'
 import { flushPromises } from '@vue/test-utils'
 import { createApp } from 'vue'
 import { useQuery } from './use-query'
-import type { _UseQueryEntryNodeValueSerialized } from './tree-map'
 
 describe('Query Cache store', () => {
   let app!: ReturnType<typeof createApp>
