@@ -13,6 +13,8 @@ on:
       - 'plugins/*/tsup.config.ts'
       - 'nuxt/src/**'
       - 'nuxt/package.json'
+      - 'devtools/src/**'
+      - 'devtools/package.json'
 
   push:
     branches:
@@ -28,6 +30,8 @@ on:
       - 'plugins/*/tsup.config.ts'
       - 'nuxt/src/**'
       - 'nuxt/package.json'
+      - 'devtools/src/**'
+      - 'devtools/package.json'
 
 jobs:
   build:
@@ -58,4 +62,4 @@ jobs:
         run: pnpm build:plugins
 
       - name: Release
-        run: pnpm dlx pkg-pr-new publish --compact --pnpm . './plugins/*' ./nuxt
+        run: pnpm dlx pkg-pr-new publish --compact --pnpm . './plugins/*' ./nuxt ./devtools
