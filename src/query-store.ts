@@ -142,6 +142,12 @@ export interface UseQueryEntry<
   }
 }
 
+// keep track of the entry being defined so we can add the queries in ensure
+// this allows us to refresh the entry when a defined query is used again
+// and refetchOnMount is true
+// eslint-disable-next-line import/no-mutable-exports
+export let currentDefineQueryEntry: DefineQueryEntry | undefined | null
+
 /**
  * Returns whether the entry is using a placeholder data.
  *
@@ -213,6 +219,7 @@ type DefineQueryEntry = [
   lastEnsuredEntries: UseQueryEntry[],
   returnValue: unknown,
   effect: EffectScope,
+  paused: ShallowRef<boolean>,
 ]
 
 /**
@@ -317,10 +324,6 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       })!,
   )
 
-  // keep track of the entry being defined so we can add the queries in ensure
-  // this allows us to refresh the entry when a defined query is used again
-  // and refetchOnMount is true
-  let currentDefineQueryEntry: DefineQueryEntry | undefined | null
   const defineQueryMap = new WeakMap<() => unknown, DefineQueryEntry>()
 
   /**
@@ -331,7 +334,13 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     let defineQueryEntry = defineQueryMap.get(fn)
     if (!defineQueryEntry) {
       // create the entry first
-      currentDefineQueryEntry = defineQueryEntry = [[], null, scope.run(() => effectScope())!]
+      currentDefineQueryEntry = defineQueryEntry = scope.run(() => [
+        [],
+        null,
+        effectScope(),
+        shallowRef(false),
+      ])!
+
       // then run it so it can add the queries to the entry
       // we use the app context for injections and the scope for effects
       defineQueryEntry[1] = app.runWithContext(() => defineQueryEntry![2].run(fn)!)
@@ -340,6 +349,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     } else {
       // ensure the scope is active so effects computing inside `useQuery()` run (e.g. the entry computed)
       defineQueryEntry[2].resume()
+      defineQueryEntry[3].value = false
       // if the entry already exists, we know the queries inside
       // we should consider as if they are activated again
       defineQueryEntry[0] = defineQueryEntry[0].map((oldEntry) =>

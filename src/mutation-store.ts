@@ -1,5 +1,5 @@
 import type { ShallowRef } from 'vue'
-import type { AsyncStatus, DataState, DataStateStatus } from './data-state'
+import type { AsyncStatus, DataState } from './data-state'
 import { defineStore, skipHydrate } from 'pinia'
 import { customRef, getCurrentScope, shallowRef } from 'vue'
 import { EntryMap } from './tree-map'

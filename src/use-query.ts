@@ -13,7 +13,7 @@ import {
 } from 'vue'
 import { IS_CLIENT, useEventListener } from './utils'
 import type { UseQueryEntry, UseQueryEntryExtensions } from './query-store'
-import { isEntryUsingPlaceholderData, useQueryCache } from './query-store'
+import { currentDefineQueryEntry, isEntryUsingPlaceholderData, useQueryCache } from './query-store'
 import { useQueryOptions } from './query-options'
 import type { UseQueryOptions, UseQueryOptionsWithDefaults } from './query-options'
 import type { ErrorDefault } from './types-extension'
@@ -179,6 +179,7 @@ export function useQuery<
   const optionDefaults = useQueryOptions()
   const hasCurrentInstance = getCurrentInstance()
   const currentEffect = getCurrentDefineQueryEffect() || getCurrentScope()
+  const isPaused = currentDefineQueryEntry?.[3]
 
   const options = computed(
     () =>
@@ -207,8 +208,12 @@ export function useQuery<
     // if the effect is paused, we don't want to compute the entry because its key
     // might be referencing undefined values
     // https://github.com/posva/pinia-colada/issues/227
-    // @ts-expect-error: _isPaused is private
-    currentEffect?._isPaused
+    // NOTE: _isPaused isn't reactive which meant that reentering a component
+    // would never recompute the entry, so _isPaused was replaced
+    // this makes the computed depend on nothing initially, but the `watch` on the entry
+    // with immediate: true will trigger it again
+    // https://github.com/posva/pinia-colada/issues/290
+    isPaused?.value // && currentEffect?._isPaused
       ? lastEntry!
       : (lastEntry = queryCache.ensure<TData, TError, TDataInitial>(options.value, lastEntry)),
   )

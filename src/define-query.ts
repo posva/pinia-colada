@@ -104,7 +104,7 @@ export function defineQuery(optionsOrSetup: DefineQueryOptions | (() => unknown)
     const previousEffect = currentDefineQueryEffect
     const currentScope = getCurrentInstance() || (currentDefineQueryEffect = getCurrentScope())
 
-    const [ensuredEntries, ret, scope] = queryCache.ensureDefinedQuery(setupFn)
+    const [ensuredEntries, ret, scope, isPaused] = queryCache.ensureDefinedQuery(setupFn)
 
     // subsequent calls to the composable returned by useQuery will not trigger the `useQuery()`,
     // this ensures the refetchOnMount option is respected
@@ -143,6 +143,7 @@ export function defineQuery(optionsOrSetup: DefineQueryOptions | (() => unknown)
         // of a component that unmounts
         if (--refCount < 1) {
           scope.pause()
+          isPaused.value = true
         }
       })
     }

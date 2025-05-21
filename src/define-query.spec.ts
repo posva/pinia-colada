@@ -360,6 +360,51 @@ describe('defineQuery', () => {
       expect(spy).toHaveBeenCalledTimes(2)
     })
 
+    // https://github.com/posva/pinia-colada/issues/290
+    it('keeps reactivity after unmounting', async () => {
+      const routeId = ref(1)
+      const key = vi.fn(() => ['key', routeId.value])
+      const query = vi.fn(async () => routeId.value)
+      const useProfile = defineQuery(() => {
+        return useQuery({ key, query, staleTime: 1_000 })
+      })
+
+      const ViewComponent = defineComponent({
+        setup() {
+          return { ...useProfile() }
+        },
+        template: `<div>{{ data }}</div>`,
+      })
+
+      const wrapper = mount(
+        {
+          components: { ViewComponent },
+          setup() {
+            return { routeId }
+          },
+          template: `<div>{{ routeId }}:<ViewComponent v-if="routeId !== 0" /></div>`,
+        },
+        {
+          global: {
+            plugins: [createPinia(), PiniaColada],
+          },
+        },
+      )
+
+      await flushPromises()
+      routeId.value = 2
+      await flushPromises()
+
+      // hide the View, should pause the effect
+      routeId.value = 0
+      await flushPromises()
+
+      routeId.value = 1
+      await flushPromises()
+      // ensures that we have both values up to date
+      expect(wrapper.text()).toBe('1:1')
+    })
+
     it('refetches if refetchOnMount is always', async () => {
       const query = vi.fn(async () => {
         return 'todos'
