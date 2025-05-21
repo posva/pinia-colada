@@ -48,7 +48,14 @@ const queriesGrouped = computed<
 const container = useTemplateRef('container')
 const isNarrow = useContainerMediaQuery('(width < 768px)', () => container.value?.$el)
 
-const queryListPanelSize = useLocalStorage<number>('pc-devtools-query-list-panel-size', 30)
+const queryListPanelSize = useLocalStorage<number[]>(
+  'pc-devtools-query-list-panel-size',
+  [30, 70],
+)
+
+function updatePanesSize({ panes }: { panes: { size: number }[] }) {
+  queryListPanelSize.value = panes.map((pane) => pane.size)
+}
 </script>
 
 <template>
@@ -88,9 +95,14 @@ const queryListPanelSize = useLocalStorage<number>('pc-devtools-query-list-panel
       </div>
     </div>
 
-    <Splitpanes ref="container" class="overflow-hidden" :horizontal="isNarrow">
+    <Splitpanes
+      ref="container"
+      class="overflow-hidden"
+      :horizontal="isNarrow"
+      @resized="updatePanesSize"
+    >
       <!-- List Panel -->
-      <Pane min-size="15" :size="queryListPanelSize" class="flex flex-col">
+      <Pane min-size="15" :size="queryListPanelSize[0]" class="flex flex-col">
         <ol role="list" class="divide-y divide-(--ui-border)">
           <li v-for="entry of filteredItems" :key="entry.id">
             <ListQueryEntry :entry />
@@ -99,7 +111,7 @@ const queryListPanelSize = useLocalStorage<number>('pc-devtools-query-list-panel
       </Pane>
 
       <!-- Details Panel -->
-      <Pane min-size="30" :size="100 - queryListPanelSize" class="flex flex-col">
+      <Pane min-size="30" :size="queryListPanelSize[1]" class="flex flex-col">
         <RouterView />
       </Pane>
     </Splitpanes>
