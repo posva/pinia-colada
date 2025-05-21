@@ -34,6 +34,7 @@ export {
 
 export {
   hydrateQueryCache,
+  isQueryCache,
   type QueryCache,
   serializeQueryCache,
   useQueryCache,

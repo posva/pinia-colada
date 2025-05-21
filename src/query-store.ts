@@ -893,6 +893,22 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
 export type QueryCache = ReturnType<typeof useQueryCache>
 
 /**
+ * Checks if the given object is a query cache. Used in SSR to apply custom serialization.
+ *
+ * @param cache - the object to check
+ *
+ * @see {@link QueryCache}
+ * @see {@link serializeQueryCache}
+ */
+export function isQueryCache(cache: unknown): cache is QueryCache {
+  return (
+    typeof cache === 'object'
+    && !!cache
+    && (cache as Record<string, unknown>).$id === QUERY_STORE_ID
+  )
+}
+
+/**
  * Raw data of a query entry. Can be serialized from the server and used to
  * hydrate the store.
  *
