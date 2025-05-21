@@ -5,11 +5,17 @@ const { data } = useFirst()
 </script>
 
 <template>
-  <RouterLink :to="{ query: {} }" v-slot="{ href }">{{ href }}</RouterLink>
+  <RouterLink v-slot="{ href }" :to="{ query: {} }">
+    {{ href }}
+  </RouterLink>
   |
-  <RouterLink :to="{ query: { type: 'p_1' } }" v-slot="{ href }">{{ href }}</RouterLink>
+  <RouterLink v-slot="{ href }" :to="{ query: { type: 'p_1' } }">
+    {{ href }}
+  </RouterLink>
   |
-  <RouterLink :to="{ query: { type: 'p_2' } }" v-slot="{ href }">{{ href }}</RouterLink>
+  <RouterLink v-slot="{ href }" :to="{ query: { type: 'p_2' } }">
+    {{ href }}
+  </RouterLink>
 
   <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px">
     <pre>{{ data }}</pre>

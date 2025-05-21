@@ -245,7 +245,7 @@ function openPiPWindow() {
 
 function attachCssPropertyRules(el: HTMLElement | null, doc: Document = document) {
   if (!el || !el.shadowRoot) {
-    throw new Error('No devtools elemnt found for Pinia Colada devtools')
+    throw new Error('No devtools element found for Pinia Colada devtools')
   }
 
   const style = doc.getElementById('__pc-tw-properties') ?? doc.createElement('style')

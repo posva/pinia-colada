@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, useTemplateRef } from 'vue'
 import { Pane, Splitpanes } from '@posva/splitpanes'
 import { useQueryEntries } from '../composables/duplex-channel'
 import { getQueryStatus, STATUS_COLOR_CLASSES } from '../utils/query-state'
 import type { UseQueryEntryPayloadStatus } from '../utils/query-state'
 import type { UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
+import { useContainerMediaQuery } from '../composables/use-container-media-query'
 
 const searchQuery = ref('')
 
@@ -42,6 +43,9 @@ const queriesGrouped = computed<
     ...Object.groupBy(filteredItems.value, (item) => getQueryStatus(item)),
   }
 })
+
+const container = useTemplateRef('container')
+const isNarrow = useContainerMediaQuery('(width < 768px)', () => container.value?.$el)
 </script>
 
 <template>
@@ -81,7 +85,7 @@ const queriesGrouped = computed<
       </div>
     </div>
 
-    <Splitpanes class="overflow-hidden">
+    <Splitpanes ref="container" class="overflow-hidden" :horizontal="isNarrow">
       <!-- List Panel -->
       <Pane min-size="15" :size="30" class="flex flex-col">
         <ol role="list" class="divide-y divide-(--ui-border)">
