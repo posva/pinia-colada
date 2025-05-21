@@ -1,3 +1,9 @@
+## [0.1.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-retry@0.0.6...@pinia/colada-plugin-retry@0.1.0) (2025-05-21)
+
+### Code Refactoring
+
+- **types:** rename `TResult` into TData ([09338a2](https://github.com/posva/pinia-colada/commit/09338a26a3b2b09463e457a1711900abe6bcdeff))
+
 ## [0.0.6](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-retry@0.0.5...@pinia/colada-plugin-retry@0.0.6) (2025-04-25)
 
 ### Bug Fixes

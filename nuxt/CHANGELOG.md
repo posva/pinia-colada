@@ -1,3 +1,7 @@
+## [0.2.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.1.3...@pinia/colada-nuxt@0.2.0) (2025-05-21)
+
+No major changes in this release
+
 ## [0.1.3](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.1.2...@pinia/colada-nuxt@0.1.3) (2025-04-25)
 
 ### Bug Fixes

@@ -1,3 +1,38 @@
+## [0.16.0](https://github.com/posva/pinia-colada/compare/v0.15.3...v0.16.0) (2025-05-21)
+
+This is the biggest release to date! Many bug fixes, typed keys, a lighter and faster build!
+
+### ⚠ BREAKING CHANGES
+
+- **query:** `queryCache.invalidateQueries()` now accepts a second parameter to control whether to refetch or not active queries. It can be set to `'all'` to force fetch all queries. This replaces the existing behavior of passing `active: null` (**can be removed now**) which wasn't actually working. **You shouldn't be negatively affected by this change as it wasn't working previously**.
+- The internal cache structure has been refactored to be simpler, faster and smaller. Keys now support deeply nested objects and partially matches them when filtering (e.g. `queryCache.getEntries()`). To achieve this, the hydrated version of the cache has changed. `serializeTreeMap` has been removed but `serializeQueryCache` (which should be preferred) has been kept. `EntryNodeKey` and `TreeMapNode` (internals) have been removed. `EntryNodeKey` was just `string | number`. `toCacheKey` has been adapted and now returns a plain string rather than an array. This also fixed `queryCache.getEntries(['1'])` actually returning entries defined with a numeric key (`[1]`). The type for `key` is now stricter to ensure everything works well at the type level, you might notice it doesn't allow `undefined` as a value (except in objects), **this is intended** as the serialized version (JSON) transforms it no `null`, and will not match in the cache if used, if you want an nullish value, use `null`. The [documentation has been updated to reflect this](https://pinia-colada.esm.dev/guide/query-keys.html#Keys-are-hierarchical)
+- **types:** If you built a plugin, you will have to rename the type params of generics like `UseQueryEntryExtensions` from `TResult` to `TData`. Otherwise, this change won't affect you.
+
+### Features
+
+- allow deeply nested structured keys ([59227a8](https://github.com/posva/pinia-colada/commit/59227a8e28dfffa2991d2aa28ce57357ee5d074b)), closes [#149](https://github.com/posva/pinia-colada/issues/149)
+- **query:** allow dynamic typed keys ([0053deb](https://github.com/posva/pinia-colada/commit/0053debd6a0d364c954777363d7bd91b2106b4b2))
+- **query:** allow for typed query keys ([5068a52](https://github.com/posva/pinia-colada/commit/5068a52f254ca82baa3f0395d9865ba39385d3b8))
+- queryCache.setQueriesData ([4818d3e](https://github.com/posva/pinia-colada/commit/4818d3ecc00a3a1900d2b4cf74d29969e6787bc3))
+- **types:** explicit types for useInfiniteQuery ([5eb9e3b](https://github.com/posva/pinia-colada/commit/5eb9e3bad47cc117669f9d153eebfe0f8bd96c33))
+- **types:** stricter keys ([02f0269](https://github.com/posva/pinia-colada/commit/02f026963e5cd6a2e6e695d2096a2557e71e6974))
+
+### Bug Fixes
+
+- avoid fetch with initialData ([d1eb4c2](https://github.com/posva/pinia-colada/commit/d1eb4c289cfea40090d84e6074a97a8b54403f08))
+- **query:** gc entries created through dynamic useQuery in defineQuery ([90d5d83](https://github.com/posva/pinia-colada/commit/90d5d8315d3255f852abb8f9c9c51954bbbdc292))
+- **query:** invalidate inactive queries too ([cf5a790](https://github.com/posva/pinia-colada/commit/cf5a790c0bfb525442d32b57d3b2dce92ae5f3b7)), closes [#287](https://github.com/posva/pinia-colada/issues/287)
+- **query:** restore reactivity after unmounting defineQuery ([dc2315a](https://github.com/posva/pinia-colada/commit/dc2315a900d51efcec55dfab5fa7cf96889b555c)), closes [#290](https://github.com/posva/pinia-colada/issues/290)
+- **types:** make key types stricter ([9669605](https://github.com/posva/pinia-colada/commit/9669605010804ca36e7ff70b03cd28023b834d8a))
+
+### Reverts
+
+- Revert "refactor: use external interface for QueryCache" ([d6befc4](https://github.com/posva/pinia-colada/commit/d6befc4d30ea87a6954cbc42c1ef24819b66307e))
+
+### Code Refactoring
+
+- **types:** rename `TResult` into TData ([09338a2](https://github.com/posva/pinia-colada/commit/09338a26a3b2b09463e457a1711900abe6bcdeff))
+
 ## [0.15.3](https://github.com/posva/pinia-colada/compare/v0.15.2...v0.15.3) (2025-05-06)
 
 ### Bug Fixes

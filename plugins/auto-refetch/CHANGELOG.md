@@ -1,3 +1,13 @@
+## [0.1.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-auto-refetch@0.0.6...@pinia/colada-plugin-auto-refetch@0.1.0) (2025-05-21)
+
+### Bug Fixes
+
+- **types:** expose symbol key as internal ([8fe63e2](https://github.com/posva/pinia-colada/commit/8fe63e2273e057aa48e8c6981b01c37349467d6c))
+
+### Code Refactoring
+
+- **types:** rename `TResult` into TData ([09338a2](https://github.com/posva/pinia-colada/commit/09338a26a3b2b09463e457a1711900abe6bcdeff))
+
 ## [0.0.6](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-auto-refetch@0.0.5...@pinia/colada-plugin-auto-refetch@0.0.6) (2025-04-25)
 
 ### Bug Fixes
