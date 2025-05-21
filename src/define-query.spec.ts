@@ -748,6 +748,9 @@ describe('defineQuery', () => {
         expect(cache.getQueryData([1])).toBe('todos')
         expect(cache.getQueryData([2])).toBe('todos')
       })
+
+      // NOTE: not sure if worth it, defineQuery should be used sparingly
+      it.todo('stops the effect after gcTime if no active query is left')
     })
 
     describe('with effect scope', () => {
