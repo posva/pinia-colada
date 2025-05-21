@@ -76,8 +76,8 @@ const FILES_TO_COMMIT = [
   'plugins/*/package.json',
   'plugins/*/CHANGELOG.md',
   // devtools
-  'devtools/*/package.json',
-  'devtools/*/CHANGELOG.md',
+  'devtools/package.json',
+  'devtools/CHANGELOG.md',
   // nuxt
   'nuxt/package.json',
   'nuxt/CHANGELOG.md',
