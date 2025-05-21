@@ -6,6 +6,7 @@ import { getQueryStatus, STATUS_COLOR_CLASSES } from '../utils/query-state'
 import type { UseQueryEntryPayloadStatus } from '../utils/query-state'
 import type { UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
 import { useContainerMediaQuery } from '../composables/use-container-media-query'
+import { useLocalStorage } from '@vueuse/core'
 
 const searchQuery = ref('')
 
@@ -46,6 +47,8 @@ const queriesGrouped = computed<
 
 const container = useTemplateRef('container')
 const isNarrow = useContainerMediaQuery('(width < 768px)', () => container.value?.$el)
+
+const queryListPanelSize = useLocalStorage<number>('pc-devtools-query-list-panel-size', 30)
 </script>
 
 <template>
@@ -87,7 +90,7 @@ const isNarrow = useContainerMediaQuery('(width < 768px)', () => container.value
 
     <Splitpanes ref="container" class="overflow-hidden" :horizontal="isNarrow">
       <!-- List Panel -->
-      <Pane min-size="15" :size="30" class="flex flex-col">
+      <Pane min-size="15" :size="queryListPanelSize" class="flex flex-col">
         <ol role="list" class="divide-y divide-(--ui-border)">
           <li v-for="entry of filteredItems" :key="entry.id">
             <ListQueryEntry :entry />
@@ -96,7 +99,7 @@ const isNarrow = useContainerMediaQuery('(width < 768px)', () => container.value
       </Pane>
 
       <!-- Details Panel -->
-      <Pane min-size="30" class="flex flex-col">
+      <Pane min-size="30" :size="100 - queryListPanelSize" class="flex flex-col">
         <RouterView />
       </Pane>
     </Splitpanes>
