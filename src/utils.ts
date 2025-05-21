@@ -39,19 +39,22 @@ export const IS_CLIENT = typeof window !== 'undefined'
 
 /**
  * Type that represents a value that can be an array or a single value.
+ *
  * @internal
  */
 export type _MaybeArray<T> = T | T[]
 
 /**
- * Type that represents a value that can be a function or a single value. Used for `defineQuery()` and
- * `defineMutation()`.
+ * Type that represents a value that can be a function or a single value. Used
+ * for `defineQuery()` and `defineMutation()`.
+ *
  * @internal
  */
 export type _MaybeFunction<T, Args extends any[] = []> = T | ((...args: Args) => T)
 
 /**
  * Transforms a value or a function that returns a value to a value.
+ *
  * @param valFn either a value or a function that returns a value
  * @param args  arguments to pass to the function if `valFn` is a function
  */
@@ -64,12 +67,14 @@ export function toValueWithArgs<T, Args extends any[]>(
 
 /**
  * Type that represents a value that can be a promise or a single value.
+ *
  * @internal
  */
 export type _Awaitable<T> = T | Promise<T>
 
 /**
  * Flattens an object type for readability.
+ *
  * @internal
  */
 export type _Simplify<T> = { [K in keyof T]: T[K] }
@@ -170,6 +175,7 @@ const warnedMessages = new Set<string>()
 
 /**
  * Warns only once. This should only be used in dev
+ *
  * @param message - Message to show
  * @param id - Unique id for the message, defaults to the message
  */
