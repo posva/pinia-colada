@@ -75,7 +75,7 @@ const queryListPanelSize = useLocalStorage<number>('pc-devtools-query-list-panel
           <div class="rounded-full size-2" :class="STATUS_COLOR_CLASSES[status].base" />
           <span class="@max-[750px]:hidden">{{ status }}</span>
           <div
-            class="px-1.5 py-0.5 rounded"
+            class="px-1.5 py-0.5 rounded min-w-[1.65em] flex justify-center"
             :class="
               (queryGroup?.length ?? 0) === 0
                 ? 'bg-(--ui-bg-accented)'
