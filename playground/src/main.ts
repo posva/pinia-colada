@@ -1,8 +1,8 @@
 import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router/auto'
 import { routes } from 'vue-router/auto-routes'
-import { createPinia } from 'pinia'
-import { PiniaColada, PiniaColadaQueryHooksPlugin } from '@pinia/colada'
+import { createPinia, getActivePinia } from 'pinia'
+import { PiniaColada, PiniaColadaQueryHooksPlugin, useQueryCache } from '@pinia/colada'
 import './style.css'
 import 'water.css'
 import { PiniaColadaRetry } from '@pinia/colada-plugin-retry'
@@ -38,6 +38,9 @@ app.use(PiniaColada, {
   ],
 } satisfies PiniaColadaOptions)
 app.use(router)
+
+// @ts-expect-error: not declared
+window.queryCache = useQueryCache(getActivePinia())
 
 app.mount('#app')
 
