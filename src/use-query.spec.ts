@@ -171,6 +171,53 @@ describe('useQuery', () => {
       expect(wrapper.vm.status).toBe('success')
       expect(wrapper.vm.error).toBeNull()
     })
+
+    it('still fetches is refetch is immediately called with initialData', async () => {
+      const wrapper = mount(
+        defineComponent({
+          render: () => '<p>{{ data }}</p>',
+          setup() {
+            const useQueryResult = useQuery({
+              key: ['key'],
+              query: async () => 'ok',
+              initialData: () => 'initial',
+              staleTime: 1_000,
+            })
+            useQueryResult.refetch()
+            return {
+              ...useQueryResult,
+            }
+          },
+        }),
+        {
+          global: {
+            plugins: [createPinia(), PiniaColada],
+          },
+        },
+      )
+
+      await flushPromises()
+      expect(wrapper.vm.data).toBe('ok')
+    })
+
+    it('refetches data if key changes and has initialData and staleTime is 0', async () => {
+      const key = ref(1)
+      const { wrapper, query } = mountSimple({
+        key: () => [key.value],
+        query: async () => `ok: ${key.value}`,
+        initialData: () => 'init',
+        staleTime: 0,
+      })
+
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+      expect(wrapper.vm.data).toBe('ok: 1')
+
+      key.value = 2
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(2)
+      expect(wrapper.vm.data).toBe('ok: 2')
+    })
   })
 
   describe('staleTime', () => {
