@@ -1,3 +1,9 @@
+## [0.16.1](https://github.com/posva/pinia-colada/compare/v0.16.0...v0.16.1) (2025-05-22)
+
+### Bug Fixes
+
+- **ssr:** make `when` relative to work across timezones ([43b4f7d](https://github.com/posva/pinia-colada/commit/43b4f7da76672613b51483249e7a4657a5ef92b5)), closes [#293](https://github.com/posva/pinia-colada/issues/293)
+
 ## [0.16.0](https://github.com/posva/pinia-colada/compare/v0.15.3...v0.16.0) (2025-05-21)
 
 This is the biggest release to date! Many bug fixes, typed keys, a lighter and faster build!
