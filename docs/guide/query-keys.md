@@ -159,7 +159,7 @@ When creating query keys, organize your keys precisely to take advantage of this
 Keys can contain strings, numbers, objects, and arrays. Anything that is serializable to JSON can be used in a key. Keep in mind these rules when writing keys:
 
 - `['doc', 2]` and `['doc', '2']` are different keys
-- Within objects, `undefined` is stripped out but `null` is not but `null` is not. Therefore `['doc', { withComments: undefined }]` is equivalent to `['doc', {}]` and matches both `withComments: true` and `withComments: false`
+- Within objects, `undefined` is stripped out but `null` is not. Therefore `['doc', { withComments: undefined }]` is equivalent to `['doc', {}]` and matches both `withComments: true` and `withComments: false`
 - Arrays are also partially matched so `['doc', ['nested', 'array']]` is matched by `['doc', ['nested']]` but not by `['doc', ['nested', 'array', 'other']]`.
 
 ## Managing query keys (key factories)
