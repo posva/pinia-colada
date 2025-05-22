@@ -1671,7 +1671,7 @@ describe('useQuery', () => {
 
     it('uses initial data if present in store', async () => {
       const pinia = createPiniawithHydratedCache({
-        '["key"]': [2, null, Date.now()],
+        '["key"]': [2, null, 0],
       })
 
       const { wrapper } = mountSimple({ staleTime: 1000 }, { plugins: [pinia] })
@@ -1682,7 +1682,7 @@ describe('useQuery', () => {
 
     it('avoids fetching if initial data is fresh', async () => {
       const pinia = createPiniawithHydratedCache({
-        '["key"]': [2, null, Date.now()],
+        '["key"]': [2, null, 0],
       })
 
       const { wrapper, query } = mountSimple(
@@ -1699,7 +1699,7 @@ describe('useQuery', () => {
 
     it('sets the error if the initial data is an error', async () => {
       const pinia = createPiniawithHydratedCache({
-        '["key"]': [undefined, new Error('fail'), Date.now()],
+        '["key"]': [undefined, new Error('fail'), 0],
       })
       const { wrapper } = mountSimple({ refetchOnMount: false }, { plugins: [pinia] })
 
@@ -1710,7 +1710,7 @@ describe('useQuery', () => {
 
     it('sets the initial error even with initialData', async () => {
       const pinia = createPiniawithHydratedCache({
-        '["key"]': [undefined, new Error('fail'), Date.now()],
+        '["key"]': [undefined, new Error('fail'), 0],
       })
       const { wrapper } = mountSimple(
         { refetchOnMount: false, initialData: () => 42 },
@@ -1724,7 +1724,7 @@ describe('useQuery', () => {
     it('initialData is ignored if there is already data in the cache', async () => {
       const initialData = vi.fn(() => 42)
       const pinia = createPiniawithHydratedCache({
-        '["key"]': [2, null, Date.now()],
+        '["key"]': [2, null, 0],
       })
       const { wrapper } = mountSimple({ refetchOnMount: false, initialData }, { plugins: [pinia] })
 
@@ -1734,7 +1734,7 @@ describe('useQuery', () => {
 
     it('refreshes the data even with initial values after staleTime is elapsed', async () => {
       const pinia = createPiniawithHydratedCache({
-        '["key"]': [60, null, Date.now()],
+        '["key"]': [60, null, 0],
       })
       const { wrapper, query } = mountSimple(
         {

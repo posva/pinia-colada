@@ -192,7 +192,8 @@ export const queryEntry_toJSON: <TData, TError>(
 ) => _UseQueryEntryNodeValueSerialized<TData, TError> = ({ state: { value }, when }) => [
   value.data,
   value.error,
-  when,
+  // because of time zones, we create a relative time
+  when ? Date.now() - when : -1,
 ]
 // TODO: errors are not serializable by default. We should provide a way to serialize custom errors and, by default provide one that serializes the name and message
 
@@ -277,7 +278,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * @param [options] - options attached to the query
    * @param [initialData] - initial data of the query if any
    * @param [error] - initial error of the query if any
-   * @param [when] - when was the data or error fetched
+   * @param [when] - relative when was the data or error fetched (will be added to Date.now())
    */
   const create = action(
     <TData, TError, TDataInitial extends TData | undefined>(
@@ -285,7 +286,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       options: UseQueryOptionsWithDefaults<TData, TError, TDataInitial> | null = null,
       initialData?: TDataInitial,
       error: TError | null = null,
-      when: number = initialData === undefined ? 0 : Date.now(),
+      when: number = 0,
+      // when: number = initialData === undefined ? 0 : Date.now(),
     ): UseQueryEntry<TData, TError, TDataInitial> =>
       scope.run(() => {
         const state = shallowRef<DataState<TData, TError, TDataInitial>>(
@@ -305,7 +307,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           keyHash: toCacheKey(key),
           state,
           placeholderData: null,
-          when,
+          when: initialData === undefined ? 0 : Date.now() - when,
           asyncStatus,
           pending: null,
           // this set can contain components and effects and worsen the performance
@@ -941,8 +943,10 @@ export function hydrateQueryCache(
   serializedCache: Record<string, _UseQueryEntryNodeValueSerialized>,
 ) {
   for (const keyHash in serializedCache) {
-    const entryData = serializedCache[keyHash] ?? []
-    queryCache.caches.set(keyHash, queryCache.create(JSON.parse(keyHash), undefined, ...entryData))
+    queryCache.caches.set(
+      keyHash,
+      queryCache.create(JSON.parse(keyHash), undefined, ...(serializedCache[keyHash] ?? [])),
+    )
   }
 }
 
