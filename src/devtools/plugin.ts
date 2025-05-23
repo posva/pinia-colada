@@ -212,7 +212,38 @@ export function addDevtools(app: App, pinia: Pinia) {
     },
   )
 
-  // TODO: custom tab?
+  // @ts-expect-error: not defined in the types
+  window.__PINIA_COLADA_DEVTOOLS_LOAD = () => {
+    console.log('Pinia Colada Devtools loaded')
+    const devtoolsIframe = document.querySelector<HTMLIFrameElement>('#vue-devtools-iframe')
+    if (!devtoolsIframe) {
+      console.error('Pinia Colada Devtools: devtools iframe not found')
+      return
+    }
+    const pcIframe = devtoolsIframe.contentDocument?.querySelector('iframe')
+    if (!pcIframe) {
+      console.error('noooo')
+      return
+    }
+
+    const channel = new MessageChannel()
+
+    // Wait for the iframe to load
+    pcIframe.addEventListener('load', onLoad)
+    // Listen for messages on port1
+    channel.port1.onmessage = onMessage
+    // Transfer port2 to the iframe
+    pcIframe.contentWindow?.postMessage('A message from the index.html page!', '*', [channel.port2])
+
+    function onLoad() {
+      console.log('LOAD EVENT')
+    }
+
+    // Handle messages received on port1
+    function onMessage(e: MessageEvent) {
+      console.log('Message received from iframe:', e.data)
+    }
+  }
 
   addCustomTab({
     name: 'pinia-colada',

@@ -2,12 +2,49 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>🍹 Pinia Colada Devtools</title>
+
+    <script src="./dist-iframe/index.iife.js"></script>
   </head>
+
   <body>
-    <div id="app"></div>
-    <script type="module" src="/src/panel/main.ts"></script>
+    <p class="output">page2.html (iframe body)</p>
+
+    <script type="module">
+      const output = document.querySelector('.output')
+
+      window.addEventListener('message', onMessage)
+
+      function onMessage(e) {
+        if (!e.ports.length) return
+
+        output.innerText = e.data
+        // Use the transferred port to post a message to the main frame
+        e.ports[0].postMessage('A message from the iframe in page2.html')
+
+        const { configureApp, DevtoolsPanelCE, defineCustomElement } = PiniaColadaDevtools
+
+        customElements.define(
+          'pinia-colada-devtools',
+          defineCustomElement(DevtoolsPanelCE, {
+            configureApp(app) {
+              app.provide('port', e.ports[0])
+              return configureApp(app)
+            },
+            shadowRoot: true,
+          }),
+        )
+
+        const devtools = document.createElement('pinia-colada-devtools')
+        document.body.appendChild(devtools)
+
+        // debugger
+      }
+
+      window.parent?.parent?.__PINIA_COLADA_DEVTOOLS_LOAD?.()
+    </script>
+
+    <!-- <pinia-colada-devtools id="devtools"></pinia-colada-devtools> -->
   </body>
 </html>
