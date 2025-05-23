@@ -16,7 +16,7 @@ const {
   key: () => [
     'contacts',
     // @ts-expect-error: not the same route
-    route.params.id,
+    Number(route.params.id),
   ],
   query: ({ signal }) =>
     getContactById(

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, useTemplateRef } from 'vue'
 import type { ComponentPublicInstance } from 'vue'
 import { Pane, Splitpanes } from '@posva/splitpanes'
 import { useQueryEntries } from '../composables/duplex-channel'
@@ -46,9 +46,7 @@ const queriesGrouped = computed<
   }
 })
 
-// TODO: this one warns. Vue bug
-// const container = useTemplateRef('container')
-const container = ref<ComponentPublicInstance>()
+const container = useTemplateRef('split-panes-container')
 const isNarrow = useContainerMediaQuery('(width < 768px)', () => container.value?.$el)
 
 const queryListPanelSize = useLocalStorage<number[]>('pc-devtools-query-list-panel-size', [30, 70])
@@ -96,7 +94,7 @@ function updatePanesSize({ panes }: { panes: { size: number }[] }) {
     </div>
 
     <Splitpanes
-      ref="container"
+      ref="split-panes-container"
       class="overflow-hidden"
       :horizontal="isNarrow"
       @resized="updatePanesSize"
@@ -104,7 +102,7 @@ function updatePanesSize({ panes }: { panes: { size: number }[] }) {
       <!-- List Panel -->
       <Pane min-size="15" :size="queryListPanelSize[0]" class="flex flex-col">
         <ol role="list" class="divide-y divide-(--ui-border)">
-          <li v-for="entry of filteredItems" :key="entry.id">
+          <li v-for="entry of filteredItems" :key="entry.keyHash">
             <ListQueryEntry :entry />
           </li>
         </ol>

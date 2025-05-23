@@ -131,7 +131,7 @@ export function addDevtoolsInfo(queryCache: QueryCache): void {
 
 export function createQueryEntryPayload(entry: UseQueryEntry): UseQueryEntryPayload {
   return {
-    id: entry.key.join('\0'),
+    keyHash: entry.keyHash,
     key: entry.key,
     state: entry.state.value,
     asyncStatus: entry.asyncStatus.value,

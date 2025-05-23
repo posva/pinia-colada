@@ -48,7 +48,7 @@ channel.on('queries:all', (q) => {
   queries.value = q
 })
 channel.on('queries:update', (q) => {
-  const index = queries.value.findIndex((entry) => entry.id === q.id)
+  const index = queries.value.findIndex((entry) => entry.keyHash === q.keyHash)
   if (index !== -1) {
     queries.value.splice(index, 1, q)
   } else {
@@ -56,7 +56,7 @@ channel.on('queries:update', (q) => {
   }
 })
 channel.on('queries:delete', (q) => {
-  const index = queries.value.findIndex((entry) => entry.id === q.id)
+  const index = queries.value.findIndex((entry) => entry.keyHash === q.keyHash)
   if (index !== -1) {
     queries.value.splice(index, 1)
   }

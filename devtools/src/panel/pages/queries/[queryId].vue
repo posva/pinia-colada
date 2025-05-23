@@ -20,7 +20,7 @@ const route = useRoute('/queries/[queryId]')
 const queries = useQueryEntries()
 
 const selectedQuery = computed<UseQueryEntryPayload | null>(() => {
-  return queries.value.find((entry) => entry.id === route.params.queryId) ?? null
+  return queries.value.find((entry) => entry.keyHash === route.params.queryId) ?? null
 })
 
 const TIME_AGO_OPTIONS: FormatTimeAgoOptions = {
@@ -303,7 +303,8 @@ watch(
             class="rounded bg-neutral-500/20 p-1 overflow-auto max-h-[1200px]"
           >{{ selectedQuery.options }}</pre>
           <p v-else>
-            This Query entry has no options. It might have been created from the server or manually set with
+            This Query entry has no options. It might have been created from the server or manually
+            set with
             <code>queryCache.setQueryData()</code> for prefetching.
           </p>
         </div>

@@ -2,7 +2,7 @@ import type { RefetchOnControl, UseQueryEntry, UseQueryOptionsWithDefaults } fro
 import type { DEVTOOLS_INFO_KEY } from './plugins/devtools-info'
 
 export interface UseQueryEntryPayload {
-  id: string
+  keyHash: string
 
   key: UseQueryEntry['key']
   state: UseQueryEntry['state']['value']

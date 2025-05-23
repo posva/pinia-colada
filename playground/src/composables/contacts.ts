@@ -7,7 +7,8 @@ export const useContactSearch = defineQuery(() => {
   const { ...query } = useQuery({
     key: () => ['contacts-search', { searchText: searchText.value }],
     query: async ({ signal }) => searchContacts(searchText.value, {}, { signal }),
-    staleTime: 0,
+    // staleTime: 0,
+    gcTime: 30_000,
     // avoids flickering when the search text changes
     placeholderData: (previousData) => previousData,
     // avoids displaying the "Loading..." too quickly
