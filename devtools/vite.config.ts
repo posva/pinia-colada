@@ -62,6 +62,8 @@ export default defineConfig({
   },
 
   plugins: [
+    // some plugins are needed during dev and build in different places
+    // they should be split and duplicated accordingly, but this was faster
     VueRouter({
       routesFolder: [
         {
@@ -82,7 +84,8 @@ export default defineConfig({
     VueDevtools(),
     Components({
       dirs: [resolve(__dirname, './src/panel/components')],
-      dts: true,
+      // to avoid erasing the generated dts file during dev
+      dts: process.env.NODE_ENV !== 'production',
       resolvers: [
         (componentName) => {
           if (UiComponentRe.test(componentName)) {
