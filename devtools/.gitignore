@@ -2,3 +2,4 @@ dist
 dist-panel
 dist-shared
 .env
+dist-iframe

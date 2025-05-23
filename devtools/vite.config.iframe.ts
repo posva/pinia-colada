@@ -1,49 +1,39 @@
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
-import IconsResolver from 'unplugin-icons/resolver'
-import Components from 'unplugin-vue-components/vite'
 
 import baseConfig from './vite.config'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-
-const UiComponentRe = /^U[A-Z][a-z]/
 
 export default defineConfig({
   resolve: {
     ...baseConfig.resolve,
   },
 
-  build: {
-    sourcemap: true,
-    outDir: resolve(__dirname, './dist-panel'),
-    rollupOptions: {
-      input: resolve(__dirname, './iframe.html'),
-      external: ['@pinia/colada-devtools/shared'],
+  define: {
+    process: {
+      env: {
+        NODE_ENV: 'production',
+      },
     },
   },
 
-  plugins: [
-    ...(baseConfig.plugins || []),
-    Components({
-      dirs: [resolve(__dirname, './src/panel/components')],
-      dts: true,
-      resolvers: [
-        (componentName) => {
-          if (UiComponentRe.test(componentName)) {
-            return {
-              name: `default`,
-              from: resolve(__dirname, `./src/panel/components/${componentName}.ce.vue`),
-            }
-          }
-        },
-        IconsResolver({
-          alias: {
-            park: 'icon-park',
-          },
-        }),
-      ],
-    }),
-  ],
+  build: {
+    sourcemap: true,
+    // minify: false,
+    outDir: resolve(__dirname, './dist-iframe'),
+    lib: {
+      entry: resolve(__dirname, './src/panel/index.ts'),
+      name: 'PiniaColadaDevtools',
+      formats: ['iife'],
+      fileName: 'index',
+    },
+    rollupOptions: {
+      // input: resolve(__dirname, './iframe.html'),
+      // external: ['@pinia/colada-devtools/shared'],
+    },
+  },
+
+  plugins: [...(baseConfig.plugins || [])],
 })

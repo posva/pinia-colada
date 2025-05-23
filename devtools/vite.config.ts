@@ -67,6 +67,7 @@ export default defineConfig({
     // some plugins are needed during dev and build in different places
     // they should be split and duplicated accordingly, but this was faster
     VueRouter({
+      importMode: 'sync',
       routesFolder: [
         {
           src: resolve(__dirname, './src/panel/pages'),
