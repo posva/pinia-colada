@@ -36,7 +36,9 @@ onUnmounted(() => {
 })
 
 onMounted(() => {
-  emit('ready')
+  requestAnimationFrame(() => {
+    emit('ready')
+  })
   channel.emit('ping')
 })
 

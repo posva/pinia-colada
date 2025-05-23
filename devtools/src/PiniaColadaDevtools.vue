@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, shallowRef, useTemplateRef, watch } from 'vue'
 import { useQueryCache } from '@pinia/colada'
-import {
-  DuplexChannel,
-  DEVTOOLS_INFO_KEY,
-} from '@pinia/colada-devtools/shared'
+import { DuplexChannel, DEVTOOLS_INFO_KEY } from '@pinia/colada-devtools/shared'
 import type { AppEmits, DevtoolsEmits } from '@pinia/colada-devtools/shared'
 import { addDevtoolsInfo, createQueryEntryPayload } from './pc-devtools-info-plugin'
 // use dependency free simple useEventListener
@@ -243,7 +240,7 @@ function openPiPWindow() {
   )
 }
 
-function attachCssPropertyRules(el: HTMLElement | null, doc: Document = document) {
+function attachCssPropertyRules(el: HTMLElement, doc: Document = document) {
   if (!el || !el.shadowRoot) {
     throw new Error('No devtools element found for Pinia Colada devtools')
   }
@@ -268,7 +265,17 @@ function togglePiPWindow() {
   }
 }
 
+let tries = 0
 async function devtoolsOnReady() {
+  if (!devtoolsEl.value) {
+    if (++tries > 100) {
+      throw new Error('Failed to find devtools element for Pinia Colada devtools')
+    }
+    setTimeout(() => {
+      devtoolsOnReady()
+    }, 100)
+    return
+  }
   attachCssPropertyRules(devtoolsEl.value)
   transmitter.emit('queries:all', queryCache.getEntries({}).map(createQueryEntryPayload))
   transmitter.emit(
