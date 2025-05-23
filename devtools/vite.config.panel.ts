@@ -13,6 +13,7 @@ export default defineConfig({
 
   build: {
     sourcemap: true,
+    // minify: false,
     outDir: resolve(__dirname, './dist-panel'),
     lib: {
       entry: resolve(__dirname, './src/panel/index.ts'),

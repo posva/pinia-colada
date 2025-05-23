@@ -16,6 +16,7 @@ export default defineConfig({
 
   build: {
     sourcemap: true,
+    // minify: false,
     outDir: resolve(__dirname, './dist-shared'),
     lib: {
       entry: resolve(__dirname, './src/shared/index.ts'),
