@@ -1,3 +1,9 @@
+## [0.0.4](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.0.3...@pinia/colada-devtools@0.0.4) (2025-05-23)
+
+### Bug Fixes
+
+- improve devtools shadowRoot detection ([a803580](https://github.com/posva/pinia-colada/commit/a803580e7eaad7b63704d3ae02600c12ba572f8b))
+
 ## [0.0.3](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.0.2...@pinia/colada-devtools@0.0.3) (2025-05-23)
 
 ### Bug Fixes
