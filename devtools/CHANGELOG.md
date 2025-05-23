@@ -1,3 +1,9 @@
+## [0.0.5](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.0.4...@pinia/colada-devtools@0.0.5) (2025-05-23)
+
+### Bug Fixes
+
+- use keyHash as id ([1c0eaab](https://github.com/posva/pinia-colada/commit/1c0eaab3e3b51a472526dda7cc58a66444c302d4))
+
 ## [0.0.4](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.0.3...@pinia/colada-devtools@0.0.4) (2025-05-23)
 
 ### Bug Fixes
