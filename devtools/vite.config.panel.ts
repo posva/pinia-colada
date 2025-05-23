@@ -15,13 +15,14 @@ export default defineConfig({
     sourcemap: true,
     // minify: false,
     outDir: resolve(__dirname, './dist-panel'),
-    lib: {
-      entry: resolve(__dirname, './src/panel/index.ts'),
-      name: 'PiniaColadaDevtools_Panel',
-      formats: ['es'],
-      fileName: 'index',
-    },
+    // lib: {
+    //   entry: resolve(__dirname, './src/panel/index.ts'),
+    //   name: 'PiniaColadaDevtools_Panel',
+    //   formats: ['es'],
+    //   fileName: 'index',
+    // },
     rollupOptions: {
+      input: resolve(__dirname, './iframe.html'),
       external: ['@pinia/colada-devtools/shared'],
     },
   },
