@@ -2,7 +2,7 @@
  * Pinia Colada plugin that counts how many times a query has been fetched, has resolved, rejected, etc.
  *
  */
-import type { DataState, QueryCache, UseQueryEntry } from '@pinia/colada'
+import type { QueryCache, UseQueryEntry } from '@pinia/colada'
 import { toValue } from 'vue'
 import { DEVTOOLS_INFO_KEY } from '@pinia/colada-devtools/shared'
 import type { UseQueryEntryHistoryEntry, UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
@@ -14,6 +14,22 @@ export function addDevtoolsInfo(queryCache: QueryCache): void {
     return
   }
   installationMap.set(queryCache, true)
+
+  // apply initialization to any existing entries
+  for (const entry of queryCache.getEntries()) {
+    entry[DEVTOOLS_INFO_KEY] ??= {
+      count: {
+        total: 0,
+        succeed: 0,
+        errored: 0,
+        cancelled: 0,
+      },
+      updatedAt: now(),
+      inactiveAt: 0,
+      simulate: null,
+      history: [],
+    }
+  }
 
   queryCache.$onAction(({ name, args, after, onError }) => {
     if (name === 'create') {
@@ -149,53 +165,5 @@ export function createQueryEntryPayload(entry: UseQueryEntry): UseQueryEntryPayl
     devtools: entry[DEVTOOLS_INFO_KEY],
   }
 }
-
-//
-// export interface UseQueryEntryHistoryEntry extends Pick<UseQueryEntry, 'key'> {
-//   id: number
-//
-//   state: DataState<unknown, unknown, unknown>
-//
-//   /**
-//    * When was the last time the entry was updated.
-//    */
-//   updatedAt: number
-//
-//   /**
-//    * When was the entry created.
-//    */
-//   createdAt: number
-//
-//   /**
-//    * The time it took to fetch the entry.
-//    */
-//   fetchTime: {
-//     start: number
-//     end: number | null
-//   } | null
-// }
-//
-// export interface UseQueryDevtoolsInfo {
-//   count: {
-//     succeed: number
-//     errored: number
-//     cancelled: number
-//     total: number
-//   }
-//
-//   updatedAt: number
-//
-//   /**
-//    * When was this entry last inactive. 0 if it has never been inactive.
-//    */
-//   inactiveAt: number
-//
-//   simulate: 'error' | 'loading' | null
-//
-//   /**
-//    * Only the last 10 entries are kept.
-//    */
-//   history: UseQueryEntryHistoryEntry[]
-// }
 
 const installationMap = new WeakMap<object, boolean>()
