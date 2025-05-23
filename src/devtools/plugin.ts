@@ -1,9 +1,10 @@
-import { setupDevtoolsPlugin } from '@vue/devtools-api'
+import { addCustomTab, setupDevtoolsPlugin } from '@vue/devtools-api'
 import { watch } from 'vue'
 import type { App } from 'vue'
 import type { Pinia } from 'pinia'
 import { useQueryCache } from '../query-store'
 import type { AsyncStatus, DataStateStatus } from '../data-state'
+import devtoolsPath from '@pinia/colada-devtools/iframe.html?url'
 
 const QUERY_INSPECTOR_ID = 'pinia-colada-queries'
 const ID_SEPARATOR = '\0'
@@ -213,23 +214,23 @@ export function addDevtools(app: App, pinia: Pinia) {
 
   // TODO: custom tab?
 
-  // addCustomTab({
-  //   name: 'pinia-colada',
-  //   title: 'Pinia Colada',
-  //   icon: 'https://pinia-colada.esm.dev/logo.svg',
-  //   view: {
-  //     type: 'iframe',
-  //     src: '//localhost:',
-  //     persistent: true,
-  //     // type: 'vnode',
-  //     // sfc: DevtoolsPanel,
-  //     // type: 'vnode',
-  //     // vnode: h(DevtoolsPane),
-  //     // vnode: h('p', ['hello world']),
-  //     // vnode: createVNode(DevtoolsPane),
-  //   },
-  //   category: 'modules',
-  // })
+  addCustomTab({
+    name: 'pinia-colada',
+    title: 'Pinia Colada',
+    icon: 'https://pinia-colada.esm.dev/logo.svg',
+    view: {
+      type: 'iframe',
+      src: devtoolsPath,
+      persistent: true,
+      // type: 'vnode',
+      // sfc: DevtoolsPanel,
+      // type: 'vnode',
+      // vnode: h(DevtoolsPane),
+      // vnode: h('p', ['hello world']),
+      // vnode: createVNode(DevtoolsPane),
+    },
+    category: 'modules',
+  })
 
   // window.addEventListener('message', (event) => {
   //   const data = event.data
