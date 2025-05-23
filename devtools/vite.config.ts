@@ -6,9 +6,12 @@ import VueDevtools from 'vite-plugin-vue-devtools'
 import Dts from 'vite-plugin-dts'
 import VueRouter from 'unplugin-vue-router/vite'
 import TailwindCSS from '@tailwindcss/vite'
+import IconsResolver from 'unplugin-icons/resolver'
 import Icons from 'unplugin-icons/vite'
+import Components from 'unplugin-vue-components/vite'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
+const UiComponentRe = /^U[A-Z][a-z]/
 
 export default defineConfig({
   resolve: {
@@ -77,6 +80,25 @@ export default defineConfig({
     }),
     Icons({ compiler: 'vue3' }),
     VueDevtools(),
+    Components({
+      dirs: [resolve(__dirname, './src/panel/components')],
+      dts: true,
+      resolvers: [
+        (componentName) => {
+          if (UiComponentRe.test(componentName)) {
+            return {
+              name: `default`,
+              from: resolve(__dirname, `./src/panel/components/${componentName}.ce.vue`),
+            }
+          }
+        },
+        IconsResolver({
+          alias: {
+            park: 'icon-park',
+          },
+        }),
+      ],
+    }),
     Dts({ rollupTypes: true }),
     TailwindCSS(),
   ],
