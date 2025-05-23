@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises'
 import { existsSync } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import minimist from 'minimist'
 import chalk from 'chalk'
@@ -22,6 +22,7 @@ const {
   noDepsUpdate,
   noPublish,
   noLockUpdate,
+  all: skipChangeCheck,
 } = args
 
 if (args.h || args.help) {
@@ -38,6 +39,7 @@ Flags:
   --noDepsUpdate      Skip updating dependencies in package.json files
   --noPublish         Skip publishing packages
   --noLockUpdate      Skips updating the lock with "pnpm install"
+  --all               Skip checking if the packages have changed since last release
 `.trim(),
   )
   process.exit(0)
@@ -174,7 +176,7 @@ async function main() {
   step(`Ready to release ${packagesToRelease.map(({ name }) => chalk.bold.white(name)).join(', ')}`)
 
   const pkgWithVersions = await pSeries(
-    packagesToRelease.map(({ name, path, pkg }) => async () => {
+    packagesToRelease.map(({ name, path, pkg, relativePath }) => async () => {
       let { version } = pkg
 
       const prerelease = semver.prerelease(version)
@@ -233,7 +235,7 @@ async function main() {
         throw new Error(`invalid target version: ${version}`)
       }
 
-      return { name, path, version, pkg }
+      return { name, path, relativePath, version, pkg }
     }),
   )
 
@@ -315,9 +317,20 @@ async function main() {
   }
 
   step('\nBuilding all packages...')
-  if (!skipBuild && !isDryRun) {
-    await run('pnpm', ['run', 'build'])
-    await run('pnpm', ['run', 'build:plugins'])
+  if (!skipBuild) {
+    // the main package is needed for plugins to work
+    await runIfNotDry('pnpm', ['run', 'build'])
+    await runIfNotDry('pnpm', [
+      'run',
+      '--stream',
+      '--parallel',
+      // build only on changed packages
+      ...pkgWithVersions.flatMap(({ relativePath }) =>
+        // the root package has already been built
+        relativePath === '' ? [] : ['--filter', `./${relativePath}`],
+      ),
+      'build',
+    ])
   } else {
     console.log(`(skipped)`)
   }
@@ -470,7 +483,7 @@ async function getLastTag(pkgName) {
  * Get the packages that have changed. Based on `lerna changed` but without lerna.
  *
  * @param {string[]} folders
- * @returns {Promise<{ name: string; path: string; pkg: any; version: string; start: string }[]} a promise of changed packages
+ * @returns {Promise<{ name: string; path: string; relativePath: string; pkg: any; version: string; start: string }[]} a promise of changed packages
  */
 async function getChangedPackages(...folders) {
   const pkgs = await Promise.all(
@@ -502,8 +515,9 @@ async function getChangedPackages(...folders) {
         ],
         { stdio: 'pipe' },
       )
+      const relativePath = relative(join(__dirname, '..'), folder)
 
-      if (hasChanges) {
+      if (hasChanges || skipChangeCheck) {
         const changedFiles = hasChanges.split('\n').filter(Boolean)
         console.log(
           chalk.dim.blueBright(
@@ -514,6 +528,7 @@ async function getChangedPackages(...folders) {
 
         return {
           path: folder,
+          relativePath,
           name: pkg.name,
           version: pkg.version,
           pkg,
