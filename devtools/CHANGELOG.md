@@ -1,3 +1,9 @@
+## [0.0.3](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.0.2...@pinia/colada-devtools@0.0.3) (2025-05-23)
+
+### Bug Fixes
+
+- add devtools info on existing entries ([47c86dc](https://github.com/posva/pinia-colada/commit/47c86dc15e5230a3e5426af7851e2f7b0dbfb7cf))
+
 ## [0.0.2](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.0.1...@pinia/colada-devtools@0.0.2) (2025-05-23)
 
 ### Bug Fixes
