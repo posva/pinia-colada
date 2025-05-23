@@ -1,6 +1,5 @@
 import type { RefetchOnControl, UseQueryEntry, UseQueryOptionsWithDefaults } from '@pinia/colada'
-import { toValue } from 'vue'
-import { DEVTOOLS_INFO_KEY } from './plugins/fetch-count'
+import type { DEVTOOLS_INFO_KEY } from './plugins/devtools-info'
 
 export interface UseQueryEntryPayload {
   id: string
@@ -42,43 +41,6 @@ export interface UseQueryEntryPayloadOptions
   refetchOnMount: RefetchOnControl
   refetchOnReconnect: RefetchOnControl
   refetchOnWindowFocus: RefetchOnControl
-}
-
-export function createQueryEntryPayload(entry: UseQueryEntry): UseQueryEntryPayload {
-  return {
-    id: entry.key.join('\0'),
-    key: entry.key,
-    state: entry.state.value,
-    asyncStatus: entry.asyncStatus.value,
-
-    active: entry.active,
-    stale: entry.stale,
-    when: entry.when,
-    options: entry.options && {
-      staleTime: entry.options.staleTime,
-      gcTime: entry.options.gcTime,
-      refetchOnMount: toValue(entry.options.refetchOnMount),
-      refetchOnReconnect: toValue(entry.options.refetchOnReconnect),
-      refetchOnWindowFocus: toValue(entry.options.refetchOnWindowFocus),
-      enabled: toValue(entry.options.enabled),
-    },
-    deps: Array.from(entry.deps).map((dep) =>
-      'uid' in dep
-        ? {
-            type: 'component',
-            uid: dep.uid,
-            name: dep.type.displayName ?? dep.type.name,
-          }
-        : {
-            type: 'effect',
-            active: dep.active,
-            detached: dep.detached,
-          },
-    ),
-    gcTimeout: typeof entry.gcTimeout === 'number' ? (entry.gcTimeout as number) : null,
-
-    devtools: entry[DEVTOOLS_INFO_KEY],
-  }
 }
 
 export function miniJsonParse(value: unknown): string {

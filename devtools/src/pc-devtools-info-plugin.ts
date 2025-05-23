@@ -4,6 +4,8 @@
  */
 import type { DataState, QueryCache, UseQueryEntry } from '@pinia/colada'
 import { toValue } from 'vue'
+import { DEVTOOLS_INFO_KEY } from '@pinia/colada-devtools/shared'
+import type { UseQueryEntryHistoryEntry, UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
 
 const now = () => performance.timeOrigin + performance.now()
 
@@ -111,63 +113,89 @@ export function addDevtoolsInfo(queryCache: QueryCache): void {
   })
 }
 
-export const DEVTOOLS_INFO_KEY = Symbol('fetch-count-pinia-colada-plugin')
+export function createQueryEntryPayload(entry: UseQueryEntry): UseQueryEntryPayload {
+  return {
+    id: entry.key.join('\0'),
+    key: entry.key,
+    state: entry.state.value,
+    asyncStatus: entry.asyncStatus.value,
 
-export interface UseQueryEntryHistoryEntry extends Pick<UseQueryEntry, 'key'> {
-  id: number
+    active: entry.active,
+    stale: entry.stale,
+    when: entry.when,
+    options: entry.options && {
+      staleTime: entry.options.staleTime,
+      gcTime: entry.options.gcTime,
+      refetchOnMount: toValue(entry.options.refetchOnMount),
+      refetchOnReconnect: toValue(entry.options.refetchOnReconnect),
+      refetchOnWindowFocus: toValue(entry.options.refetchOnWindowFocus),
+      enabled: toValue(entry.options.enabled),
+    },
+    deps: Array.from(entry.deps).map((dep) =>
+      'uid' in dep
+        ? {
+            type: 'component',
+            uid: dep.uid,
+            name: dep.type.displayName ?? dep.type.name,
+          }
+        : {
+            type: 'effect',
+            active: dep.active,
+            detached: dep.detached,
+          },
+    ),
+    gcTimeout: typeof entry.gcTimeout === 'number' ? (entry.gcTimeout as number) : null,
 
-  state: DataState<unknown, unknown, unknown>
-
-  /**
-   * When was the last time the entry was updated.
-   */
-  updatedAt: number
-
-  /**
-   * When was the entry created.
-   */
-  createdAt: number
-
-  /**
-   * The time it took to fetch the entry.
-   */
-  fetchTime: {
-    start: number
-    end: number | null
-  } | null
-}
-
-export interface UseQueryDevtoolsInfo {
-  count: {
-    succeed: number
-    errored: number
-    cancelled: number
-    total: number
-  }
-
-  updatedAt: number
-
-  /**
-   * When was this entry last inactive. 0 if it has never been inactive.
-   */
-  inactiveAt: number
-
-  simulate: 'error' | 'loading' | null
-
-  /**
-   * Only the last 10 entries are kept.
-   */
-  history: UseQueryEntryHistoryEntry[]
-}
-
-declare module '@pinia/colada' {
-  // eslint-disable-next-line unused-imports/no-unused-vars
-  interface UseQueryEntry<TData, TError, TDataInitial> {
-    /**
-     * Returns whether the query is currently delaying its `asyncStatus` from becoming `'loading'`. Requires the {@link PiniaColadaDelay} plugin.
-     */
-    [DEVTOOLS_INFO_KEY]: UseQueryDevtoolsInfo
+    devtools: entry[DEVTOOLS_INFO_KEY],
   }
 }
+
+//
+// export interface UseQueryEntryHistoryEntry extends Pick<UseQueryEntry, 'key'> {
+//   id: number
+//
+//   state: DataState<unknown, unknown, unknown>
+//
+//   /**
+//    * When was the last time the entry was updated.
+//    */
+//   updatedAt: number
+//
+//   /**
+//    * When was the entry created.
+//    */
+//   createdAt: number
+//
+//   /**
+//    * The time it took to fetch the entry.
+//    */
+//   fetchTime: {
+//     start: number
+//     end: number | null
+//   } | null
+// }
+//
+// export interface UseQueryDevtoolsInfo {
+//   count: {
+//     succeed: number
+//     errored: number
+//     cancelled: number
+//     total: number
+//   }
+//
+//   updatedAt: number
+//
+//   /**
+//    * When was this entry last inactive. 0 if it has never been inactive.
+//    */
+//   inactiveAt: number
+//
+//   simulate: 'error' | 'loading' | null
+//
+//   /**
+//    * Only the last 10 entries are kept.
+//    */
+//   history: UseQueryEntryHistoryEntry[]
+// }
 
 const installationMap = new WeakMap<object, boolean>()

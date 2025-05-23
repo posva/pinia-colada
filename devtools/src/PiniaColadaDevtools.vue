@@ -2,13 +2,13 @@
 import { onBeforeUnmount, shallowRef, useTemplateRef, watch } from 'vue'
 import { useQueryCache } from '@pinia/colada'
 import {
-  createQueryEntryPayload,
   DuplexChannel,
-  useEventListener,
-  addDevtoolsInfo,
   DEVTOOLS_INFO_KEY,
 } from '@pinia/colada-devtools/shared'
 import type { AppEmits, DevtoolsEmits } from '@pinia/colada-devtools/shared'
+import { addDevtoolsInfo, createQueryEntryPayload } from './pc-devtools-info-plugin'
+// use dependency free simple useEventListener
+import { useEventListener } from './use-event-listener'
 
 const queryCache = useQueryCache()
 addDevtoolsInfo(queryCache)

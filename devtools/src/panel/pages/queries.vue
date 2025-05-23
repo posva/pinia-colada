@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, useTemplateRef } from 'vue'
+import { computed, ref } from 'vue'
+import type { ComponentPublicInstance } from 'vue'
 import { Pane, Splitpanes } from '@posva/splitpanes'
 import { useQueryEntries } from '../composables/duplex-channel'
 import { getQueryStatus, STATUS_COLOR_CLASSES } from '../utils/query-state'
@@ -45,13 +46,12 @@ const queriesGrouped = computed<
   }
 })
 
-const container = useTemplateRef('container')
+// TODO: this one warns. Vue bug
+// const container = useTemplateRef('container')
+const container = ref<ComponentPublicInstance>()
 const isNarrow = useContainerMediaQuery('(width < 768px)', () => container.value?.$el)
 
-const queryListPanelSize = useLocalStorage<number[]>(
-  'pc-devtools-query-list-panel-size',
-  [30, 70],
-)
+const queryListPanelSize = useLocalStorage<number[]>('pc-devtools-query-list-panel-size', [30, 70])
 
 function updatePanesSize({ panes }: { panes: { size: number }[] }) {
   queryListPanelSize.value = panes.map((pane) => pane.size)
