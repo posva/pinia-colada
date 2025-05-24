@@ -5,6 +5,7 @@ import type { Pinia } from 'pinia'
 import { useQueryCache } from '../query-store'
 import type { AsyncStatus, DataStateStatus } from '../data-state'
 import devtoolsPath from '@pinia/colada-devtools/iframe.html?url'
+import { DuplexChannel } from './duplex-channel'
 
 const QUERY_INSPECTOR_ID = 'pinia-colada-queries'
 const ID_SEPARATOR = '\0'
@@ -228,21 +229,19 @@ export function addDevtools(app: App, pinia: Pinia) {
 
     const channel = new MessageChannel()
 
-    // Wait for the iframe to load
-    pcIframe.addEventListener('load', onLoad)
-    // Listen for messages on port1
-    channel.port1.onmessage = onMessage
+    const transmitter = new DuplexChannel(channel.port1)
+
+    // DEBUG
+    transmitter.on('ping', () => {
+      console.log('[App] Received ping from devtools')
+      transmitter.emit('pong')
+    })
+    transmitter.on('pong', () => {
+      console.log('[App] Received pong from devtools')
+    })
+    //
     // Transfer port2 to the iframe
-    pcIframe.contentWindow?.postMessage('A message from the index.html page!', '*', [channel.port2])
-
-    function onLoad() {
-      console.log('LOAD EVENT')
-    }
-
-    // Handle messages received on port1
-    function onMessage(e: MessageEvent) {
-      console.log('Message received from iframe:', e.data)
-    }
+    pcIframe.contentWindow?.postMessage('🍹 init', '*', [channel.port2])
   }
 
   addCustomTab({
