@@ -1,9 +1,6 @@
-import type { DataState, EntryKey, UseQueryEntryFilter } from '@pinia/colada'
-// import type { UseQueryEntryPayload } from '../query-serialized'
-
 import { toRaw } from 'vue'
-
-type UseQueryEntryPayload = unknown
+import type { DataState, EntryKey, UseQueryEntryFilter } from '@pinia/colada'
+import type { UseQueryEntryPayload } from './query-serialized'
 
 export class DuplexChannel<
   const Emits extends Record<EmitsKeys, any[]>,

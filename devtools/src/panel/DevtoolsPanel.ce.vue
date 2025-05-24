@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted, provide, inject } from 'vue'
-import type { UseQueryEntryPayload, DevtoolsEmits, AppEmits } from '@pinia/colada-devtools/shared'
-import { DuplexChannel } from '@pinia/colada-devtools/shared'
+import { DuplexChannel } from '../../../src/devtools/duplex-channel'
+import type { DevtoolsEmits, AppEmits } from '../../../src/devtools/duplex-channel'
+// FIXME:
 import { DUPLEX_CHANNEL_KEY, QUERIES_KEY } from './composables/duplex-channel'
+import type { UseQueryEntryPayload } from '../../../src/devtools/query-serialized'
 
 const { port = inject<MessagePort>('port')!, isPip } = defineProps<{
   port?: MessagePort

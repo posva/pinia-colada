@@ -1,235 +1,174 @@
-import { addCustomTab, setupDevtoolsPlugin } from '@vue/devtools-api'
-import { watch } from 'vue'
+import { addCustomTab } from '@vue/devtools-api'
 import type { App } from 'vue'
 import type { Pinia } from 'pinia'
 import { useQueryCache } from '../query-store'
-import type { AsyncStatus, DataStateStatus } from '../data-state'
 import devtoolsPath from '@pinia/colada-devtools/iframe.html?url'
 import { DuplexChannel } from './duplex-channel'
-
-const QUERY_INSPECTOR_ID = 'pinia-colada-queries'
-const ID_SEPARATOR = '\0'
-
-function debounce(fn: () => void, delay: number) {
-  let timeout: ReturnType<typeof setTimeout>
-  return () => {
-    clearTimeout(timeout)
-    timeout = setTimeout(fn, delay)
-  }
-}
+import type { AppEmits, DevtoolsEmits } from './duplex-channel'
+import { addDevtoolsInfo, createQueryEntryPayload } from './pc-devtools-info-plugin'
+import { DEVTOOLS_INFO_KEY } from './devtools-info-pinia-plugin'
 
 export function addDevtools(app: App, pinia: Pinia) {
   const queryCache = useQueryCache(pinia)
+  addDevtoolsInfo(queryCache)
 
-  setupDevtoolsPlugin(
-    {
-      id: 'dev.esm.pinia-colada',
-      app,
-      label: 'Pinia Colada',
-      packageName: 'pinia-colada',
-      homepage: 'https://pinia-colada.esm.dev/',
-      logo: 'https://pinia-colada.esm.dev/logo.svg',
-      componentStateTypes: [],
-    },
-    (api) => {
-      const updateQueryInspectorTree = debounce(() => {
-        api.sendInspectorTree(QUERY_INSPECTOR_ID)
-        api.sendInspectorState(QUERY_INSPECTOR_ID)
-      }, 100)
+  // multiple devtools windows can be open at the same time
+  const transmitterList: DuplexChannel<AppEmits, DevtoolsEmits>[] = []
 
-      api.addInspector({
-        id: QUERY_INSPECTOR_ID,
-        label: 'Pinia Queries',
-        icon: 'storage',
-        noSelectionText: 'Select a query entry to inspect it',
-        treeFilterPlaceholder: 'Filter query entries',
-        stateFilterPlaceholder: 'Find within the query entry',
-        actions: [
-          {
-            icon: 'refresh',
-            action: updateQueryInspectorTree,
-            tooltip: 'Sync',
-          },
-        ],
-      })
-
-      let stopWatcher = () => {}
-
-      api.on.getInspectorState((payload) => {
-        if (payload.app !== app) return
-        if (payload.inspectorId === QUERY_INSPECTOR_ID) {
-          const entry = queryCache.getEntries({
-            key: payload.nodeId.split(ID_SEPARATOR),
-            exact: true,
-          })[0]
-          if (!entry) {
-            payload.state = {
-              Error: [
-                {
-                  key: 'error',
-                  value: new Error(`Query entry ${payload.nodeId} not found`),
-                  editable: false,
-                },
-              ],
-            }
-            return
-          }
-
-          stopWatcher()
-          stopWatcher = watch(
-            () => [entry.state.value, entry.asyncStatus.value],
-            () => {
-              api.sendInspectorState(QUERY_INSPECTOR_ID)
-            },
-          )
-
-          const state = entry.state.value
-
-          payload.state = {
-            state: [
-              { key: 'data', value: state.data, editable: true },
-              { key: 'error', value: state.error, editable: true },
-              { key: 'status', value: state.status, editable: true },
-              { key: 'asyncStatus', value: entry.asyncStatus.value, editable: true },
-            ],
-            entry: [
-              { key: 'key', value: entry.key, editable: false },
-              { key: 'options', value: entry.options, editable: true },
-            ],
-          }
+  // we want to start listening as soon as possible to not miss
+  // stale events
+  queryCache.$onAction(({ name, after, onError, args }) => {
+    if (name === 'remove') {
+      const [entry] = args
+      after(() => {
+        for (const transmitter of transmitterList) {
+          transmitter.emit('queries:delete', createQueryEntryPayload(entry))
         }
       })
+    } else if (
+      name === 'track'
+      || name === 'untrack'
+      || name === 'cancel'
+      || name === 'invalidate'
+      || name === 'fetch'
+      || name === 'setEntryState'
+    ) {
+      const [entry] = args
 
-      api.on.editInspectorState((payload) => {
-        if (payload.app !== app) return
-        if (payload.inspectorId === QUERY_INSPECTOR_ID) {
-          const entry = queryCache.getEntries({
-            key: payload.nodeId.split(ID_SEPARATOR),
-            exact: true,
-          })[0]
-          if (!entry) return
-          const path = payload.path.slice()
-          payload.set(entry, path, payload.state.value)
-          api.sendInspectorState(QUERY_INSPECTOR_ID)
+      // on fetch we want to see it loading
+      if (name === 'fetch') {
+        const payload = createQueryEntryPayload(entry)
+        // NOTE: pinia colada does not expose an action for this
+        payload.asyncStatus = 'loading'
+        for (const transmitter of transmitterList) {
+          transmitter.emit('queries:update', payload)
         }
-      })
+      }
 
-      const QUERY_FILTER_RE = /\b(active|inactive|stale|fresh|exact|loading|idle)\b/gi
+      // TODO: throttle
+      after(() => {
+        entry[DEVTOOLS_INFO_KEY].simulate = null
+        for (const transmitter of transmitterList) {
+          transmitter.emit('queries:update', createQueryEntryPayload(entry))
+        }
 
-      api.on.getInspectorTree((payload) => {
-        if (payload.app !== app || payload.inspectorId !== QUERY_INSPECTOR_ID) return
-
-        const filters = payload.filter.match(QUERY_FILTER_RE)
-        // strip the filters from the query
-        const filter = (
-          filters ? payload.filter.replace(QUERY_FILTER_RE, '') : payload.filter
-        ).trim()
-
-        const active = filters?.includes('active')
-          ? true
-          : filters?.includes('inactive')
-            ? false
-            : undefined
-        const stale = filters?.includes('stale')
-          ? true
-          : filters?.includes('fresh')
-            ? false
-            : undefined
-        const asyncStatus = filters?.includes('loading')
-          ? 'loading'
-          : filters?.includes('idle')
-            ? 'idle'
-            : undefined
-
-        payload.rootNodes = queryCache
-          .getEntries({
-            active,
-            stale,
-            // TODO: if there is an exact match, we should put it at the top
-            exact: false, // we also filter many
-            predicate(entry) {
-              // filter out by asyncStatus
-              if (asyncStatus && entry.asyncStatus.value !== asyncStatus) return false
-              if (filter) {
-                // TODO: fuzzy match between entry.key.join('/') and the filter
-                return entry.key.some((key) => String(key).includes(filter))
-              }
-              return true
-            },
-          })
-          .map((entry) => {
-            const id = entry.key.join(ID_SEPARATOR)
-            const label = entry.key.join('/')
-            const asyncStatus = entry.asyncStatus.value
-            const state = entry.state.value
-
-            const tags: InspectorNodeTag[] = [
-              ASYNC_STATUS_TAG[asyncStatus],
-              STATUS_TAG[state.status],
-              // useful for testing colors
-              // ASYNC_STATUS_TAG.idle,
-              // ASYNC_STATUS_TAG.fetching,
-              // STATUS_TAG.pending,
-              // STATUS_TAG.success,
-              // STATUS_TAG.error,
-            ]
-            if (!entry.active) {
-              tags.push({
-                label: 'inactive',
-                textColor: 0,
-                backgroundColor: 0xAAAAAA,
-                tooltip: 'The query is not being used anywhere',
-              })
-            }
-            return {
-              id,
-              label,
-              name: label,
-              tags,
-            }
-          })
-      })
-
-      queryCache.$onAction(({ name, after, onError }) => {
+        // emit an update when the data becomes stale
         if (
-          name === 'invalidate' // includes cancel
-          || name === 'fetch' // includes refresh
-          || name === 'setEntryState' // includes set data
-          || name === 'remove'
-          || name === 'untrack'
-          || name === 'track'
-          || name === 'ensure' // includes create
+          name === 'fetch'
+          && entry.options?.staleTime != null
+          && Number.isFinite(entry.options.staleTime)
         ) {
-          updateQueryInspectorTree()
-          after(updateQueryInspectorTree)
-          onError(updateQueryInspectorTree)
+          setTimeout(() => {
+            for (const transmitter of transmitterList) {
+              transmitter.emit('queries:update', createQueryEntryPayload(entry))
+            }
+          }, entry.options.staleTime)
         }
       })
-
-      // update the devtools too
-      api.notifyComponentUpdate()
-      api.sendInspectorTree(QUERY_INSPECTOR_ID)
-      api.sendInspectorState(QUERY_INSPECTOR_ID)
-    },
-  )
-
-  // @ts-expect-error: not defined in the types
-  window.__PINIA_COLADA_DEVTOOLS_LOAD = () => {
-    console.log('Pinia Colada Devtools loaded')
-    const devtoolsIframe = document.querySelector<HTMLIFrameElement>('#vue-devtools-iframe')
-    if (!devtoolsIframe) {
-      console.error('Pinia Colada Devtools: devtools iframe not found')
-      return
+      onError(() => {
+        for (const transmitter of transmitterList) {
+          transmitter.emit('queries:update', createQueryEntryPayload(entry))
+        }
+      })
+    } else if (name === 'create') {
+      after((entry) => {
+        for (const transmitter of transmitterList) {
+          transmitter.emit('queries:update', createQueryEntryPayload(entry))
+        }
+      })
+    } else if (name === 'setQueryData') {
+      // we need to track changes to invalidatedAt
+      const [key] = args
+      after(() => {
+        const entry = queryCache.getEntries({ key, exact: true })[0]
+        if (entry) {
+          for (const transmitter of transmitterList) {
+            transmitter.emit('queries:update', createQueryEntryPayload(entry))
+          }
+        }
+      })
     }
-    const pcIframe = devtoolsIframe.contentDocument?.querySelector('iframe')
-    if (!pcIframe) {
-      console.error('noooo')
-      return
-    }
-
+  })
+  window.__PINIA_COLADA_DEVTOOLS_CONNECT = (contentWindow: Window) => {
     const channel = new MessageChannel()
 
-    const transmitter = new DuplexChannel(channel.port1)
+    const transmitter = new DuplexChannel<AppEmits, DevtoolsEmits>(channel.port1)
+    transmitterList.push(transmitter)
+
+    // transfer the port to the devtools window
+    contentWindow.postMessage('🍹 init', '*', [channel.port2])
+
+    transmitter.on('queries:refetch', (key) => {
+      queryCache.invalidateQueries({ key, exact: true, active: null, stale: null })
+    })
+    transmitter.on('queries:invalidate', (key) => {
+      queryCache.invalidateQueries({ key, exact: true })
+    })
+    transmitter.on('queries:reset', (key) => {
+      const entry = queryCache.getEntries({ key, exact: true })[0]
+      if (entry) {
+        queryCache.cancel(entry)
+        queryCache.setEntryState(entry, {
+          status: 'pending',
+          data: undefined,
+          error: null,
+        })
+      }
+    })
+
+    transmitter.on('queries:set:state', (key, state) => {
+      const entry = queryCache.getEntries({ key, exact: true })[0]
+      if (entry) {
+        queryCache.setEntryState(entry, state)
+        transmitter.emit('queries:update', createQueryEntryPayload(entry))
+      }
+    })
+
+    transmitter.on('queries:simulate:loading', (key) => {
+      const entry = queryCache.getEntries({ key, exact: true })[0]
+      if (entry) {
+        entry.asyncStatus.value = 'loading'
+        entry[DEVTOOLS_INFO_KEY].simulate = 'loading'
+        transmitter.emit('queries:update', createQueryEntryPayload(entry))
+      }
+    })
+    transmitter.on('queries:simulate:loading:stop', (key) => {
+      const entry = queryCache.getEntries({ key, exact: true })[0]
+      if (entry && entry[DEVTOOLS_INFO_KEY].simulate === 'loading') {
+        entry.asyncStatus.value = 'idle'
+        entry[DEVTOOLS_INFO_KEY].simulate = null
+        transmitter.emit('queries:update', createQueryEntryPayload(entry))
+      }
+    })
+
+    transmitter.on('queries:simulate:error', (key) => {
+      const entry = queryCache.getEntries({ key, exact: true })[0]
+      if (entry) {
+        queryCache.cancel(entry)
+        queryCache.setEntryState(entry, {
+          ...entry.state.value,
+          status: 'error',
+          error: new Error('Simulated error'),
+        })
+        // we set after because setting the entry state resets the simulation
+        entry[DEVTOOLS_INFO_KEY].simulate = 'error'
+        transmitter.emit('queries:update', createQueryEntryPayload(entry))
+      }
+    })
+
+    transmitter.on('queries:simulate:error:stop', (key) => {
+      const entry = queryCache.getEntries({ key, exact: true })[0]
+      if (entry && entry[DEVTOOLS_INFO_KEY].simulate === 'error') {
+        queryCache.cancel(entry)
+        queryCache.setEntryState(entry, {
+          ...entry.state.value,
+          status: entry.state.value.data !== undefined ? 'success' : 'pending',
+          error: null,
+        })
+        entry[DEVTOOLS_INFO_KEY].simulate = null
+        transmitter.emit('queries:update', createQueryEntryPayload(entry))
+      }
+    })
 
     // DEBUG
     transmitter.on('ping', () => {
@@ -239,9 +178,14 @@ export function addDevtools(app: App, pinia: Pinia) {
     transmitter.on('pong', () => {
       console.log('[App] Received pong from devtools')
     })
-    //
-    // Transfer port2 to the iframe
-    pcIframe.contentWindow?.postMessage('🍹 init', '*', [channel.port2])
+
+    // We are ready
+    transmitter.emit('queries:all', queryCache.getEntries({}).map(createQueryEntryPayload))
+    transmitter.emit(
+      'mutations:all',
+      // FIXME: mutations
+      queryCache.getEntries({}).map(createQueryEntryPayload),
+    )
   }
 
   addCustomTab({
@@ -252,69 +196,18 @@ export function addDevtools(app: App, pinia: Pinia) {
       type: 'iframe',
       src: devtoolsPath,
       persistent: true,
-      // type: 'vnode',
-      // sfc: DevtoolsPanel,
-      // type: 'vnode',
-      // vnode: h(DevtoolsPane),
-      // vnode: h('p', ['hello world']),
-      // vnode: createVNode(DevtoolsPane),
     },
     category: 'modules',
   })
-
-  // window.addEventListener('message', (event) => {
-  //   const data = event.data
-  //   if (data != null && typeof data === 'object' && data.id === 'pinia-colada-devtools') {
-  //     console.log('message', event)
-  //   }
-  // })
 }
 
-interface InspectorNodeTag {
-  label: string
-  textColor: number
-  backgroundColor: number
-  tooltip?: string
-}
-
-/**
- * Tags for the different states of a query
- */
-const STATUS_TAG: Record<DataStateStatus, InspectorNodeTag> = {
-  pending: {
-    label: 'pending',
-    textColor: 0,
-    backgroundColor: 0xFF9D23,
-    tooltip: `The query hasn't resolved yet`,
-  },
-  success: {
-    label: 'success',
-    textColor: 0,
-    backgroundColor: 0x16C47F,
-    tooltip: 'The query resolved successfully',
-  },
-  error: {
-    label: 'error',
-    textColor: 0,
-    backgroundColor: 0xF93827,
-    tooltip: 'The query rejected with an error',
-  },
-}
-
-/**
- * Tags for the different states of a query
- */
-const ASYNC_STATUS_TAG: Record<AsyncStatus, InspectorNodeTag> = {
-  idle: {
-    label: 'idle',
-    textColor: 0,
-    backgroundColor: 0xAAAAAA,
-    tooltip: 'The query is not fetching',
-  },
-  loading: {
-    label: 'fetching',
-    textColor: 0xFFFFFF,
-    backgroundColor: 0x578FCA,
-    tooltip: 'The query is currently fetching',
-  },
+declare global {
+  interface Window {
+    /**
+     * Method called by the devtools window to connect to the main application.
+     *
+     * @internal
+     */
+    __PINIA_COLADA_DEVTOOLS_CONNECT: (contentWindow: Window) => void
+  }
 }

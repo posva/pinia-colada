@@ -1,4 +1,4 @@
-import type { UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
+import type { UseQueryEntryPayload } from '../../../../src/devtools/query-serialized'
 
 export type UseQueryEntryPayloadStatus =
   | 'loading'
