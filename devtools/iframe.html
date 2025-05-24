@@ -16,7 +16,11 @@
   </head>
 
   <body>
-    <p id="placeholder">Where are devtools?</p>
+    <p id="placeholder">
+      Where are devtools?
+      <br />
+      TODO: instructions on how to use?
+    </p>
 
     <script type="module">
       const output = document.querySelector('.output')
@@ -48,7 +52,6 @@
 
         document.getElementById('placeholder')?.remove()
         window.removeEventListener('message', onMessage)
-        // debugger
       }
 
       function attachCssPropertyRules(el) {
@@ -69,7 +72,7 @@
         document.head.appendChild(style)
       }
 
-      window.parent?.parent?.__PINIA_COLADA_DEVTOOLS_LOAD?.()
+      window.parent?.parent?.__PINIA_COLADA_DEVTOOLS_CONNECT?.(window)
     </script>
 
     <div id="app"></div>
