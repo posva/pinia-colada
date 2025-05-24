@@ -6,10 +6,17 @@
     <title>🍹 Pinia Colada Devtools</title>
 
     <script src="./dist-iframe/index.iife.js"></script>
+
+    <style>
+      #app {
+        position: fixed;
+        inset: 0;
+      }
+    </style>
   </head>
 
   <body>
-    <p class="output">page2.html (iframe body)</p>
+    <p id="placeholder">Where are devtools?</p>
 
     <script type="module">
       const output = document.querySelector('.output')
@@ -19,9 +26,8 @@
       function onMessage(e) {
         if (!e.ports.length) return
 
-        output.innerText = e.data
         // Use the transferred port to post a message to the main frame
-        e.ports[0].postMessage('A message from the iframe in page2.html')
+        // e.ports[0].postMessage('A message from the iframe in page2.html')
 
         const { configureApp, DevtoolsPanelCE, defineCustomElement } = PiniaColadaDevtools
 
@@ -37,14 +43,35 @@
         )
 
         const devtools = document.createElement('pinia-colada-devtools')
-        document.body.appendChild(devtools)
+        document.getElementById('app').appendChild(devtools)
+        attachCssPropertyRules(devtools)
 
+        document.getElementById('placeholder')?.remove()
+        window.removeEventListener('message', onMessage)
         // debugger
+      }
+
+      function attachCssPropertyRules(el) {
+        if (!el || !el.shadowRoot) {
+          throw new Error('No devtools element found for Pinia Colada devtools')
+        }
+
+        const style =
+          document.getElementById('__pc-tw-properties') ?? document.createElement('style')
+        style.setAttribute('id', '__pc-tw-properties')
+
+        const cssPropertyRulesText = [...el.shadowRoot.styleSheets]
+          .flatMap((s) => [...s.cssRules])
+          .filter((rule) => rule instanceof CSSPropertyRule)
+          .map((rule) => rule.cssText)
+          .join('')
+        style.textContent = cssPropertyRulesText
+        document.head.appendChild(style)
       }
 
       window.parent?.parent?.__PINIA_COLADA_DEVTOOLS_LOAD?.()
     </script>
 
-    <!-- <pinia-colada-devtools id="devtools"></pinia-colada-devtools> -->
+    <div id="app"></div>
   </body>
 </html>
