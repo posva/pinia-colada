@@ -97,12 +97,12 @@ const status = computed(() => getQueryStatus(entry))
       </div>
       <div
         v-else-if="
-          !entry.active &&
-          entry.gcTimeout &&
-          entry.devtools.inactiveAt &&
-          typeof entry.options?.gcTime === 'number' &&
-          Number.isFinite(entry.options.gcTime) &&
-          entry.options.gcTime <= 30_000
+          !entry.active
+            && entry.gcTimeout
+            && entry.devtools.inactiveAt
+            && typeof entry.options?.gcTime === 'number'
+            && Number.isFinite(entry.options.gcTime)
+            && entry.options.gcTime <= 30_000
         "
         title="This query will be garbage collected"
       >
