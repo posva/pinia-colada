@@ -158,6 +158,7 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "@ast-grep/cli",
+      "@tailwindcss/oxide",
       "esbuild",
       "simple-git-hooks"
     ],
