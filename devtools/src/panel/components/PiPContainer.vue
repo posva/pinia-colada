@@ -4,7 +4,6 @@ import { computed } from 'vue'
 import ResizablePanel from './ResizablePanel.vue'
 
 const { isPip } = defineProps<{
-  id: string
   isPip: boolean
 }>()
 
@@ -17,11 +16,8 @@ const colorTheme = computed(() => {
 
 const pipContainerHeight = useLocalStorage('pinia-colada-devtools-pip-container-height', 400)
 
-const containerStyle = computed(() => {
-  return {
-    height: `${pipContainerHeight.value}px`,
-  }
-})
+// TODO: refactor into CSS v-bind
+const containerStyle = computed(() => ({ height: `${pipContainerHeight.value}px` }))
 const containerClasses = computed(() => {
   return isPip
     ? ['h-full']
@@ -41,7 +37,12 @@ const containerClasses = computed(() => {
 </script>
 
 <template>
-  <aside :class="[colorTheme, containerClasses]" :style="containerStyle" class="w-full">
+  <aside
+    :class="[colorTheme, containerClasses]"
+    class="w-full pip-container"
+    :style="containerStyle"
+    v-bind="$attrs"
+  >
     <slot />
   </aside>
   <ResizablePanel v-model:translate="pipContainerHeight" />
