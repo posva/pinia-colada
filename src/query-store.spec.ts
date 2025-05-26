@@ -4,7 +4,7 @@ import type { UseQueryEntry, _UseQueryEntryNodeValueSerialized } from './query-s
 import { useQueryCache } from './query-store'
 import { USE_QUERY_DEFAULTS } from './query-options'
 import { flushPromises } from '@vue/test-utils'
-import { createApp } from 'vue'
+import { createApp, watch } from 'vue'
 import { useQuery } from './use-query'
 
 describe('Query Cache store', () => {
@@ -14,6 +14,24 @@ describe('Query Cache store', () => {
     app = createApp({})
     app.use(pinia)
     setActivePinia(pinia)
+  })
+
+  it('should not trigger too often', async () => {
+    const queryCache = useQueryCache()
+    queryCache.setQueryData(['a', 0], 'a0')
+    queryCache.setQueryData(['a', 1], 'a1')
+
+    const spy = vi.fn()
+    const stop = watch(() => queryCache.getQueryData(['a', 0]), spy, { flush: 'sync' })
+    expect(spy).toHaveBeenCalledTimes(0)
+    queryCache.setQueryData(['a', 0], 'a1')
+    expect(spy).toHaveBeenCalledTimes(1)
+    queryCache.setQueryData(['a', 1], 'a2')
+    expect(spy).toHaveBeenCalledTimes(1)
+    queryCache.setQueryData(['a', 0], 'a2')
+    expect(spy).toHaveBeenCalledTimes(2)
+
+    stop()
   })
 
   describe('filter queries', () => {
