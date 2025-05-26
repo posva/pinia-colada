@@ -2,7 +2,8 @@ import { addCustomTab } from '@vue/devtools-api'
 import type { App } from 'vue'
 import type { Pinia } from 'pinia'
 import { useQueryCache } from '../query-store'
-import devtoolsPath from '@pinia/colada-devtools/iframe.html?url'
+import devtoolsPath from '@pinia/colada-devtools/iframe?url'
+// import devtoolsPath from '@pinia/colada-devtools/iframe.html?url'
 import { DuplexChannel } from './duplex-channel'
 import type { AppEmits, DevtoolsEmits } from './duplex-channel'
 import { addDevtoolsInfo, createQueryEntryPayload } from './pc-devtools-info-plugin'
@@ -11,6 +12,8 @@ import { DEVTOOLS_INFO_KEY } from './devtools-info-pinia-plugin'
 export function addDevtools(app: App, pinia: Pinia) {
   const queryCache = useQueryCache(pinia)
   addDevtoolsInfo(queryCache)
+
+  console.log({ devtoolsPath })
 
   // multiple devtools windows can be open at the same time
   const transmitterList: DuplexChannel<AppEmits, DevtoolsEmits>[] = []

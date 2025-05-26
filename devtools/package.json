@@ -35,6 +35,7 @@
   "exports": {
     ".": "./dist/index.js",
     "./panel": "./dist-panel/index.js",
+    "./iframe": "./iframe.html",
     "./iframe.html": "./iframe.html",
     "./shared": "./dist-shared/index.js"
   },

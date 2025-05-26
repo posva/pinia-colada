@@ -1,6 +1,11 @@
 import type { RefetchOnControl, UseQueryEntry, UseQueryOptionsWithDefaults } from '@pinia/colada'
 import type { DEVTOOLS_INFO_KEY } from './devtools-info-pinia-plugin'
 
+/**
+ * Payload of query entries sent to the devtools.
+ *
+ * @internal
+ */
 export interface UseQueryEntryPayload {
   keyHash: string
 
