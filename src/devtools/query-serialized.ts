@@ -23,22 +23,53 @@ export interface UseQueryEntryPayload {
   devtools: UseQueryEntry[typeof DEVTOOLS_INFO_KEY]
 }
 
+/**
+ * Dependency of a query entry as a component
+ *
+ * @see {@link UseQueryEntryPayload.deps}
+ * @see {@link UseQueryEntryPayloadDepEffect}
+ * @see {@link UseQueryEntryPayloadDep}
+ *
+ * @internal
+ */
 export interface UseQueryEntryPayloadDepComponent {
   type: 'component'
   uid: number
   name: string | undefined
 }
 
+/**
+ * Dependency of a query entry as an effect.
+ *
+ * @see {@link UseQueryEntryPayload.deps}
+ * @see {@link UseQueryEntryPayloadDepComponent}
+ * @see {@link UseQueryEntryPayloadDep}
+ *
+ * @internal
+ */
 export interface UseQueryEntryPayloadDepEffect {
   type: 'effect'
   active: boolean
   detached: boolean
 }
 
+/**
+ * Dependency of a query entry.
+ *
+ * @see {@link UseQueryEntryPayload.deps}
+ *
+ * @internal
+ */
 export type UseQueryEntryPayloadDep =
   | UseQueryEntryPayloadDepComponent
   | UseQueryEntryPayloadDepEffect
 
+/**
+ * Serialized options of a query entry. Does not include functions and other
+ * non-serializable values.
+ *
+ * @internal
+ */
 export interface UseQueryEntryPayloadOptions
   extends Pick<UseQueryOptionsWithDefaults, 'gcTime' | 'staleTime'> {
   // manually overriden to extract only plain values
@@ -48,9 +79,9 @@ export interface UseQueryEntryPayloadOptions
   refetchOnWindowFocus: RefetchOnControl
 }
 
-export function miniJsonParse(value: unknown): string {
-  const isValidIdentifier = (key: string): boolean => /^[A-Z_$][\w$]*$/i.test(key)
+const isValidIdentifier = (key: string): boolean => /^[A-Z_$][\w$]*$/i.test(key)
 
+export function miniJsonParse(value: unknown): string {
   const serialize = (val: unknown): string => {
     if (val === null) return 'null'
     if (typeof val === 'number') return val.toString()
