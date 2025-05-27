@@ -47,18 +47,21 @@ export function isSubsetOf(subsetKey: EntryKey, fullsetKey: EntryKey): boolean {
 
 /**
  * Used for keys
+ *
  * @internal
  */
 export type JSONPrimitive = string | number | boolean | null
 
 /**
  * Used for keys
+ *
  * @internal
  */
 export type JSONValue = JSONPrimitive | JSONObject | JSONArray
 
 /**
  * Used for keys. Interface to avoid deep recursion.
+ *
  * @internal
  */
 export interface JSONObject {
@@ -67,6 +70,7 @@ export interface JSONObject {
 
 /**
  * Used for keys. Interface to avoid deep recursion.
+ *
  * @internal
  */
 export interface JSONArray extends Array<JSONValue> {}
@@ -80,15 +84,16 @@ export type EntryKey = readonly JSONValue[]
 
 /**
  * Internal symbol used to tag the data type of the entry key.
+ *
  * @internal
  */
 export const DATA_TAG = Symbol('Pinia Colada dataTag')
+
 /**
  * Same as {@link EntryKey} but with a data tag that allows inference of the data type.
  * Used by `defineQueryOptions()`.
  */
-
-export type EntryKeyTagged<T> = EntryKey & { [DATA_TAG]?: T }
+export type EntryKeyTagged<TData> = EntryKey & { [DATA_TAG]?: TData }
 
 /**
  * Finds entries that partially match the given key. If no key is provided, all
