@@ -59,16 +59,16 @@
     "@iconify-json/lucide": "^1.2.42",
     "@pinia/colada": "workspace:^*",
     "@posva/splitpanes": "^4.0.6",
-    "@tailwindcss/vite": "^4.1.6",
-    "@vueuse/core": "^13.1.0",
+    "@tailwindcss/vite": "^4.1.7",
+    "@vueuse/core": "^13.3.0",
     "mande": "^2.0.9",
     "match-container": "^0.1.0",
     "pinia": "^3.0.2",
-    "tailwindcss": "^4.1.6",
+    "tailwindcss": "^4.1.7",
     "unplugin-icons": "^22.1.0",
-    "unplugin-vue-components": "^28.5.0",
+    "unplugin-vue-components": "^28.7.0",
     "unplugin-vue-router": "^0.12.0",
-    "vite-plugin-dts": "^4.5.3",
+    "vite-plugin-dts": "^4.5.4",
     "vue-router": "^4.5.1"
   }
 }
