@@ -1,11 +1,11 @@
+import { inject } from 'vue'
+import type { InjectionKey, Ref } from 'vue'
 import type {
   AppEmits,
   DevtoolsEmits,
   DuplexChannel,
-  UseQueryEntryPayload,
-} from '@pinia/colada-devtools/shared'
-import { inject } from 'vue'
-import type { InjectionKey, Ref } from 'vue'
+} from '../../../../src/devtools/duplex-channel'
+import type { UseQueryEntryPayload } from '../../../../src/devtools/query-serialized'
 
 export const DUPLEX_CHANNEL_KEY: InjectionKey<DuplexChannel<DevtoolsEmits, AppEmits>>
   = Symbol('duplex-channel')
