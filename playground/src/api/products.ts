@@ -4,7 +4,7 @@ import type { Options } from 'mande'
 export const products = mande('http://localhost:7777/products', {})
 
 /**
- * Retrieve all the contact list.
+ * Retrieve all the products list.
  */
 export async function getAllProducts(options?: Options<'json'>) {
   // await new Promise(resolve => setTimeout(resolve, 2000))
@@ -19,9 +19,9 @@ export async function getAllProducts(options?: Options<'json'>) {
 }
 
 /**
- * Get the information of a contact by using its id.
+ * Get the information of a product by using its id.
  *
- * @param id id of the contact
+ * @param id id of the product
  */
 export function getProductById(id: string | number, options?: Options<'json'>) {
   return products.get<ProductT>(id, options)
