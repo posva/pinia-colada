@@ -40,7 +40,10 @@ export function PiniaColadaAutoRefetch(
     // Skip setting auto-refetch on the server
     if (typeof document === 'undefined') return
 
-    function scheduleRefetch(entry: UseQueryEntry, options: UseQueryOptions) {
+    function scheduleRefetch(
+      entry: UseQueryEntry<unknown, unknown, unknown>,
+      options: UseQueryOptions<unknown, unknown, unknown>,
+    ) {
       if (!entry.active) return
 
       // Always clear existing timeout first
@@ -65,7 +68,7 @@ export function PiniaColadaAutoRefetch(
       /**
        * Whether to schedule a refetch for the given entry
        */
-      function shouldScheduleRefetch(options: UseQueryOptions) {
+      function shouldScheduleRefetch(options: UseQueryOptions<unknown, unknown, unknown>) {
         const queryEnabled = toValue(options.autoRefetch) ?? autoRefetch
         const staleTime = options.staleTime
         return Boolean(queryEnabled && staleTime)
@@ -107,7 +110,7 @@ export function PiniaColadaAutoRefetch(
 // Add types for the new option
 declare module '@pinia/colada' {
   // eslint-disable-next-line unused-imports/no-unused-vars
-  interface UseQueryOptions<TData, TError> extends PiniaColadaAutoRefetchOptions {}
+  interface UseQueryOptions<TData, TError, TDataInitial> extends PiniaColadaAutoRefetchOptions {}
 
   interface UseQueryOptionsGlobal extends PiniaColadaAutoRefetchOptions {}
 
