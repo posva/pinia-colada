@@ -781,7 +781,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     TError = ErrorDefault,
     TDataInitial extends TData | undefined = undefined,
   >(
-    key: EntryKeyTagged<TData, TDataInitial> | EntryKey,
+    key: EntryKeyTagged<TData, TError, TDataInitial> | EntryKey,
   ): UseQueryEntry<TData, TError, TDataInitial> | undefined {
     return caches.value.get(toCacheKey(key)) as
       | UseQueryEntry<TData, TError, TDataInitial>
@@ -797,8 +797,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * @see {@link setEntryState}
    */
   const setQueryData = action(
-    <TData = unknown, TDataInitial extends TData | undefined = undefined>(
-      key: EntryKeyTagged<TData, TDataInitial> | EntryKey,
+    <TData = unknown, TError = ErrorDefault, TDataInitial extends TData | undefined = undefined>(
+      key: EntryKeyTagged<TData, TError, TDataInitial> | EntryKey,
       data:
         | NoInfer<TData>
         // a success query cannot have undefined data
@@ -867,9 +867,11 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    *
    * @param key - the key of the query
    */
-  function getQueryData<TData = unknown, TDataInitial extends TData | undefined = undefined>(
-    key: EntryKeyTagged<TData, TDataInitial> | EntryKey,
-  ): TData | TDataInitial | undefined {
+  function getQueryData<
+    TData = unknown,
+    TError = ErrorDefault,
+    TDataInitial extends TData | undefined = undefined,
+  >(key: EntryKeyTagged<TData, TError, TDataInitial> | EntryKey): TData | TDataInitial | undefined {
     return caches.value.get(toCacheKey(key))?.state.value.data as TData | TDataInitial | undefined
   }
 

@@ -1,3 +1,5 @@
+import type { ErrorDefault } from './types-extension'
+
 export function toCacheKey(key: undefined): undefined
 export function toCacheKey(key: EntryKey): string
 export function toCacheKey(key: EntryKey | undefined): string | undefined
@@ -109,11 +111,11 @@ export const ENTRY_DATA_INITIAL_TAG = Symbol('Pinia Colada data initial tag')
  */
 export type EntryKeyTagged<
   TData,
+  TError = ErrorDefault,
   TDataInitial extends TData | undefined = undefined,
-  // TError = ErrorDefault,
 > = EntryKey & {
   [ENTRY_DATA_TAG]: TData
-  // [ENTRY_ERROR_TAG]: TError
+  [ENTRY_ERROR_TAG]: TError
   [ENTRY_DATA_INITIAL_TAG]: TDataInitial
 }
 

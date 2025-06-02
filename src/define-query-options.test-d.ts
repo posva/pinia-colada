@@ -2,6 +2,7 @@ import { describe, expectTypeOf, it } from 'vitest'
 import { useQuery } from './use-query'
 import { useQueryCache, defineQueryOptions } from '@pinia/colada'
 import type { EntryKeyTagged } from '@pinia/colada'
+import type { ErrorDefault } from './types-extension'
 
 describe('typed query keys', () => {
   const queryCache = useQueryCache()
@@ -14,7 +15,7 @@ describe('typed query keys', () => {
         // initialData: () => 'a',
       })
 
-      expectTypeOf(optsStatic.key).toEqualTypeOf<EntryKeyTagged<string, undefined>>()
+      expectTypeOf(optsStatic.key).toEqualTypeOf<EntryKeyTagged<string, ErrorDefault, undefined>>()
       expectTypeOf(queryCache.getQueryData(optsStatic.key)).toEqualTypeOf<string | undefined>()
     })
 

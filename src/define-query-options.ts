@@ -12,7 +12,7 @@ export interface DefineQueryOptionsTagged<
   TError = ErrorDefault,
   TDataInitial extends TData | undefined = undefined,
 > extends DefineQueryOptions<TData, TError, TDataInitial> {
-  key: EntryKeyTagged<TData, TDataInitial>
+  key: EntryKeyTagged<TData, TError, TDataInitial>
 }
 
 /**
@@ -25,7 +25,7 @@ export interface DefineQueryOptionsTagged<
 export function defineQueryOptions<
   Params,
   TData,
-  TError,
+  TError = ErrorDefault,
   TDataInitial extends TData | undefined = undefined,
 >(
   setupOptions: (params: Params) => DefineQueryOptions<TData, TError, TDataInitial>,
@@ -39,7 +39,7 @@ export function defineQueryOptions<
  */
 export function defineQueryOptions<
   TData,
-  TError,
+  TError = ErrorDefault,
   TDataInitial extends TData | undefined = undefined,
 >(
   options: DefineQueryOptions<TData, TError, TDataInitial>,
