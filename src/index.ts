@@ -14,7 +14,7 @@ export type {
 
 export type { EntryKey, EntryKeyTagged, toCacheKey } from './entry-keys'
 
-export { defineQueryOptions } from './define-query-options'
+export { defineQueryOptions, type DefineQueryOptionsTagged } from './define-query-options'
 
 export type {
   RefetchOnControl,
@@ -23,7 +23,7 @@ export type {
   UseQueryOptionsWithDefaults,
 } from './query-options'
 
-export { defineQuery } from './define-query'
+export { defineQuery, type DefineQueryOptions } from './define-query'
 export { useQuery, type UseQueryReturn } from './use-query'
 
 export {
@@ -67,7 +67,9 @@ export type { PiniaColadaPlugin, PiniaColadaPluginContext } from './plugins'
 
 // internals
 export type {
-  DATA_TAG as _DATA_TAG,
+  ENTRY_DATA_INITIAL_TAG as _ENTRY_DATA_INITIAL_TAG,
+  ENTRY_DATA_TAG as _ENTRY_DATA_TAG,
+  ENTRY_ERROR_TAG as _ENTRY_ERROR_TAG,
   JSONArray as _JSONArray,
   JSONObject as _JSONObject,
   JSONPrimitive as _JSONPrimitive,
@@ -82,7 +84,13 @@ export type {
 } from './entry-filter'
 export type { _UseQueryEntryNodeValueSerialized } from './query-store'
 
-export { type _Awaitable, type _EmptyObject, type _MaybeArray } from './utils'
+export type {
+  _Awaitable,
+  _EmptyObject,
+  IsAny as _IsAny,
+  IsUnknown as _IsUnknown,
+  _MaybeArray,
+} from './utils'
 
 export type { _ReduceContext } from './use-mutation'
 

@@ -87,13 +87,35 @@ export type EntryKey = readonly JSONValue[]
  *
  * @internal
  */
-export const DATA_TAG = Symbol('Pinia Colada dataTag')
+export const ENTRY_DATA_TAG = Symbol('Pinia Colada data tag')
+
+/**
+ * Internal symbol used to tag the error type of the entry key.
+ *
+ * @internal
+ */
+export const ENTRY_ERROR_TAG = Symbol('Pinia Colada error tag')
+
+/**
+ * Internal symbol used to tag the data initial type of the entry key.
+ *
+ * @internal
+ */
+export const ENTRY_DATA_INITIAL_TAG = Symbol('Pinia Colada data initial tag')
 
 /**
  * Same as {@link EntryKey} but with a data tag that allows inference of the data type.
  * Used by `defineQueryOptions()`.
  */
-export type EntryKeyTagged<TData> = EntryKey & { [DATA_TAG]?: TData }
+export type EntryKeyTagged<
+  TData,
+  TDataInitial extends TData | undefined = undefined,
+  // TError = ErrorDefault,
+> = EntryKey & {
+  [ENTRY_DATA_TAG]: TData
+  // [ENTRY_ERROR_TAG]: TError
+  [ENTRY_DATA_INITIAL_TAG]: TDataInitial
+}
 
 /**
  * Finds entries that partially match the given key. If no key is provided, all

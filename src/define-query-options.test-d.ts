@@ -14,7 +14,7 @@ describe('typed query keys', () => {
         // initialData: () => 'a',
       })
 
-      expectTypeOf(optsStatic.key).toEqualTypeOf<EntryKeyTagged<string | undefined>>()
+      expectTypeOf(optsStatic.key).toEqualTypeOf<EntryKeyTagged<string, undefined>>()
       expectTypeOf(queryCache.getQueryData(optsStatic.key)).toEqualTypeOf<string | undefined>()
     })
 
@@ -122,6 +122,21 @@ describe('typed query keys', () => {
       })
     })
 
+    it('preserves initialData type', async () => {
+      const staticOps = defineQueryOptions({
+        key,
+        query: async () => ({ id: 0 }),
+        initialData: () => ({ id: 0, tmp: true }),
+      })
+      const queryCache = useQueryCache()
+      // @ts-expect-error: not possible because data is expected to always be set
+      queryCache.setQueryData(staticOps.key, undefined)
+      queryCache.setQueryData(staticOps.key, { id: 1 })
+      queryCache.setQueryData(staticOps.key, { id: 1, tmp: true })
+      // @ts-expect-error: not existing property
+      queryCache.setQueryData(staticOps.key, { id: 1, nope: true })
+    })
+
     it('allows function options like initialData', () => {
       const optsStatic = defineQueryOptions({
         key: ['a', 2],
@@ -147,7 +162,10 @@ describe('typed query keys', () => {
 
     it('types when using setQueryData and static options', () => {
       const queryCache = useQueryCache()
+      // @ts-expect-error: success + undefined are not compatible
       queryCache.setQueryData(optsStatic.key, undefined)
+      const entry = queryCache.get(optsStatic.key)!
+      queryCache.setEntryState(entry, { status: 'pending', data: undefined, error: null })
       queryCache.setQueryData(optsStatic.key, 'a:2')
       queryCache.setQueryData(optsStatic.key, (oldData) => {
         expectTypeOf(oldData).toEqualTypeOf<`a:${number}` | undefined>()
@@ -157,7 +175,10 @@ describe('typed query keys', () => {
 
     it('types when using setQueryData and dynamic options', () => {
       const queryCache = useQueryCache()
+      // @ts-expect-error: success + undefined are not compatible
       queryCache.setQueryData(optsDynamic(2).key, undefined)
+      const entry = queryCache.get(optsDynamic(2).key)!
+      queryCache.setEntryState(entry, { status: 'pending', data: undefined, error: null })
       queryCache.setQueryData(optsDynamic(2).key, 'a:2')
       queryCache.setQueryData(optsDynamic(2).key, (oldData) => {
         expectTypeOf(oldData).toEqualTypeOf<`a:${number}` | undefined>()
@@ -167,9 +188,9 @@ describe('typed query keys', () => {
 
     it('with keys as const and objects', () => {
       const DOCUMENTS_KEYS = {
-        root: ['documents'],
-        byId: (id: string) => [...DOCUMENTS_KEYS.root, id],
-        byIdWithComments: (id: string) => [...DOCUMENTS_KEYS.byId(id), 'comments'],
+        root: ['documents'] as const,
+        byId: (id: string) => [...DOCUMENTS_KEYS.root, id] as const,
+        byIdWithComments: (id: string) => [...DOCUMENTS_KEYS.byId(id), 'comments'] as const,
       } as const
 
       const queryCache = useQueryCache()
@@ -198,11 +219,11 @@ describe('typed query keys', () => {
         },
       })
 
-      queryCache.setQueryData(docQueryById('2').key, undefined)
       queryCache.setQueryData(docQueryById('2').key, (oldData) => ({
         toto: oldData?.toto ?? 0 + 1,
       }))
       queryCache.setQueryData(docQueryById('2').key, { toto: 47 })
+      // allows non typed too
       queryCache.setQueryData(DOCUMENTS_KEYS.byId('1'), { toto: true })
     })
   })

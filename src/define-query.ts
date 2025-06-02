@@ -25,7 +25,7 @@ export let currentDefineQueryEffect: undefined | EffectScope
 export type DefineQueryOptions<
   TData = unknown,
   TError = ErrorDefault,
-  TDataInitial extends TData | undefined = TData | undefined,
+  TDataInitial extends TData | undefined = undefined,
 > = _RemoveMaybeRef<UseQueryOptions<TData, TError, TDataInitial>> & {
   // NOTE: we need to duplicate the types for initialData and placeholderData to make everything work
   // we omit the descriptions because they are inherited from the original type

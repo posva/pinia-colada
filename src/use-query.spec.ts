@@ -885,7 +885,7 @@ describe('useQuery', () => {
                 // renders again
                 await nextTick()
               },
-              ...useQuery<TData, TError, undefined>({
+              ...useQuery<TData, TError, TDataInitial>({
                 key: () => ['data', id.value],
                 ...options,
                 // @ts-expect-error: generic unmatched but types work

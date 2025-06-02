@@ -245,7 +245,7 @@ export function useQuery<
           status: 'success',
           data: entry.value.placeholderData!,
           error: null,
-        } satisfies DataState_Success<TData>)
+        } satisfies DataState_Success<TData, TDataInitial>)
       : entry.value.state.value,
   )
 

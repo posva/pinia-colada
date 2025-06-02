@@ -28,7 +28,7 @@ export interface UseQueryEntryExtensions<
   /* eslint-disable-next-line unused-imports/no-unused-vars */
   TError,
   /* eslint-disable-next-line unused-imports/no-unused-vars */
-  TDataInitial extends TData | undefined = TData | undefined,
+  TDataInitial extends TData | undefined = undefined,
 > {}
 
 /**
@@ -42,7 +42,8 @@ export interface UseQueryEntryExtensions<
 export interface UseQueryEntry<
   TData = unknown,
   TError = unknown,
-  TDataInitial extends TData | undefined = TData | undefined,
+  // allows for UseQueryEntry to have unknown everywhere (generic version)
+  TDataInitial extends TData | undefined = unknown extends TData ? unknown : undefined,
 > {
   /**
    * The state of the query. Contains the data, error and status.
@@ -587,7 +588,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * @param _entry - the entry of the query to extend
    */
   const extend = action(
-    <TData = unknown, TError = ErrorDefault>(_entry: UseQueryEntry<TData, TError>) => {},
+    <TData = unknown, TError = ErrorDefault, TDataInitial extends TData | undefined = undefined>(
+      _entry: UseQueryEntry<TData, TError, TDataInitial>,
+    ) => {},
   )
 
   /**
@@ -777,18 +780,23 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * @see {@link setEntryState}
    */
   const setQueryData = action(
-    <TData = unknown>(
-      key: EntryKeyTagged<TData>,
-      data: TData | ((oldData: TData | undefined) => TData),
+    <TData = unknown, TDataInitial extends TData | undefined = undefined>(
+      key: EntryKeyTagged<TData, TDataInitial> | EntryKey,
+      data:
+        | NoInfer<TData>
+        // a success query cannot have undefined data
+        | Exclude<NoInfer<TDataInitial>, undefined>
+        // but could not be there and therefore have undefined here
+        | ((oldData: TData | TDataInitial | undefined) => TData | Exclude<TDataInitial, undefined>),
     ) => {
       const keyHash = toCacheKey(key)
-      let entry = cachesRaw.get(keyHash) as UseQueryEntry<TData> | undefined
+      let entry = cachesRaw.get(keyHash) as UseQueryEntry<TData, unknown, TDataInitial> | undefined
 
       // if the entry doesn't exist, we create it to set the data
       // it cannot be refreshed or fetched since the options
       // will be missing
       if (!entry) {
-        cachesRaw.set(keyHash, (entry = create<TData, any, TData | undefined>(key)))
+        cachesRaw.set(keyHash, (entry = create<TData, unknown, TDataInitial>(key)))
       }
 
       setEntryState(entry, {
@@ -842,8 +850,10 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    *
    * @param key - the key of the query
    */
-  function getQueryData<TData = unknown>(key: EntryKeyTagged<TData>): TData | undefined {
-    return caches.value.get(toCacheKey(key))?.state.value.data as TData
+  function getQueryData<TData = unknown, TDataInitial extends TData | undefined = undefined>(
+    key: EntryKeyTagged<TData, TDataInitial> | EntryKey,
+  ): TData | TDataInitial | undefined {
+    return caches.value.get(toCacheKey(key))?.state.value.data as TData | TDataInitial | undefined
   }
 
   /**

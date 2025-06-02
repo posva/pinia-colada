@@ -47,9 +47,12 @@ describe('utils', () => {
       initialData?: () => string | undefined
     }>()
 
-    expectTypeOf<_RemoveMaybeRef<Pick<UseQueryOptions<string>, 'initialData'>>>().toEqualTypeOf<{
+    expectTypeOf<
+      _RemoveMaybeRef<Pick<UseQueryOptions<string, unknown, string | undefined>, 'initialData'>>
+    >().toEqualTypeOf<{
       initialData?: () => string | undefined
     }>()
+
     expectTypeOf<
       _RemoveMaybeRef<Pick<UseQueryOptions<string, Error, string>, 'initialData'>>
     >().toEqualTypeOf<{

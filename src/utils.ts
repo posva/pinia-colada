@@ -45,6 +45,20 @@ export const IS_CLIENT = typeof window !== 'undefined'
 export type _MaybeArray<T> = T | T[]
 
 /**
+ * Checks if a type is exactly `any`.
+ *
+ * @internal
+ */
+export type IsAny<T> = 0 extends 1 & T ? true : false
+
+/**
+ * Checks if a type is exactly `unknown`. This is useful to determine if a type is
+ *
+ * @internal
+ */
+export type IsUnknown<T> = IsAny<T> extends true ? false : unknown extends T ? true : false
+
+/**
  * Type that represents a value that can be a function or a single value. Used
  * for `defineQuery()` and `defineMutation()`.
  *

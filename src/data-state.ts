@@ -28,7 +28,8 @@ export interface _DataState_Base<TData, TError> {
   status: DataStateStatus
 }
 
-export interface DataState_Success<TData> extends _DataState_Base<TData, null> {
+export interface DataState_Success<TData, TDataInitial>
+  extends _DataState_Base<TData | Exclude<TDataInitial, undefined>, null> {
   status: 'success'
 }
 
@@ -45,8 +46,10 @@ export interface DataState_Pending<TDataInitial> extends _DataState_Base<TDataIn
  * Possible states for data based on its status.
  */
 export type DataState<TData, TError, TDataInitial = undefined> =
-  | DataState_Success<TData>
+  | DataState_Success<TData, TDataInitial>
   | DataState_Error<TData, TError, TDataInitial>
+  // technically, pending should have an undefined data, but that would make it less practical
+  // when setting `initialData` in queries
   | DataState_Pending<TDataInitial>
 
 /**

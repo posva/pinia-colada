@@ -1,6 +1,6 @@
 import { inject } from 'vue'
 import type { InjectionKey, MaybeRefOrGetter } from 'vue'
-import type { EntryKeyTagged } from './entry-keys'
+import type { EntryKey } from './entry-keys'
 import type { ErrorDefault } from './types-extension'
 
 /**
@@ -96,8 +96,7 @@ export interface UseQueryOptions<
   TData = unknown,
   // eslint-disable-next-line unused-imports/no-unused-vars
   TError = ErrorDefault,
-  TDataInitial extends TData | undefined = TData | undefined,
-  TDataTag = TData | TDataInitial,
+  TDataInitial extends TData | undefined = undefined,
 > extends Pick<
     UseQueryOptionsGlobal,
     | 'gcTime'
@@ -125,7 +124,7 @@ export interface UseQueryOptions<
    * })
    * ```
    */
-  key: MaybeRefOrGetter<EntryKeyTagged<TDataTag>>
+  key: MaybeRefOrGetter<EntryKey>
 
   /**
    * The function that will be called to fetch the data. It **must** be async.
@@ -134,8 +133,10 @@ export interface UseQueryOptions<
 
   /**
    * The data which is initially set to the query while the query is loading
-   * for the first time. Note: unlike with `placeholderData`, setting the
+   * for the first time. Note: unlike with {@link placeholderData}, setting the
    * initial data changes the state of the query (it will be set to `success`).
+   *
+   * @see {@link placeholderData}
    */
   initialData?: () => TDataInitial
 
@@ -143,7 +144,9 @@ export interface UseQueryOptions<
    * A placeholder data that is initially shown while the query is loading for
    * the first time. This will also show the `status` as `success` until the
    * query finishes loading (no matter the outcome of the query). Note: unlike
-   * with `initialData`, the placeholder does not change the cache state.
+   * with {@link initialData}, the placeholder does not change the cache state.
+   *
+   * @see {@link initialData}
    */
   placeholderData?:
     | NoInfer<TDataInitial>

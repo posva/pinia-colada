@@ -15,9 +15,10 @@ export interface UseInfiniteQueryOptions<
   TDataInitial extends TData | undefined = TData | undefined,
   TPages = unknown,
 > extends Omit<
-    UseQueryOptions<TData, TError, TDataInitial, TPages>,
-    'query' | 'initialData' | 'placeholderData'
+    UseQueryOptions<TData, TError, TDataInitial>,
+    'query' | 'initialData' | 'placeholderData' | 'key'
   > {
+  key: UseQueryOptions<TPages, TError, TPages>['key']
   /**
    * The function that will be called to fetch the data. It **must** be async.
    */

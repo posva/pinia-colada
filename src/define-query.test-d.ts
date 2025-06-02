@@ -75,9 +75,9 @@ describe('defineQuery types', () => {
   }
 
   it('keeps the function type in initialData', () => {
-    expectTypeOf<Required<DefineQueryOptions<string, Error>>['initialData']>().toEqualTypeOf<
-      () => string | undefined
-    >()
+    expectTypeOf<
+      Required<DefineQueryOptions<string, Error, string | undefined>>['initialData']
+    >().toEqualTypeOf<() => string | undefined>()
   })
 
   it('works with initialData', () => {
@@ -90,8 +90,15 @@ describe('defineQuery types', () => {
     useQuery({
       key,
       query,
+      // no error without a satisfies
       initialData: () => (Math.random() ? 'ok' : undefined),
-    } satisfies DefineQueryOptions<string, Error>)
+    })
+
+    useQuery({
+      key,
+      query,
+      initialData: () => (Math.random() ? 'ok' : undefined),
+    } satisfies DefineQueryOptions<string, Error, string | undefined>)
   })
 
   it('keeps the function type in placeholderData', () => {
