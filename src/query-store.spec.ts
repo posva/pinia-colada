@@ -185,6 +185,12 @@ describe('Query Cache store', () => {
     expect(queryCache.getEntries({ key: ['a', 'b', 'c'] })).toHaveLength(1)
   })
 
+  it('can get an individual entry', () => {
+    const queryCache = useQueryCache()
+    queryCache.setQueryData(['a', 'b', 'c'], 'abc')
+    expect(queryCache.get(['a', 'b', 'c'])).toBeDefined()
+  })
+
   it('sets the data of multiple entries with setQueriesData', () => {
     const queryCache = useQueryCache()
     queryCache.setQueryData(['a', 'b', 'c'], 'abc')
