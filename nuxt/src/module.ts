@@ -44,11 +44,17 @@ export default defineNuxtModule<never>({
     })
 
     addImports([
+      // queries
       { from: '@pinia/colada', name: 'useQuery' },
+      { from: '@pinia/colada', name: 'defineQueryOptions' },
       { from: '@pinia/colada', name: 'defineQuery' },
       { from: '@pinia/colada', name: 'useQueryCache' },
+      // mutations
       { from: '@pinia/colada', name: 'useMutation' },
       { from: '@pinia/colada', name: 'defineMutation' },
-    ])
+    ] satisfies Array<{
+      from: '@pinia/colada'
+      name: keyof typeof import('@pinia/colada')
+    }>)
   },
 })

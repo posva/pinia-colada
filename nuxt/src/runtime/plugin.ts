@@ -11,6 +11,7 @@ import coladaOptions from '#build/colada.options'
 
 export default defineNuxtPlugin({
   name: 'Pinia Colada',
+  // makes this plugin run after the Pinia plugin
   dependsOn: ['pinia'],
   setup(nuxtApp) {
     nuxtApp.vueApp.use(PiniaColada, {
