@@ -5,7 +5,13 @@ import type { EntryKey, EntryKeyTagged } from './entry-keys'
 import type { DataState, DataStateStatus } from './data-state'
 import type { ErrorDefault } from './types-extension'
 import type { DefineQueryOptions } from './define-query'
+import type { defineQueryOptions } from './define-query-options'
 
+/**
+ * Return type for the {@link useQueryState} composable.
+ *
+ * @see {@link useQueryState}
+ */
 export interface UseQueryStateReturn<
   TData = unknown,
   TError = ErrorDefault,
@@ -31,6 +37,15 @@ export function useQueryState<
   key: MaybeRefOrGetter<EntryKeyTagged<TData, TError, TDataInitial>>,
 ): UseQueryStateReturn<TData, TError, TDataInitial>
 
+/**
+ * Reactive access to the state of a query entry without fetching it.
+ *
+ * @param setupOptions - function that returns the query options based on the provided params
+ * @param paramsGetter - getter for the parameters used to generate the query key
+ *
+ * @see {@link DefineQueryOptions}
+ * @see {@link defineQueryOptions}
+ */
 export function useQueryState<Params, TData, TError, TDataInitial extends TData | undefined>(
   setupOptions: (params: Params) => DefineQueryOptions<TData, TError, TDataInitial>,
   paramsGetter: MaybeRefOrGetter<NoInfer<Params>>,

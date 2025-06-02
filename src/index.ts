@@ -26,6 +26,8 @@ export type {
 export { defineQuery, type DefineQueryOptions } from './define-query'
 export { useQuery, type UseQueryReturn } from './use-query'
 
+export { useQueryState, type UseQueryStateReturn } from './use-query-state'
+
 export {
   useInfiniteQuery,
   type UseInfiniteQueryOptions,
