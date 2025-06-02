@@ -135,6 +135,18 @@ describe('typed query keys', () => {
       queryCache.setQueryData(staticOps.key, { id: 1, tmp: true })
       // @ts-expect-error: not existing property
       queryCache.setQueryData(staticOps.key, { id: 1, nope: true })
+
+      const entry = queryCache.get(staticOps.key)!
+      // no undefined
+      expectTypeOf(entry.state.value.data).toEqualTypeOf<
+        | {
+            id: number
+          }
+        | {
+            id: number
+            tmp: boolean
+          }
+      >()
     })
 
     it('allows function options like initialData', () => {
@@ -165,6 +177,7 @@ describe('typed query keys', () => {
       // @ts-expect-error: success + undefined are not compatible
       queryCache.setQueryData(optsStatic.key, undefined)
       const entry = queryCache.get(optsStatic.key)!
+      expectTypeOf(entry.state.value.data).toEqualTypeOf<`a:${number}` | undefined>()
       queryCache.setEntryState(entry, { status: 'pending', data: undefined, error: null })
       queryCache.setQueryData(optsStatic.key, 'a:2')
       queryCache.setQueryData(optsStatic.key, (oldData) => {
@@ -178,6 +191,7 @@ describe('typed query keys', () => {
       // @ts-expect-error: success + undefined are not compatible
       queryCache.setQueryData(optsDynamic(2).key, undefined)
       const entry = queryCache.get(optsDynamic(2).key)!
+      expectTypeOf(entry.state.value.data).toEqualTypeOf<`a:${number}` | undefined>()
       queryCache.setEntryState(entry, { status: 'pending', data: undefined, error: null })
       queryCache.setQueryData(optsDynamic(2).key, 'a:2')
       queryCache.setQueryData(optsDynamic(2).key, (oldData) => {
@@ -223,7 +237,11 @@ describe('typed query keys', () => {
         toto: oldData?.toto ?? 0 + 1,
       }))
       queryCache.setQueryData(docQueryById('2').key, { toto: 47 })
-      // allows non typed too
+      queryCache.setQueryData(docQueryById('2').key, {
+        // @ts-expect-error: not the correct type
+        toto: true,
+      })
+      // allows non typed too with loose types
       queryCache.setQueryData(DOCUMENTS_KEYS.byId('1'), { toto: true })
     })
   })

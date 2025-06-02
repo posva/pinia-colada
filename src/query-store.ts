@@ -772,6 +772,23 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   )
 
   /**
+   * Gets a single query entry from the cache based on the key of the query.
+   *
+   * @param key - the key of the query
+   */
+  function get<
+    TData = unknown,
+    TError = ErrorDefault,
+    TDataInitial extends TData | undefined = undefined,
+  >(
+    key: EntryKeyTagged<TData, TDataInitial> | EntryKey,
+  ): UseQueryEntry<TData, TError, TDataInitial> | undefined {
+    return caches.value.get(toCacheKey(key)) as
+      | UseQueryEntry<TData, TError, TDataInitial>
+      | undefined
+  }
+
+  /**
    * Set the data of a query entry in the cache. It also sets the `status` to `success`.
    *
    * @param key - the key of the query
@@ -894,6 +911,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     cancel,
     create,
     remove,
+    get,
     setEntryState,
     getEntries,
   }
