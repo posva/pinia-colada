@@ -97,8 +97,3 @@ export type {
 export type { _ReduceContext } from './use-mutation'
 
 export type { _DataState_Base } from './data-state'
-
-/**
- * @deprecated this type is not used anymore, use `EntryKey` instead
- */
-export type EntryNodeKey = string | number
