@@ -1,3 +1,10 @@
+## [0.1.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.0.6...@pinia/colada-devtools@0.1.0) (2025-06-03)
+
+### Features
+
+- add button to close devtools ([0d7ebe1](https://github.com/posva/pinia-colada/commit/0d7ebe1c8a724f144e509a64d16f8bf540ae1cda))
+- allow forcing devtools in production ([18b11fb](https://github.com/posva/pinia-colada/commit/18b11fbc3ffac5f7a6f561841850d5356ca7156d))
+
 ## [0.0.6](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.0.5...@pinia/colada-devtools@0.0.6) (2025-06-03)
 
 ### Features
