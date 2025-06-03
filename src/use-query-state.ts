@@ -1,8 +1,9 @@
 import type { ComputedRef, MaybeRefOrGetter } from 'vue'
 import { computed, toValue } from 'vue'
 import { useQueryCache } from './query-store'
+import type { UseQueryReturn } from './use-query'
 import type { EntryKey, EntryKeyTagged } from './entry-keys'
-import type { DataState, DataStateStatus } from './data-state'
+import type { AsyncStatus, DataState, DataStateStatus } from './data-state'
 import type { ErrorDefault } from './types-extension'
 import type { DefineQueryOptions } from './define-query'
 import type { defineQueryOptions } from './define-query-options'
@@ -17,10 +18,46 @@ export interface UseQueryStateReturn<
   TError = ErrorDefault,
   TDataInitial extends TData | undefined = undefined,
 > {
+  /**
+   * `state` of the query entry.
+   *
+   * @see {@link UseQueryReturn#state}
+   */
   state: ComputedRef<DataState<TData, TError, TDataInitial> | undefined>
+
+  /**
+   * `data` of the query entry.
+   *
+   * @see {@link UseQueryReturn#data}
+   */
   data: ComputedRef<TData | TDataInitial | undefined>
+
+  /**
+   * `error` of the query entry.
+   *
+   * @see {@link UseQueryReturn#error}
+   */
   error: ComputedRef<TError | null | undefined>
+
+  /**
+   * `status` of the query entry.
+   *
+   * @see {@link DataStateStatus}
+   * @see {@link UseQueryReturn#status}
+   */
   status: ComputedRef<DataStateStatus | undefined>
+
+  /**
+   * `asyncStatus` of the query entry.
+   *
+   * @see {@link AsyncStatus}
+   * @see {@link UseQueryReturn#asyncStatus}
+   */
+  asyncStatus: ComputedRef<AsyncStatus | undefined>
+
+  /**
+   * Is the query entry currently pending or non existent.
+   */
   isPending: ComputedRef<boolean>
 }
 
@@ -93,13 +130,15 @@ export function useQueryState<
   const data = computed(() => state.value?.data)
   const error = computed(() => state.value?.error)
   const status = computed(() => state.value?.status)
-  const isPending = computed(() => state.value?.status === 'pending')
+  const asyncStatus = computed(() => entry.value?.asyncStatus.value)
+  const isPending = computed(() => !state.value || state.value.status === 'pending')
 
   return {
     state,
     data,
     error,
     status,
+    asyncStatus,
     isPending,
   }
 }
