@@ -173,6 +173,17 @@ describe('typed query keys', () => {
       query: async () => `a:${id}` as const,
     }))
 
+    it('removes undefined from an entry state if initialData is set', () => {
+      const optsStatic = defineQueryOptions({
+        key: ['a', 2],
+        query: async () => `a:${2}` as `a:${number}`,
+        initialData: () => 'a:0' as const,
+      })
+      const queryCache = useQueryCache()
+      const entry = queryCache.get(optsStatic.key)!
+      expectTypeOf(entry.state.value.data).toEqualTypeOf<`a:${number}`>()
+    })
+
     it('types when using setQueryData and static options', () => {
       const queryCache = useQueryCache()
       // @ts-expect-error: success + undefined are not compatible
