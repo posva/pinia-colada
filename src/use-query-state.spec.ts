@@ -38,7 +38,7 @@ describe('useQueryState', () => {
     expect(wrapper.vm.data).toBeUndefined()
     expect(wrapper.vm.error).toBeUndefined()
     expect(wrapper.vm.status).toBeUndefined()
-    expect(wrapper.vm.isPending).toBe(false)
+    expect(wrapper.vm.isPending).toBe(true)
   })
 
   it('accesses existing query state by key', async () => {
