@@ -8,9 +8,8 @@
     "dev:client": "vite",
     "dev:db": "json-server --port 7777 db.json",
     "dev_devtools": "pnpm run -C ../devtools build:panel -w",
-    "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
-    "build-only": "vite build",
+    "build": "vite build",
     "type-check": "vue-tsc --build --force"
   },
   "dependencies": {
