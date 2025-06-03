@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🍹 Pinia Colada Devtools</title>
+
+    <script src="./dist-iframe/index.iife.js"></script>
+
+    <style>
+      #app {
+        position: fixed;
+        inset: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <p id="placeholder">
+      Where are devtools?
+      <br />
+      TODO: instructions on how to use?
+    </p>
+
+    <script type="module">
+      const output = document.querySelector('.output')
+
+      window.addEventListener('message', onMessage)
+
+      function onMessage(e) {
+        if (!e.ports.length) return
+
+        // Use the transferred port to post a message to the main frame
+        // e.ports[0].postMessage('A message from the iframe in page2.html')
+
+        const { configureApp, DevtoolsPanelCE, defineCustomElement } = PiniaColadaDevtools
+
+        customElements.define(
+          'pinia-colada-devtools',
+          defineCustomElement(DevtoolsPanelCE, {
+            configureApp(app) {
+              app.provide('port', e.ports[0])
+              return configureApp(app)
+            },
+            shadowRoot: true,
+          }),
+        )
+
+        const devtools = document.createElement('pinia-colada-devtools')
+        document.getElementById('app').appendChild(devtools)
+        attachCssPropertyRules(devtools)
+
+        document.getElementById('placeholder')?.remove()
+        window.removeEventListener('message', onMessage)
+      }
+
+      function attachCssPropertyRules(el) {
+        if (!el || !el.shadowRoot) {
+          throw new Error('No devtools element found for Pinia Colada devtools')
+        }
+
+        const style =
+          document.getElementById('__pc-tw-properties') ?? document.createElement('style')
+        style.setAttribute('id', '__pc-tw-properties')
+
+        const cssPropertyRulesText = [...el.shadowRoot.styleSheets]
+          .flatMap((s) => [...s.cssRules])
+          .filter((rule) => rule instanceof CSSPropertyRule)
+          .map((rule) => rule.cssText)
+          .join('')
+        style.textContent = cssPropertyRulesText
+        document.head.appendChild(style)
+      }
+
+      window.parent?.parent?.__PINIA_COLADA_DEVTOOLS_CONNECT?.(window)
+    </script>
+
+    <div id="app"></div>
+  </body>
+</html>

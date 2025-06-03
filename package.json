@@ -40,7 +40,9 @@
       },
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
-    }
+    },
+    "./devtools": "./dist-devtools/index.js",
+    "./devtools/iframe.html": "./dist-devtools/index.js"
   },
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -116,6 +118,7 @@
     "pinia": "^2.2.6 || ^3.0.0"
   },
   "dependencies": {
+    "@pinia/colada-devtools": "workspace:>=*",
     "@vue/devtools-api": "^7.7.2"
   },
   "devDependencies": {
