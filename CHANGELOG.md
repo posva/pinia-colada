@@ -1,3 +1,25 @@
+## [0.17.0](https://github.com/posva/pinia-colada/compare/v0.16.1...v0.17.0) (2025-06-03)
+
+### ⚠ BREAKING CHANGES
+
+- replace `EntryNodeKey` with `EntryKey`
+- **types:** The `EntryKeyTagged` type now has multiple type params and an array is no longer assignable to it. This is necessary to correctly infer the types for `TData` and `TDataInitial` and if you were **manually** using `EntryKeyTagged`, you will either need to cast arrays to it or use `EntryKey` instead. **In most cases this should not affect you**. This makes types stricter and also disallows setting a query data to `undefined`. If you were doing `queryCache.setQueryData(key, undefined)`, use `queryCache.setEntryState` instead.
+
+### Features
+
+- add a queryCache.get method to a typed entry ([2f7db57](https://github.com/posva/pinia-colada/commit/2f7db57de186c0571435e766aedc27321a255970))
+- add error to tagged keys ([7ad07c4](https://github.com/posva/pinia-colada/commit/7ad07c4a7a1361a288f3424919499b89d10331dc))
+- useQueryState ([e1e84eb](https://github.com/posva/pinia-colada/commit/e1e84ebcca331bb5917aa2dfdd7e91d0f9b5cf68)), closes [#23](https://github.com/posva/pinia-colada/issues/23)
+
+### Bug Fixes
+
+- **types:** avoid incorrect undefined from tagged keys ([9358619](https://github.com/posva/pinia-colada/commit/9358619d9b42a961877bc7c23ecde09c80420d15))
+- **types:** make options parameter optional in types ([#224](https://github.com/posva/pinia-colada/issues/224)) ([20bca79](https://github.com/posva/pinia-colada/commit/20bca79ed7e45bcfa31c15bd473b19ee4de88f76))
+
+### Code Refactoring
+
+- remove deprecated `EntryNodeKey` ([6c7d15b](https://github.com/posva/pinia-colada/commit/6c7d15b265640592dac09ddc537a1097454c013a))
+
 ## [0.16.1](https://github.com/posva/pinia-colada/compare/v0.16.0...v0.16.1) (2025-05-22)
 
 ### Bug Fixes

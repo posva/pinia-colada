@@ -1,3 +1,9 @@
+## [0.2.1](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.2.0...@pinia/colada-nuxt@0.2.1) (2025-06-03)
+
+### Features
+
+- add defineQueryOptions autoimport ([a360ac7](https://github.com/posva/pinia-colada/commit/a360ac7c02c18291c19c11b65a6c82381b8d747e))
+
 ## [0.2.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.1.3...@pinia/colada-nuxt@0.2.0) (2025-05-21)
 
 No major changes in this release

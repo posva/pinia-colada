@@ -1,3 +1,9 @@
+## [0.2.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-auto-refetch@0.1.0...@pinia/colada-plugin-auto-refetch@0.2.0) (2025-06-03)
+
+### Bug Fixes
+
+- **types:** missing type param ([81497e7](https://github.com/posva/pinia-colada/commit/81497e7970cb68e8957a7cb8630f167496c41b14))
+
 ## [0.1.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-auto-refetch@0.0.6...@pinia/colada-plugin-auto-refetch@0.1.0) (2025-05-21)
 
 ### Bug Fixes

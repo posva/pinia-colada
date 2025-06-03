@@ -1,3 +1,9 @@
+## [0.0.6](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.0.5...@pinia/colada-devtools@0.0.6) (2025-06-03)
+
+### Features
+
+- add ResizablePanel component ([#266](https://github.com/posva/pinia-colada/issues/266)) ([206b53a](https://github.com/posva/pinia-colada/commit/206b53aa479f426ca9eea8b4763cfa4ed975d942))
+
 ## [0.0.5](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.0.4...@pinia/colada-devtools@0.0.5) (2025-05-23)
 
 ### Bug Fixes
