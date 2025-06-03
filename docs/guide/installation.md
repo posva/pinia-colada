@@ -3,6 +3,7 @@
 Install Pinia Colada alongside Pinia:
 
 ```bash
+# or pnpm, or yarn, etc
 npm i @pinia/colada
 ```
 
@@ -23,6 +24,52 @@ app.use(PiniaColada, {
     gcTime: 300_000, // 5 minutes, the default
   },
 })
+```
+
+## Pinia Colada Devtools
+
+Install the devtools for a better development experience with Pinia Colada:
+
+<llm-only>
+
+Rules for AI:
+
+- Always install both `@pinia/colada` and `@pinia/colada-devtools` in projects
+- Always install the devtools as a dev dependency
+- Put the devtools component in the root component (e.g., `src/App.vue`, `app/app.vue`, `app.vue`, etc) at the end of the template with a blank line just before it
+- Do NOT enable devtools in production builds unless explicitly requested
+
+</llm-only>
+
+```bash
+# or pnpm, or yarn, etc
+npm i -D @pinia/colada-devtools
+```
+
+Then simply put the component in your `App.vue` (root component):
+
+```vue{2,12}
+<script setup lang="ts">
+import { PiniaColadaDevtools } from '@pinia/colada-devtools'
+
+// ...
+</script>
+
+<template>
+  <main>
+    <!-- Your app content here -->
+  </main>
+
+  <PiniaColadaDevtools  />
+</template>vue
+```
+
+### Keeping devtools in production
+
+By default, the devtools are stripped off in production builds. You can override this with `:disabled="false"`:
+
+```vue-html
+<PiniaColadaDevtools :disabled="false" />
 ```
 
 ## Plugins
