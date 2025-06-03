@@ -1,0 +1,67 @@
+#open-devtools-button {
+  all: unset;
+  display: block;
+  box-sizing: border-box;
+
+  font-size: 16px;
+  position: fixed;
+  right: 1em;
+  bottom: 1em;
+
+  overflow: hidden;
+  user-select: none;
+
+  color-scheme: light dark;
+
+  --bg-color: light-dark(rgb(225, 255, 255), rgb(0, 20, 30));
+  --fg-color: light-dark( rgb(0, 20, 30), rgb(225, 255, 255));
+
+  padding: 5px 5px;
+  border-radius: 50%;
+  border: 3px solid color-mix(in srgb, var(--bg-color), black 20%);
+  background-color: color-mix(in srgb, var(--bg-color), transparent 50%);
+
+  /* some light shadow to elevate the button */
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.1);
+
+  width: 58px;
+  height: 58px;
+
+  z-index: 99999;
+
+  transition:
+    background-color 0.2s ease-in-out,
+    border 0.2s ease-in-out,
+    box-shadow 0.2s ease-in-out;
+
+  &:focus {
+    outline: 2px solid var(--fg-color);
+    outline-offset: 2px;
+  }
+
+  &:hover, &:focus {
+    cursor: pointer;
+    border-width: 2px;
+    border-color: color-mix(in srgb, var(--fg-color), black 10%);
+    background-color: color-mix(in srgb, var(--bg-color), transparent 10%);
+    box-shadow:
+      0 4px 8px rgba(0, 0, 0, 0.1),
+      0 2px 4px rgba(0, 0, 0, 0.1);
+
+    & > img {
+      transform: scale(3.5) translateY(20%) translateX(-5%) rotateZ(10deg);
+    }
+  }
+
+  & > img {
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+
+    transition: transform 0.2s ease-in-out;
+
+    transform: scale(1.85) translateY(20%);
+  }
+}

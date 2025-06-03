@@ -4,8 +4,12 @@ import { useQueryCache } from '@pinia/colada'
 import { DuplexChannel, DEVTOOLS_INFO_KEY } from '@pinia/colada-devtools/shared'
 import type { AppEmits, DevtoolsEmits } from '@pinia/colada-devtools/shared'
 import { addDevtoolsInfo, createQueryEntryPayload } from './pc-devtools-info-plugin'
-// use dependency free simple useEventListener
+// use dependency free simple useEventListener because this component is used directly in the app
 import { useEventListener } from './use-event-listener'
+
+const emit = defineEmits<{
+  close: []
+}>()
 
 const queryCache = useQueryCache()
 addDevtoolsInfo(queryCache)
@@ -81,21 +85,14 @@ watch(
   { flush: 'sync' },
 )
 
-// DEBUG
-transmitter.on('ping', () => {
-  console.log('[App] Received ping from devtools')
-  transmitter.emit('pong')
-})
-transmitter.on('pong', () => {
-  console.log('[App] Received pong from devtools')
-})
-
 transmitter.on('queries:refetch', (key) => {
   queryCache.invalidateQueries({ key, exact: true, active: null, stale: null })
 })
+
 transmitter.on('queries:invalidate', (key) => {
   queryCache.invalidateQueries({ key, exact: true })
 })
+
 transmitter.on('queries:reset', (key) => {
   const entry = queryCache.getEntries({ key, exact: true })[0]
   if (entry) {
@@ -277,11 +274,11 @@ async function devtoolsOnReady() {
     return
   }
   attachCssPropertyRules(devtoolsEl.value)
-  transmitter.emit('queries:all', queryCache.getEntries({}).map(createQueryEntryPayload))
+  transmitter.emit('queries:all', queryCache.getEntries().map(createQueryEntryPayload))
   transmitter.emit(
     'mutations:all',
-    // FIXME: mutations
-    queryCache.getEntries({}).map(createQueryEntryPayload),
+    // FIXME: add mutations
+    queryCache.getEntries().map(createQueryEntryPayload),
   )
 }
 </script>
@@ -297,6 +294,7 @@ async function devtoolsOnReady() {
       :port.prop="mc.port2"
       @toggle-pip="togglePiPWindow()"
       @ready="devtoolsOnReady()"
+      @close="emit('close')"
     />
   </Teleport>
 </template>

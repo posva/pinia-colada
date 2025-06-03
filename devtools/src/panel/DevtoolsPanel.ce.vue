@@ -13,17 +13,11 @@ const emit = defineEmits<{
   togglePip: []
   closePip: []
   ready: []
+  close: []
 }>()
+
 const channel = new DuplexChannel<DevtoolsEmits, AppEmits>(port)
 provide(DUPLEX_CHANNEL_KEY, channel)
-
-channel.on('ping', () => {
-  console.log('[Devtools] Received ping from App')
-  channel.emit('pong')
-})
-channel.on('pong', () => {
-  console.log('[Devtools] Received pong from App')
-})
 
 watch(
   () => port,
@@ -39,7 +33,6 @@ onMounted(() => {
   requestAnimationFrame(() => {
     emit('ready')
   })
-  channel.emit('ping')
 })
 
 const queries = ref<UseQueryEntryPayload[]>([])
@@ -97,11 +90,18 @@ channel.on('queries:delete', (q) => {
         <div class="flex items-center py-1 gap-1 pr-1">
           <UButton
             class="variant-ghost theme-neutral"
-            :title="isPip ? 'Close popup' : 'Open in popup'"
+            :title="isPip ? 'Restore window' : 'Open in a new window'"
             @click="emit('togglePip')"
           >
             <i-lucide-picture-in-picture v-if="!isPip" class="w-5 h-5" />
-            <i-lucide-x v-else class="w-5 h-5" />
+            <i-lucide-minimize-2 v-else class="w-5 h-5" />
+          </UButton>
+          <UButton
+            class="variant-ghost theme-neutral"
+            title="Close devtools"
+            @click="emit('close')"
+          >
+            <i-lucide-x class="w-5 h-5" />
           </UButton>
         </div>
       </div>

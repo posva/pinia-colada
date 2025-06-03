@@ -12,6 +12,7 @@ declare module 'vue' {
     ILucideCheckCheck: typeof import('~icons/lucide/check-check')['default']
     ILucideCircleSlash: typeof import('~icons/lucide/circle-slash')['default']
     ILucideLoader: typeof import('~icons/lucide/loader')['default']
+    ILucideMinimize2: typeof import('~icons/lucide/minimize2')['default']
     ILucideMousePointerClick: typeof import('~icons/lucide/mouse-pointer-click')['default']
     ILucidePause: typeof import('~icons/lucide/pause')['default']
     ILucidePictureInPicture: typeof import('~icons/lucide/picture-in-picture')['default']

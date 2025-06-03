@@ -3,6 +3,9 @@ import { onMounted, ref } from 'vue'
 import ClientOnly from './ClientOnly.vue'
 import PiniaColadaDevtools from './PiniaColadaDevtools.vue'
 import { useLocalStorage } from '@vueuse/core'
+import logoURL from './logo.svg?inline'
+// to inject them manually and keep the lib as a js
+import buttonStyles from './button-style.css?inline'
 
 const isCEDefined = ref(false)
 const areDevtoolsOpen = useLocalStorage('pinia-colada-devtools-open', false)
@@ -21,15 +24,21 @@ async function openDevtools() {
 }
 
 onMounted(() => {
-  // FIXME: it would be nice to do some prefetching in vite
-  // https://github.com/vitejs/vite/issues/10600
-  requestIdleCallback(() => {
-    import('@pinia/colada-devtools/panel')
-  })
+  const styleEl = document.getElementById('__pc-devtools-style') ?? document.createElement('style')
+  styleEl.id = '__pc-devtools-style'
+  styleEl.textContent = buttonStyles
+  document.head.appendChild(styleEl)
 
   // reopen devtools if they were open before
   if (areDevtoolsOpen.value) {
     openDevtools()
+  } else {
+    // prefetch the custom element
+    // FIXME: it would be nice to do some prefetching in vite
+    // https://github.com/vitejs/vite/issues/10600
+    requestIdleCallback(() => {
+      import('@pinia/colada-devtools/panel')
+    })
   }
 })
 </script>
@@ -38,11 +47,13 @@ onMounted(() => {
   <ClientOnly>
     <button
       v-if="!areDevtoolsOpen"
-      class="fixed bottom-2 right-2 bg-primary-500 hover:cursor-pointer z-99999"
+      id="open-devtools-button"
       @click="openDevtools()"
+      aria-label="Open Pinia Colada Devtools"
+      title="Open Pinia Colada Devtools"
     >
-      🍹 Devtools
+      <img :src="logoURL" alt="Pinia Colada Devtools Logo" />
     </button>
-    <PiniaColadaDevtools v-if="isCEDefined && areDevtoolsOpen" />
+    <PiniaColadaDevtools v-if="isCEDefined && areDevtoolsOpen" @close="areDevtoolsOpen = false" />
   </ClientOnly>
 </template>

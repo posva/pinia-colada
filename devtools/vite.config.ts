@@ -57,7 +57,7 @@ export default defineConfig({
         'pinia',
         '@pinia/colada-devtools/shared',
         '@pinia/colada-devtools/panel',
-        // TODO; check if needed
+        // TODO: check if needed
         '@pinia/colada-devtools/panel/index.css',
       ],
     },
