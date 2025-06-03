@@ -58,6 +58,6 @@ onErrorCaptured((err) => {
     </Suspense>
   </RouterView>
 
-  <PiniaColadaDevtools />
+  <PiniaColadaDevtools :disabled="false" />
   <hr>
 </template>
