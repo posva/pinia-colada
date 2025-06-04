@@ -61,7 +61,7 @@ import { PiniaColadaDevtools } from '@pinia/colada-devtools'
   </main>
 
   <PiniaColadaDevtools  />
-</template>vue
+</template>
 ```
 
 ### Keeping devtools in production
