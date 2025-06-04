@@ -1,3 +1,9 @@
+## [0.1.1](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.1.0...@pinia/colada-devtools@0.1.1) (2025-06-04)
+
+### Bug Fixes
+
+- keep queryCache actions ([ef9db0b](https://github.com/posva/pinia-colada/commit/ef9db0b38be0f700cdd99ab089b0dfe558ffa1f5))
+
 ## [0.1.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.0.6...@pinia/colada-devtools@0.1.0) (2025-06-03)
 
 ### Features
