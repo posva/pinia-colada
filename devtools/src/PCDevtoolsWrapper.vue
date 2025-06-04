@@ -6,6 +6,8 @@ import { useLocalStorage } from '@vueuse/core'
 import logoURL from './logo.svg?inline'
 // to inject them manually and keep the lib as a js
 import buttonStyles from './button-style.css?inline'
+import { useQueryCache } from '@pinia/colada'
+import { addDevtoolsInfo } from './pc-devtools-info-plugin'
 
 const isCEDefined = ref(false)
 const areDevtoolsOpen = useLocalStorage('pinia-colada-devtools-open', false)
@@ -17,6 +19,10 @@ async function ensureCEDefined() {
     customElements.define('pinia-colada-devtools-panel', DevtoolsPanel)
   }
 }
+
+// add the info here so it is available right away
+const queryCache = useQueryCache()
+addDevtoolsInfo(queryCache)
 
 async function openDevtools() {
   await ensureCEDefined()
@@ -48,11 +54,11 @@ onMounted(() => {
     <button
       v-if="!areDevtoolsOpen"
       id="open-devtools-button"
-      @click="openDevtools()"
       aria-label="Open Pinia Colada Devtools"
       title="Open Pinia Colada Devtools"
+      @click="openDevtools()"
     >
-      <img :src="logoURL" alt="Pinia Colada Devtools Logo" />
+      <img :src="logoURL" alt="Pinia Colada Devtools Logo">
     </button>
     <PiniaColadaDevtools v-if="isCEDefined && areDevtoolsOpen" @close="areDevtoolsOpen = false" />
   </ClientOnly>

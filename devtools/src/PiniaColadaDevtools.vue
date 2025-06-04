@@ -12,7 +12,6 @@ const emit = defineEmits<{
 }>()
 
 const queryCache = useQueryCache()
-addDevtoolsInfo(queryCache)
 
 queryCache.$onAction(({ name, after, onError, args }) => {
   if (name === 'remove') {
