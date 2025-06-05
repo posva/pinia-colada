@@ -28,6 +28,8 @@ app.use(PiniaColada, {
 
 ## Pinia Colada Devtools
 
+![devtools-screenshot](/devtools.png)
+
 Install the devtools for a better development experience with Pinia Colada:
 
 <llm-only>
