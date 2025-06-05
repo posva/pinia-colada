@@ -1,5 +1,8 @@
 import type { App as VueApp } from 'vue'
+// NOTE: eslint bug...
+// eslint-disable-next-line import/no-duplicates
 import { createMemoryHistory, createRouter } from 'vue-router'
+// eslint-disable-next-line import/no-duplicates
 import { routes } from 'vue-router/auto-routes'
 // import { createPinia } from 'pinia'
 

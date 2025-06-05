@@ -1,5 +1,8 @@
 import { createApp } from 'vue'
+// NOTE: eslint bug...
+// eslint-disable-next-line import/no-duplicates
 import { createRouter, createWebHistory } from 'vue-router/auto'
+// eslint-disable-next-line import/no-duplicates
 import { routes } from 'vue-router/auto-routes'
 import { createPinia, getActivePinia } from 'pinia'
 import { PiniaColada, PiniaColadaQueryHooksPlugin, useQueryCache } from '@pinia/colada'
