@@ -1,3 +1,9 @@
+## [0.1.2](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.1.1...@pinia/colada-devtools@0.1.2) (2025-06-05)
+
+### Bug Fixes
+
+- safari ([dc22a3e](https://github.com/posva/pinia-colada/commit/dc22a3eeb024e546cf2259ae84999d1a055295b6))
+
 ## [0.1.1](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.1.0...@pinia/colada-devtools@0.1.1) (2025-06-04)
 
 ### Bug Fixes
