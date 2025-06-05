@@ -42,7 +42,9 @@ onMounted(() => {
     // prefetch the custom element
     // FIXME: it would be nice to do some prefetching in vite
     // https://github.com/vitejs/vite/issues/10600
-    requestIdleCallback(() => {
+    const idleCallback
+      = typeof requestIdleCallback === 'function' ? requestIdleCallback : requestAnimationFrame // not a replacement but until Safari supports
+    idleCallback(() => {
       import('@pinia/colada-devtools/panel')
     })
   }
