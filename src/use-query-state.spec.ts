@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { defineComponent, nextTick, ref } from 'vue'
-import { createPinia } from 'pinia'
+import { createPinia, setActivePinia } from 'pinia'
 import { PiniaColada } from './pinia-colada'
 import { useQueryState } from './use-query-state'
 import { defineQueryOptions } from './define-query-options'
@@ -43,6 +43,7 @@ describe('useQueryState', () => {
 
   it('accesses existing query state by key', async () => {
     const pinia = createPinia()
+    setActivePinia(pinia)
     const queryCache = useQueryCache(pinia)
     queryCache.setQueryData(['test-key'], 42)
     const wrapper = mount(
@@ -67,6 +68,7 @@ describe('useQueryState', () => {
 
   it('works with dynamic keys', async () => {
     const pinia = createPinia()
+    setActivePinia(pinia)
     const keyId = ref(1)
 
     const queryCache = useQueryCache(pinia)
@@ -111,7 +113,7 @@ describe('useQueryState', () => {
         setup() {
           return { ...useQueryState(itemQuery, keyId) }
         },
-        template: `<div>{{ data1?.name }}</div>`,
+        template: `<div>{{ data?.name }}</div>`,
       }),
       {
         global: {

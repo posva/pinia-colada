@@ -188,6 +188,7 @@ export const USE_QUERY_OPTIONS_KEY: InjectionKey<UseQueryOptionsGlobalDefaults>
 
 /**
  * Injects the global query options.
+ *
  * @internal
  */
 export const useQueryOptions = (): UseQueryOptionsGlobalDefaults =>
