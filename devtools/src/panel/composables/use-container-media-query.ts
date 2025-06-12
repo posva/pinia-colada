@@ -60,7 +60,7 @@ class ContainerQueryList extends EventTarget {
 
     const rootNode = element.getRootNode()
     if (!(rootNode instanceof ShadowRoot) && !(rootNode instanceof Document)) {
-      console.error(`root node of element isn\'t a ShadowRoot or Document`, rootNode)
+      console.error(`root node of element isn't a ShadowRoot or Document`, rootNode)
       throw new TypeError('Root node must be a ShadowRoot or Document')
     }
 
