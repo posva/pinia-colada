@@ -119,8 +119,8 @@
     "@vue/devtools-api": "^7.7.2"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^4.13.3",
-    "@ast-grep/cli": "^0.38.4",
+    "@antfu/eslint-config": "^4.14.1",
+    "@ast-grep/cli": "^0.38.5",
     "@pinia/colada": "workspace:*",
     "@posva/prompts": "^2.4.4",
     "@shikijs/vitepress-twoslash": "^3.5.0",
