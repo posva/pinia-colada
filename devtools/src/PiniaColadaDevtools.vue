@@ -289,7 +289,6 @@ async function devtoolsOnReady() {
   <Teleport :to="pipWindow ? pipWindow.document.body : 'body'">
     <pinia-colada-devtools-panel
       ref="devtools"
-      style="height: 100%"
       :isPip.prop="!!pipWindow"
       :port.prop="mc.port2"
       @toggle-pip="togglePiPWindow()"
