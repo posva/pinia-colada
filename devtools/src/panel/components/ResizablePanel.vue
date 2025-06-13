@@ -17,7 +17,7 @@ const panelStyle = computed(() => {
   }
 })
 
-function stopResizing() {
+function startResizing() {
   isResizing.value = true
 }
 
@@ -30,7 +30,7 @@ useEventListener(window, 'mousemove', (e: MouseEvent) => {
   const rawTranslate = window.innerHeight - e.clientY
 
   translate.value = Math.min(maxTranslate, Math.max(minTranslate, rawTranslate))
-})
+}, { passive: true })
 
 useEventListener(window, 'mouseup', () => {
   isResizing.value = false
@@ -42,6 +42,6 @@ useEventListener(window, 'mouseup', () => {
     class="h-[8px] w-full fixed left-0 bottom-0 z-9999 cursor-row-resize hover:bg-(--ui-border) transition-[background-color] duration-200 select-none touch-none resize-handle"
     :class="[isResizing && 'bg-(--ui-border) cursor-col-resize']"
     :style="panelStyle"
-    @mousedown="stopResizing"
+    @mousedown.prevent="startResizing"
   />
 </template>
