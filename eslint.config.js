@@ -25,6 +25,7 @@ export default antfu(
       'no-console': 'warn',
       'style/indent': 'off',
       'style/indent-binary-ops': 'off',
+      'style/operator-linebreak': 'off',
       'ts/no-use-before-define': 'off',
       'perfectionist/sort-imports': 'off',
       'perfectionist/sort-named-imports': 'off',

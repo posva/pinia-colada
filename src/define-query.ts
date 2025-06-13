@@ -15,7 +15,6 @@ import type { _RemoveMaybeRef } from './utils'
  *
  * @internal
  */
-// eslint-disable-next-line import/no-mutable-exports
 export let currentDefineQueryEffect: undefined | EffectScope
 
 /**
