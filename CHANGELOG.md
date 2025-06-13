@@ -1,3 +1,9 @@
+## [0.17.1](https://github.com/posva/pinia-colada/compare/v0.17.0...v0.17.1) (2025-06-13)
+
+### Bug Fixes
+
+- avoid uncaught error in defineQuery ([3037012](https://github.com/posva/pinia-colada/commit/30370123146bd4ffbb88588080d1795281dd0210)), closes [#312](https://github.com/posva/pinia-colada/issues/312)
+
 ## [0.17.0](https://github.com/posva/pinia-colada/compare/v0.16.1...v0.17.0) (2025-06-03)
 
 ### ⚠ BREAKING CHANGES
