@@ -83,8 +83,8 @@ export function defineQuery<TData, TError = ErrorDefault>(
  */
 export function defineQuery<T>(setup: () => T): () => T
 export function defineQuery(optionsOrSetup: DefineQueryOptions | (() => unknown)): () => unknown {
-  const setupFn
-    = typeof optionsOrSetup === 'function' ? optionsOrSetup : () => useQuery(optionsOrSetup)
+  const setupFn =
+    typeof optionsOrSetup === 'function' ? optionsOrSetup : () => useQuery(optionsOrSetup)
 
   let hasBeenEnsured: boolean | undefined
   // allows pausing the scope when the defined query is no used anymore

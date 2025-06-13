@@ -256,15 +256,15 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   // and plugins won't be able to hook into entry creation and fetching
   // this allows use to attach reactive effects to the scope later on
   const scope = getCurrentScope()!
-  const app: App<unknown>
+  const app: App<unknown> =
     // @ts-expect-error: internal
-    = getActivePinia()!._a
+    getActivePinia()!._a
 
   if (process.env.NODE_ENV !== 'production') {
     if (!hasInjectionContext()) {
       warnOnce(
-        `useQueryCache() was called outside of an injection context (component setup, store, navigation guard) You will get a warning about "inject" being used incorrectly from Vue. Make sure to use it only in allowed places.\n`
-          + `See https://vuejs.org/guide/reusability/composables.html#usage-restrictions`,
+        `useQueryCache() was called outside of an injection context (component setup, store, navigation guard) You will get a warning about "inject" being used incorrectly from Vue. Make sure to use it only in allowed places.\n` +
+          `See https://vuejs.org/guide/reusability/composables.html#usage-restrictions`,
       )
     }
   }
@@ -463,9 +463,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
         getEntries(filters).map((entry) => {
           invalidate(entry)
           return (
-            (refetchActive === 'all' || (entry.active && refetchActive))
-            && toValue(entry.options?.enabled)
-            && fetch(entry)
+            (refetchActive === 'all' || (entry.active && refetchActive)) &&
+            toValue(entry.options?.enabled) &&
+            fetch(entry)
           )
         }),
       )
@@ -487,10 +487,10 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
         : [...find(caches.value, filters.key)]
     ).filter(
       (entry) =>
-        (filters.stale == null || entry.stale === filters.stale)
-        && (filters.active == null || entry.active === filters.active)
-        && (!filters.status || entry.state.value.status === filters.status)
-        && (!filters.predicate || filters.predicate(entry)),
+        (filters.stale == null || entry.stale === filters.stale) &&
+        (filters.active == null || entry.active === filters.active) &&
+        (!filters.status || entry.state.value.status === filters.status) &&
+        (!filters.predicate || filters.predicate(entry)),
     )
   })
 
@@ -551,9 +551,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
         if (currentInstance) {
           entry.__hmr ??= { ids: new Map() }
 
-          const id
+          const id =
             // @ts-expect-error: internal property
-            = currentInstance.type?.__hmrId
+            currentInstance.type?.__hmrId
 
           if (id) {
             if (entry.__hmr.ids.has(id)) {
@@ -678,11 +678,11 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           })
           .catch((error) => {
             if (
-              pendingCall === entry.pending
-              && error
+              pendingCall === entry.pending &&
+              error &&
               // when the error is an abort error, it means the request was cancelled
               // we should just ignore the result of the query but not error
-              && error.name !== 'AbortError'
+              error.name !== 'AbortError'
             ) {
               setEntryState(entry, {
                 status: 'error',
@@ -933,9 +933,9 @@ export type QueryCache = ReturnType<typeof useQueryCache>
  */
 export function isQueryCache(cache: unknown): cache is QueryCache {
   return (
-    typeof cache === 'object'
-    && !!cache
-    && (cache as Record<string, unknown>).$id === QUERY_STORE_ID
+    typeof cache === 'object' &&
+    !!cache &&
+    (cache as Record<string, unknown>).$id === QUERY_STORE_ID
   )
 }
 

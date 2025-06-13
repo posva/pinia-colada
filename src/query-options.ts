@@ -183,8 +183,8 @@ export type UseQueryOptionsWithDefaults<
  */
 export type UseQueryOptionsGlobalDefaults = UseQueryOptionsGlobal & typeof USE_QUERY_DEFAULTS
 
-export const USE_QUERY_OPTIONS_KEY: InjectionKey<UseQueryOptionsGlobalDefaults>
-  = process.env.NODE_ENV !== 'production' ? Symbol('useQueryOptions') : Symbol()
+export const USE_QUERY_OPTIONS_KEY: InjectionKey<UseQueryOptionsGlobalDefaults> =
+  process.env.NODE_ENV !== 'production' ? Symbol('useQueryOptions') : Symbol()
 
 /**
  * Injects the global query options.

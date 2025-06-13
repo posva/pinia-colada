@@ -43,16 +43,16 @@ describe('useQuery', () => {
         ? options.query
         : vi.fn(options.query)
       : vi.fn(async () => 42)
-    const pinia
-      = mountOptions?.plugins?.find((plugin): plugin is Pinia => {
+    const pinia =
+      mountOptions?.plugins?.find((plugin): plugin is Pinia => {
         return (
-          'state' in plugin
-          && isRef(plugin.state)
-          && 'use' in plugin
-          && 'install' in plugin
-          && typeof plugin.use === 'function'
-          && typeof plugin.install === 'function'
-          && '_e' in plugin
+          'state' in plugin &&
+          isRef(plugin.state) &&
+          'use' in plugin &&
+          'install' in plugin &&
+          typeof plugin.use === 'function' &&
+          typeof plugin.install === 'function' &&
+          '_e' in plugin
         )
       }) || createPinia()
     const wrapper = mount(

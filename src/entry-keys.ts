@@ -12,8 +12,8 @@ export function toCacheKey(key: EntryKey | undefined): string | undefined
  */
 export function toCacheKey(key: EntryKey | undefined): string | undefined {
   return (
-    key
-    && JSON.stringify(key, (_, val) =>
+    key &&
+    JSON.stringify(key, (_, val) =>
       !val || typeof val !== 'object' || Array.isArray(val)
         ? val
         : Object.keys(val)

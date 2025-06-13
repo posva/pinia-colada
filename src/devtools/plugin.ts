@@ -190,13 +190,13 @@ export function addDevtools(app: App, pinia: Pinia) {
 
       queryCache.$onAction(({ name, after, onError }) => {
         if (
-          name === 'invalidate' // includes cancel
-          || name === 'fetch' // includes refresh
-          || name === 'setEntryState' // includes set data
-          || name === 'remove'
-          || name === 'untrack'
-          || name === 'track'
-          || name === 'ensure' // includes create
+          name === 'invalidate' || // includes cancel
+          name === 'fetch' || // includes refresh
+          name === 'setEntryState' || // includes set data
+          name === 'remove' ||
+          name === 'untrack' ||
+          name === 'track' ||
+          name === 'ensure' // includes create
         ) {
           updateQueryInspectorTree()
           after(updateQueryInspectorTree)

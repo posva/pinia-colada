@@ -351,9 +351,9 @@ export function useQuery<
         if (refetchControl === 'always') {
           refetch()
         } else if (
-          refetchControl
+          refetchControl ||
           // always refetch if the query is not enabled
-          || queryReturn.status.value === 'pending'
+          queryReturn.status.value === 'pending'
         ) {
           refresh()
         }

@@ -235,8 +235,8 @@ export interface UseMutationOptions<
 export type UseMutationOptionsGlobalDefaults = UseMutationOptionsGlobal &
   typeof USE_MUTATION_DEFAULTS
 
-export const USE_MUTATION_OPTIONS_KEY: InjectionKey<UseMutationOptionsGlobalDefaults>
-  = process.env.NODE_ENV !== 'production' ? Symbol('useMutationOptions') : Symbol()
+export const USE_MUTATION_OPTIONS_KEY: InjectionKey<UseMutationOptionsGlobalDefaults> =
+  process.env.NODE_ENV !== 'production' ? Symbol('useMutationOptions') : Symbol()
 
 /**
  * Injects the global query options.

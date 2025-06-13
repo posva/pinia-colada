@@ -270,8 +270,8 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
         : [] // no key, no exact entry
       : [...find(caches.value, filters.key)].filter(
           (entry) =>
-            (filters.status == null || entry.state.value.status === filters.status)
-            && (!filters.predicate || filters.predicate(entry)),
+            (filters.status == null || entry.state.value.status === filters.status) &&
+            (!filters.predicate || filters.predicate(entry)),
         )
   })
 
@@ -329,8 +329,8 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
       }
       if (
         // the entry has already an ongoing request
-        entry.state.value.status !== 'pending'
-        || entry.asyncStatus.value === 'loading'
+        entry.state.value.status !== 'pending' ||
+        entry.asyncStatus.value === 'loading'
       ) {
         console.error(
           `[@pinia/colada] A mutation entry ${keyMessage} was reused. If you are manually calling the "mutationCache.mutate()", you should always ensure the entry first: "mutationCache.mutate(mutationCache.ensure(entry, vars))". If not this is probably a bug. Please, open an issue on GitHub with a boiled down reproduction.`,
@@ -358,8 +358,8 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     try {
       const globalOnMutateContext = globalOptions.onMutate?.(vars)
 
-      context
-        = (globalOnMutateContext instanceof Promise
+      context =
+        (globalOnMutateContext instanceof Promise
           ? await globalOnMutateContext
           : globalOnMutateContext) || {}
 
