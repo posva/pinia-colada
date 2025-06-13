@@ -23,6 +23,37 @@ describe('defineQuery', () => {
   enableAutoUnmount(afterEach)
   mockWarn()
 
+  // https://github.com/posva/pinia-colada/discussions/312
+  it('catches initial errors', async () => {
+    const useTodoList = defineQuery({
+      key: ['todos'],
+      query: async () => {
+        throw new Error('ko')
+      },
+    })
+
+    const pinia = createPinia()
+    mount(
+      {
+        setup() {
+          useTodoList()
+          return {}
+        },
+        render: () => null,
+      },
+      {
+        global: {
+          plugins: [pinia, PiniaColada],
+        },
+      },
+    )
+
+    const { refresh, error } = useTodoList()
+    await refresh()
+
+    expect(error.value).toBeInstanceOf(Error)
+  })
+
   it('reuses the query in multiple places', async () => {
     const useTodoList = defineQuery({
       key: ['todos'],

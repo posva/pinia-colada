@@ -5,6 +5,7 @@ import { useQueryCache } from './query-store'
 import type { ErrorDefault } from './types-extension'
 import type { UseQueryReturn } from './use-query'
 import { useQuery } from './use-query'
+import { noop } from './utils'
 import type { _RemoveMaybeRef } from './utils'
 
 /**
@@ -105,9 +106,10 @@ export function defineQuery(optionsOrSetup: DefineQueryOptions | (() => unknown)
         // we need to execute it here too
         if (entry.options?.refetchOnMount && toValue(entry.options.enabled)) {
           if (toValue(entry.options.refetchOnMount) === 'always') {
-            queryCache.fetch(entry)
+            // we catch the error to avoid unhandled rejections
+            queryCache.fetch(entry).catch(noop)
           } else {
-            queryCache.refresh(entry)
+            queryCache.refresh(entry).catch(noop)
           }
         }
       })

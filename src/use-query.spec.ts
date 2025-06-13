@@ -124,7 +124,7 @@ describe('useQuery', () => {
       expect(wrapper.vm.status).toBe('success')
     })
 
-    it('it works with a synchronously thrown Error', async () => {
+    it('works with a synchronously thrown Error', async () => {
       const { wrapper } = mountSimple({
         query: () => {
           throw new Error('foo')
