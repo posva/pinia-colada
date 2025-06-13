@@ -1,3 +1,13 @@
+## [0.1.3](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.1.2...@pinia/colada-devtools@0.1.3) (2025-06-13)
+
+### Bug Fixes
+
+- height of devtools ([1fd761b](https://github.com/posva/pinia-colada/commit/1fd761b3f0753c3091e7c2cd2bfd362666d545ab))
+
+### Performance Improvements
+
+- avoid select on safari ([7a7d803](https://github.com/posva/pinia-colada/commit/7a7d803bce66d6811898f02703d2c43046639c89))
+
 ## [0.1.2](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.1.1...@pinia/colada-devtools@0.1.2) (2025-06-05)
 
 ### Bug Fixes
