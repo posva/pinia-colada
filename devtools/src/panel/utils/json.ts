@@ -1,3 +1,5 @@
+import { isObject } from '@vueuse/core'
+
 // NOTE: copied from pinia colada src/utils.ts
 
 /**
@@ -37,3 +39,38 @@ export interface ObjectFlat {
  * @internal
  */
 export type JSONValue = JSONPrimitive | JSONValue[] | { [key: string]: JSONValue }
+
+export function formatValue(value: JSONValue): string {
+  if (value === null) return 'null'
+  if (value === undefined) return 'undefined'
+  if (typeof value === 'string') return `"${value}"`
+  if (Array.isArray(value)) return '[Array]'
+  if (typeof value === 'object') return `[${value.constructor.name}]`
+  return String(value)
+}
+
+export function getValueType(value: any): string {
+  if (value === null) return 'null'
+  if (Array.isArray(value)) return 'array'
+  if (isObject(value)) return 'object'
+  if (typeof value === 'boolean') return 'boolean'
+  return typeof value
+}
+
+export function getValueTypeClass(value: any): string {
+  const type = getValueType(value)
+  switch (type) {
+    case 'boolean':
+      return 'text-blue-600'
+    case 'string':
+      return 'text-green-700'
+    case 'number':
+      return 'text-orange-600'
+    case 'null':
+      return 'text-gray-500'
+    case 'undefined':
+      return 'text-red-600'
+    default:
+      return ''
+  }
+}
