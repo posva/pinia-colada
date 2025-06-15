@@ -5,6 +5,8 @@ import type { Plugin } from 'vite'
 import Vue from '@vitejs/plugin-vue'
 import Dts from 'vite-plugin-dts'
 
+import baseConfig from './vite.config'
+
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
@@ -15,8 +17,7 @@ export default defineConfig({
   },
 
   define: {
-    // NOTE: needed to avoid HMR not working when using the devtools
-    'process.env.NODE_ENV': '"production"',
+    ...baseConfig.define,
   },
 
   build: {
