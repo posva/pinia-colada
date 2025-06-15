@@ -1,3 +1,10 @@
+## [0.1.4](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.1.3...@pinia/colada-devtools@0.1.4) (2025-06-15)
+
+### Bug Fixes
+
+- bundle custom element in production mode ([76cef7a](https://github.com/posva/pinia-colada/commit/76cef7aca62d7364eea4fd23caee26c6681de04a)), closes [#314](https://github.com/posva/pinia-colada/issues/314)
+- ensure max height of panel ([caf5a55](https://github.com/posva/pinia-colada/commit/caf5a55f501b882fad877dfebcd999d93e8d368e))
+
 ## [0.1.3](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.1.2...@pinia/colada-devtools@0.1.3) (2025-06-13)
 
 ### Bug Fixes
