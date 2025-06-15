@@ -14,6 +14,11 @@ export default defineConfig({
     },
   },
 
+  define: {
+    // NOTE: needed to avoid HMR not working when using the devtools
+    'process.env.NODE_ENV': '"production"',
+  },
+
   build: {
     sourcemap: true,
     // minify: false,
