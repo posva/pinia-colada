@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { isObject } from '@vueuse/core'
-import type { UseQueryEntry } from '@pinia/colada'
-
-type QueryData = UseQueryEntry['state']['value']['data']
+import { isJSONPrimitive, type JSONValue } from '../utils/json'
 
 const props = defineProps<{
-  data: QueryData
+  data: JSONValue
 }>()
 
 const hoverStates = ref<Record<string, boolean>>({})
@@ -29,9 +27,11 @@ function isHovered(path: string) {
   return hoverStates.value[path]
 }
 
-function isExpandable(value: any): boolean {
-  return (Array.isArray(value) && value.length > 0)
-         || (isObject(value) && value !== null && Object.keys(value).length > 0)
+function isExpandable(value: unknown): boolean {
+  return (
+    (Array.isArray(value) && value.length > 0)
+    || (isObject(value) && value !== null && Object.keys(value).length > 0)
+  )
 }
 
 function isExpanded(path: string) {
@@ -59,7 +59,7 @@ const flattenData = computed(() => {
   const result: FlatItem[] = []
 
   // Handle root primitive case first
-  if (props.data === null || props.data === undefined || typeof props.data !== 'object') {
+  if (isJSONPrimitive(props.data)) {
     result.push({
       key: 'value',
       value: props.data,
@@ -70,7 +70,7 @@ const flattenData = computed(() => {
     return result
   }
 
-  function flatten(obj: any, parentPath = '', depth = 0) {
+  function flatten(obj: unknown, parentPath = '', depth = 0) {
     const entries = Array.isArray(obj)
       ? obj.map((item, index) => [String(index), item])
       : Object.entries(obj)
@@ -97,13 +97,14 @@ const flattenData = computed(() => {
   return result
 })
 
-function formatValue(value: any): string {
+function formatValue(value: JSONValue): string {
   if (value === null) return 'null'
   if (value === undefined) return 'undefined'
   if (typeof value === 'string') return `"${value}"`
-  if (typeof value === 'object' && !Array.isArray(value)) return '[Object]'
   if (Array.isArray(value)) return '[Array]'
-  return value
+  if (typeof value === 'object') return `[${value.constructor.name}]`
+
+  return String(value)
 }
 
 function getCollectionLabel(value: any): string {
@@ -112,7 +113,7 @@ function getCollectionLabel(value: any): string {
   }
   if (isObject(value) && value !== null) {
     // return `Object{${Object.keys(value).length}}`
-     return 'Object'
+    return 'Object'
   }
 
   return ''
@@ -129,12 +130,18 @@ function getValueType(value: any): string {
 function getValueTypeClass(value: any): string {
   const type = getValueType(value)
   switch (type) {
-    case 'boolean': return 'text-blue-600'
-    case 'string': return 'text-green-700'
-    case 'number': return 'text-orange-600'
-    case 'null': return 'text-gray-500'
-    case 'undefined': return 'text-red-600'
-    default: return ''
+    case 'boolean':
+      return 'text-blue-600'
+    case 'string':
+      return 'text-green-700'
+    case 'number':
+      return 'text-orange-600'
+    case 'null':
+      return 'text-gray-500'
+    case 'undefined':
+      return 'text-red-600'
+    default:
+      return ''
   }
 }
 </script>
@@ -152,7 +159,7 @@ function getValueTypeClass(value: any): string {
       <!-- Expandable items (Arrays and Objects) -->
       <div v-if="isExpandable(item.value)" class="px-3">
         <div
-          class="flex items-center gap-2 px-1 py-0.5 mb-1 cursor-pointer hover:bg-gray-50 transition-colors"
+          class="flex items-center gap-2 px-1 py-0.5 mb-1 cursor-pointer hover:bg-theme/10 theme-neutral transition-colors"
           @click="toggleExpansion(item.path)"
         >
           <ILucideChevronRight
@@ -165,25 +172,16 @@ function getValueTypeClass(value: any): string {
       </div>
 
       <!-- Non-expandable items (primitives) -->
-      <div
-        v-else
-        class="flex items-center gap-2 px-3 py-0.5 hover:bg-gray-50 transition-colors"
-      >
+      <div v-else class="flex items-center gap-2 px-3 py-0.5 hover:bg-gray-50 transition-colors">
         <div class="flex items-center gap-2">
-          <span class="text-purple-600 font-semibold ">{{ item.key }}:</span>
-          <span
-            :class="getValueTypeClass(item.value)"
-            :title="formatValue(item.value)"
-          >
+          <span class="text-purple-600 font-semibold">{{ item.key }}:</span>
+          <span :class="getValueTypeClass(item.value)" :title="formatValue(item.value)">
             {{ formatValue(item.value) }}
           </span>
         </div>
 
         <!-- Edit button -->
-        <UButton
-          v-if="isHovered(item.path)"
-          size="xs"
-        >
+        <UButton v-if="isHovered(item.path)" size="xs">
           Edit
         </UButton>
       </div>
