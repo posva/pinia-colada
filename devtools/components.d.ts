@@ -8,7 +8,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    EditableJson: typeof import('./src/panel/components/EditableJson.vue')['default']
+    EditableJson: typeof import('./src/panel/components/editable-json/index.vue')['default']
     ILucideCheck: typeof import('~icons/lucide/check')['default']
     ILucideCheckCheck: typeof import('~icons/lucide/check-check')['default']
     ILucideChevronRight: typeof import('~icons/lucide/chevron-right')['default']
@@ -25,7 +25,8 @@ declare module 'vue' {
     ILucideTrash: typeof import('~icons/lucide/trash')['default']
     ILucideX: typeof import('~icons/lucide/x')['default']
     ILucideXOctagon: typeof import('~icons/lucide/x-octagon')['default']
-    JsonViewer: typeof import('./src/panel/components/JsonViewer.vue')['default']
+    JsonItem: typeof import('./src/panel/components/editable-json/JsonItem.vue')['default']
+    JsonViewer: typeof import('./src/panel/components/editable-json/JsonViewer.vue')['default']
     ListQueryEntry: typeof import('./src/panel/components/ListQueryEntry.vue')['default']
     PiPContainer: typeof import('./src/panel/components/PiPContainer.vue')['default']
     ResizablePanel: typeof import('./src/panel/components/ResizablePanel.vue')['default']
