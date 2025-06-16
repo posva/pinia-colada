@@ -1,3 +1,9 @@
+## [0.1.5](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.1.4...@pinia/colada-devtools@0.1.5) (2025-06-16)
+
+### Bug Fixes
+
+- display devtools in dev by default ([f126e6e](https://github.com/posva/pinia-colada/commit/f126e6e5921ebaf5f501612b2c881b0ae176e632)), closes [/github.com/posva/pinia-colada/issues/314#issuecomment-2975403537](https://github.com/posva//github.com/posva/pinia-colada/issues/314/issues/issuecomment-2975403537)
+
 ## [0.1.4](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.1.3...@pinia/colada-devtools@0.1.4) (2025-06-15)
 
 ### Bug Fixes
