@@ -559,7 +559,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           // because we could have the same component mounted multiple times with different props but inside of the same
           // they use the same query (cache, centralized). This sholdn't invalidate the query
           // we can fix it by storing the currentInstance.type.render (we need to copy the values because the
-          // type object gets reused and replaced in place).
+          // type object gets reused and replaced in place). It's not clear if this will work with Vapor
           if (id) {
             if (entry.__hmr.ids.has(id)) {
               invalidate(entry)
