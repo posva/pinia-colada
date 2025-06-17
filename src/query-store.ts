@@ -555,6 +555,11 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
             // @ts-expect-error: internal property
             currentInstance.type?.__hmrId
 
+          // FIXME: if the user mounts the same component multiple times, I think it makes sense to fix this
+          // because we could have the same component mounted multiple times with different props but inside of the same
+          // they use the same query (cache, centralized). This sholdn't invalidate the query
+          // we can fix it by storing the currentInstance.type.render (we need to copy the values because the
+          // type object gets reused and replaced in place).
           if (id) {
             if (entry.__hmr.ids.has(id)) {
               invalidate(entry)
