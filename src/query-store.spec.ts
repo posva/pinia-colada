@@ -3,9 +3,10 @@ import { createPinia, getActivePinia, setActivePinia } from 'pinia'
 import type { UseQueryEntry, _UseQueryEntryNodeValueSerialized } from './query-store'
 import { useQueryCache } from './query-store'
 import { USE_QUERY_DEFAULTS } from './query-options'
-import { flushPromises } from '@vue/test-utils'
-import { createApp, watch } from 'vue'
+import { flushPromises, mount } from '@vue/test-utils'
+import { computed, createApp, nextTick, watch } from 'vue'
 import { useQuery } from './use-query'
+import { PiniaColada } from './pinia-colada'
 
 describe('Query Cache store', () => {
   let app!: ReturnType<typeof createApp>
@@ -183,6 +184,39 @@ describe('Query Cache store', () => {
     expect(entry).toBeDefined()
     queryCache.remove(entry!)
     expect(queryCache.getEntries({ key: ['a', 'b', 'c'] })).toHaveLength(1)
+  })
+
+  it('removing entries is reactive', async () => {
+    const pinia = createPinia()
+    const wrapper = mount(
+      {
+        setup() {
+          const queryCache = useQueryCache()
+          const entry = computed(() => queryCache.get(['a']))
+          return {
+            entry,
+          }
+        },
+        template: `<div>{{ entry?.keyHash }}:{{ entry?.state.value.data }}</div>`,
+      },
+      {
+        global: {
+          plugins: [pinia, PiniaColada],
+        },
+      },
+    )
+
+    const queryCache = useQueryCache(pinia)
+    expect(wrapper.text()).toBe(':')
+    queryCache.setQueryData(['a'], 0)
+    await nextTick()
+    expect(wrapper.text()).toBe('["a"]:0')
+
+    queryCache.getEntries({ key: ['a'] }).forEach((entry) => {
+      queryCache.remove(entry)
+    })
+    await nextTick()
+    expect(wrapper.text()).toBe(':')
   })
 
   it('can get an individual entry', () => {
