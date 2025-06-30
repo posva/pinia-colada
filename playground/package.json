@@ -33,7 +33,7 @@
     "@tailwindcss/vite": "^4.1.10",
     "@tsconfig/node18": "^18.2.4",
     "@types/node": "^24.0.1",
-    "@vitejs/plugin-vue": "^5.2.4",
+    "@vitejs/plugin-vue": "^6.0.0",
     "@vue/tsconfig": "^0.7.0",
     "autoprefixer": "^10.4.21",
     "json-server": "0.17.4",
