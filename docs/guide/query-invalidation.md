@@ -18,12 +18,13 @@ queryCache.invalidateQueries({ key: ['todos'], exact: true })
 
 // Refetch all active queries
 queryCache.invalidateQueries()
-
-// Invalidate all queries, even if they are not active
-queryCache.invalidateQueries({ active: null })
 ```
 
-By default, `invalidateQueries()` applies an `{ active: true }` filter to only invalidate active queries. You can override this behavior by passing `null` to the `active` option.
+By default, `invalidateQueries()` invalidates all queries (both active and inactive) but only refetches active queries. Inactive queries are marked as stale and will be refetched when they become active again. You can change this behavior by passing a second parameter to refetch all queries:
+
+```ts
+queryCache.invalidateQueries({ key: ['todos'] }, 'all')
+```
 
 ::: info
 
