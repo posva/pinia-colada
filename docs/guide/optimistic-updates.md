@@ -4,7 +4,7 @@ Optimistic updates are a way to update the UI **before the mutation has complete
 
 ## Via the cache
 
-Updating directly the cache is the most efficient way to implement optimistic updates because you are collocating the optimistic update with the mutation itself. Since you are touching the cache directly, any query relying on the updated data will automatically reflect the changes. However, this also requires handling the **rollback** in case of errors.
+Updating the cache directly is the most efficient way to implement optimistic updates because you are collocating the optimistic update with the mutation itself. Since you are touching the cache directly, any query relying on the updated data will automatically reflect the changes. However, this also requires handling the **rollback** in case of errors.
 
 Here is a **complete example** of an optimistic update for the details of a contact:
 
@@ -142,10 +142,9 @@ As you see, depending on the mutation, you might need to update multiple queries
 
 In large projects, you might face two issues:
 
-- `key` isn't type so it's very easy to have a typo in a query key: _was it **todos** or **todo**?_
+- `key` isn't typed, so it's very easy to have a typo in a query key: _was it **todos** or **todo**?_
 - You have to manually pass a type parameter (here `TodoItem[]`) to `getQueryData()` and `setQueryData()` to ensure type safety
 
-This is so
 This can be solved by using [Key Factories](./query-keys.md#Managing-query-keys-key-factories-) and by [defining options with `defineQueryOptions()`](./query-keys.md#Typing-query-keys).
 
 :::
@@ -203,7 +202,7 @@ In this example, while the mutation is loading, the new todo is displayed in the
 <li v-if="isLoading" :style="{ opacity: 0.5 }">{{ newTodo }}</li>
 ```
 
-When doing this, it's important to remember to invalidate the query after the mutation has completed with `await queryCache.invalidateQueries()`. This will ensure that the query is refetched with the new data. By awaiting the invalidation, the mutation will stay on the loading state until all related queries has been refetched.
+When doing this, it's important to remember to invalidate the query after the mutation has completed with `await queryCache.invalidateQueries()`. This will ensure that the query is refetched with the new data. By awaiting the invalidation, the mutation will stay in the loading state until all related queries have been refetched.
 
 ### When mutation is not collocated with the query
 
