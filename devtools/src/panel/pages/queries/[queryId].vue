@@ -230,15 +230,7 @@ watch(
       </UCollapse>
 
       <UCollapse v-model:open="isDataOpen" title="Data" :icon="IFileText">
-        <div class="py-1">
-          <pre
-            v-if="selectedQuery.state.data !== undefined"
-            class="rounded p-1 overflow-auto max-h-[1200px]"
-          >{{ selectedQuery.state.data }}</pre>
-          <p v-else class="text-neutral-500/50">
-            No data
-          </p>
-        </div>
+        <EditableJson :data="selectedQuery.state.data" />
       </UCollapse>
 
       <UCollapse
