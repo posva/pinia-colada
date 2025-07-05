@@ -40,7 +40,7 @@ export interface ObjectFlat {
  */
 export type JSONValue = JSONPrimitive | JSONValue[] | { [key: string]: JSONValue }
 
-export function formatValue(value: JSONValue): string {
+export function formatValue(value: JSONValue) {
   if (value === null) return 'null'
   if (value === undefined) return 'undefined'
   if (typeof value === 'string') return `"${value}"`
@@ -49,7 +49,7 @@ export function formatValue(value: JSONValue): string {
   return String(value)
 }
 
-export function getValueType(value: any): string {
+export function getValueType(value: unknown) {
   if (value === null) return 'null'
   if (Array.isArray(value)) return 'array'
   if (isObject(value)) return 'object'
@@ -57,7 +57,7 @@ export function getValueType(value: any): string {
   return typeof value
 }
 
-export function getValueTypeClass(value: any): string {
+export function getValueTypeClass(value: unknown): string {
   const type = getValueType(value)
   switch (type) {
     case 'boolean':

@@ -7,10 +7,7 @@ defineProps<{
 </script>
 
 <template>
-  <div v-if="data" class="rounded font-mono text-sm">
+  <div class="mt-2 rounded font-mono text-sm">
     <JsonViewer :data="data" />
   </div>
-  <p v-else class="text-neutral-500/50">
-    No data
-  </p>
 </template>

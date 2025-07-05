@@ -49,45 +49,53 @@ function handleMouseLeave() {
     @mouseenter="handleMouseEnter"
     @mouseleave="handleMouseLeave"
   >
-    <!-- Expandable items (Arrays and Objects) -->
-    <div v-if="isExpandable" class="px-3">
-      <div
-        class="flex items-center gap-2 px-1 py-0.5 mb-1 cursor-pointer hover:bg-theme/10 theme-neutral transition-colors"
+    <div class="flex items-center gap-2 py-0.5 hover:bg-gray-50 transition-colors">
+      <ILucideChevronRight
+        v-if="isExpandable"
+        class="w-3 h-3 text-gray-500 transition-transform duration-200 cursor-pointer"
+        :class="{ 'rotate-90': isExpanded }"
+        @click="toggleExpansion"
+      />
+
+      <!-- Maintain alignment by adding left margin when chevron is absent -->
+      <span
+        class="text-blue-600 font-semibold"
+        :class="{ 'ml-5': !isExpandable }"
+      >
+        {{ itemKey }}:
+      </span>
+
+      <!-- Value or Collection Label -->
+      <span
+        v-if="isExpandable"
+        class="text-gray-500 text-xs cursor-pointer"
         @click="toggleExpansion"
       >
-        <ILucideChevronRight
-          class="w-3 h-3 text-gray-500 transition-transform duration-200"
-          :class="{ 'rotate-90': isExpanded }"
-        />
-        <span class="text-blue-600 font-semibold">{{ itemKey }}:</span>
-        <span class="text-gray-500 text-xs">{{ getCollectionLabel(value) }}</span>
-      </div>
-
-      <!-- Recursive children - iterate directly over the value -->
-      <div v-if="isExpanded">
-        <JsonItem
-          v-for="(childValue, childKey) in value"
-          :key="childKey"
-          :item-key="String(childKey)"
-          :value="childValue"
-          :depth="depth + 1"
-        />
-      </div>
-    </div>
-
-    <!-- Non-expandable items (primitives) -->
-    <div v-else class="flex items-center gap-2 px-3 py-0.5 hover:bg-gray-50 transition-colors">
-      <div class="flex items-center gap-2">
-        <span class="text-purple-600 font-semibold">{{ itemKey }}:</span>
-        <span :class="getValueTypeClass(value)" :title="formatValue(value)">
-          {{ formatValue(value) }}
-        </span>
-      </div>
+        {{ getCollectionLabel(value) }}
+      </span>
+      <span
+        v-else
+        :class="getValueTypeClass(value)"
+        :title="formatValue(value)"
+      >
+        {{ formatValue(value) }}
+      </span>
 
       <!-- Edit button -->
-      <UButton v-if="isHovered" size="xs">
+      <UButton v-if="isHovered && !isExpandable" size="xs">
         Edit
       </UButton>
     </div>
+
+    <!-- Expanded children -->
+    <template v-if="isExpandable && isExpanded">
+      <JsonItem
+        v-for="(childValue, childKey) in value"
+        :key="childKey"
+        :item-key="String(childKey)"
+        :value="childValue"
+        :depth="depth + 1"
+      />
+    </template>
   </div>
 </template>
