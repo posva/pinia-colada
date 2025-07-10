@@ -92,7 +92,7 @@ declare module '@pinia/colada' {
   interface TypesConfig {
     // This will be used as the default error type for all queries and mutations
     // instead of the built-in `Error` type
-    error: MyCustomError
+    defaultError: MyCustomError
   }
 }
 ```
