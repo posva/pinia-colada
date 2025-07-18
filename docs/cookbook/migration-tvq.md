@@ -59,10 +59,15 @@ mutate(todo, { // [!code --]
   onError, // [!code --]
   onSettled, // [!code --]
 }) // [!code --]
-mutateAsync(todo) // [!code ++]
-  .then(onSuccess) // [!code ++]
-  .catch(onError) // [!code ++]
-  .finally(onSettled) // [!code ++]
+mutateAsync(todo)
+  .then((data) => {
+    onSuccess(data)
+    onSettled?.(data, null)
+  })
+  .catch((err) => {
+    onError(err)
+    onSettled?.(undefined, err)
+  })
 ```
 
 ## Differences in philosophy
