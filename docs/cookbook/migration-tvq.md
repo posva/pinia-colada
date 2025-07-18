@@ -51,7 +51,7 @@ useQuery({
 
 ### Component-specific side effects in mutations
 
-TanStack's `mutate` function allows you to define callback options to trigger component-specific side effects. In Pinia Colada, it's recommended to use `mutateAsync` to handle those effects:
+TanStack's `mutate` function allows passing the promise resolution callbacks as mutation hooks. In Pinia Colada, to avoid _having multiple ways of doing the same thing_, use the `mutateAsync` method to handle those effects:
 
 ```ts
 mutate(todo, { // [!code --]
