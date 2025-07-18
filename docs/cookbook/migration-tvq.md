@@ -49,6 +49,22 @@ useQuery({
 })
 ```
 
+### Component-specific side effects in mutations
+
+TanStack's `mutate` function allows you to define callback options to trigger component-specific side effects. In Pinia Colada, it's recommended to use `mutateAsync` to handle those effects:
+
+```ts
+mutate(todo, { // [!code --]
+  onSuccess, // [!code --]
+  onError, // [!code --]
+  onSettled, // [!code --]
+}) // [!code --]
+mutateAsync(todo) // [!code ++]
+  .then(onSuccess) // [!code ++]
+  .catch(onError) // [!code ++]
+  .finally(onSettled) // [!code ++]
+```
+
 ## Differences in philosophy
 
 These differences are a bit more subtle and span across multiple layers of the library.
