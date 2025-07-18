@@ -28,22 +28,22 @@
     "test:types": "vue-tsc --noEmit && cd playground && vue-tsc --noEmit"
   },
   "dependencies": {
-    "@nuxt/kit": "^3.17.5"
+    "@nuxt/kit": "^3.17.7"
   },
   "peerDependencies": {
     "@pinia/colada": "workspace:>="
   },
   "devDependencies": {
-    "@nuxt/devtools": "^2.5.0",
+    "@nuxt/devtools": "^2.6.2",
     "@nuxt/eslint-config": "^1.4.1",
     "@nuxt/module-builder": "1.0.1",
-    "@nuxt/schema": "^3.17.5",
-    "@nuxt/test-utils": "^3.19.1",
+    "@nuxt/schema": "^3.17.7",
+    "@nuxt/test-utils": "^3.19.2",
     "@pinia/colada": "workspace:*",
-    "@pinia/nuxt": "^0.11.1",
-    "nuxi": "^3.25.1",
-    "nuxt": "^3.17.5",
+    "@pinia/nuxt": "^0.11.2",
+    "nuxi": "^3.26.2",
+    "nuxt": "^3.17.7",
     "typescript": "~5.8.3",
-    "vue-tsc": "^3.0.1"
+    "vue-tsc": "^3.0.3"
   }
 }
