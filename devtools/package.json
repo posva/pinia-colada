@@ -67,7 +67,7 @@
     "tailwindcss": "^4.1.11",
     "unplugin-icons": "^22.1.0",
     "unplugin-vue-components": "^28.8.0",
-    "unplugin-vue-router": "^0.12.0",
+    "unplugin-vue-router": "^0.14.0",
     "vite-plugin-dts": "^4.5.4",
     "vue-router": "^4.5.1"
   }
