@@ -1,17 +1,13 @@
-import { defineConfig } from 'tsup'
-import type { Options } from 'tsup'
+import { defineConfig } from 'tsdown'
+import type { Options } from 'tsdown'
 
 const commonOptions = {
   // splitting: false,
   sourcemap: true,
   format: ['cjs', 'esm'],
-  external: ['vue', 'pinia', '@pinia/colada', '@vue/devtools-api'],
+  external: ['vue', 'pinia', '@pinia/colada'],
+  dts: true,
   target: 'esnext',
-  dts: {
-    compilerOptions: {
-      composite: false,
-    },
-  },
 } satisfies Options
 
 export default defineConfig([
@@ -19,6 +15,6 @@ export default defineConfig([
     ...commonOptions,
     clean: true,
     entry: ['src/index.ts'],
-    globalName: 'PiniaColada',
+    globalName: 'PiniaColadaCachePersister',
   },
 ])

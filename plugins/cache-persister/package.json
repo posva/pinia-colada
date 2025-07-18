@@ -55,7 +55,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "tsdown",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s --commit-path . -l @pinia/colada-plugin-cache-persister -r 1",
     "test": "vitest --ui"
   },
