@@ -32,7 +32,7 @@
     "@pinia/colada-devtools": "workspace:^",
     "@tailwindcss/vite": "^4.1.11",
     "@tsconfig/node18": "^18.2.4",
-    "@types/node": "^24.0.14",
+    "@types/node": "^24.0.15",
     "@vitejs/plugin-vue": "^6.0.0",
     "@vue/tsconfig": "^0.7.0",
     "autoprefixer": "^10.4.21",
