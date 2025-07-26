@@ -161,4 +161,79 @@ describe('Auto Refetch plugin', () => {
     // Now it should have triggered another request
     expect(query).toHaveBeenCalledTimes(3)
   })
+
+  it('refetches if the request failed', async () => {
+    const query = vi.fn(async () => {
+      throw new Error('Request failed')
+    })
+
+    mountQuery({
+      query,
+      staleTime: 1000,
+    })
+
+    // Wait for initial query
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(1)
+
+    // Advance time past stale time
+    vi.advanceTimersByTime(1000)
+    expect(query).toHaveBeenCalledTimes(2)
+  })
+
+  describe('custom interval', () => {
+    it('supports number-based autoRefetch intervals', async () => {
+      const { query } = mountQuery({
+        autoRefetch: 2000,
+        staleTime: 100,
+      })
+
+      // Wait for initial query
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+
+      // staleTime elapsed
+      vi.advanceTimersByTime(1000)
+      expect(query).toHaveBeenCalledTimes(1)
+
+      vi.advanceTimersByTime(2000)
+      expect(query).toHaveBeenCalledTimes(2)
+    })
+
+    it('reads the state', async () => {
+      const autoRefetch = vi.fn(() => {
+        return 2000
+      })
+      const { query } = mountQuery({
+        autoRefetch,
+        staleTime: 100,
+      })
+
+      // Wait for initial query
+      await flushPromises()
+      // it gets called multiple times, the last one should be with the result
+      expect(autoRefetch).toHaveBeenLastCalledWith(
+        expect.objectContaining({ data: 'result', error: null, status: 'success' }),
+      )
+
+      vi.advanceTimersByTime(1000)
+      expect(query).toHaveBeenCalledTimes(1)
+
+      vi.advanceTimersByTime(2000)
+      expect(query).toHaveBeenCalledTimes(2)
+    })
+
+    it('supports returning false', async () => {
+      const { query } = mountQuery({
+        autoRefetch: () => false,
+      })
+
+      // Wait for initial query
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+
+      vi.advanceTimersByTime(10000)
+      expect(query).toHaveBeenCalledTimes(1)
+    })
+  })
 })

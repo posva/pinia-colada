@@ -6,19 +6,31 @@
  * @module @pinia/colada-plugin-auto-refetch
  */
 
-import type { PiniaColadaPlugin, UseQueryEntry, UseQueryOptions } from '@pinia/colada'
+import {
+  _toValueWithArgs,
+  type PiniaColadaPlugin,
+  type UseQueryEntry,
+  type UseQueryOptions,
+} from '@pinia/colada'
 import { toValue } from 'vue'
-import type { MaybeRefOrGetter } from 'vue'
+import type { DataState } from '@pinia/colada'
 
 /**
  * Options for the auto-refetch plugin.
  */
-export interface PiniaColadaAutoRefetchOptions {
+export interface PiniaColadaAutoRefetchOptions<
+  TData = unknown,
+  TError = unknown,
+  TDataInitial = unknown,
+> {
   /**
    * Whether to enable auto refresh by default.
    * @default false
    */
-  autoRefetch?: MaybeRefOrGetter<boolean>
+  autoRefetch?:
+    | boolean
+    | number
+    | ((state: DataState<TData, TError, TDataInitial>) => boolean | number)
 }
 
 /**
@@ -32,7 +44,7 @@ export { REFETCH_TIMEOUT_KEY as _REFETCH_TIMEOUT_KEY }
  * Plugin that automatically refreshes queries when they become stale
  */
 export function PiniaColadaAutoRefetch(
-  options: PiniaColadaAutoRefetchOptions = {},
+  options: PiniaColadaAutoRefetchOptions<unknown, unknown, unknown> = {},
 ): PiniaColadaPlugin {
   const { autoRefetch = false } = options
 
@@ -41,45 +53,55 @@ export function PiniaColadaAutoRefetch(
     if (typeof document === 'undefined') return
 
     function scheduleRefetch(
-      entry: UseQueryEntry<unknown, unknown, unknown>,
+      entry: UseQueryEntry,
       options: UseQueryOptions<unknown, unknown, unknown>,
+      delayMs: number,
     ) {
       if (!entry.active) return
 
       // Always clear existing timeout first
       clearTimeout(entry.ext[REFETCH_TIMEOUT_KEY])
 
+      // Determine the interval to use
+      const interval = delayMs ?? options.staleTime
+
       // Schedule next refetch
       const timeout = setTimeout(() => {
-        if (options) {
-          const entry: UseQueryEntry | undefined = queryCache.getEntries({
-            key: toValue(options.key),
-          })?.[0]
-          if (entry && entry.active) {
-            queryCache.refresh(entry).catch(console.error)
-          }
+        const entry: UseQueryEntry | undefined = queryCache.getEntries({
+          key: toValue(options.key),
+        })?.[0]
+        if (entry && entry.active) {
+          queryCache.refresh(entry).catch(console.error)
         }
-      }, options.staleTime)
+      }, interval)
 
       entry.ext[REFETCH_TIMEOUT_KEY] = timeout
     }
 
     queryCache.$onAction(({ name, args, after }) => {
       /**
-       * Whether to schedule a refetch for the given entry
+       * Whether to schedule a refetch for the given entry and determine the interval
+       * Returns { shouldSchedule: boolean, interval?: number }
        */
-      function shouldScheduleRefetch(options: UseQueryOptions<unknown, unknown, unknown>) {
-        const queryEnabled = toValue(options.autoRefetch) ?? autoRefetch
-        const staleTime = options.staleTime
-        return Boolean(queryEnabled && staleTime)
+      function shouldScheduleRefetch(
+        entry: UseQueryEntry<unknown, unknown, unknown>,
+        options: UseQueryOptions<unknown, unknown, unknown>,
+      ): number | false {
+        const autoRefetchValue = _toValueWithArgs(
+          options.autoRefetch ?? autoRefetch,
+          entry.state.value,
+        )
+        return autoRefetchValue === true ? options.staleTime! : autoRefetchValue
       }
 
       // Trigger a fetch on creation to enable auto-refetch on initial load
       if (name === 'ensure') {
         const [options] = args
         after((entry) => {
-          if (!shouldScheduleRefetch(options)) return
-          scheduleRefetch(entry, options)
+          const interval = shouldScheduleRefetch(entry, options)
+          if (interval) {
+            scheduleRefetch(entry, options, interval)
+          }
         })
       }
 
@@ -92,9 +114,10 @@ export function PiniaColadaAutoRefetch(
 
         after(async () => {
           if (!entry.options) return
-          if (!shouldScheduleRefetch(entry.options)) return
-
-          scheduleRefetch(entry, entry.options)
+          const interval = shouldScheduleRefetch(entry, entry.options)
+          if (interval) {
+            scheduleRefetch(entry, entry.options, interval)
+          }
         })
       }
 
@@ -109,8 +132,8 @@ export function PiniaColadaAutoRefetch(
 
 // Add types for the new option
 declare module '@pinia/colada' {
-  // eslint-disable-next-line unused-imports/no-unused-vars
-  interface UseQueryOptions<TData, TError, TDataInitial> extends PiniaColadaAutoRefetchOptions {}
+  interface UseQueryOptions<TData, TError, TDataInitial>
+    extends PiniaColadaAutoRefetchOptions<TData, TError, TDataInitial> {}
 
   interface UseQueryOptionsGlobal extends PiniaColadaAutoRefetchOptions {}
 
