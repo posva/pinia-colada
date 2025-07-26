@@ -71,6 +71,8 @@ export type _MaybeFunction<T, Args extends any[] = []> = T | ((...args: Args) =>
  *
  * @param valFn either a value or a function that returns a value
  * @param args  arguments to pass to the function if `valFn` is a function
+ *
+ * @internal
  */
 export function toValueWithArgs<T, Args extends any[]>(
   valFn: T | ((...args: Args) => T),
