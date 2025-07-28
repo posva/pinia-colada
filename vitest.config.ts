@@ -28,6 +28,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@pinia/colada': fileURLToPath(new URL('./src/index.ts', import.meta.url)),
+      '@/test-utils': fileURLToPath(new URL('./test-utils', import.meta.url)),
     },
   },
 

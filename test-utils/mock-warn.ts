@@ -24,8 +24,11 @@ function createMockConsoleMethod(method: 'warn' | 'error') {
     [`toHaveBeen${method.charAt(0).toUpperCase() + method.slice(1)}ed`](received: string | RegExp) {
       asserted.set(received.toString(), received)
       const passed = mockInstance.mock.calls.some((args) =>
-        typeof received === 'string' ? args[0].includes(received) : received.test(args[0]),
+        typeof received === 'string'
+          ? String(args[0]).includes(received)
+          : received.test(String(args[0])),
       )
+
       return passed
         ? { pass: true, message: () => `expected "${received}" not to have been ${method}ed.` }
         : {
@@ -38,9 +41,10 @@ function createMockConsoleMethod(method: 'warn' | 'error') {
       received: string | RegExp,
     ) {
       asserted.set(received.toString(), received)
-      const lastCall = mockInstance.mock.calls.at(-1)?.[0]
-      const passed
-        = typeof received === 'string' ? lastCall?.includes(received) : received.test(lastCall)
+      const lastCall = String(mockInstance.mock.calls.at(-1)?.[0])
+      const passed =
+        typeof received === 'string' ? lastCall?.includes(received) : received.test(lastCall)
+
       return passed
         ? { pass: true, message: () => `expected "${received}" not to have been ${method}ed last.` }
         : {
@@ -55,7 +59,9 @@ function createMockConsoleMethod(method: 'warn' | 'error') {
     ) {
       asserted.set(received.toString(), received)
       const count = mockInstance.mock.calls.filter((args) =>
-        typeof received === 'string' ? args[0].includes(received) : received.test(args[0]),
+        typeof received === 'string'
+          ? String(args[0]).includes(received)
+          : received.test(String(args[0])),
       ).length
 
       return count === n
@@ -73,14 +79,13 @@ function createMockConsoleMethod(method: 'warn' | 'error') {
 
   beforeEach(() => {
     asserted.clear()
-    mockInstance = vi.spyOn(console, method)
-    mockInstance.mockImplementation(() => {})
+    mockInstance = vi.spyOn(console, method).mockImplementation(() => {})
   })
 
   afterEach(() => {
     const assertedArray = Array.from(asserted)
     const unassertedLogs = mockInstance.mock.calls
-      .map((args) => args[0])
+      .map((args) => String(args[0]))
       .filter(
         (msg) =>
           !assertedArray.some(([_key, assertedMsg]) =>
@@ -92,7 +97,9 @@ function createMockConsoleMethod(method: 'warn' | 'error') {
 
     if (unassertedLogs.length) {
       unassertedLogs.forEach((msg) => console[method](msg))
-      throw new Error(`Test case threw unexpected ${method}s.`)
+      throw new Error(`Test case threw unexpected ${method}s.`, {
+        cause: unassertedLogs,
+      })
     }
   })
 }

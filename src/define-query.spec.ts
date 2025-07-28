@@ -6,11 +6,10 @@ import { createApp, defineComponent, effectScope, inject, provide, ref } from 'v
 import { defineQuery } from './define-query'
 import { useQuery } from './use-query'
 import type { UseQueryOptions } from './query-options'
-import { isSpy } from '../test/utils'
-import type { GlobalMountOptions } from '../test/utils'
 import { useQueryCache } from './query-store'
 import { PiniaColada } from './pinia-colada'
-import { mockWarn } from '../test/mock-warn'
+import { isSpy, mockWarn } from '../test-utils'
+import type { GlobalMountOptions } from '../test-utils'
 
 describe('defineQuery', () => {
   beforeEach(() => {

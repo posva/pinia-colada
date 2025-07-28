@@ -7,5 +7,5 @@
       "@pinia/colada": ["./src/index.ts"]
     }
   },
-  "include": ["src/**/*", "plugins/*/src/**/*", "test/**/*"]
+  "include": ["src/**/*", "plugins/*/src/**/*", "test-utils/**/*"]
 }
