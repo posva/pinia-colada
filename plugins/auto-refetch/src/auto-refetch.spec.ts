@@ -9,6 +9,7 @@ import { useQuery, PiniaColada } from '@pinia/colada'
 import type { UseQueryOptions } from '@pinia/colada'
 import type { PiniaColadaAutoRefetchOptions } from '.'
 import { PiniaColadaAutoRefetch } from '.'
+import { isSpy, mockConsoleError, mockWarn } from '@/test-utils'
 
 describe('Auto Refetch plugin', () => {
   beforeEach(() => {
@@ -20,21 +21,29 @@ describe('Auto Refetch plugin', () => {
     vi.restoreAllMocks()
   })
 
+  mockWarn()
+  mockConsoleError()
+
+  // Must be placed at the end to be the first, it catches any async logged errors
+  afterEach(async () => {})
+
   enableAutoUnmount(afterEach)
 
   function mountQuery(
     queryOptions?: Partial<UseQueryOptions>,
     pluginOptions?: PiniaColadaAutoRefetchOptions,
   ) {
-    const query = vi.fn(async () => 'result')
+    const query = isSpy(queryOptions?.query)
+      ? queryOptions.query
+      : vi.fn(queryOptions?.query ?? (async () => 'result'))
     const wrapper = mount(
       defineComponent({
         template: '<div></div>',
         setup() {
           return useQuery({
-            query,
             key: ['test'],
             ...queryOptions,
+            query,
           })
         },
       }),
@@ -163,22 +172,24 @@ describe('Auto Refetch plugin', () => {
   })
 
   it('refetches if the request failed', async () => {
-    const query = vi.fn(async () => {
-      throw new Error('Request failed')
-    })
-
-    mountQuery({
-      query,
+    const { query } = mountQuery({
+      query: async () => {
+        throw new Error('Request failed')
+      },
       staleTime: 1000,
     })
 
     // Wait for initial query
     await flushPromises()
     expect(query).toHaveBeenCalledTimes(1)
+    // expect('Request failed').toHaveBeenErroredTimes(1)
 
     // Advance time past stale time
     vi.advanceTimersByTime(1000)
     expect(query).toHaveBeenCalledTimes(2)
+    await flushPromises()
+    // TODO: why just one error log?
+    expect('Request failed').toHaveBeenErroredTimes(1)
   })
 
   describe('custom interval', () => {
@@ -225,7 +236,12 @@ describe('Auto Refetch plugin', () => {
 
     it('supports returning false', async () => {
       const { query } = mountQuery({
-        autoRefetch: () => false,
+        query: async () => 'ok',
+        autoRefetch: ({ data }) => {
+          // @ts-expect-error: FIXME:
+          data satisfies string
+          return false
+        },
       })
 
       // Wait for initial query

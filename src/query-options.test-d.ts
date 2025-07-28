@@ -1,10 +1,11 @@
-import { describe, it } from 'vitest'
+import { describe, expectTypeOf, it } from 'vitest'
 import type { App } from 'vue'
 import { PiniaColada } from './pinia-colada'
+import type { UseQueryOptions } from './query-options'
 
 declare const app: App
 
-describe('PiniaColada types', () => {
+describe('PiniaColada plugin types', () => {
   it('works', () => {
     app.use(PiniaColada)
     app.use(PiniaColada, {})
@@ -19,5 +20,17 @@ describe('PiniaColada types', () => {
         refetchOnReconnect: true,
       },
     })
+  })
+})
+
+describe('UseQueryOptions', () => {
+  function track(_options: UseQueryOptions<unknown, unknown, unknown>): void {}
+
+  it('specific is assinable to generic', () => {
+    expectTypeOf(track).toBeCallableWith({} as UseQueryOptions)
+    expectTypeOf(track).toBeCallableWith(
+      {} as UseQueryOptions<number, SyntaxError, number | undefined>,
+    )
+    expectTypeOf<UseQueryOptions>().toExtend<UseQueryOptions>()
   })
 })

@@ -5,7 +5,7 @@ import { useMutationCache } from './mutation-store'
 import type { UseMutationEntry } from './mutation-store'
 import { flushPromises } from '@vue/test-utils'
 import type { UseMutationOptions } from './mutation-options'
-import { mockConsoleError, mockWarn } from '../test/mock-warn'
+import { mockConsoleError, mockWarn } from '../test-utils/mock-warn'
 import { useMutation } from './use-mutation'
 
 describe('Mutation Cache store', () => {

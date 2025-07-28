@@ -21,6 +21,7 @@ import type { DataState } from '@pinia/colada'
 export interface PiniaColadaAutoRefetchOptions<
   TData = unknown,
   TError = unknown,
+  // TODO: should be undefined?
   TDataInitial = unknown,
 > {
   /**
@@ -30,7 +31,9 @@ export interface PiniaColadaAutoRefetchOptions<
   autoRefetch?:
     | boolean
     | number
-    | ((state: DataState<TData, TError, TDataInitial>) => boolean | number)
+    // FIXME: implement without the extended type Param
+    | (<T extends DataState<TData, TError, TDataInitial>>(state: T) => boolean | number)
+  // | ((state: DataState<TData, TError, TDataInitial>) => boolean | number)
 }
 
 /**
@@ -44,7 +47,7 @@ export { REFETCH_TIMEOUT_KEY as _REFETCH_TIMEOUT_KEY }
  * Plugin that automatically refreshes queries when they become stale
  */
 export function PiniaColadaAutoRefetch(
-  options: PiniaColadaAutoRefetchOptions<unknown, unknown, unknown> = {},
+  options: PiniaColadaAutoRefetchOptions = {},
 ): PiniaColadaPlugin {
   const { autoRefetch = false } = options
 
@@ -53,7 +56,8 @@ export function PiniaColadaAutoRefetch(
     if (typeof document === 'undefined') return
 
     function scheduleRefetch(
-      entry: UseQueryEntry,
+      // TODO: should be undefined
+      entry: UseQueryEntry<unknown, unknown, unknown>,
       options: UseQueryOptions<unknown, unknown, unknown>,
       delayMs: number,
     ) {
@@ -70,7 +74,7 @@ export function PiniaColadaAutoRefetch(
         const entry: UseQueryEntry | undefined = queryCache.getEntries({
           key: toValue(options.key),
         })?.[0]
-        if (entry && entry.active) {
+        if (entry?.active) {
           queryCache.refresh(entry).catch(console.error)
         }
       }, interval)
@@ -84,6 +88,7 @@ export function PiniaColadaAutoRefetch(
        * Returns { shouldSchedule: boolean, interval?: number }
        */
       function shouldScheduleRefetch(
+        // TODO: should be undefined
         entry: UseQueryEntry<unknown, unknown, unknown>,
         options: UseQueryOptions<unknown, unknown, unknown>,
       ): number | false {

@@ -181,7 +181,16 @@ export type UseQueryOptionsWithDefaults<
  * Global default options for `useQuery()`.
  * @internal
  */
-export type UseQueryOptionsGlobalDefaults = UseQueryOptionsGlobal & typeof USE_QUERY_DEFAULTS
+export type UseQueryOptionsGlobalDefaults = Pick<
+  UseQueryOptionsGlobal,
+  | 'gcTime'
+  | 'enabled'
+  | 'refetchOnMount'
+  | 'refetchOnReconnect'
+  | 'refetchOnWindowFocus'
+  | 'staleTime'
+> &
+  typeof USE_QUERY_DEFAULTS
 
 export const USE_QUERY_OPTIONS_KEY: InjectionKey<UseQueryOptionsGlobalDefaults> =
   process.env.NODE_ENV !== 'production' ? Symbol('useQueryOptions') : Symbol()
