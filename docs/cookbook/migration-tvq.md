@@ -49,6 +49,27 @@ useQuery({
 })
 ```
 
+### Component-specific side effects in mutations
+
+TanStack's `mutate` function allows passing the promise resolution callbacks as mutation hooks. In Pinia Colada, to avoid _having multiple ways of doing the same thing_, use the `mutateAsync` method to handle those effects:
+
+```ts
+mutate(todo, { // [!code --]
+  onSuccess, // [!code --]
+  onError, // [!code --]
+  onSettled, // [!code --]
+}) // [!code --]
+mutateAsync(todo)
+  .then((data) => {
+    onSuccess(data)
+    onSettled?.(data, null)
+  })
+  .catch((err) => {
+    onError(err)
+    onSettled?.(undefined, err)
+  })
+```
+
 ## Differences in philosophy
 
 These differences are a bit more subtle and span across multiple layers of the library.

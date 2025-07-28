@@ -32,10 +32,30 @@ app.use(PiniaColada, {
 You can customize the refetch behavior individually for each query with the `autoRefetch` option:
 
 ```ts
+// true: use existing staleTime
 useQuery({
   key: ['todos'],
   query: getTodos,
-  autoRefetch: true, // override local autoRefetch
+  staleTime: 10000,
+  autoRefetch: true, // refetch every 10 seconds
+})
+
+// Number: custom interval in milliseconds
+useQuery({
+  key: ['posts'],
+  query: getPosts,
+  staleTime: 5000,
+  autoRefetch: 10000, // refetch every 10 seconds
+})
+
+// Function: conditional refetching based on query state
+useQuery({
+  key: () => ['tasks', id.value],
+  query: getDocuments,
+  autoRefetch: (state) => {
+    // Polling based on data state
+    return state.data?.running ? 5000 : false
+  },
 })
 ```
 
