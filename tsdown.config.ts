@@ -7,11 +7,8 @@ const commonOptions = {
   format: ['cjs', 'esm'],
   external: ['vue', 'pinia', '@pinia/colada', '@vue/devtools-api'],
   target: 'esnext',
-  dts: {
-    compilerOptions: {
-      composite: false,
-    },
-  },
+  tsconfig: 'tsconfig.pinia-colada.json',
+  dts: true,
 } satisfies Options
 
 export default defineConfig([
