@@ -296,9 +296,6 @@ importers:
 
   plugins/auto-refetch:
     devDependencies:
-      '@/test-utils':
-        specifier: workspace:^
-        version: link:../../test-utils
       '@pinia/colada':
         specifier: workspace:^
         version: link:../..
@@ -326,8 +323,6 @@ importers:
       '@pinia/colada':
         specifier: workspace:^
         version: link:../..
-
-  test-utils: {}
 
 packages:
 
