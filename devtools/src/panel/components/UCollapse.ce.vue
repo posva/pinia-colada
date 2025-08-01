@@ -25,7 +25,7 @@ function scrollIfNeeded(event: TransitionEvent) {
 
 <template>
   <div class="collapse collapse-arrow">
-    <input v-model="open" type="checkbox" />
+    <input v-model="open" type="checkbox">
     <div class="collapse-title px-2 py-0.5 bg-neutral-200 dark:bg-neutral-800 theme-neutral">
       <slot name="title" :open :title>
         <h3 class="font-semibold text-sm flex gap-x-1 items-center">

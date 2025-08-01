@@ -31,24 +31,21 @@ function toggleExpansion() {
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
   >
-    <!-- TODO: fix dark/light mode colors -->
     <div class="flex items-center gap-2 py-0.5 hover:bg-(--ui-bg-muted) transition-colors rounded">
       <ILucideChevronRight
         v-if="isExpandable"
-        class="size-3 text-gray-500 transition-transform duration-200 cursor-pointer"
+        class="size-3 text-(--ui-text-dimmed) transition-transform duration-200 cursor-pointer"
         :class="{ 'rotate-90': isExpanded }"
         @click="toggleExpansion"
       />
 
       <!-- Maintain alignment by adding left margin when chevron is absent -->
-      <span class="text-blue-600 font-semibold" :class="!isExpandable && 'ml-5'">
-        {{ itemKey }}:
-      </span>
+      <span class="" :class="!isExpandable && 'ml-5'"> {{ itemKey }}: </span>
 
       <!-- Value or Collection Label -->
       <span
-        class="text-(--ui-text-dimmed) text-xs cursor-pointer"
         v-if="isExpandable"
+        class="text-(--ui-text-dimmed) text-xs cursor-pointer"
         @click="toggleExpansion"
       >
         {{ formatValue(value) }}
@@ -58,7 +55,9 @@ function toggleExpansion() {
       </span>
 
       <!-- Edit button -->
-      <UButton v-if="isHovered && !isExpandable" size="xs"> Edit </UButton>
+      <UButton v-if="isHovered && !isExpandable" size="xs">
+        Edit
+      </UButton>
     </div>
 
     <!-- Expanded children -->

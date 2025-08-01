@@ -118,8 +118,8 @@ watch(
             <span>Fetch duration:</span>
             <span class="font-bold">{{
               formatDuration(
-                selectedQuery.devtools.history.at(0)!.fetchTime!.end! -
-                  selectedQuery.devtools.history.at(0)!.fetchTime!.start,
+                selectedQuery.devtools.history.at(0)!.fetchTime!.end!
+                  - selectedQuery.devtools.history.at(0)!.fetchTime!.start,
               )
             }}</span>
           </p>
@@ -128,9 +128,7 @@ watch(
             class="grid grid-cols-[auto_1fr] gap-x-2"
             title="How many components and effects are using this query"
           >
-            <span
-              >Observers: <span class="font-bold">{{ selectedQuery.deps.length }}</span></span
-            >
+            <span>Observers: <span class="font-bold">{{ selectedQuery.deps.length }}</span></span>
           </p>
 
           <p
@@ -140,8 +138,8 @@ watch(
           >
             <template
               v-if="
-                typeof selectedQuery.options.gcTime === 'number' &&
-                Number.isFinite(selectedQuery.options.gcTime)
+                typeof selectedQuery.options.gcTime === 'number'
+                  && Number.isFinite(selectedQuery.options.gcTime)
               "
             >
               <span>Will be <i>gced</i></span>
@@ -250,7 +248,9 @@ watch(
           <pre v-if="selectedQuery.state.error" class="rounded p-1 overflow-auto max-h-[1200px]">{{
             selectedQuery.state.error
           }}</pre>
-          <p v-else class="text-neutral-500/50">No error</p>
+          <p v-else class="text-neutral-500/50">
+            No error
+          </p>
         </div>
       </UCollapse>
 
@@ -299,8 +299,7 @@ watch(
           <pre
             v-if="selectedQuery.options"
             class="rounded bg-neutral-500/20 p-1 overflow-auto max-h-[1200px]"
-            >{{ selectedQuery.options }}</pre
-          >
+          >{{ selectedQuery.options }}</pre>
           <p v-else>
             This Query entry has no options. It might have been created from the server or manually
             set with
