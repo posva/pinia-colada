@@ -8,7 +8,6 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    EditableJson: typeof import('./src/panel/components/editable-json/index.vue')['default']
     ILucideCheck: typeof import('~icons/lucide/check')['default']
     ILucideCheckCheck: typeof import('~icons/lucide/check-check')['default']
     ILucideChevronRight: typeof import('~icons/lucide/chevron-right')['default']
