@@ -16,7 +16,8 @@ const isHovered = ref(false)
 const isExpandable = computed(() => {
   return (
     (Array.isArray(props.value) && props.value.length > 0) ||
-    (isObject(props.value) && Object.keys(props.value).length > 0))
+    (isObject(props.value) && Object.keys(props.value).length > 0)
+  )
 })
 
 function toggleExpansion() {
@@ -31,7 +32,7 @@ function handleMouseLeave() {
   isHovered.value = false
 }
 
- function getCollectionLabel(value: unknown): string {
+function getCollectionLabel(value: unknown): string {
   if (Array.isArray(value)) {
     return `Array[${value.length}]`
   }
@@ -44,24 +45,21 @@ function handleMouseLeave() {
 
 <template>
   <div
-    class="text-sm mb-1"
-    :style="{ paddingLeft: `${depth * 20}px` }"
+    :style="{ paddingLeft: `${depth * 0.35}em` }"
     @mouseenter="handleMouseEnter"
     @mouseleave="handleMouseLeave"
   >
+    <!-- TODO: fix dark/light mode colors -->
     <div class="flex items-center gap-2 py-0.5 hover:bg-gray-50 transition-colors">
       <ILucideChevronRight
         v-if="isExpandable"
-        class="w-3 h-3 text-gray-500 transition-transform duration-200 cursor-pointer"
+        class="size-3 text-gray-500 transition-transform duration-200 cursor-pointer"
         :class="{ 'rotate-90': isExpanded }"
         @click="toggleExpansion"
       />
 
       <!-- Maintain alignment by adding left margin when chevron is absent -->
-      <span
-        class="text-blue-600 font-semibold"
-        :class="{ 'ml-5': !isExpandable }"
-      >
+      <span class="text-blue-600 font-semibold" :class="!isExpandable && 'ml-5'">
         {{ itemKey }}:
       </span>
 
@@ -73,18 +71,12 @@ function handleMouseLeave() {
       >
         {{ getCollectionLabel(value) }}
       </span>
-      <span
-        v-else
-        :class="getValueTypeClass(value)"
-        :title="formatValue(value)"
-      >
+      <span v-else :class="getValueTypeClass(value)" :title="formatValue(value)">
         {{ formatValue(value) }}
       </span>
 
       <!-- Edit button -->
-      <UButton v-if="isHovered && !isExpandable" size="xs">
-        Edit
-      </UButton>
+      <UButton v-if="isHovered && !isExpandable" size="xs"> Edit </UButton>
     </div>
 
     <!-- Expanded children -->
