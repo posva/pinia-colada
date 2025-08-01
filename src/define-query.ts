@@ -26,7 +26,7 @@ export type DefineQueryOptions<
   TData = unknown,
   TError = ErrorDefault,
   TDataInitial extends TData | undefined = undefined,
-> = _RemoveMaybeRef<UseQueryOptions<TData, TError, TDataInitial>> & {
+> = Omit<_RemoveMaybeRef<UseQueryOptions<TData, TError, TDataInitial>>, 'initialData' | 'placeholderData'> & {
   // NOTE: we need to duplicate the types for initialData and placeholderData to make everything work
   // we omit the descriptions because they are inherited from the original type
   initialData?: () => TDataInitial
