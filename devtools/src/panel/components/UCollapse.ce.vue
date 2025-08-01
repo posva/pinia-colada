@@ -37,7 +37,7 @@ function scrollIfNeeded(event: TransitionEvent) {
       </slot>
     </div>
     <div
-      :class="!noPadding && 'px-2 py-0.5'"
+      :class="!noPadding && 'px-2'"
       class="collapse-content text-sm overflow-hidden"
       @transitionend="scrollIfNeeded"
     >
