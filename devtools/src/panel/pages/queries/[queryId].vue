@@ -229,8 +229,8 @@ watch(
         </div>
       </UCollapse>
 
-      <UCollapse v-model:open="isDataOpen" title="Data" :icon="IFileText">
-        <EditableJSON :data="selectedQuery.state.data" />
+      <UCollapse v-model:open="isDataOpen" title="Data" :icon="IFileText" class="font-mono">
+        <JsonViewer :data="selectedQuery.state.data" />
       </UCollapse>
 
       <UCollapse
