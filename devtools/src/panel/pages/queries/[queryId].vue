@@ -13,7 +13,7 @@ import ICircleX from '~icons/lucide/circle-x'
 import IBraces from '~icons/lucide/braces'
 import IHistory from '~icons/lucide/history'
 import ISigmaSquare from '~icons/lucide/sigma-square'
-import { useTimeAgo, formatTimeAgo } from '@vueuse/core'
+import { useTimeAgo, formatTimeAgo, useLocalStorage } from '@vueuse/core'
 import type { FormatTimeAgoOptions } from '@vueuse/core'
 
 const route = useRoute('/queries/[queryId]')
@@ -54,10 +54,10 @@ const lastUpdate = useTimeAgo(() => selectedQuery.value?.devtools.updatedAt ?? 0
 
 const channel = useDuplexChannel()
 
-const isDataOpen = ref(false)
+const isDataOpen = useLocalStorage<boolean>('pc:query:details:data:open', false, {})
 let wasDataOpen = isDataOpen.value
 let lastStatus: DataStateStatus | null = null
-const isErrorOpen = ref(false)
+const isErrorOpen = useLocalStorage<boolean>('pc:query:details:data:open', false, {})
 watch(
   () => selectedQuery.value?.state,
   (state) => {
