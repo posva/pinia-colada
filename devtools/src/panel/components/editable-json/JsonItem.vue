@@ -23,34 +23,16 @@ const isExpandable = computed(() => {
 function toggleExpansion() {
   isExpanded.value = !isExpanded.value
 }
-
-function handleMouseEnter() {
-  isHovered.value = true
-}
-
-function handleMouseLeave() {
-  isHovered.value = false
-}
-
-function getCollectionLabel(value: unknown): string {
-  if (Array.isArray(value)) {
-    return `Array[${value.length}]`
-  }
-  if (isObject(value) && value !== null) {
-    return 'Object'
-  }
-  return ''
-}
 </script>
 
 <template>
   <div
     :style="{ paddingLeft: `${depth * 0.35}em` }"
-    @mouseenter="handleMouseEnter"
-    @mouseleave="handleMouseLeave"
+    @mouseenter="isHovered = true"
+    @mouseleave="isHovered = false"
   >
     <!-- TODO: fix dark/light mode colors -->
-    <div class="flex items-center gap-2 py-0.5 hover:bg-gray-50 transition-colors">
+    <div class="flex items-center gap-2 py-0.5 hover:bg-(--ui-bg-muted) transition-colors rounded">
       <ILucideChevronRight
         v-if="isExpandable"
         class="size-3 text-gray-500 transition-transform duration-200 cursor-pointer"
@@ -65,11 +47,11 @@ function getCollectionLabel(value: unknown): string {
 
       <!-- Value or Collection Label -->
       <span
+        class="text-(--ui-text-dimmed) text-xs cursor-pointer"
         v-if="isExpandable"
-        class="text-gray-500 text-xs cursor-pointer"
         @click="toggleExpansion"
       >
-        {{ getCollectionLabel(value) }}
+        {{ formatValue(value) }}
       </span>
       <span v-else :class="getValueTypeClass(value)" :title="formatValue(value)">
         {{ formatValue(value) }}
