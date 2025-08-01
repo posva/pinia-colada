@@ -57,7 +57,7 @@ const channel = useDuplexChannel()
 const isDataOpen = useLocalStorage<boolean>('pc:query:details:data:open', false, {})
 let wasDataOpen = isDataOpen.value
 let lastStatus: DataStateStatus | null = null
-const isErrorOpen = useLocalStorage<boolean>('pc:query:details:data:open', false, {})
+const isErrorOpen = useLocalStorage<boolean>('pc:query:details:error:open', false, {})
 watch(
   () => selectedQuery.value?.state,
   (state) => {
