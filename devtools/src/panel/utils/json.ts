@@ -1,5 +1,3 @@
-import { isObject } from '@vueuse/core'
-
 // NOTE: copied from pinia colada src/utils.ts
 
 /**
@@ -16,10 +14,10 @@ export type JSONPrimitive = string | number | boolean | null | undefined
  */
 export function isJSONPrimitive(value: unknown): value is JSONPrimitive {
   return (
-    typeof value === 'string'
-    || typeof value === 'number'
-    || typeof value === 'boolean'
-    || value == null // null or undefined
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean' ||
+    value == null // null or undefined
   )
 }
 
@@ -40,20 +38,48 @@ export interface ObjectFlat {
  */
 export type JSONValue = JSONPrimitive | JSONValue[] | { [key: string]: JSONValue }
 
-export function formatValue(value: JSONValue) {
+export function isJSONValue(value: unknown): value is JSONValue {
+  if (isJSONPrimitive(value)) return true
+  if (Array.isArray(value)) {
+    return value.every(isJSONValue)
+  }
+  if (isPlainObject(value)) {
+    return Object.values(value).every(isJSONValue)
+  }
+  return false
+}
+
+function isCollection(value: unknown): value is { length: number } | { size: number } {
+  return value != null && typeof value === 'object' && ('length' in value || 'size' in value)
+}
+
+function formatCollection(value: { length: number } | { size: number }) {
+  const size = 'length' in value ? value.length : value.size
+  return `${value.constructor.name}[${size}]`
+}
+
+const isObject = (val: unknown): val is Record<any, any> => val !== null && typeof val === 'object'
+
+export function formatValue(value: unknown) {
   if (value === null) return 'null'
   if (value === undefined) return 'undefined'
   if (typeof value === 'string') return `"${value}"`
-  if (Array.isArray(value)) return '[Array]'
-  if (typeof value === 'object') return `[${value.constructor.name}]`
+  if (typeof value === 'bigint') return `${value}n`
+  if (isObject(value)) {
+    if (isCollection(value)) return formatCollection(value)
+    if (isPlainObject(value)) return `Object${Object.keys(value).length === 0 ? ' (empty)' : ''}`
+    return `[${value.constructor.name}]`
+  }
   return String(value)
+}
+
+function isPlainObject(value: unknown): value is { constructor?: typeof Object } {
+  return isObject(value) && (value.constructor === Object || Object.getPrototypeOf(value) == null)
 }
 
 export function getValueType(value: unknown) {
   if (value === null) return 'null'
   if (Array.isArray(value)) return 'array'
-  if (isObject(value)) return 'object'
-  if (typeof value === 'boolean') return 'boolean'
   return typeof value
 }
 

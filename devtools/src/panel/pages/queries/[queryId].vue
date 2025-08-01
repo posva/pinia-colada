@@ -230,7 +230,7 @@ watch(
       </UCollapse>
 
       <UCollapse v-model:open="isDataOpen" title="Data" :icon="IFileText">
-        <EditableJson :data="selectedQuery.state.data" />
+        <EditableJSON :data="selectedQuery.state.data" />
       </UCollapse>
 
       <UCollapse
