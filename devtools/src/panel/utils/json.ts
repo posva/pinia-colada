@@ -85,18 +85,15 @@ export function getValueType(value: unknown) {
 
 export function getValueTypeClass(value: unknown): string {
   const type = getValueType(value)
-  switch (type) {
-    case 'boolean':
-      return 'text-blue-600'
-    case 'string':
-      return 'text-green-700'
-    case 'number':
-      return 'text-orange-600'
-    case 'null':
-      return 'text-gray-500'
-    case 'undefined':
-      return 'text-red-600'
-    default:
-      return ''
-  }
+
+  const typeColorMap = {
+    string: '--devtools-syntax-green',
+    boolean: '--devtools-syntax-orange',
+    number: '--devtools-syntax-orange',
+    null: '--devtools-syntax-purple',
+    undefined: '--devtools-syntax-purple',
+  } as const
+
+  const colorVar = typeColorMap[type as keyof typeof typeColorMap] || '--ui-text'
+  return `text-(${colorVar})`
 }
