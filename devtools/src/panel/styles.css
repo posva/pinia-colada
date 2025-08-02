@@ -38,6 +38,11 @@
   /* --ui-border-accented: light-dark(var(--color-gray-300), var(--color-gray-700)); */
   /* --ui-border-inverted: light-dark(var(--color-gray-900), var(--color-white)); */
 
+  --devtools-syntax-orange: light-dark(#fe640b, #fab387);
+  --devtools-syntax-purple: light-dark(#8839ef, #cba6f7);
+  --devtools-syntax-gray: light-dark(#4c4f69, #cdd6f4);
+  --devtools-syntax-green: light-dark(#40a02b, #a6e3a1);
+
   @variant dark {
     --color-primary-50: var(--color-yellow-50);
     --color-primary-100: var(--color-yellow-100);
