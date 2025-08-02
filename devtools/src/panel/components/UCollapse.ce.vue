@@ -4,6 +4,7 @@ import type { Component } from 'vue'
 defineProps<{
   title?: string
   icon?: Component
+  noPadding?: boolean
 }>()
 
 const open = defineModel<boolean>('open', {
@@ -35,7 +36,11 @@ function scrollIfNeeded(event: TransitionEvent) {
         </h3>
       </slot>
     </div>
-    <div class="collapse-content px-2 text-sm overflow-hidden" @transitionend="scrollIfNeeded">
+    <div
+      :class="!noPadding && 'px-2'"
+      class="collapse-content text-sm overflow-hidden"
+      @transitionend="scrollIfNeeded"
+    >
       <slot :open />
     </div>
   </div>
