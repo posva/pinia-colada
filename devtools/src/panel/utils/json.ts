@@ -49,8 +49,15 @@ export function isJSONValue(value: unknown): value is JSONValue {
   return false
 }
 
-function isCollection(value: unknown): value is { length: number } | { size: number } {
-  return value != null && typeof value === 'object' && ('length' in value || 'size' in value)
+function isCollection(
+  value: unknown,
+): value is Iterable<unknown> & ({ length: number } | { size: number }) {
+  return (
+    value != null &&
+    typeof value === 'object' &&
+    ('length' in value || 'size' in value) &&
+    Symbol.iterator in value
+  )
 }
 
 function formatCollection(value: { length: number } | { size: number }) {
