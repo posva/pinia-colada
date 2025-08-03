@@ -90,17 +90,19 @@ export function getValueType(value: unknown) {
   return typeof value
 }
 
-export function getValueTypeClass(value: unknown): string {
-  const type = getValueType(value)
+const VALUE_TYPE_CSS_CLASS = {
+  string: 'text-(--devtools-syntax-green)',
+  boolean: 'text-(--devtools-syntax-orange)',
+  number: 'text-(--devtools-syntax-orange)',
+  null: 'text-(--devtools-syntax-purple)',
+  undefined: 'text-(--devtools-syntax-purple)',
+  array: 'text-(--ui-text)',
+  function: 'text-(--ui-text)',
+  object: 'text-(--ui-text)',
+  symbol: 'text-(--ui-text)',
+  bigint: 'text-(--devtools-syntax-orange)',
+} satisfies Partial<Record<ReturnType<typeof getValueType>, string>>
 
-  const typeColorMap = {
-    string: '--devtools-syntax-green',
-    boolean: '--devtools-syntax-orange',
-    number: '--devtools-syntax-orange',
-    null: '--devtools-syntax-purple',
-    undefined: '--devtools-syntax-purple',
-  } as const
-
-  const colorVar = typeColorMap[type as keyof typeof typeColorMap] || '--ui-text'
-  return `text-(${colorVar})`
+export function getValueTypeClass(value: unknown): string | undefined {
+  return VALUE_TYPE_CSS_CLASS[getValueType(value)] || '--ui-text'
 }
