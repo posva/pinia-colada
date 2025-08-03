@@ -21,6 +21,10 @@ const router = createRouter({
       component: () => import('./pages/index.vue'),
     },
     {
+      path: '/multi-types',
+      component: () => import('./pages/multi-types.vue'),
+    },
+    {
       path: '/contacts',
       component: () => import('./pages/contacts.vue'),
       children: [

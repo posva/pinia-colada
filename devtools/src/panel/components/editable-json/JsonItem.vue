@@ -40,7 +40,9 @@ function toggleExpansion() {
       />
 
       <!-- Maintain alignment by adding left margin when chevron is absent -->
-      <span class="text-(--devtools-syntax-gray)" :class="!isExpandable && 'ml-5'"> {{ itemKey }}: </span>
+      <span class="text-(--devtools-syntax-gray)" :class="!isExpandable && 'ml-5'">
+        {{ itemKey }}:
+      </span>
 
       <!-- Value or Collection Label -->
       <span

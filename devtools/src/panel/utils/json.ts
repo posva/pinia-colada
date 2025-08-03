@@ -99,8 +99,8 @@ const VALUE_TYPE_CSS_CLASS = {
   array: 'text-(--ui-text)',
   function: 'text-(--ui-text)',
   object: 'text-(--ui-text)',
-  symbol: 'text-(--ui-text)',
-  bigint: 'text-(--devtools-syntax-orange)',
+  symbol: 'text-(--devtools-syntax-orange)',
+  bigint: 'text-(--devtools-syntax-sapphire)',
 } satisfies Partial<Record<ReturnType<typeof getValueType>, string>>
 
 export function getValueTypeClass(value: unknown): string | undefined {

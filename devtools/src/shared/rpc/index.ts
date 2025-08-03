@@ -1,6 +1,14 @@
 import type { DataState, EntryKey, UseQueryEntryFilter } from '@pinia/colada'
 import type { UseQueryEntryPayload } from '../query-serialized'
 import { toRaw } from 'vue'
+import {
+  restoreClonedDeep,
+  isError,
+  type NonSerializableValue_Function,
+  type NonSerializableValue_Symbol,
+  type NonSerializableValue_BigInt,
+  safeSerialize,
+} from './custom-values'
 
 export class DuplexChannel<
   const Emits extends Record<EmitsKeys, any[]>,
@@ -38,8 +46,9 @@ export class DuplexChannel<
     const listeners = this.listenersByEvent.get(event.data.id)
     if (!listeners) return
 
+    const restoredData = restoreClonedDeep(event.data.data as Listens[keyof Listens])
     for (const listener of listeners.values()) {
-      listener(...(event.data.data as Listens[keyof Listens]))
+      listener(...restoredData)
     }
   }
 
@@ -122,11 +131,5 @@ function toRawDeep(val: unknown): unknown {
   if (val && typeof val === 'object' && !isError(val)) {
     return Object.fromEntries(Object.entries(val).map(([key, value]) => [key, toRawDeep(value)]))
   }
-  return toRaw(val)
-}
-
-function isError(err: unknown): err is Error {
-  return 'isError' in Error && typeof Error.isError === 'function'
-    ? Error.isError(err)
-    : err instanceof Error
+  return safeSerialize(toRaw(val))
 }

@@ -42,6 +42,9 @@
   --devtools-syntax-purple: light-dark(#8839ef, #cba6f7);
   --devtools-syntax-gray: light-dark(#4c4f69, #cdd6f4);
   --devtools-syntax-green: light-dark(#40a02b, #a6e3a1);
+  --devtools-syntax-red: light-dark(#d20f39, #f38ba8);
+  --devtools-syntax-yellow: light-dark(#df8e1d, #f9e2af);
+  --devtools-syntax-sapphire: light-dark(#209fb5, #74c7ec);
 
   @variant dark {
     --color-primary-50: var(--color-yellow-50);

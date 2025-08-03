@@ -23,6 +23,23 @@ const selectedQuery = computed<UseQueryEntryPayload | null>(() => {
   return queries.value.find((entry) => entry.keyHash === route.params.queryId) ?? null
 })
 
+const serializedHistoryEntries = computed(() => {
+  return (
+    selectedQuery.value?.devtools.history.map((entry) => {
+      let value: string
+      try {
+        value = JSON.stringify(entry, null, 2)
+      } catch (error) {
+        value = `Error serializing entry: ${String(error)}`
+      }
+      return {
+        ...entry,
+        data: value,
+      }
+    }) ?? []
+  )
+})
+
 const TIME_AGO_OPTIONS: FormatTimeAgoOptions = {
   showSecond: true,
   rounding: 'floor',
@@ -284,12 +301,12 @@ watch(
       >
         <div class="py-1">
           <UCollapse
-            v-for="entry of selectedQuery.devtools.history"
+            v-for="entry of serializedHistoryEntries"
             :key="entry.updatedAt"
             :title="`Entry nº${entry.id} (${formatTimeAgo(new Date(entry.updatedAt), TIME_AGO_OPTIONS)})`"
             :open="false"
           >
-            <pre class="rounded p-1 overflow-auto max-h-[1200px]">{{ entry }}</pre>
+            <pre class="rounded p-1 overflow-auto max-h-[1200px]">{{ entry.data }}</pre>
           </UCollapse>
         </div>
       </UCollapse>
