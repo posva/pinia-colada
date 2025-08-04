@@ -288,8 +288,8 @@ importers:
         specifier: ^7.0.5
         version: 7.0.5(@types/node@24.0.15)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(yaml@2.8.0)
       vite-plugin-vue-devtools:
-        specifier: ^7.7.7
-        version: 7.7.7(@nuxt/kit@3.17.7(magicast@0.3.5))(rollup@4.45.1)(vite@7.0.5(@types/node@24.0.15)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(yaml@2.8.0))(vue@3.5.17(typescript@5.8.3))
+        specifier: ^8.0.0
+        version: 8.0.0(@nuxt/kit@3.17.7(magicast@0.3.5))(vite@7.0.5(@types/node@24.0.15)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(yaml@2.8.0))(vue@3.5.17(typescript@5.8.3))
       vue-tsc:
         specifier: ^3.0.3
         version: 3.0.3(typescript@5.8.3)
@@ -453,9 +453,6 @@ packages:
 
   '@antfu/install-pkg@1.1.0':
     resolution: {integrity: sha512-MGQsmw10ZyI+EJo45CdSER4zEb+p31LpDAFp2Z3gkSd1yqVZGi0Ebx++YTEMonJy4oChEMLsxZ64j8FH6sSqtQ==}
-
-  '@antfu/utils@0.7.10':
-    resolution: {integrity: sha512-+562v9k4aI80m1+VuMHehNJWLOFjBnXn3tdOitzD0il5b7smkSBal4+a3oKiQTbrwMmN/TBUMDvbdoWDehgOww==}
 
   '@antfu/utils@8.1.1':
     resolution: {integrity: sha512-Mex9nXf9vR6AhcXmMrlz/HVgYYZpVGJ6YlPgwl7UnaFpnshXs6EK/oa5Gpf3CzENMjkvEx2tQtntGnb7UtSTOQ==}
@@ -2725,6 +2722,11 @@ packages:
     peerDependencies:
       vue: ^3.0.0
 
+  '@vue/devtools-core@8.0.0':
+    resolution: {integrity: sha512-5bPtF0jAFnaGs4C/4+3vGRR5U+cf6Y8UWK0nJflutEDGepHxl5L9JRaPdHQYCUgrzUaf4cY4waNBEEGXrfcs3A==}
+    peerDependencies:
+      vue: ^3.0.0
+
   '@vue/devtools-kit@7.7.7':
     resolution: {integrity: sha512-wgoZtxcTta65cnZ1Q6MbAfePVFxfM+gq0saaeytoph7nEa7yMXoi6sCPy4ufO111B9msnw0VOWjPEFCXuAKRHA==}
 
@@ -3862,9 +3864,6 @@ packages:
 
   error-ex@1.3.2:
     resolution: {integrity: sha512-7dFHNmqeFSEt2ZBsCriorKnn3Z2pj+fd9kmI6QoWw4//DL+icEBfc0U7qJCisqrTsKTjw4fNFy2pW9OqStD84g==}
-
-  error-stack-parser-es@0.1.5:
-    resolution: {integrity: sha512-xHku1X40RO+fO8yJ8Wh2f2rZWVjqyhb1zgq1yZ8aZRQkv6OOKhKWRUaht3eSCUbAOBaKIgM+ykwFLE+QUxgGeg==}
 
   error-stack-parser-es@1.0.5:
     resolution: {integrity: sha512-5qucVt2XcuGMcEGgWI7i+yZpmpByQ8J1lHhcL7PwqCwu9FPP3VUXzT4ltHe5i2z9dePwEHcDVOAfSnHsOlCXRA==}
@@ -7259,16 +7258,6 @@ packages:
       vite:
         optional: true
 
-  vite-plugin-inspect@0.8.9:
-    resolution: {integrity: sha512-22/8qn+LYonzibb1VeFZmISdVao5kC22jmEKm24vfFE8siEn47EpVcCLYMv6iKOYMJfjSvSJfueOwcFCkUnV3A==}
-    engines: {node: '>=14'}
-    peerDependencies:
-      '@nuxt/kit': '*'
-      vite: ^3.1.0 || ^4.0.0 || ^5.0.0-0 || ^6.0.1
-    peerDependenciesMeta:
-      '@nuxt/kit':
-        optional: true
-
   vite-plugin-inspect@11.3.0:
     resolution: {integrity: sha512-vmt7K1WVKQkuiwvsM6e5h3HDJ2pSWTnzoj+JP9Kvu3Sh2G+nFap1F1V7tqpyA4qFxM1GQ84ryffWFGQrwShERQ==}
     engines: {node: '>=14'}
@@ -7279,16 +7268,16 @@ packages:
       '@nuxt/kit':
         optional: true
 
-  vite-plugin-vue-devtools@7.7.7:
-    resolution: {integrity: sha512-d0fIh3wRcgSlr4Vz7bAk4va1MkdqhQgj9ANE/rBhsAjOnRfTLs2ocjFMvSUOsv6SRRXU9G+VM7yMgqDb6yI4iQ==}
+  vite-plugin-vue-devtools@8.0.0:
+    resolution: {integrity: sha512-9bWQig8UMu3nPbxX86NJv56aelpFYoBHxB5+pxuQz3pa3Tajc1ezRidj/0dnADA4/UHuVIfwIVYHOvMXYcPshg==}
     engines: {node: '>=v14.21.3'}
     peerDependencies:
-      vite: ^3.1.0 || ^4.0.0-0 || ^5.0.0-0 || ^6.0.0-0 || ^7.0.0-0
+      vite: ^6.0.0 || ^7.0.0-0
 
-  vite-plugin-vue-inspector@5.3.1:
-    resolution: {integrity: sha512-cBk172kZKTdvGpJuzCCLg8lJ909wopwsu3Ve9FsL1XsnLBiRT9U3MePcqrgGHgCX2ZgkqZmAGR8taxw+TV6s7A==}
+  vite-plugin-vue-inspector@5.3.2:
+    resolution: {integrity: sha512-YvEKooQcSiBTAs0DoYLfefNja9bLgkFM7NI2b07bE2SruuvX0MEa9cMaxjKVMkeCp5Nz9FRIdcN1rOdFVBeL6Q==}
     peerDependencies:
-      vite: ^3.0.0-0 || ^4.0.0-0 || ^5.0.0-0 || ^6.0.0-0
+      vite: ^3.0.0-0 || ^4.0.0-0 || ^5.0.0-0 || ^6.0.0-0 || ^7.0.0-0
 
   vite-plugin-vue-tracer@1.0.0:
     resolution: {integrity: sha512-a+UB9IwGx5uwS4uG/a9kM6fCMnxONDkOTbgCUbhFpiGhqfxrrC1+9BibV7sWwUnwj1Dg6MnRxG0trLgUZslDXA==}
@@ -7785,8 +7774,6 @@ snapshots:
     dependencies:
       package-manager-detector: 1.3.0
       tinyexec: 1.0.1
-
-  '@antfu/utils@0.7.10': {}
 
   '@antfu/utils@8.1.1': {}
 
@@ -10196,6 +10183,18 @@ snapshots:
     transitivePeerDependencies:
       - vite
 
+  '@vue/devtools-core@8.0.0(vite@7.0.5(@types/node@24.0.15)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(yaml@2.8.0))(vue@3.5.17(typescript@5.8.3))':
+    dependencies:
+      '@vue/devtools-kit': 8.0.0
+      '@vue/devtools-shared': 8.0.0
+      mitt: 3.0.1
+      nanoid: 5.1.5
+      pathe: 2.0.3
+      vite-hot-client: 2.1.0(vite@7.0.5(@types/node@24.0.15)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(yaml@2.8.0))
+      vue: 3.5.17(typescript@5.8.3)
+    transitivePeerDependencies:
+      - vite
+
   '@vue/devtools-kit@7.7.7':
     dependencies:
       '@vue/devtools-shared': 7.7.7
@@ -11295,8 +11294,6 @@ snapshots:
   error-ex@1.3.2:
     dependencies:
       is-arrayish: 0.2.1
-
-  error-stack-parser-es@0.1.5: {}
 
   error-stack-parser-es@1.0.5: {}
 
@@ -15359,24 +15356,6 @@ snapshots:
       - rollup
       - supports-color
 
-  vite-plugin-inspect@0.8.9(@nuxt/kit@3.17.7(magicast@0.3.5))(rollup@4.45.1)(vite@7.0.5(@types/node@24.0.15)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(yaml@2.8.0)):
-    dependencies:
-      '@antfu/utils': 0.7.10
-      '@rollup/pluginutils': 5.2.0(rollup@4.45.1)
-      debug: 4.4.1
-      error-stack-parser-es: 0.1.5
-      fs-extra: 11.3.0
-      open: 10.2.0
-      perfect-debounce: 1.0.0
-      picocolors: 1.1.1
-      sirv: 3.0.1
-      vite: 7.0.5(@types/node@24.0.15)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(yaml@2.8.0)
-    optionalDependencies:
-      '@nuxt/kit': 3.17.7(magicast@0.3.5)
-    transitivePeerDependencies:
-      - rollup
-      - supports-color
-
   vite-plugin-inspect@11.3.0(@nuxt/kit@3.17.7(magicast@0.3.5))(vite@7.0.5(@types/node@24.0.15)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(yaml@2.8.0)):
     dependencies:
       ansis: 4.1.0
@@ -15394,23 +15373,22 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  vite-plugin-vue-devtools@7.7.7(@nuxt/kit@3.17.7(magicast@0.3.5))(rollup@4.45.1)(vite@7.0.5(@types/node@24.0.15)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(yaml@2.8.0))(vue@3.5.17(typescript@5.8.3)):
+  vite-plugin-vue-devtools@8.0.0(@nuxt/kit@3.17.7(magicast@0.3.5))(vite@7.0.5(@types/node@24.0.15)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(yaml@2.8.0))(vue@3.5.17(typescript@5.8.3)):
     dependencies:
-      '@vue/devtools-core': 7.7.7(vite@7.0.5(@types/node@24.0.15)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(yaml@2.8.0))(vue@3.5.17(typescript@5.8.3))
-      '@vue/devtools-kit': 7.7.7
-      '@vue/devtools-shared': 7.7.7
+      '@vue/devtools-core': 8.0.0(vite@7.0.5(@types/node@24.0.15)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(yaml@2.8.0))(vue@3.5.17(typescript@5.8.3))
+      '@vue/devtools-kit': 8.0.0
+      '@vue/devtools-shared': 8.0.0
       execa: 9.6.0
       sirv: 3.0.1
       vite: 7.0.5(@types/node@24.0.15)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(yaml@2.8.0)
-      vite-plugin-inspect: 0.8.9(@nuxt/kit@3.17.7(magicast@0.3.5))(rollup@4.45.1)(vite@7.0.5(@types/node@24.0.15)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(yaml@2.8.0))
-      vite-plugin-vue-inspector: 5.3.1(vite@7.0.5(@types/node@24.0.15)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(yaml@2.8.0))
+      vite-plugin-inspect: 11.3.0(@nuxt/kit@3.17.7(magicast@0.3.5))(vite@7.0.5(@types/node@24.0.15)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(yaml@2.8.0))
+      vite-plugin-vue-inspector: 5.3.2(vite@7.0.5(@types/node@24.0.15)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(yaml@2.8.0))
     transitivePeerDependencies:
       - '@nuxt/kit'
-      - rollup
       - supports-color
       - vue
 
-  vite-plugin-vue-inspector@5.3.1(vite@7.0.5(@types/node@24.0.15)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(yaml@2.8.0)):
+  vite-plugin-vue-inspector@5.3.2(vite@7.0.5(@types/node@24.0.15)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(yaml@2.8.0)):
     dependencies:
       '@babel/core': 7.28.0
       '@babel/plugin-proposal-decorators': 7.27.1(@babel/core@7.28.0)
