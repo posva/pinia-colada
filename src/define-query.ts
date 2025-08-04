@@ -28,12 +28,29 @@ export type DefineQueryOptions<
   TDataInitial extends TData | undefined = undefined,
 > = Omit<_RemoveMaybeRef<UseQueryOptions<TData, TError, TDataInitial>>, 'initialData' | 'placeholderData'> & {
   // NOTE: we need to duplicate the types for initialData and placeholderData to make everything work
-  // we omit the descriptions because they are inherited from the original type
+
+  /**
+   * The data which is initially set to the query while the query is loading
+   * for the first time. Note: unlike with {@link placeholderData}, setting the
+   * initial data changes the state of the query (it will be set to `success`).
+   *
+   * @see {@link placeholderData}
+   */
   initialData?: () => TDataInitial
 
+  /**
+   * A placeholder data that is initially shown while the query is loading for
+   * the first time. This will also show the `status` as `success` until the
+   * query finishes loading (no matter the outcome of the query). Note: unlike
+   * with {@link initialData}, the placeholder does not change the cache state.
+   *
+   * @see {@link initialData}
+   */
   placeholderData?:
     | NoInfer<TDataInitial>
     | NoInfer<TData>
+    // NOTE: the generic here allows to make UseQueryOptions<T> assignable to UseQueryOptions<unknown>
+    // https://www.typescriptlang.org/play/?#code/JYOwLgpgTgZghgYwgAgPIAczAPYgM4A8AKsgLzICuIA1iNgO4gB8yA3gFDLICOAXMgAoAlGRYAFKNgC2wPBGJNOydAH5eSrgHpNyABZwAbqADmyMLpRwoxilIjhkAIygQ41PMmBgNyAD6CBdBcjbAo8ABE4MDh+ADlsAEkQGGgFP0oQABMIGFAITJFSFniklKgFIR9tZCJdWWQDaDwcEGR6bCh3Kp1-AWISCAAPSCyPIiZA4JwwyOj+IhJ-KmzckHzCliJKgF92dlBIWEQUAFFwKABPYjIM2gZmNiVsTBa8fgwsXEJx9JAKABt-uxduwYFQEJ9WggAPr2MCXBQCZ6Qt5oF5fNL+P6AoT8M7wq4-DhcFxgChQVqsZDI17IXa7BBfMDIDzkNb0ZAAZQgYAI+MuE0qeAAdHBMpkBDC4ZcBMSuDx+HA8BcQAhBBtkAAWABMABofOh+AIQBrWgBCNkA-7IFTIVoAKmQ2uQ-E1wKElSAA
     | (<T extends TData>(
         previousData: T | undefined,
       ) => NoInfer<TDataInitial> | NoInfer<TData> | undefined)
