@@ -120,4 +120,15 @@ describe('defineQuery types', () => {
       placeholderData: 'ok',
     } satisfies DefineQueryOptions<string, Error>)
   })
+
+  it('types the placeholderData', () => {
+    defineQuery({
+      query: async () => 42,
+      key: ['foo'],
+      placeholderData: (n) => {
+        expectTypeOf<number | undefined>(n)
+        return n ?? 42
+      },
+    })
+  })
 })
