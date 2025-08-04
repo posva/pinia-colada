@@ -4,7 +4,7 @@ Queries manage asynchronous state declaratively, allowing you to focus on the st
 
 Queries are designed to **read** data from asynchronous sources, such as handling `GET` requests in a REST API but they can be used along any function returning a Promise. For **writing** or mutating data, consider using [mutations](./mutations.md), which are better suited for those operations.
 
-## TL;DR - Which approach should I use?
+## TIL (Today I Learned) - Which approach should I use?
 
 - **`useQuery()`** is great to get started and for simple use cases. Perfect when you need a quick solution or are just learning.
 - **`defineQueryOptions()`** allows fully typed cache operations and should be the preferred approach for maintainability. Use this when you want type safety and plan to interact with the query cache.
@@ -14,7 +14,7 @@ Queries are created with `useQuery()`. They can be combined with [`defineQueryOp
 
 ## Foundations
 
-The most basic usage of Pinia Colada's queries is through `useQuery()`. As mentioned in the [TL;DR](#tl-dr-which-approach-should-i-use) above, this composable is great to get started and for simple use cases. It should feel familiar if you've used libraries like swrv or TanStack Query.
+The most basic usage of Pinia Colada's queries is through `useQuery()`. As mentioned in the [TIL section](#til-today-i-learned-which-approach-should-i-use) above, this composable is great to get started and for simple use cases. It should feel familiar if you've used libraries like swrv or TanStack Query.
 
 ```vue twoslash
 <script setup lang="ts">
