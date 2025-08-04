@@ -45,6 +45,7 @@ import ProductItem from '@/components/ProductItem.vue'
 const {
   state: productList,
   asyncStatus,
+  refresh,
 } = useQuery({
   key: ['products-list'],
   query: getAllProducts,
@@ -69,6 +70,7 @@ const {
     | `'error'` | `undefined` or _defined_ | _defined_ |
 
 - `asyncStatus`: the async status of the query. It's either `'idle'` or `'loading'` if the query is currently being fetched.
+- `refresh()`: manually triggers the query.
 
 There are a couple of other properties that can be accessed, most of them are just for convenience like `data` (which is an alias for `state.data`) and `error` (which is an alias for `state.error`).
 
