@@ -66,7 +66,23 @@ const { todoList, search } = useFilteredTodos()
 
 Consider `useFilteredTodos()` as a globally shared composable, instantiated only once. This ensures the `search` ref is shared across all components using this query, reflecting changes universally across components.
 
-TODO: talk about defineQueryOptions instead
+## Alternative: `defineQueryOptions()` for Organization
+
+If you just want to organize your queries without creating custom logic, use [`defineQueryOptions()`](../guide/query-keys.md#Typing-query-keys) instead. It provides type safety and better cache interaction while being simpler than `defineQuery()`:
+
+```ts twoslash
+// src/queries/todos.ts
+import { defineQueryOptions } from '@pinia/colada'
+
+export const todosQuery = defineQueryOptions({
+  key: ['todos'],
+  query: () => fetch('/api/todos').then((res) => res.json()),
+})
+```
+
+Use `defineQueryOptions()` when you need type safety and organized queries, but don't need custom shared state or complex logic.
+
+## Full Query Definition with `defineQuery()`
 
 When you just want to organize your queries, you can also pass an object of options to `defineQuery()`:
 
@@ -80,15 +96,26 @@ export const useTodos = defineQuery({
 })
 ```
 
-::: tip When to use `defineQuery()` over just `useQuery()`?
+::: tip When to use each approach?
 
-If you find yourself with the same query (same `key` value) used in multiple components that are also mounted at the same time, you **must** use `defineQuery()`. This will ensure that the query is shared among all components.
+**Use `useQuery()`** for simple, component-specific queries or when learning.
 
-If you need to reuse a query in multiple components, move the query to a separate file (e.g. `src/queries/todos.ts`) and use `defineQuery()` to define it. This will ensure that the query code isn't partially updated in your code base.
+**Use `defineQueryOptions()`** when you need:
+- Type safety for cache operations
+- Organized query definitions
+- Better maintainability
+- No custom shared state
 
-If you need to define custom parameters **that aren't global**, you don't need to do anything special, create a custom composable instead and call `useQuery()` within it.
+**Use `defineQuery()`** when you need:
+- The same query (same `key` value) used in multiple components that are mounted simultaneously
+- Custom shared state or logic along with your queries
+- Complex reusable composables
 
 :::
+
+### The Choice: `defineQueryOptions()` vs `defineQuery()`
+
+For most organized query definitions, **prefer `defineQueryOptions()`** as it's simpler and provides excellent type safety. Only use `defineQuery()` when you need to share state between components or have complex custom logic.
 
 ### Nuxt
 

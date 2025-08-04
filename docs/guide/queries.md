@@ -4,11 +4,17 @@ Queries manage asynchronous state declaratively, allowing you to focus on the st
 
 Queries are designed to **read** data from asynchronous sources, such as handling `GET` requests in a REST API but they can be used along any function returning a Promise. For **writing** or mutating data, consider using [mutations](./mutations.md), which are better suited for those operations.
 
+## TL;DR - Which approach should I use?
+
+- **`useQuery()`** is great to get started and for simple use cases. Perfect when you need a quick solution or are just learning.
+- **`defineQueryOptions()`** allows fully typed cache operations and should be the preferred approach for maintainability. Use this when you want type safety and plan to interact with the query cache.
+- **`defineQuery()`** creates a mini store and allows fully reusing the state of `useQuery()` rather than creating multiple copies that are connected to the same query cache. Use this for complex reusable queries with custom logic.
+
 Queries are created with `useQuery()`. They can be combined with [`defineQueryOptions()` for organization and typing](./query-keys.md#Typing-query-keys) or [`defineQuery()`](../advanced/reusable-queries.md) for reusability.
 
 ## Foundations
 
-The most basic usage of Pinia Colada's queries is through `useQuery()`. This composable should feel familiar if you've used libraries like swrv or TanStack Query and should be the starting point for most of your async state management.
+The most basic usage of Pinia Colada's queries is through `useQuery()`. As mentioned in the [TL;DR](#tl-dr-which-approach-should-i-use) above, this composable is great to get started and for simple use cases. It should feel familiar if you've used libraries like swrv or TanStack Query.
 
 ```vue twoslash
 <script setup lang="ts">
@@ -111,7 +117,26 @@ Each unique `key` generates a new query entry in the cache. When you switch back
 
 ## Organizing Queries
 
-As your project grows and you start using more and more queries as well as concepts as [Optimistic Updates](./optimistic-updates.md), you will want to organize your queries. You can do this by using [`defineQueryOptions()`](../advanced/reusable-queries.md) and placing your query options **and their corresponding keys** in separate files:
+As your project grows, you'll want to organize your queries for better maintainability and type safety. Here's the recommended progression:
+
+### Start Simple with `useQuery()`
+
+For simple cases or when learning, use `useQuery()` directly in components:
+
+```vue twoslash
+<script setup lang="ts">
+import { useQuery } from '@pinia/colada'
+
+const { state } = useQuery({
+  key: ['products'],
+  query: () => fetch('/api/products').then(res => res.json()),
+})
+</script>
+```
+
+### Add Type Safety with `defineQueryOptions()`
+
+When you need to interact with the query cache, use [Optimistic Updates](./optimistic-updates.md), or want better type safety, organize your queries using [`defineQueryOptions()`](./query-keys.md#Typing-query-keys) in separate files:
 
 ```
 ./queries
@@ -120,7 +145,7 @@ As your project grows and you start using more and more queries as well as conce
 └── users.ts
 ```
 
-Each file can expose keys and options related to specific domain, allowing you to keep the queries logic in one place and also considerably simplify the usage of `useQuery()` in Vue components.
+Each file can expose keys and options related to specific domains, providing full type safety for cache operations and considerably simplifying the usage of `useQuery()` in Vue components.
 
 ::: code-group
 
@@ -159,7 +184,7 @@ const { data } = useQuery(documentByIdQuery, () => ({
 
 :::
 
-You will notice that the docs use a lot `useQuery()` with simple options. This is to keep this documentation simple and focused fewer concepts. In practice, **it is recommended to use** [key factories](./query-keys.md#Managing-query-keys-key-factories-) **and** [`defineQueryOptions()`](./query-keys.md#Typing-query-keys) to keep your queries organized and type-safe.
+**Note:** Throughout this documentation, you'll see many examples using `useQuery()` with simple options. This is to keep examples simple and focused. For production applications, **it is recommended to use** [key factories](./query-keys.md#Managing-query-keys-key-factories-) **and** [`defineQueryOptions()`](./query-keys.md#Typing-query-keys) to keep your queries organized and type-safe.
 
 ## Pausing queries
 
