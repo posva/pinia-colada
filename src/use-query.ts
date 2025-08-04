@@ -352,8 +352,8 @@ export function useQuery<
           refetch()
         } else if (
           refetchControl ||
-          // always refetch if the query is not enabled
-          queryReturn.status.value === 'pending'
+          // always refetch if the query has no real data (even if placeholderData is shown)
+          entry.value.state.value.status === 'pending'
         ) {
           refresh()
         }
