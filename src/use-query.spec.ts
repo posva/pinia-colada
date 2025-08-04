@@ -143,6 +143,16 @@ describe('useQuery', () => {
       expect(query).toHaveBeenCalledTimes(1)
     })
 
+    it('fetches the first time with refetchOnMount false and placeholderData', async () => {
+      const { query } = mountSimple({
+        refetchOnMount: false,
+        placeholderData: 24,
+      })
+
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+    })
+
     it('skips initial fetch if initialData is set', async () => {
       const { wrapper, query } = mountSimple({
         initialData: () => 24,
