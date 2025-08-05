@@ -7,7 +7,7 @@
     <img src="https://badgen.net/npm/v/@pinia/colada/latest" alt="npm package">
   </a>
   <a href="https://github.com/posva/pinia-colada/actions/workflows/ci.yml">
-    <img src="https://github.com/posva/pinia-colada/workflows/ci/badge.svg" alt="build status">
+    <img src="https://github.com/posva/pinia-colada/actions/workflows/ci.yml/badge.svg" alt="build status">
   </a>
   <a href="https://codecov.io/gh/posva/pinia-colada">
     <img src="https://codecov.io/gh/posva/pinia-colada/branch/main/graph/badge.svg?token=OZc0DBze2R"/>
