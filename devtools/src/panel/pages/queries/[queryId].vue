@@ -13,7 +13,7 @@ import ICircleX from '~icons/lucide/circle-x'
 import IBraces from '~icons/lucide/braces'
 import IHistory from '~icons/lucide/history'
 import ISigmaSquare from '~icons/lucide/sigma-square'
-import { useTimeAgo, formatTimeAgo } from '@vueuse/core'
+import { useTimeAgo, formatTimeAgo, useLocalStorage } from '@vueuse/core'
 import type { FormatTimeAgoOptions } from '@vueuse/core'
 
 const route = useRoute('/queries/[queryId]')
@@ -21,6 +21,23 @@ const queries = useQueryEntries()
 
 const selectedQuery = computed<UseQueryEntryPayload | null>(() => {
   return queries.value.find((entry) => entry.keyHash === route.params.queryId) ?? null
+})
+
+const serializedHistoryEntries = computed(() => {
+  return (
+    selectedQuery.value?.devtools.history.map((entry) => {
+      let value: string
+      try {
+        value = JSON.stringify(entry, null, 2)
+      } catch (error) {
+        value = `Error serializing entry: ${String(error)}`
+      }
+      return {
+        ...entry,
+        data: value,
+      }
+    }) ?? []
+  )
 })
 
 const TIME_AGO_OPTIONS: FormatTimeAgoOptions = {
@@ -54,10 +71,10 @@ const lastUpdate = useTimeAgo(() => selectedQuery.value?.devtools.updatedAt ?? 0
 
 const channel = useDuplexChannel()
 
-const isDataOpen = ref(false)
+const isDataOpen = useLocalStorage<boolean>('pc:query:details:data:open', false, {})
 let wasDataOpen = isDataOpen.value
 let lastStatus: DataStateStatus | null = null
-const isErrorOpen = ref(false)
+const isErrorOpen = useLocalStorage<boolean>('pc:query:details:error:open', false, {})
 watch(
   () => selectedQuery.value?.state,
   (state) => {
@@ -229,16 +246,14 @@ watch(
         </div>
       </UCollapse>
 
-      <UCollapse v-model:open="isDataOpen" title="Data" :icon="IFileText">
-        <div class="py-1">
-          <pre
-            v-if="selectedQuery.state.data !== undefined"
-            class="rounded p-1 overflow-auto max-h-[1200px]"
-          >{{ selectedQuery.state.data }}</pre>
-          <p v-else class="text-neutral-500/50">
-            No data
-          </p>
-        </div>
+      <UCollapse
+        v-model:open="isDataOpen"
+        title="Data"
+        :icon="IFileText"
+        class="font-mono"
+        no-padding
+      >
+        <JsonViewer :data="selectedQuery.state.data" />
       </UCollapse>
 
       <UCollapse
@@ -286,12 +301,12 @@ watch(
       >
         <div class="py-1">
           <UCollapse
-            v-for="entry of selectedQuery.devtools.history"
+            v-for="entry of serializedHistoryEntries"
             :key="entry.updatedAt"
             :title="`Entry nº${entry.id} (${formatTimeAgo(new Date(entry.updatedAt), TIME_AGO_OPTIONS)})`"
             :open="false"
           >
-            <pre class="rounded p-1 overflow-auto max-h-[1200px]">{{ entry }}</pre>
+            <pre class="rounded p-1 overflow-auto max-h-[1200px]">{{ entry.data }}</pre>
           </UCollapse>
         </div>
       </UCollapse>

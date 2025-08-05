@@ -9,6 +9,10 @@ import { PiniaColadaDevtools } from '@pinia/colada-devtools'
         <RouterLink to="/contacts">
           Contacts
         </RouterLink>
+        |
+        <RouterLink to="/multi-types">
+          Multi types
+        </RouterLink>
       </nav>
     </div>
   </header>
