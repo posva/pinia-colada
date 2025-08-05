@@ -113,7 +113,8 @@
     }
   ],
   "peerDependencies": {
-    "pinia": "^2.2.6 || ^3.0.0"
+    "pinia": "^2.2.6 || ^3.0.0",
+    "vue": "^3"
   },
   "dependencies": {
     "@vue/devtools-api": "^8.0.0"
@@ -158,6 +159,7 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "@ast-grep/cli",
+      "@parcel/watcher",
       "@tailwindcss/oxide",
       "esbuild",
       "simple-git-hooks"
