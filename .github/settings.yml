@@ -52,3 +52,6 @@ labels:
   - name: 🔌 plugins
     color: baffc9
     description: related to plugins
+  - name: ↗️ upstream
+    color: baffc9
+    description: blocked by an external dependency
