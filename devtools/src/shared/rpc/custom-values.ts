@@ -18,7 +18,7 @@ export interface NonSerializableValue_BigInt extends NonSerializableValue_Base {
 
 export interface NonSerializableValue_RegExp extends NonSerializableValue_Base {
   __type: 'regexp'
-  value: { source: string; flags: string }
+  value: { source: string, flags: string }
 }
 
 export interface NonSerializableValue_Map extends NonSerializableValue_Base {
@@ -52,7 +52,7 @@ export interface NonSerializableValue_ArrayBuffer extends NonSerializableValue_B
 
 export interface NonSerializableValue_TypedArray extends NonSerializableValue_Base {
   __type: 'typedarray'
-  value: { arrayType: string; byteLength: number }
+  value: { arrayType: string, byteLength: number }
 }
 
 export interface NonSerializableValue_Promise extends NonSerializableValue_Base {
@@ -62,12 +62,12 @@ export interface NonSerializableValue_Promise extends NonSerializableValue_Base 
 
 export interface NonSerializableValue_Error extends NonSerializableValue_Base {
   __type: 'error'
-  value: { name: string; message: string; stack?: string }
+  value: { name: string, message: string, stack?: string }
 }
 
 export interface NonSerializableValue_Object extends NonSerializableValue_Base {
   __type: 'object'
-  value: { constructorName: string; properties: unknown }
+  value: { constructorName: string, properties: unknown }
 }
 
 export type NonSerializableValue =
@@ -89,7 +89,7 @@ export type NonSerializableValue =
 // Helper function to recursively serialize values that might contain non-serializable data
 function safeSerializeRecursive(value: unknown): unknown {
   if (Array.isArray(value)) {
-    return value.map(item => safeSerializeRecursive(item))
+    return value.map((item) => safeSerializeRecursive(item))
   }
   if (value && typeof value === 'object') {
     // Try to serialize with safeSerialize first
@@ -165,7 +165,7 @@ export function safeSerialize(value: unknown) {
     return {
       __custom: '@@pc-non-serializable',
       __type: 'set',
-      value: Array.from(value.values()).map(v => safeSerializeRecursive(v)),
+      value: Array.from(value.values()).map((v) => safeSerializeRecursive(v)),
     } satisfies NonSerializableValue_Set
   } else if (value instanceof WeakMap) {
     return {
@@ -269,7 +269,7 @@ function restoreClonedValue(value: NonSerializableValue) {
     return new Map(entries)
   } else if (value.__type === 'set') {
     const setValue = value as NonSerializableValue_Set
-    const values = setValue.value.map(v => restoreClonedDeep(v))
+    const values = setValue.value.map((v) => restoreClonedDeep(v))
     return new Set(values)
   } else if (value.__type === 'weakmap') {
     return new WeakMap()
@@ -287,7 +287,7 @@ function restoreClonedValue(value: NonSerializableValue) {
   } else if (value.__type === 'typedarray') {
     const typedArrayValue = value as NonSerializableValue_TypedArray
     const buffer = new ArrayBuffer(typedArrayValue.value.byteLength)
-    
+
     // Create the appropriate TypedArray based on the arrayType
     switch (typedArrayValue.value.arrayType) {
       case 'Int8Array': return new Int8Array(buffer)
@@ -318,7 +318,7 @@ function restoreClonedValue(value: NonSerializableValue) {
   } else if (value.__type === 'object') {
     const objectValue = value as NonSerializableValue_Object
     const properties = restoreClonedDeep(objectValue.value.properties)
-    return typeof properties === 'object' && properties !== null 
+    return typeof properties === 'object' && properties !== null
       ? { ...properties, __constructorName: objectValue.value.constructorName }
       : { __constructorName: objectValue.value.constructorName }
   }
