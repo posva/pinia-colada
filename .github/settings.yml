@@ -1,6 +1,6 @@
 repository:
   homepage: https://pinia-colada.esm.dev
-  description: 🍹 The smart data fetching layer for Pinia
+  description: 🍹 The smart data fetching layer for Vue
 labels:
   - name: 🐞 bug
     color: ee0701
