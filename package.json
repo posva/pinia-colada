@@ -159,7 +159,6 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "@ast-grep/cli",
-      "@parcel/watcher",
       "@tailwindcss/oxide",
       "esbuild",
       "simple-git-hooks"
