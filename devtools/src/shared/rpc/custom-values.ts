@@ -125,7 +125,7 @@ class BinaryDataPlaceholder {
   constructor(
     public readonly type: string,
     public readonly byteLength: number,
-    public readonly arrayType?: string
+    public readonly arrayType?: string,
   ) {}
 
   toString() {
@@ -277,19 +277,16 @@ function restoreClonedValue(value: NonSerializableValue) {
     }
   } else if (value.__type === 'regexp') {
     try {
-      const regexpValue = value as NonSerializableValue_RegExp
-      const { source, flags } = regexpValue.value
+      const { source, flags } = value.value
       return new RegExp(source, flags)
     } catch (err) {
       return new SerializationError(`Invalid regexp value: ${JSON.stringify(value.value)}`, err)
     }
   } else if (value.__type === 'map') {
-    const mapValue = value as NonSerializableValue_Map
-    const entries = mapValue.value.map(([k, v]) => [restoreClonedDeep(k), restoreClonedDeep(v)])
+    const entries = value.value.map(([k, v]) => [restoreClonedDeep(k), restoreClonedDeep(v)] as const)
     return new Map(entries)
   } else if (value.__type === 'set') {
-    const setValue = value as NonSerializableValue_Set
-    const values = setValue.value.map((v) => restoreClonedDeep(v))
+    const values = value.value.map((v) => restoreClonedDeep(v))
     return new Set(values)
   } else if (value.__type === 'weakmap') {
     return new WeakMap()
@@ -302,27 +299,23 @@ function restoreClonedValue(value: NonSerializableValue) {
       return new SerializationError(`Invalid date value: ${value.value}`, err)
     }
   } else if (value.__type === 'arraybuffer') {
-    const bufferValue = value as NonSerializableValue_ArrayBuffer
-    return new BinaryDataPlaceholder('ArrayBuffer', bufferValue.value.byteLength)
+    return new BinaryDataPlaceholder('ArrayBuffer', value.value.byteLength)
   } else if (value.__type === 'typedarray') {
-    const typedArrayValue = value as NonSerializableValue_TypedArray
-    return new BinaryDataPlaceholder('TypedArray', typedArrayValue.value.byteLength, typedArrayValue.value.arrayType)
+    return new BinaryDataPlaceholder('TypedArray', value.value.byteLength, value.value.arrayType)
   } else if (value.__type === 'promise') {
     return Promise.resolve()
   } else if (value.__type === 'error') {
-    const errorValue = value as NonSerializableValue_Error
-    const error = new Error(errorValue.value.message)
-    error.name = errorValue.value.name
-    if (errorValue.value.stack) {
-      error.stack = errorValue.value.stack
+    const error = new Error(value.value.message)
+    error.name = value.value.name
+    if (value.value.stack) {
+      error.stack = value.value.stack
     }
     return error
   } else if (value.__type === 'object') {
-    const objectValue = value as NonSerializableValue_Object
-    const properties = restoreClonedDeep(objectValue.value.properties)
+    const properties = restoreClonedDeep(value.value.properties)
     return typeof properties === 'object' && properties !== null
-      ? { ...properties, __constructorName: objectValue.value.constructorName }
-      : { __constructorName: objectValue.value.constructorName }
+      ? { ...properties, __constructorName: value.value.constructorName }
+      : { __constructorName: value.value.constructorName }
   }
   // @ts-expect-error: type of value is never
   return new SerializationError(`Unknown non-serializable value type: ${value.__type}`)
