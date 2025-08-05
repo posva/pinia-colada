@@ -1,19 +1,22 @@
 export interface NonSerializableValue_Base {
   __custom: '@@pc-non-serializable'
   __type: string
-  value: string | number | boolean | null | object
+  value: unknown
 }
 
 export interface NonSerializableValue_Function extends NonSerializableValue_Base {
   __type: 'function'
+  value: string
 }
 
 export interface NonSerializableValue_Symbol extends NonSerializableValue_Base {
   __type: 'symbol'
+  value: string
 }
 
 export interface NonSerializableValue_BigInt extends NonSerializableValue_Base {
   __type: 'bigint'
+  value: string
 }
 
 export interface NonSerializableValue_RegExp extends NonSerializableValue_Base {
@@ -43,6 +46,7 @@ export interface NonSerializableValue_WeakSet extends NonSerializableValue_Base 
 
 export interface NonSerializableValue_Date extends NonSerializableValue_Base {
   __type: 'date'
+  value: string
 }
 
 export interface NonSerializableValue_ArrayBuffer extends NonSerializableValue_Base {
@@ -113,6 +117,22 @@ class SerializationError extends Error {
   constructor(message: string, public originalError?: unknown) {
     super(message)
     this.name = 'SerializationError'
+  }
+}
+
+// Custom placeholder class for binary data display
+class BinaryDataPlaceholder {
+  constructor(
+    public readonly type: string,
+    public readonly byteLength: number,
+    public readonly arrayType?: string
+  ) {}
+
+  toString() {
+    if (this.arrayType) {
+      return `[${this.arrayType} ${this.byteLength} bytes]`
+    }
+    return `[${this.type} ${this.byteLength} bytes]`
   }
 }
 
@@ -247,11 +267,11 @@ function restoreClonedValue(value: NonSerializableValue) {
   if (value.__type === 'function') {
     return () => {}
   } else if (value.__type === 'symbol') {
-    return Symbol(value.value as string)
+    return Symbol(value.value)
   } else if (value.__type === 'bigint') {
     // BigInt() throws an error if the value is not a valid bigint string
     try {
-      return BigInt(value.value as string)
+      return BigInt(value.value)
     } catch (err) {
       return new SerializationError(`Invalid bigint value: ${value.value}`, err)
     }
@@ -265,7 +285,7 @@ function restoreClonedValue(value: NonSerializableValue) {
     }
   } else if (value.__type === 'map') {
     const mapValue = value as NonSerializableValue_Map
-    const entries = mapValue.value.map(([k, v]) => [restoreClonedDeep(k), restoreClonedDeep(v)]) as Array<[unknown, unknown]>
+    const entries = mapValue.value.map(([k, v]) => [restoreClonedDeep(k), restoreClonedDeep(v)])
     return new Map(entries)
   } else if (value.__type === 'set') {
     const setValue = value as NonSerializableValue_Set
@@ -277,34 +297,16 @@ function restoreClonedValue(value: NonSerializableValue) {
     return new WeakSet()
   } else if (value.__type === 'date') {
     try {
-      return new Date(value.value as string)
+      return new Date(value.value)
     } catch (err) {
       return new SerializationError(`Invalid date value: ${value.value}`, err)
     }
   } else if (value.__type === 'arraybuffer') {
     const bufferValue = value as NonSerializableValue_ArrayBuffer
-    return new ArrayBuffer(bufferValue.value.byteLength)
+    return new BinaryDataPlaceholder('ArrayBuffer', bufferValue.value.byteLength)
   } else if (value.__type === 'typedarray') {
     const typedArrayValue = value as NonSerializableValue_TypedArray
-    const buffer = new ArrayBuffer(typedArrayValue.value.byteLength)
-
-    // Create the appropriate TypedArray based on the arrayType
-    switch (typedArrayValue.value.arrayType) {
-      case 'Int8Array': return new Int8Array(buffer)
-      case 'Uint8Array': return new Uint8Array(buffer)
-      case 'Uint8ClampedArray': return new Uint8ClampedArray(buffer)
-      case 'Int16Array': return new Int16Array(buffer)
-      case 'Uint16Array': return new Uint16Array(buffer)
-      case 'Int32Array': return new Int32Array(buffer)
-      case 'Uint32Array': return new Uint32Array(buffer)
-      case 'Float32Array': return new Float32Array(buffer)
-      case 'Float64Array': return new Float64Array(buffer)
-      case 'BigInt64Array': return new BigInt64Array(buffer)
-      case 'BigUint64Array': return new BigUint64Array(buffer)
-      case 'DataView': return new DataView(buffer)
-      default:
-        return new SerializationError(`Unknown typed array type: ${typedArrayValue.value.arrayType}`)
-    }
+    return new BinaryDataPlaceholder('TypedArray', typedArrayValue.value.byteLength, typedArrayValue.value.arrayType)
   } else if (value.__type === 'promise') {
     return Promise.resolve()
   } else if (value.__type === 'error') {
