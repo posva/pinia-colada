@@ -46,7 +46,7 @@ labels:
     color: ffffff
     description: this issue won't be fixed
     oldname: wontfix
-  - name: meta
+  - name: 🟣 meta
     color: 5319e7
     description: related to the project itself
   - name: 🔌 plugins
@@ -55,3 +55,9 @@ labels:
   - name: ↗️ upstream
     color: baffc9
     description: blocked by an external dependency
+  - name: 🛠️ devtools
+    color: baffc9
+    description: related to devtools
+  - name: 🏔️ nuxt
+    color: 00dc82
+    description: related to Nuxt
