@@ -57,9 +57,9 @@ function toggleExpansion() {
       </span>
 
       <!-- Edit button -->
-      <UButton v-if="isHovered && !isExpandable" size="xs">
-        Edit
-      </UButton>
+      <!-- <UButton v-if="isHovered && !isExpandable" size="xs"> -->
+      <!--   Edit -->
+      <!-- </UButton> -->
     </div>
 
     <!-- Expanded children -->
