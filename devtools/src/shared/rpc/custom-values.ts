@@ -70,7 +70,13 @@ function restoreClonedValue(value: NonSerializableValue) {
   } else if (value.__type === 'symbol') {
     return Symbol(value.value)
   } else if (value.__type === 'bigint') {
-    return BigInt(value.value)
+    // BigInt() throws an error if the value is not a valid bigint string
+    try {
+      return BigInt(value.value)
+    } catch (err) {
+      console.warn(`[🍹]: Invalid bigint value: ${value.value}`, err)
+      return 0n
+    }
   }
   // @ts-expect-error: type of value is never
   console.warn('Unknown non-serializable value type:', value.__type)
