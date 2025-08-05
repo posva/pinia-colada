@@ -1,7 +1,7 @@
 export interface NonSerializableValue_Base {
   __custom: '@@pc-non-serializable'
   __type: string
-  value: string
+  value: string | number | boolean | null | object
 }
 
 export interface NonSerializableValue_Function extends NonSerializableValue_Base {
@@ -18,22 +18,27 @@ export interface NonSerializableValue_BigInt extends NonSerializableValue_Base {
 
 export interface NonSerializableValue_RegExp extends NonSerializableValue_Base {
   __type: 'regexp'
+  value: { source: string; flags: string }
 }
 
 export interface NonSerializableValue_Map extends NonSerializableValue_Base {
   __type: 'map'
+  value: Array<[unknown, unknown]>
 }
 
 export interface NonSerializableValue_Set extends NonSerializableValue_Base {
   __type: 'set'
+  value: unknown[]
 }
 
 export interface NonSerializableValue_WeakMap extends NonSerializableValue_Base {
   __type: 'weakmap'
+  value: null
 }
 
 export interface NonSerializableValue_WeakSet extends NonSerializableValue_Base {
   __type: 'weakset'
+  value: null
 }
 
 export interface NonSerializableValue_Date extends NonSerializableValue_Base {
@@ -42,27 +47,27 @@ export interface NonSerializableValue_Date extends NonSerializableValue_Base {
 
 export interface NonSerializableValue_ArrayBuffer extends NonSerializableValue_Base {
   __type: 'arraybuffer'
+  value: { byteLength: number }
 }
 
 export interface NonSerializableValue_TypedArray extends NonSerializableValue_Base {
   __type: 'typedarray'
-  arrayType: string
+  value: { arrayType: string; byteLength: number }
 }
 
 export interface NonSerializableValue_Promise extends NonSerializableValue_Base {
   __type: 'promise'
+  value: null
 }
 
 export interface NonSerializableValue_Error extends NonSerializableValue_Base {
   __type: 'error'
-  name: string
-  stack?: string
+  value: { name: string; message: string; stack?: string }
 }
 
 export interface NonSerializableValue_Object extends NonSerializableValue_Base {
   __type: 'object'
-  constructorName: string
-  properties: string
+  value: { constructorName: string; properties: unknown }
 }
 
 export type NonSerializableValue =
@@ -80,6 +85,36 @@ export type NonSerializableValue =
   | NonSerializableValue_Promise
   | NonSerializableValue_Error
   | NonSerializableValue_Object
+
+// Helper function to recursively serialize values that might contain non-serializable data
+function safeSerializeRecursive(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(item => safeSerializeRecursive(item))
+  }
+  if (value && typeof value === 'object') {
+    // Try to serialize with safeSerialize first
+    const serialized = safeSerialize(value)
+    if (serialized !== value) {
+      // It was a non-serializable value, return the serialized version
+      return serialized
+    }
+    // It's a regular object, recursively serialize its properties
+    const result: Record<string, unknown> = {}
+    for (const [key, val] of Object.entries(value)) {
+      result[key] = safeSerializeRecursive(val)
+    }
+    return result
+  }
+  return value
+}
+
+// Custom error for serialization issues
+class SerializationError extends Error {
+  constructor(message: string, public originalError?: unknown) {
+    super(message)
+    this.name = 'SerializationError'
+  }
+}
 
 export function safeSerialize(value: (...args: unknown[]) => unknown): NonSerializableValue_Function
 export function safeSerialize(value: symbol): NonSerializableValue_Symbol
@@ -118,31 +153,31 @@ export function safeSerialize(value: unknown) {
     return {
       __custom: '@@pc-non-serializable',
       __type: 'regexp',
-      value: JSON.stringify({ source: value.source, flags: value.flags }),
+      value: { source: value.source, flags: value.flags },
     } satisfies NonSerializableValue_RegExp
   } else if (value instanceof Map) {
     return {
       __custom: '@@pc-non-serializable',
       __type: 'map',
-      value: JSON.stringify(Array.from(value.entries())),
+      value: Array.from(value.entries()).map(([k, v]) => [safeSerializeRecursive(k), safeSerializeRecursive(v)]),
     } satisfies NonSerializableValue_Map
   } else if (value instanceof Set) {
     return {
       __custom: '@@pc-non-serializable',
       __type: 'set',
-      value: JSON.stringify(Array.from(value.values())),
+      value: Array.from(value.values()).map(v => safeSerializeRecursive(v)),
     } satisfies NonSerializableValue_Set
   } else if (value instanceof WeakMap) {
     return {
       __custom: '@@pc-non-serializable',
       __type: 'weakmap',
-      value: '[WeakMap]',
+      value: null,
     } satisfies NonSerializableValue_WeakMap
   } else if (value instanceof WeakSet) {
     return {
       __custom: '@@pc-non-serializable',
       __type: 'weakset',
-      value: '[WeakSet]',
+      value: null,
     } satisfies NonSerializableValue_WeakSet
   } else if (value instanceof Date) {
     return {
@@ -151,61 +186,45 @@ export function safeSerialize(value: unknown) {
       value: value.toISOString(),
     } satisfies NonSerializableValue_Date
   } else if (value instanceof ArrayBuffer) {
-    // Convert ArrayBuffer to base64 string
-    const bytes = new Uint8Array(value)
-    const base64 = btoa(String.fromCharCode(...bytes))
     return {
       __custom: '@@pc-non-serializable',
       __type: 'arraybuffer',
-      value: base64,
+      value: { byteLength: value.byteLength },
     } satisfies NonSerializableValue_ArrayBuffer
   } else if (ArrayBuffer.isView(value)) {
     // Handle TypedArrays and DataView
     const typeName = value.constructor.name
-    const bytes = new Uint8Array(value.buffer, value.byteOffset, value.byteLength)
-    const base64 = btoa(String.fromCharCode(...bytes))
     return {
       __custom: '@@pc-non-serializable',
       __type: 'typedarray',
-      arrayType: typeName,
-      value: base64,
+      value: { arrayType: typeName, byteLength: value.byteLength },
     } satisfies NonSerializableValue_TypedArray
   } else if (value instanceof Promise) {
     return {
       __custom: '@@pc-non-serializable',
       __type: 'promise',
-      value: '[Promise]',
+      value: null,
     } satisfies NonSerializableValue_Promise
   } else if (value instanceof Error) {
     return {
       __custom: '@@pc-non-serializable',
       __type: 'error',
-      name: value.name,
-      value: value.message,
-      stack: value.stack,
+      value: {
+        name: value.name,
+        message: value.message,
+        stack: value.stack,
+      },
     } satisfies NonSerializableValue_Error
   } else if (value && typeof value === 'object' && value.constructor && value.constructor !== Object && value.constructor !== Array) {
     // Handle custom class instances
     const constructorName = value.constructor.name
-    try {
-      // Only serialize enumerable properties
-      const properties = JSON.stringify(value)
-      return {
-        __custom: '@@pc-non-serializable',
-        __type: 'object',
-        constructorName,
-        value: `[${constructorName}]`,
-        properties,
-      } satisfies NonSerializableValue_Object
-    } catch {
-      return {
-        __custom: '@@pc-non-serializable',
-        __type: 'object',
-        constructorName,
-        value: `[${constructorName}]`,
-        properties: '{}',
-      } satisfies NonSerializableValue_Object
-    }
+    // Recursively serialize enumerable properties
+    const properties = safeSerializeRecursive({ ...value })
+    return {
+      __custom: '@@pc-non-serializable',
+      __type: 'object',
+      value: { constructorName, properties },
+    } satisfies NonSerializableValue_Object
   }
 
   // value that cannot be serialized
@@ -220,8 +239,7 @@ function isNonSerializableValue(value: unknown): value is NonSerializableValue {
     value.__custom === '@@pc-non-serializable' &&
     '__type' in value &&
     typeof value.__type === 'string' &&
-    'value' in value &&
-    typeof value.value === 'string'
+    'value' in value
   )
 }
 
@@ -229,126 +247,83 @@ function restoreClonedValue(value: NonSerializableValue) {
   if (value.__type === 'function') {
     return () => {}
   } else if (value.__type === 'symbol') {
-    return Symbol(value.value)
+    return Symbol(value.value as string)
   } else if (value.__type === 'bigint') {
     // BigInt() throws an error if the value is not a valid bigint string
     try {
-      return BigInt(value.value)
+      return BigInt(value.value as string)
     } catch (err) {
-      console.warn(`[🍹]: Invalid bigint value: ${value.value}`, err)
-      return 0n
+      return new SerializationError(`Invalid bigint value: ${value.value}`, err)
     }
   } else if (value.__type === 'regexp') {
     try {
-      const { source, flags } = JSON.parse(value.value)
+      const regexpValue = value as NonSerializableValue_RegExp
+      const { source, flags } = regexpValue.value
       return new RegExp(source, flags)
     } catch (err) {
-      console.warn(`[🍹]: Invalid regexp value: ${value.value}`, err)
-      return /.*/
+      return new SerializationError(`Invalid regexp value: ${JSON.stringify(value.value)}`, err)
     }
   } else if (value.__type === 'map') {
-    try {
-      const entries = JSON.parse(value.value)
-      return new Map(entries)
-    } catch (err) {
-      console.warn(`[🍹]: Invalid map value: ${value.value}`, err)
-      return new Map()
-    }
+    const mapValue = value as NonSerializableValue_Map
+    const entries = mapValue.value.map(([k, v]) => [restoreClonedDeep(k), restoreClonedDeep(v)]) as Array<[unknown, unknown]>
+    return new Map(entries)
   } else if (value.__type === 'set') {
-    try {
-      const values = JSON.parse(value.value)
-      return new Set(values)
-    } catch (err) {
-      console.warn(`[🍹]: Invalid set value: ${value.value}`, err)
-      return new Set()
-    }
+    const setValue = value as NonSerializableValue_Set
+    const values = setValue.value.map(v => restoreClonedDeep(v))
+    return new Set(values)
   } else if (value.__type === 'weakmap') {
     return new WeakMap()
   } else if (value.__type === 'weakset') {
     return new WeakSet()
   } else if (value.__type === 'date') {
     try {
-      return new Date(value.value)
+      return new Date(value.value as string)
     } catch (err) {
-      console.warn(`[🍹]: Invalid date value: ${value.value}`, err)
-      return new Date()
+      return new SerializationError(`Invalid date value: ${value.value}`, err)
     }
   } else if (value.__type === 'arraybuffer') {
-    try {
-      const base64 = value.value
-      const binaryString = atob(base64)
-      const buffer = new ArrayBuffer(binaryString.length)
-      const view = new Uint8Array(buffer)
-      for (let i = 0; i < binaryString.length; i++) {
-        view[i] = binaryString.charCodeAt(i)
-      }
-      return buffer
-    } catch (err) {
-      console.warn(`[🍹]: Invalid arraybuffer value: ${value.value}`, err)
-      return new ArrayBuffer(0)
-    }
+    const bufferValue = value as NonSerializableValue_ArrayBuffer
+    return new ArrayBuffer(bufferValue.value.byteLength)
   } else if (value.__type === 'typedarray') {
-    try {
-      const typedArrayValue = value as NonSerializableValue_TypedArray
-      const base64 = typedArrayValue.value
-      const binaryString = atob(base64)
-      const buffer = new ArrayBuffer(binaryString.length)
-      const view = new Uint8Array(buffer)
-      for (let i = 0; i < binaryString.length; i++) {
-        view[i] = binaryString.charCodeAt(i)
-      }
-
-      // Create the appropriate TypedArray based on the arrayType
-      switch (typedArrayValue.arrayType) {
-        case 'Int8Array': return new Int8Array(buffer)
-        case 'Uint8Array': return new Uint8Array(buffer)
-        case 'Uint8ClampedArray': return new Uint8ClampedArray(buffer)
-        case 'Int16Array': return new Int16Array(buffer)
-        case 'Uint16Array': return new Uint16Array(buffer)
-        case 'Int32Array': return new Int32Array(buffer)
-        case 'Uint32Array': return new Uint32Array(buffer)
-        case 'Float32Array': return new Float32Array(buffer)
-        case 'Float64Array': return new Float64Array(buffer)
-        case 'BigInt64Array': return new BigInt64Array(buffer)
-        case 'BigUint64Array': return new BigUint64Array(buffer)
-        case 'DataView': return new DataView(buffer)
-        default:
-          console.warn(`[🍹]: Unknown typed array type: ${typedArrayValue.arrayType}`)
-          return new Uint8Array(buffer)
-      }
-    } catch (err) {
-      console.warn(`[🍹]: Invalid typedarray value: ${value.value}`, err)
-      return new Uint8Array(0)
+    const typedArrayValue = value as NonSerializableValue_TypedArray
+    const buffer = new ArrayBuffer(typedArrayValue.value.byteLength)
+    
+    // Create the appropriate TypedArray based on the arrayType
+    switch (typedArrayValue.value.arrayType) {
+      case 'Int8Array': return new Int8Array(buffer)
+      case 'Uint8Array': return new Uint8Array(buffer)
+      case 'Uint8ClampedArray': return new Uint8ClampedArray(buffer)
+      case 'Int16Array': return new Int16Array(buffer)
+      case 'Uint16Array': return new Uint16Array(buffer)
+      case 'Int32Array': return new Int32Array(buffer)
+      case 'Uint32Array': return new Uint32Array(buffer)
+      case 'Float32Array': return new Float32Array(buffer)
+      case 'Float64Array': return new Float64Array(buffer)
+      case 'BigInt64Array': return new BigInt64Array(buffer)
+      case 'BigUint64Array': return new BigUint64Array(buffer)
+      case 'DataView': return new DataView(buffer)
+      default:
+        return new SerializationError(`Unknown typed array type: ${typedArrayValue.value.arrayType}`)
     }
   } else if (value.__type === 'promise') {
     return Promise.resolve()
   } else if (value.__type === 'error') {
-    try {
-      const errorValue = value as NonSerializableValue_Error
-      const error = new Error(errorValue.value)
-      error.name = errorValue.name
-      if (errorValue.stack) {
-        error.stack = errorValue.stack
-      }
-      return error
-    } catch (err) {
-      console.warn(`[🍹]: Could not restore error: ${value.value}`, err)
-      return new Error(value.value)
+    const errorValue = value as NonSerializableValue_Error
+    const error = new Error(errorValue.value.message)
+    error.name = errorValue.value.name
+    if (errorValue.value.stack) {
+      error.stack = errorValue.value.stack
     }
+    return error
   } else if (value.__type === 'object') {
-    try {
-      const objectValue = value as NonSerializableValue_Object
-      const properties = JSON.parse(objectValue.properties)
-      return { ...properties, __constructorName: objectValue.constructorName }
-    } catch (err) {
-      console.warn(`[🍹]: Could not restore object: ${value.value}`, err)
-      return {}
-    }
+    const objectValue = value as NonSerializableValue_Object
+    const properties = restoreClonedDeep(objectValue.value.properties)
+    return typeof properties === 'object' && properties !== null 
+      ? { ...properties, __constructorName: objectValue.value.constructorName }
+      : { __constructorName: objectValue.value.constructorName }
   }
   // @ts-expect-error: type of value is never
-  console.warn('Unknown non-serializable value type:', value.__type)
-  // as is
-  return value
+  return new SerializationError(`Unknown non-serializable value type: ${value.__type}`)
 }
 
 export function restoreClonedDeep<T>(val: T): T
