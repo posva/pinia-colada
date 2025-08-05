@@ -6,8 +6,8 @@ titleTemplate: The smart data fetching layer for Vue.js
 
 hero:
   name: Pinia Colada
-  text: The Data Fetching layer for pinia
-  tagline: Makes handling async state management a breeze
+  text: The data fetching layer for Vue
+  tagline: Efortless smooth async state management
   image:
     src: /logo.svg
     alt: Pinia Colada
