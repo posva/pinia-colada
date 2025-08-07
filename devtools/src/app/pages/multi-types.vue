@@ -9,8 +9,13 @@ const { data } = useQuery({
     boolean: true,
     nullValue: null,
     undefinedValue: undefined,
-    object: { key: 'value', nested: { key2: 'value2' } },
-    array: [1, 2, 3, { nested: 'object' }],
+    object: {
+      key: 'value',
+      nested: { key2: 'value2', nested: { a: 'a', nested: { more: 'nesting!' } } },
+    },
+    emptyObject: {},
+    array: [1, 2, 3, { nested: 'object', map: new Map() }],
+    emptyArray: [],
     date: new Date(),
     fn: () => 'This is a function',
     symbol: Symbol('unique'),
@@ -18,11 +23,12 @@ const { data } = useQuery({
     globalSymbol: Symbol.for('global'),
     bigint: 12345678901234567890n,
     regex: /test/i,
-    map: new Map([
+    map: new Map<unknown, unknown>([
       ['key1', 'value1'],
       ['key2', 'value2'],
+      [2, new Date()],
     ]),
-    set: new Set([1, 2, 3]),
+    set: new Set<unknown>([1, 2, 3, new Date()]),
     weakMap: new WeakMap([[{}, 'value']]),
     weakSet: new WeakSet([{}]),
     arrayBuffer: new ArrayBuffer(8),
@@ -38,9 +44,7 @@ const { data } = useQuery({
 
 <template>
   <main class="big-layout">
-    <h1 class="mb-12">
-      All types display test
-    </h1>
+    <h1 class="mb-12">All types display test</h1>
 
     <p>Data requires custom serialization. Has data: {{ !!data }}</p>
   </main>

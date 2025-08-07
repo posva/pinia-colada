@@ -65,14 +65,19 @@ function formatCollection(value: { length: number } | { size: number }) {
   return `${value.constructor.name}[${size}]`
 }
 
-const isObject = (val: unknown): val is Record<any, any> => val !== null && typeof val === 'object'
+export const isObject = (val: unknown): val is Record<any, any> =>
+  val !== null && typeof val === 'object'
 
 export function formatValue(value: unknown) {
   if (value === null) return 'null'
   if (value === undefined) return 'undefined'
   if (typeof value === 'string') return `"${value}"`
   if (typeof value === 'bigint') return `${value}n`
+  if (typeof value === 'function') return `[Function ${value.name || 'anonymous'}]`
   if (isObject(value)) {
+    if (value instanceof Date) return `Date(${value.toISOString()})`
+    if (value instanceof RegExp) return value.toString()
+    if (value instanceof Error) return `Error(${value.message})`
     if (isCollection(value)) return formatCollection(value)
     if (isPlainObject(value)) return `Object${Object.keys(value).length === 0 ? ' (empty)' : ''}`
     return `[${value.constructor.name}]`
@@ -80,13 +85,16 @@ export function formatValue(value: unknown) {
   return String(value)
 }
 
-function isPlainObject(value: unknown): value is { constructor?: typeof Object } {
+export function isPlainObject(value: unknown): value is { constructor?: typeof Object } {
   return isObject(value) && (value.constructor === Object || Object.getPrototypeOf(value) == null)
 }
 
 export function getValueType(value: unknown) {
   if (value === null) return 'null'
   if (Array.isArray(value)) return 'array'
+  if (value instanceof Date) return 'date'
+  if (value instanceof RegExp) return 'regexp'
+  if (value instanceof Error) return 'error'
   return typeof value
 }
 
@@ -101,6 +109,9 @@ const VALUE_TYPE_CSS_CLASS = {
   object: 'text-(--ui-text)',
   symbol: 'text-(--devtools-syntax-orange)',
   bigint: 'text-(--devtools-syntax-sapphire)',
+  date: 'text-(--devtools-syntax-sapphire)',
+  regexp: 'text-(--devtools-syntax-orange)',
+  error: 'text-(--devtools-syntax-red)',
 } satisfies Partial<Record<ReturnType<typeof getValueType>, string>>
 
 export function getValueTypeClass(value: unknown): string | undefined {

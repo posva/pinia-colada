@@ -4,11 +4,9 @@ import { toRaw } from 'vue'
 import {
   restoreClonedDeep,
   isError,
-  type NonSerializableValue_Function,
-  type NonSerializableValue_Symbol,
-  type NonSerializableValue_BigInt,
   safeSerialize,
 } from './custom-values'
+import { isPlainObject } from '../json'
 
 export class DuplexChannel<
   const Emits extends Record<EmitsKeys, any[]>,
@@ -128,7 +126,7 @@ function toRawDeep(val: unknown): unknown {
     return val.map((item) => toRawDeep(item))
   }
   // TODO: custom classes?
-  if (val && typeof val === 'object' && !isError(val)) {
+  if (isPlainObject(val)) {
     return Object.fromEntries(Object.entries(val).map(([key, value]) => [key, toRawDeep(value)]))
   }
   return safeSerialize(toRaw(val))

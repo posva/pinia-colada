@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
-import { computed, ref, watch } from 'vue'
+import { computed, watch } from 'vue'
 import { useDuplexChannel, useQueryEntries } from '../../composables/duplex-channel'
 import { formatDuration } from '../../utils/time'
 import { useRoute } from 'vue-router'

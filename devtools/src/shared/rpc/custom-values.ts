@@ -1,3 +1,5 @@
+import { isPlainObject } from '../json'
+
 export interface NonSerializableValue_Base {
   __custom: '@@pc-non-serializable'
   __type: string
@@ -95,7 +97,7 @@ function safeSerializeRecursive(value: unknown): unknown {
   if (Array.isArray(value)) {
     return value.map((item) => safeSerializeRecursive(item))
   }
-  if (value && typeof value === 'object') {
+  if (isPlainObject(value)) {
     // Try to serialize with safeSerialize first
     const serialized = safeSerialize(value)
     if (serialized !== value) {
@@ -114,7 +116,10 @@ function safeSerializeRecursive(value: unknown): unknown {
 
 // Custom error for serialization issues
 class SerializationError extends Error {
-  constructor(message: string, public originalError?: unknown) {
+  constructor(
+    message: string,
+    public originalError?: unknown,
+  ) {
     super(message)
     this.name = 'SerializationError'
   }
@@ -179,7 +184,10 @@ export function safeSerialize(value: unknown) {
     return {
       __custom: '@@pc-non-serializable',
       __type: 'map',
-      value: Array.from(value.entries()).map(([k, v]) => [safeSerializeRecursive(k), safeSerializeRecursive(v)]),
+      value: Array.from(value.entries()).map(([k, v]) => [
+        safeSerializeRecursive(k),
+        safeSerializeRecursive(v),
+      ]),
     } satisfies NonSerializableValue_Map
   } else if (value instanceof Set) {
     return {
@@ -235,7 +243,13 @@ export function safeSerialize(value: unknown) {
         stack: value.stack,
       },
     } satisfies NonSerializableValue_Error
-  } else if (value && typeof value === 'object' && value.constructor && value.constructor !== Object && value.constructor !== Array) {
+  } else if (
+    value &&
+    typeof value === 'object' &&
+    value.constructor &&
+    value.constructor !== Object &&
+    value.constructor !== Array
+  ) {
     // Handle custom class instances
     const constructorName = value.constructor.name
     // Recursively serialize enumerable properties
@@ -283,7 +297,9 @@ function restoreClonedValue(value: NonSerializableValue) {
       return new SerializationError(`Invalid regexp value: ${JSON.stringify(value.value)}`, err)
     }
   } else if (value.__type === 'map') {
-    const entries = value.value.map(([k, v]) => [restoreClonedDeep(k), restoreClonedDeep(v)] as const)
+    const entries = value.value.map(
+      ([k, v]) => [restoreClonedDeep(k), restoreClonedDeep(v)] as const,
+    )
     return new Map(entries)
   } else if (value.__type === 'set') {
     const values = value.value.map((v) => restoreClonedDeep(v))
