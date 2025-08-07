@@ -2,7 +2,7 @@
 
 ::: warning
 
-The plugin system is still under development and the API is subject to change. If you want to develop a plugin, please [open a discussion](https://github.com/posva/pinia/discussions) to share your progress and issues you might encounter.
+The plugin system is still under development and the API is subject to change. If you want to develop a plugin, please [open a discussion](https://github.com/posva/pinia-colada/discussions) to share your progress and issues you might encounter.
 
 :::
 
@@ -77,7 +77,9 @@ Here are some practical examples you can learn from.
 
 ### Adding a `dataUpdatedAt` property to queries
 
-This plugin adds a `dataUpdatedAt` property to queries that represents the last time the data was updated. Most of the time this can be achieved at the component level where the query is used with a watcher:
+The `dataUpdatedAt` property indicates the timestamp of the most recent data update. There are two ways to implement this:
+
+The first approach tracks the timestamp locally within a component by watching the query result:
 
 ```ts
 const { data: contact } = useQuery({
@@ -92,7 +94,13 @@ watch(
 )
 ```
 
-If you need to use this very often, you might as well create a plugin:
+::: info
+
+If the same query is used across multiple components, this approach may result in each component having different `dataUpdatedAt` values, depending on their mount times and update cycles.
+
+:::
+
+To ensure consistency, the second approach is to use a plugin that hooks into `queryCache` actions and centrally manages the timestamp:
 
 ```ts twoslash
 import type { PiniaColadaPlugin } from '@pinia/colada'
