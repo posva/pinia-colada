@@ -1,7 +1,7 @@
 {
   "extends": "../tsconfig.common.json",
   "compilerOptions": {
-    "baseUrl": ".",
+    // "baseUrl": ".",
     "rootDir": "..",
     "paths": {
       "@pinia/colada-devtools/panel": ["./src/panel/index.ts"],
