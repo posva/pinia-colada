@@ -79,7 +79,7 @@ Here are some practical examples you can learn from.
 
 The `dataUpdatedAt` property indicates the timestamp of the most recent data update. There are two ways to implement this:
 
-The first approach tracks the timestamp locally within a component by watching the query result:
+The most simple approach is to track timestamps locally within components by watching the query result:
 
 ```ts
 const { data: contact } = useQuery({
