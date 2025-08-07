@@ -94,13 +94,7 @@ watch(
 )
 ```
 
-::: info
-
-If the same query is used across multiple components, this approach may result in each component having different `dataUpdatedAt` values, depending on their mount times and update cycles.
-
-:::
-
-To ensure consistency, the second approach is to use a plugin that hooks into `queryCache` actions and centrally manages the timestamp:
+If the same query is used across multiple components, this approach may result in each component having **different** `dataUpdatedAt` values, depending on their mount times and update cycles. Instead, we can write a plugin that hooks into `queryCache` actions and centrally manages the timestamp:
 
 ```ts twoslash
 import type { PiniaColadaPlugin } from '@pinia/colada'
