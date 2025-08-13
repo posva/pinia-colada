@@ -10,6 +10,7 @@ export default antfu(
       'dist',
       'devtools/dist',
       'devtools/dist-*',
+      '**/CLAUDE.md', // encrypted binary file
     ],
     rules: {
       'symbol-description': 'off',
