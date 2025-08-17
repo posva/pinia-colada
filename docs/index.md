@@ -7,7 +7,7 @@ titleTemplate: The smart data fetching layer for Vue.js
 hero:
   name: Pinia Colada
   text: The data fetching layer for Vue
-  tagline: Effortless smooth async state management
+  tagline: Effortless, smooth async state management
   image:
     src: /logo.svg
     alt: Pinia Colada
@@ -33,7 +33,7 @@ features:
     details: Optimistic updates with ease.
   - title: 💡 Sensible Defaults
     details: Sane defaults with full customization.
-  - title: 🧩 Out-of-the Box Plugins
+  - title: 🧩 Out-of-the-Box Plugins
     details: A set of composable functions to handle data fetching.
   - title: 🔑 TypeScript Support
     details: Fully typed with TypeScript.
