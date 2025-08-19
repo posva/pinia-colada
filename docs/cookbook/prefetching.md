@@ -36,3 +36,5 @@ queryCache.setQueryData(
   await fetch('/api/users').then((res) => res.json()),
 )
 ```
+
+When query data is added to the cache but not actively used (e.g. by a component via `useQuery`), it will be garbage collected after the `gcTime`, which defaults to five minutes.
