@@ -256,5 +256,16 @@ describe('typed query keys', () => {
       // allows non typed too with loose types
       queryCache.setQueryData(DOCUMENTS_KEYS.byId('1'), { toto: true })
     })
+
+    it('types the placeholder data', () => {
+      defineQueryOptions({
+        query: async () => 42,
+        key: ['foo'],
+        placeholderData: (n) => {
+          expectTypeOf<number | undefined>(n)
+          return n ?? 42
+        },
+      })
+    })
   })
 })
