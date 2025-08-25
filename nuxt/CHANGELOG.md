@@ -1,3 +1,9 @@
+## [0.2.2](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.2.1...@pinia/colada-nuxt@0.2.2) (2025-08-25)
+
+### Features
+
+- support nuxt 4 ([bc75525](https://github.com/posva/pinia-colada/commit/bc75525e3bbcb0d92e4186af28313de1b61cace2))
+
 ## [0.2.1](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.2.0...@pinia/colada-nuxt@0.2.1) (2025-06-03)
 
 ### Features

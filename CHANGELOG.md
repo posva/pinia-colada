@@ -1,3 +1,14 @@
+## [0.17.2](https://github.com/posva/pinia-colada/compare/v0.17.1...v0.17.2) (2025-08-25)
+
+### Features
+
+- expose internal method to plugins ([740e1ce](https://github.com/posva/pinia-colada/commit/740e1ce70bdc68da529bdabe7f79d98c5ad3bc9e))
+
+### Bug Fixes
+
+- allow initial fetch with refetchOnMount false and placeholderData ([#350](https://github.com/posva/pinia-colada/issues/350)) ([e9b9972](https://github.com/posva/pinia-colada/commit/e9b9972d4f47dbb69533926bb89de0b03c5535f0))
+- always propagate errors ([9268b37](https://github.com/posva/pinia-colada/commit/9268b37805a6efb22de1a668c2213465e158421a)), closes [#371](https://github.com/posva/pinia-colada/issues/371)
+
 ## [0.17.1](https://github.com/posva/pinia-colada/compare/v0.17.0...v0.17.1) (2025-06-13)
 
 ### Bug Fixes
