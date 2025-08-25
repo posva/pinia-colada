@@ -1350,6 +1350,23 @@ describe('useQuery', () => {
     expect(entry.stale).toBe(false)
   })
 
+  it('propagates falsy errors', async () => {
+    const { wrapper } = mountSimple({
+      key: ['key'],
+      query: async () => {
+        // While it's a terrible pratcie to throw a literal, the error should propagate
+        // eslint-disable-next-line no-throw-literal
+        throw undefined
+      },
+    })
+
+    await flushPromises()
+
+    expect(wrapper.vm.data).toBe(undefined)
+    expect(wrapper.vm.status).toBe('error')
+    expect(wrapper.vm.error).toBe(undefined)
+  })
+
   describe('invalidation', () => {
     it('can be invalidated through the queryCache to refetch', async () => {
       const { query, pinia } = mountSimple({
