@@ -80,5 +80,5 @@ describe('SSR', () => {
     expect(spy).toHaveBeenCalledTimes(1)
   })
 
-  // it('can avoid ')
+  it.todo('can avoid throwing inside onServerPrefetch')
 })
