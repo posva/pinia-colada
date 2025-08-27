@@ -251,5 +251,183 @@ describe('Auto Refetch plugin', () => {
       vi.advanceTimersByTime(10000)
       expect(query).toHaveBeenCalledTimes(1)
     })
+
+    it('supports autoRefetch returning number without staleTime', async () => {
+      const { query } = mountQuery({
+        // staleTime is NOT set
+        autoRefetch: ({ data }) => {
+          // Simulate the user's scenario: return 5000ms interval when data needs polling
+          return data === 'pending' ? 5000 : false
+        },
+        query: vi.fn()
+          .mockResolvedValueOnce('pending')
+          .mockResolvedValue('completed'),
+      })
+
+      // Wait for initial query
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+
+      // Since data is 'pending', autoRefetch should return 5000, so it should refetch after 5 seconds
+      vi.advanceTimersByTime(5000)
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(2)
+    })
+
+    it('reproduces user issue - autoRefetch with array data without staleTime', async () => {
+      const mockData = [{ status: 'PENDING' }, { status: 'COMPLETED' }]
+      const { query } = mountQuery({
+        // No staleTime provided, just like user's example
+        autoRefetch: ({ data }) => {
+          // Exact logic from user's example
+          return (data ?? []).some(({ status }) => status === 'PENDING') ? 5000 : false
+        },
+        query: vi.fn().mockResolvedValue(mockData),
+      })
+
+      // Wait for initial query
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+
+      // Should refetch after 5 seconds since we have PENDING items
+      vi.advanceTimersByTime(5000)
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(2)
+    })
+
+    it('reproduces user issue without global autoRefetch', async () => {
+      // Create a mount function without global autoRefetch enabled
+      function mountQueryNoGlobal(
+        queryOptions?: Partial<UseQueryOptions>,
+        pluginOptions?: PiniaColadaAutoRefetchOptions,
+      ) {
+        const query = isSpy(queryOptions?.query)
+          ? queryOptions.query
+          : vi.fn(queryOptions?.query ?? (async () => 'result'))
+        const wrapper = mount(
+          defineComponent({
+            template: '<div></div>',
+            setup() {
+              return useQuery({
+                key: ['test'],
+                ...queryOptions,
+                query,
+              })
+            },
+          }),
+          {
+            global: {
+              plugins: [
+                createPinia(),
+                [
+                  PiniaColada,
+                  {
+                    // No global autoRefetch: true here!
+                    plugins: [PiniaColadaAutoRefetch(pluginOptions ?? {})],
+                    ...pluginOptions,
+                  },
+                ],
+              ],
+            },
+          },
+        )
+
+        return { wrapper, query }
+      }
+
+      const mockData = [{ status: 'PENDING' }, { status: 'COMPLETED' }]
+      const { query } = mountQueryNoGlobal({
+        // No staleTime provided, just like user's example
+        autoRefetch: ({ data }) => {
+          // Exact logic from user's example
+          return (data ?? []).some(({ status }) => status === 'PENDING') ? 5000 : false
+        },
+        query: vi.fn().mockResolvedValue(mockData),
+      })
+
+      // Wait for initial query
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+
+      // Should refetch after 5 seconds since we have PENDING items
+      vi.advanceTimersByTime(5000)
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(2)
+    })
+  })
+})
+
+describe('Edge cases for autoRefetch without staleTime', () => {
+  beforeEach(() => {
+    vi.clearAllTimers()
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  mockWarn()
+  mockConsoleError()
+
+  afterEach(async () => {})
+
+  it('autoRefetch=true without staleTime should not refetch', async () => {
+    // Create a mount function without global autoRefetch enabled
+    function mountQueryNoGlobal(
+      queryOptions?: Partial<UseQueryOptions>,
+      pluginOptions?: PiniaColadaAutoRefetchOptions,
+    ) {
+      const query = isSpy(queryOptions?.query)
+        ? queryOptions.query
+        : vi.fn(queryOptions?.query ?? (async () => 'result'))
+      const wrapper = mount(
+        defineComponent({
+          template: '<div></div>',
+          setup() {
+            return useQuery({
+              key: ['test'],
+              ...queryOptions,
+              query,
+            })
+          },
+        }),
+        {
+          global: {
+            plugins: [
+              createPinia(),
+              [
+                PiniaColada,
+                {
+                  // No global autoRefetch: true here!
+                  plugins: [PiniaColadaAutoRefetch(pluginOptions ?? {})],
+                  ...pluginOptions,
+                },
+              ],
+            ],
+          },
+        },
+      )
+
+      return { wrapper, query }
+    }
+
+    const { query } = mountQueryNoGlobal({
+      // No staleTime provided
+      autoRefetch: true, // This should not refetch because no staleTime
+      query: vi.fn().mockResolvedValue('data'),
+    })
+
+    // Wait for initial query
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(1)
+
+    // Add debug logging before advance time
+    console.log('About to advance time by 10000ms')
+    // Should NOT refetch because staleTime is undefined
+    vi.advanceTimersByTime(10000)
+    await flushPromises()
+    console.log('Query call count:', query.mock.calls.length)
+    expect(query).toHaveBeenCalledTimes(1) // Should still be 1
   })
 })
