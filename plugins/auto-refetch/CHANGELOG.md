@@ -1,3 +1,9 @@
+## [0.2.2](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-auto-refetch@0.2.1...@pinia/colada-plugin-auto-refetch@0.2.2) (2025-08-27)
+
+### Bug Fixes
+
+- auto refetch use fetch ([734fa72](https://github.com/posva/pinia-colada/commit/734fa725132958aeef7a45328db7ba14cdc8fa98)), closes [#373](https://github.com/posva/pinia-colada/issues/373)
+
 ## [0.2.1](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-auto-refetch@0.2.0...@pinia/colada-plugin-auto-refetch@0.2.1) (2025-08-25)
 
 ### ⚠ BREAKING CHANGES
