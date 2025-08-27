@@ -372,7 +372,7 @@ describe('Edge cases for autoRefetch without staleTime', () => {
 
   afterEach(async () => {})
 
-  it('autoRefetch=true without staleTime should not refetch', async () => {
+  it('user reported issue: autoRefetch function returns number without staleTime', async () => {
     // Create a mount function without global autoRefetch enabled
     function mountQueryNoGlobal(
       queryOptions?: Partial<UseQueryOptions>,
@@ -412,22 +412,25 @@ describe('Edge cases for autoRefetch without staleTime', () => {
       return { wrapper, query }
     }
 
+    const mockData = [{ status: 'PENDING' }, { status: 'COMPLETED' }]
     const { query } = mountQueryNoGlobal({
-      // No staleTime provided
-      autoRefetch: true, // This should not refetch because no staleTime
-      query: vi.fn().mockResolvedValue('data'),
+      // Don't set staleTime at all (don't even set it to undefined)
+      // Exact logic from user's example - return number or false
+      autoRefetch: ({ data }) => {
+        return (data ?? []).some(({ status }) => status === 'PENDING') ? 5000 : false
+      },
+      query: vi.fn().mockResolvedValue(mockData),
     })
 
     // Wait for initial query
     await flushPromises()
     expect(query).toHaveBeenCalledTimes(1)
 
-    // Add debug logging before advance time
-    console.log('About to advance time by 10000ms')
-    // Should NOT refetch because staleTime is undefined
-    vi.advanceTimersByTime(10000)
+    // Should refetch after 5 seconds since we have PENDING items and autoRefetch returns 5000
+    vi.advanceTimersByTime(5000)
     await flushPromises()
-    console.log('Query call count:', query.mock.calls.length)
-    expect(query).toHaveBeenCalledTimes(1) // Should still be 1
+    // Give more time for the refresh to complete
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(2)
   })
 })

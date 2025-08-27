@@ -96,7 +96,7 @@ export function PiniaColadaAutoRefetch(
           options.autoRefetch ?? autoRefetch,
           entry.state.value,
         )
-        return autoRefetchValue === true ? options.staleTime! : autoRefetchValue
+        return autoRefetchValue === true ? (options.staleTime || false) : autoRefetchValue
       }
 
       // Trigger a fetch on creation to enable auto-refetch on initial load
