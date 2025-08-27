@@ -72,7 +72,7 @@ export function PiniaColadaAutoRefetch(
           key: toValue(options.key),
         })?.[0]
         if (entry?.active) {
-          queryCache.refresh(entry).catch(console.error)
+          queryCache.fetch(entry).catch(console.error)
         }
       }, delayMs)
 

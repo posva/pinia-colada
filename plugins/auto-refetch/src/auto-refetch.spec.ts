@@ -251,5 +251,28 @@ describe('Auto Refetch plugin', () => {
       vi.advanceTimersByTime(10000)
       expect(query).toHaveBeenCalledTimes(1)
     })
+
+    it('can access data in autoRefetch even if no staleTime is defined', async () => {
+      const autoRefetch = vi.fn(() => {
+        return 2000
+      })
+      const { query } = mountQuery({
+        autoRefetch,
+        staleTime: 5000,
+      })
+
+      // Wait for initial query
+      await flushPromises()
+      // it gets called multiple times, the last one should be with the result
+      expect(autoRefetch).toHaveBeenLastCalledWith(
+        expect.objectContaining({ data: 'result', error: null, status: 'success' }),
+      )
+
+      vi.advanceTimersByTime(1000)
+      expect(query).toHaveBeenCalledTimes(1)
+
+      vi.advanceTimersByTime(2000)
+      expect(query).toHaveBeenCalledTimes(2)
+    })
   })
 })
