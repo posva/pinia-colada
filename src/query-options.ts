@@ -62,6 +62,12 @@ export interface UseQueryOptionsGlobal {
    * with `initialData`, the placeholder does not change the cache state.
    */
   placeholderData?: (previousData: unknown) => any // any allows us to not worry about the types when merging options
+
+  /**
+   * Whether to throw errors during SSR (onServerPrefetch) when the query fails.
+   * @default true
+   */
+  ssrThrowOnError?: boolean
 }
 
 /**
@@ -105,6 +111,7 @@ export interface UseQueryOptions<
     | 'refetchOnReconnect'
     | 'refetchOnWindowFocus'
     | 'staleTime'
+    | 'ssrThrowOnError'
   > {
   /**
    * The key used to identify the query. Array of primitives **without**
@@ -169,6 +176,7 @@ export const USE_QUERY_DEFAULTS = {
   refetchOnReconnect: true as NonNullable<UseQueryOptions['refetchOnReconnect']>,
   refetchOnMount: true as NonNullable<UseQueryOptions['refetchOnMount']>,
   enabled: true as MaybeRefOrGetter<boolean>,
+  ssrThrowOnError: true as NonNullable<UseQueryOptions['ssrThrowOnError']>,
 } satisfies UseQueryOptionsGlobal
 
 export type UseQueryOptionsWithDefaults<
@@ -189,6 +197,7 @@ export type UseQueryOptionsGlobalDefaults = Pick<
   | 'refetchOnReconnect'
   | 'refetchOnWindowFocus'
   | 'staleTime'
+  | 'ssrThrowOnError'
 > &
   typeof USE_QUERY_DEFAULTS
 

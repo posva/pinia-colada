@@ -286,7 +286,7 @@ export function useQuery<
   if (hasCurrentInstance) {
     // only happens on server, app awaits this
     onServerPrefetch(async () => {
-      if (toValue(enabled)) await refresh(true)
+      if (toValue(enabled)) await refresh(options.value.ssrThrowOnError ?? optionDefaults.ssrThrowOnError)
     })
   }
 
