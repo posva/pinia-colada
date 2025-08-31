@@ -64,10 +64,10 @@ export interface UseQueryOptionsGlobal {
   placeholderData?: (previousData: unknown) => any // any allows us to not worry about the types when merging options
 
   /**
-   * Whether to throw errors during SSR (onServerPrefetch) when the query fails.
-   * @default true
+   * Whether to catch errors during SSR (onServerPrefetch) when the query fails.
+   * @default false
    */
-  ssrThrowOnError?: boolean
+  ssrCatchError?: boolean
 }
 
 /**
@@ -111,7 +111,7 @@ export interface UseQueryOptions<
     | 'refetchOnReconnect'
     | 'refetchOnWindowFocus'
     | 'staleTime'
-    | 'ssrThrowOnError'
+    | 'ssrCatchError'
   > {
   /**
    * The key used to identify the query. Array of primitives **without**
@@ -176,7 +176,6 @@ export const USE_QUERY_DEFAULTS = {
   refetchOnReconnect: true as NonNullable<UseQueryOptions['refetchOnReconnect']>,
   refetchOnMount: true as NonNullable<UseQueryOptions['refetchOnMount']>,
   enabled: true as MaybeRefOrGetter<boolean>,
-  ssrThrowOnError: true as NonNullable<UseQueryOptions['ssrThrowOnError']>,
 } satisfies UseQueryOptionsGlobal
 
 export type UseQueryOptionsWithDefaults<
@@ -197,7 +196,7 @@ export type UseQueryOptionsGlobalDefaults = Pick<
   | 'refetchOnReconnect'
   | 'refetchOnWindowFocus'
   | 'staleTime'
-  | 'ssrThrowOnError'
+  | 'ssrCatchError'
 > &
   typeof USE_QUERY_DEFAULTS
 

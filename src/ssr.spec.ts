@@ -67,7 +67,7 @@ describe('SSR', () => {
     }
   }
 
-  it('propagates query errors when using default query options', async () => {
+  it('propagates query errors by default', async () => {
     // return false to stop the error from propagating
     const spy = vi.fn(() => false)
     const { app, query } = renderApp({
@@ -80,28 +80,12 @@ describe('SSR', () => {
     expect(spy).toHaveBeenCalledTimes(1)
   })
 
-  it('propagates query errors when ssrThrowOnError is true', async () => {
+  it(`Don't propagates query errors when ssrCatchError is true`, async () => {
     // return false to stop the error from propagating
     const spy = vi.fn(() => false)
     const { app, query } = renderApp({
       options: {
-        ssrThrowOnError: true,
-      },
-      appSetup() {
-        onErrorCaptured(spy)
-      },
-    })
-    query.mockRejectedValueOnce(new Error('ko'))
-    expect(await renderToString(app)).toMatchInlineSnapshot(`"<!---->"`)
-    expect(spy).toHaveBeenCalledTimes(1)
-  })
-
-  it('Don\'t propagates query errors when ssrThrowOnError is false', async () => {
-    // return false to stop the error from propagating
-    const spy = vi.fn(() => false)
-    const { app, query } = renderApp({
-      options: {
-        ssrThrowOnError: false,
+        ssrCatchError: true,
       },
       appSetup() {
         onErrorCaptured(spy)
@@ -111,6 +95,4 @@ describe('SSR', () => {
     expect(await renderToString(app)).toMatchInlineSnapshot(`"<!---->"`)
     expect(spy).toHaveBeenCalledTimes(0)
   })
-
-  it.todo('can avoid throwing inside onServerPrefetch')
 })
