@@ -354,7 +354,7 @@ async function main() {
     const tagName = pkg.name === MAIN_PKG_NAME ? `v${pkg.version}` : `${pkg.name}@${pkg.version}`
 
     versionsToPush.push(`refs/tags/${tagName}`)
-    await runIfNotDry('git', ['tag', `${tagName}`])
+    await runIfNotDry('git', ['tag', '-a', `${tagName}`])
   }
 
   if (!noPublish) {
