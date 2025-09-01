@@ -1,3 +1,9 @@
+## [0.17.3](https://github.com/posva/pinia-colada/compare/v0.17.2...v0.17.3) (2025-09-01)
+
+### Features
+
+- add ssrCatchError ([#376](https://github.com/posva/pinia-colada/issues/376)) ([6ba6a36](https://github.com/posva/pinia-colada/commit/6ba6a369ee69b7f05df196e31ab9a2e7bdb41754))
+
 ## [0.17.2](https://github.com/posva/pinia-colada/compare/v0.17.1...v0.17.2) (2025-08-25)
 
 ### Features
