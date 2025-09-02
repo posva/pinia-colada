@@ -3,6 +3,7 @@ import type { UseQueryFnContext, UseQueryOptions } from './query-options'
 import { useQuery } from './use-query'
 import type { UseQueryReturn } from './use-query'
 import type { ErrorDefault } from './types-extension'
+import { useQueryCache } from './query-store'
 
 /**
  * Options for {@link useInfiniteQuery}.
@@ -44,17 +45,20 @@ export interface UseInfiniteQueryReturn<TPage = unknown, TError = ErrorDefault>
 export function useInfiniteQuery<TData, TError = ErrorDefault, TPage = unknown>(
   options: UseInfiniteQueryOptions<TData, TError, TData | undefined, TPage>,
 ): UseInfiniteQueryReturn<TPage, TError> {
-  let pages: TPage = toValue(options.initialPage)
+  const queryCache = useQueryCache()
+  const initialPage = toValue(options.initialPage)
 
   const { refetch, refresh, ...query } = useQuery<TPage, TError, TPage>({
     ...options,
-    initialData: () => pages,
+    initialData: () => initialPage,
     // since we hijack the query function and augment the data, we cannot refetch the data
     // like usual
     staleTime: Infinity,
     async query(context) {
-      const data: TData = await options.query(pages, context)
-      return (pages = options.merge(pages, data))
+      // Get the current cached data for this specific key
+      const currentPages = queryCache.getQueryData<TPage>(toValue(options.key)) ?? initialPage
+      const data: TData = await options.query(currentPages, context)
+      return options.merge(currentPages, data)
     },
   })
 
