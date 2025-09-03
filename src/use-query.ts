@@ -283,7 +283,7 @@ export function useQuery<
     refetch,
   } satisfies UseQueryReturn<TData, TError, TDataInitial>
 
-  if (hasCurrentInstance) {
+  if (hasCurrentInstance && options.value.ssrPrefetch) {
     // only happens on server, app awaits this
     onServerPrefetch(async () => {
       if (toValue(enabled)) await refresh(!options.value.ssrCatchError)

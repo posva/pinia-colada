@@ -95,4 +95,15 @@ describe('SSR', () => {
     expect(await renderToString(app)).toMatchInlineSnapshot(`"<!---->"`)
     expect(spy).toHaveBeenCalledTimes(0)
   })
+
+  it(`Don't prefetch query when ssrPrefetch is false`, async () => {
+    const { app, query } = renderApp({
+      options: {
+        ssrPrefetch: false,
+      },
+    })
+    query.mockResolvedValue(42)
+    expect(await renderToString(app)).toMatchInlineSnapshot(`"<!---->"`)
+    expect(query).not.toHaveBeenCalled()
+  })
 })

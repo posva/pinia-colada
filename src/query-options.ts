@@ -68,6 +68,12 @@ export interface UseQueryOptionsGlobal {
    * @default false
    */
   ssrCatchError?: boolean
+
+  /**
+   * Wherher to prefetch the query during SSR
+   * @default true
+   */
+  ssrPrefetch?: boolean
 }
 
 /**
@@ -112,6 +118,7 @@ export interface UseQueryOptions<
     | 'refetchOnWindowFocus'
     | 'staleTime'
     | 'ssrCatchError'
+    | 'ssrPrefetch'
   > {
   /**
    * The key used to identify the query. Array of primitives **without**
@@ -176,6 +183,7 @@ export const USE_QUERY_DEFAULTS = {
   refetchOnReconnect: true as NonNullable<UseQueryOptions['refetchOnReconnect']>,
   refetchOnMount: true as NonNullable<UseQueryOptions['refetchOnMount']>,
   enabled: true as MaybeRefOrGetter<boolean>,
+  ssrPrefetch: true as NonNullable<UseQueryOptions['ssrPrefetch']>,
 } satisfies UseQueryOptionsGlobal
 
 export type UseQueryOptionsWithDefaults<
@@ -197,6 +205,7 @@ export type UseQueryOptionsGlobalDefaults = Pick<
   | 'refetchOnWindowFocus'
   | 'staleTime'
   | 'ssrCatchError'
+  | 'ssrPrefetch'
 > &
   typeof USE_QUERY_DEFAULTS
 
