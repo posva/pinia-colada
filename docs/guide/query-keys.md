@@ -194,7 +194,7 @@ const route = useRoute()
 
 const { state } = useQuery({
   key: () => DOCUMENT_QUERY_KEYS.byId(route.params.docId),
-  query: () => getDocumentById(1),
+  query: () => getDocumentById(route.params.docId),
 })
 
 const queryCache = useQueryCache()
