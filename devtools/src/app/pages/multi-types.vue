@@ -44,9 +44,7 @@ const { data } = useQuery({
 
 <template>
   <main class="big-layout">
-    <h1 class="mb-12">
-      All types display test
-    </h1>
+    <h1 class="mb-12">All types display test</h1>
 
     <p>Data requires custom serialization. Has data: {{ !!data }}</p>
   </main>

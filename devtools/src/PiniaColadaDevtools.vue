@@ -20,12 +20,12 @@ queryCache.$onAction(({ name, after, onError, args }) => {
       transmitter.emit('queries:delete', createQueryEntryPayload(entry))
     })
   } else if (
-    name === 'track'
-    || name === 'untrack'
-    || name === 'cancel'
-    || name === 'invalidate'
-    || name === 'fetch'
-    || name === 'setEntryState'
+    name === 'track' ||
+    name === 'untrack' ||
+    name === 'cancel' ||
+    name === 'invalidate' ||
+    name === 'fetch' ||
+    name === 'setEntryState'
   ) {
     const [entry] = args
 
@@ -44,9 +44,9 @@ queryCache.$onAction(({ name, after, onError, args }) => {
 
       // emit an update when the data becomes stale
       if (
-        name === 'fetch'
-        && entry.options?.staleTime != null
-        && Number.isFinite(entry.options.staleTime)
+        name === 'fetch' &&
+        entry.options?.staleTime != null &&
+        Number.isFinite(entry.options.staleTime)
       ) {
         setTimeout(() => {
           transmitter.emit('queries:update', createQueryEntryPayload(entry))

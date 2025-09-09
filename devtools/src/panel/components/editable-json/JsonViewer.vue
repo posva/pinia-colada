@@ -1,6 +1,11 @@
 <script lang="ts">
-function isExpandable(value: unknown): value is unknown[] | Record<string, unknown> | Map<unknown, unknown> | Set<unknown> {
-  return !!value && (Array.isArray(value) || isPlainObject(value) || value instanceof Map || value instanceof Set)
+function isExpandable(
+  value: unknown,
+): value is unknown[] | Record<string, unknown> | Map<unknown, unknown> | Set<unknown> {
+  return (
+    !!value &&
+    (Array.isArray(value) || isPlainObject(value) || value instanceof Map || value instanceof Set)
+  )
 }
 </script>
 

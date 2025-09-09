@@ -43,7 +43,7 @@ export default defineConfig({
     // NOTE: needed to avoid HMR not working when using the devtools
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
     // allows to be changed when consuming the devtools
-    'NODE_ENV': process.env.NODE_ENV === 'production' ? `process.env.NODE_ENV` : '"development"',
+    NODE_ENV: process.env.NODE_ENV === 'production' ? `process.env.NODE_ENV` : '"development"',
   },
 
   build: {

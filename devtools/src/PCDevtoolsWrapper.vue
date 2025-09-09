@@ -42,8 +42,8 @@ onMounted(() => {
     // prefetch the custom element
     // FIXME: it would be nice to do some prefetching in vite
     // https://github.com/vitejs/vite/issues/10600
-    const idleCallback
-      = typeof requestIdleCallback === 'function' ? requestIdleCallback : requestAnimationFrame // not a replacement but until Safari supports
+    const idleCallback =
+      typeof requestIdleCallback === 'function' ? requestIdleCallback : requestAnimationFrame // not a replacement but until Safari supports
     idleCallback(() => {
       import('@pinia/colada-devtools/panel')
     })
@@ -60,7 +60,7 @@ onMounted(() => {
       title="Open Pinia Colada Devtools"
       @click="openDevtools()"
     >
-      <img :src="logoURL" alt="Pinia Colada Devtools Logo">
+      <img :src="logoURL" alt="Pinia Colada Devtools Logo" />
     </button>
     <PiniaColadaDevtools v-if="isCEDefined && areDevtoolsOpen" @close="areDevtoolsOpen = false" />
   </ClientOnly>

@@ -1,7 +1,7 @@
 import type { UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
 
-export type UseQueryEntryPayloadStatus
-  = | 'loading'
+export type UseQueryEntryPayloadStatus =
+  | 'loading'
   | 'fresh'
   | 'error'
   | 'stale'

@@ -102,7 +102,7 @@ export function searchContacts(
     perPage?: number | string
   } & Partial<Contact> = {},
   options?: Options<'response'>,
-): Promise<{ total: number, results: Contact[] }> {
+): Promise<{ total: number; results: Contact[] }> {
   const query: Record<string, string | null | undefined | number | boolean> = filterInfo as Record<
     string,
     string | boolean | number | null

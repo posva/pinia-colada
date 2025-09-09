@@ -23,7 +23,7 @@ export interface NonSerializableValue_BigInt extends NonSerializableValue_Base {
 
 export interface NonSerializableValue_RegExp extends NonSerializableValue_Base {
   __type: 'regexp'
-  value: { source: string, flags: string }
+  value: { source: string; flags: string }
 }
 
 export interface NonSerializableValue_Map extends NonSerializableValue_Base {
@@ -58,7 +58,7 @@ export interface NonSerializableValue_ArrayBuffer extends NonSerializableValue_B
 
 export interface NonSerializableValue_TypedArray extends NonSerializableValue_Base {
   __type: 'typedarray'
-  value: { arrayType: string, byteLength: number }
+  value: { arrayType: string; byteLength: number }
 }
 
 export interface NonSerializableValue_Promise extends NonSerializableValue_Base {
@@ -68,12 +68,12 @@ export interface NonSerializableValue_Promise extends NonSerializableValue_Base 
 
 export interface NonSerializableValue_Error extends NonSerializableValue_Base {
   __type: 'error'
-  value: { name: string, message: string, stack?: string }
+  value: { name: string; message: string; stack?: string }
 }
 
 export interface NonSerializableValue_Object extends NonSerializableValue_Base {
   __type: 'object'
-  value: { constructorName: string, properties: unknown }
+  value: { constructorName: string; properties: unknown }
 }
 
 export type NonSerializableValue =
