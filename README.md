@@ -17,7 +17,7 @@
 
 # Pinia Colada
 
-> The missing data fetching library for Vue built on top of [Pinia](https://pinia.vuejs.org)
+> The missing data fetching layer for Vue. Built on top of [Pinia](https://pinia.vuejs.org)
 
 Pinia Colada makes data fetching in Vue applications a breeze. It's built on top of [Pinia](https://pinia.vuejs.org) and takes away all of the complexity and boilerplate that comes with fetching data. It's fully typed and tree-shakeable, and it's built with the same principles as Pinia and Vue: It's approachable, flexible, powerful and can be progressively adopted.
 
@@ -31,12 +31,12 @@ Pinia Colada makes data fetching in Vue applications a breeze. It's built on top
 ## Features
 
 - ⚡️ **Automatic caching**: Smart client-side caching with request deduplication
-- 🗄️ **Async State**: Handle any async state
+- 🗄️ **Async State**: Simplified async state management
 - 🔌 **Plugins**: Powerful plugin system
-- ✨ **Optimistic Updates**: Optimistic updates with ease
-- 💡 **Sensible defaults**: Sane defaults with full customization
-- 🧩 **Out-of-the box plugins**: A set of composable functions to handle data fetching
-- 📚 **Typescript Support**: Fully typed with Typescript
+- ✨ **Optimistic Updates**: UI that updates before the server responds
+- 💡 **Sensible defaults**: Works well out of the box while remaining fully configurable
+- 🧩 **Out-of-the box plugins**: Auto refetch, delay loading, and more
+- 📚 **Typescript Support**: Best-in-class TypeScript support
   <!-- - 📡 **Network Status**: Handle network status and offline support -->
   <!-- - 🛠 **Devtools**: Integration with the Vue devtools -->
 - 💨 **Small Bundle Size**: A baseline of ~2kb and fully tree-shakeable
