@@ -1,3 +1,9 @@
+## [0.17.4](https://github.com/posva/pinia-colada/compare/v0.17.3...v0.17.4) (2025-09-09)
+
+### Bug Fixes
+
+- refresh after an aborterror ([7c07ec8](https://github.com/posva/pinia-colada/commit/7c07ec801e966facd72781b7d61d155ce30c59b6)), closes [#383](https://github.com/posva/pinia-colada/issues/383)
+
 ## [0.17.3](https://github.com/posva/pinia-colada/compare/v0.17.2...v0.17.3) (2025-09-01)
 
 ### Features
