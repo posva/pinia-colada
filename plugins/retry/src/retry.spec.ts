@@ -35,6 +35,7 @@ describe('Pinia Colada Retry Plugin', () => {
           plugins: [
             createPinia(),
             [
+              // split lines
               PiniaColada,
               { plugins: [PiniaColadaRetry(RETRY_OPTIONS_DEFAULTS)] },
             ],

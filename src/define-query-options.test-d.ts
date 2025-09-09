@@ -96,7 +96,7 @@ describe('typed query keys', () => {
       }
 
       defineQueryOptions(
-        ({ id, withComments = false }: { id: string, withComments?: boolean }) => ({
+        ({ id, withComments = false }: { id: string; withComments?: boolean }) => ({
           key: DOCUMENT_QUERY_KEYS.byIdWithComments(id, withComments),
           query: async () => [2],
         }),

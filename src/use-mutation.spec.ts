@@ -125,7 +125,7 @@ describe('useMutation', () => {
     it('invokes the "onMutate" hook before mutating', async () => {
       const onMutate = vi.fn()
       const { wrapper } = mountSimple({
-        mutation: async ({ a, b }: { a: number, b: number }) => {
+        mutation: async ({ a, b }: { a: number; b: number }) => {
           return a + b
         },
         onMutate,

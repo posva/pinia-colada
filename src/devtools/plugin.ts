@@ -175,7 +175,7 @@ export function addDevtools(app: App, pinia: Pinia) {
               tags.push({
                 label: 'inactive',
                 textColor: 0,
-                backgroundColor: 0xAA_AA_AA,
+                backgroundColor: 0xaa_aa_aa,
                 tooltip: 'The query is not being used anywhere',
               })
             }
@@ -253,19 +253,19 @@ const STATUS_TAG: Record<DataStateStatus, InspectorNodeTag> = {
   pending: {
     label: 'pending',
     textColor: 0,
-    backgroundColor: 0xFF_9D_23,
+    backgroundColor: 0xff_9d_23,
     tooltip: `The query hasn't resolved yet`,
   },
   success: {
     label: 'success',
     textColor: 0,
-    backgroundColor: 0x16_C4_7F,
+    backgroundColor: 0x16_c4_7f,
     tooltip: 'The query resolved successfully',
   },
   error: {
     label: 'error',
     textColor: 0,
-    backgroundColor: 0xF9_38_27,
+    backgroundColor: 0xf9_38_27,
     tooltip: 'The query rejected with an error',
   },
 }
@@ -277,13 +277,13 @@ const ASYNC_STATUS_TAG: Record<AsyncStatus, InspectorNodeTag> = {
   idle: {
     label: 'idle',
     textColor: 0,
-    backgroundColor: 0xAA_AA_AA,
+    backgroundColor: 0xaa_aa_aa,
     tooltip: 'The query is not fetching',
   },
   loading: {
     label: 'fetching',
-    textColor: 0xFF_FF_FF,
-    backgroundColor: 0x57_8F_CA,
+    textColor: 0xff_ff_ff,
+    backgroundColor: 0x57_8f_ca,
     tooltip: 'The query is currently fetching',
   },
 }

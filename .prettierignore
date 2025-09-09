@@ -1,1 +1,3 @@
 typed-router.d.ts
+./codemods/rule-tests/__snapshots__/
+pnpm-lock.yaml

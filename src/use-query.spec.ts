@@ -689,9 +689,7 @@ describe('useQuery', () => {
           .getEntries({
             key: ['id'],
           })
-          .at(0)
-?.state
-.value,
+          .at(0)?.state.value,
       ).toEqual({
         status: 'pending',
         data: undefined,
@@ -704,9 +702,7 @@ describe('useQuery', () => {
           .getEntries({
             key: ['id'],
           })
-          .at(0)
-?.state
-.value,
+          .at(0)?.state.value,
       ).toEqual({
         status: 'success',
         data: 42,
@@ -843,9 +839,7 @@ describe('useQuery', () => {
       queryCache
         .getEntries({ key: ['key'] })
         .at(0)
-        ?.pending
-?.abortController
-.abort()
+        ?.pending?.abortController.abort()
       vi.advanceTimersByTime(26)
       await flushPromises()
       // expect(wrapper.vm.isPlaceholderData).toBe(true)
@@ -864,7 +858,7 @@ describe('useQuery', () => {
 
   describe('refresh data', () => {
     function mountDynamicKey<
-      TData = { id: number, when: number },
+      TData = { id: number; when: number },
       TError = Error,
       TDataInitial extends TData | undefined = undefined,
     >(
