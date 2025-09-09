@@ -191,7 +191,7 @@ describe('useQuery', () => {
               key: ['key'],
               query: async () => 'ok',
               initialData: () => 'initial',
-              staleTime: 1_000,
+              staleTime: 1000,
             })
             useQueryResult.refetch()
             return {
@@ -504,7 +504,7 @@ describe('useQuery', () => {
       await flushPromises()
       expect(cache.getQueryData(['key'])).toBe(42)
       wrapper.unmount()
-      vi.advanceTimersByTime(1000000)
+      vi.advanceTimersByTime(1_000_000)
       expect(cache.getQueryData(['key'])).toBe(42)
     })
   })

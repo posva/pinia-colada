@@ -70,8 +70,8 @@
     "prepublishOnly": "pnpm run build",
     "release": "node scripts/release.mjs",
     "test": "pnpm run build && pnpm run test:cov && pnpm run build:plugins && pnpm run test:types && pnpm run codemods:test",
-    "lint": "eslint .",
-    "lint:fix": "eslint --fix .",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint --fix .",
     "test:types": "tsc --build ./tsconfig.json",
     "test:cov": "vitest run --coverage",
     "build": "tsup",
@@ -120,10 +120,10 @@
     "@vue/devtools-api": "^8.0.0"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^4.14.1",
     "@ast-grep/cli": "^0.38.7",
     "@pinia/colada": "workspace:*",
     "@posva/prompts": "^2.4.4",
+    "@prettier/plugin-oxc": "^0.0.4",
     "@shikijs/vitepress-twoslash": "^3.6.0",
     "@size-limit/esbuild-why": "^11.2.0",
     "@size-limit/preset-small-lib": "^11.2.0",
@@ -134,12 +134,12 @@
     "@vue/test-utils": "^2.4.6",
     "chalk": "^5.4.1",
     "conventional-changelog-cli": "^4.1.0",
-    "eslint": "^9.31.0",
     "execa": "^9.6.0",
     "globby": "^14.1.0",
     "happy-dom": "^18.0.1",
     "lint-staged": "^16.1.2",
     "minimist": "^1.2.8",
+    "oxlint": "^1.14.0",
     "p-series": "^3.0.0",
     "pinia": "^3.0.3",
     "prettier": "^3.6.2",
@@ -173,7 +173,7 @@
   },
   "lint-staged": {
     "*.{js,mjs,json,cjs,md,ts}": [
-      "eslint --fix"
+      "oxlint --fix"
     ]
   }
 }

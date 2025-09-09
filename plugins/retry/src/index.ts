@@ -42,10 +42,12 @@ const RETRY_OPTIONS_DEFAULTS = {
       // never more than 30 seconds
       30_000,
     )
+    // oxlint-disable-next-line no-console
     console.log(`⏲️ delaying attempt #${attempt + 1} by ${time}ms`)
     return time
   },
   retry: (count) => {
+    // oxlint-disable-next-line no-console
     console.log(`🔄 Retrying ${'🟨'.repeat(count + 1)}${'⬜️'.repeat(2 - count)}`)
     return count < 2
   },
@@ -113,8 +115,8 @@ export function PiniaColadaRetry(
             retryMap.set(key, entry)
           }
 
-          const shouldRetry
-            = typeof retry === 'number' ? retry > entry.retryCount : retry(entry.retryCount, error)
+          const shouldRetry =
+            typeof retry === 'number' ? retry > entry.retryCount : retry(entry.retryCount, error)
 
           if (shouldRetry) {
             const delayTime = typeof delay === 'function' ? delay(entry.retryCount) : delay

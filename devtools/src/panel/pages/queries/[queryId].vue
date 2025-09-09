@@ -48,7 +48,7 @@ const TIME_AGO_OPTIONS: FormatTimeAgoOptions = {
 
 const lastUpdate = useTimeAgo(() => selectedQuery.value?.devtools.updatedAt ?? 0, {
   ...TIME_AGO_OPTIONS,
-  updateInterval: 3_000,
+  updateInterval: 3000,
 })
 
 // TODO: we should be able to highlight components using this query

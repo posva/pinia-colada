@@ -248,7 +248,7 @@ describe('Auto Refetch plugin', () => {
       await flushPromises()
       expect(query).toHaveBeenCalledTimes(1)
 
-      vi.advanceTimersByTime(10000)
+      vi.advanceTimersByTime(10_000)
       expect(query).toHaveBeenCalledTimes(1)
     })
 

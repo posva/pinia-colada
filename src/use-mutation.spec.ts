@@ -486,7 +486,7 @@ describe('useMutation', () => {
       expect(cache.getEntries()).toHaveLength(1)
 
       wrapper.unmount()
-      vi.advanceTimersByTime(1000000)
+      vi.advanceTimersByTime(1_000_000)
       expect(cache.getEntries()).toHaveLength(1)
     })
 

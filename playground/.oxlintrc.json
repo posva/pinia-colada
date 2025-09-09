@@ -1,0 +1,8 @@
+{
+  "$schema": "../node_modules/oxlint/configuration_schema.json",
+  "categories": {},
+  "rules": {
+    "curly": ["error", "multi-line"]
+  },
+  "globals": {}
+}

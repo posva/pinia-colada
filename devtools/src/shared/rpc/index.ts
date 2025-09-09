@@ -1,11 +1,7 @@
 import type { DataState, EntryKey, UseQueryEntryFilter } from '@pinia/colada'
 import type { UseQueryEntryPayload } from '../query-serialized'
 import { toRaw } from 'vue'
-import {
-  restoreClonedDeep,
-  isError,
-  safeSerialize,
-} from './custom-values'
+import { restoreClonedDeep, safeSerialize } from './custom-values'
 import { isPlainObject } from '../json'
 
 export class DuplexChannel<
@@ -112,7 +108,7 @@ export function _testTypes() {
   // client.emit('queries:all', [{ id: '', active: false, asyncStatus: 'idle',   }])
   client.on('queries:clear', () => {})
   client.on('queries:clear', (filters = {}) => {
-    console.log(filters.key)
+    console.error('not implemented yet', filters.key)
     // ...
   })
 
