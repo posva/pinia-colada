@@ -17,7 +17,7 @@
 
 # Pinia Colada
 
-> The missing data fetching library for [Pinia](https://pinia.vuejs.org)
+> The missing data fetching library for Vue built on top of [Pinia](https://pinia.vuejs.org)
 
 Pinia Colada makes data fetching in Vue applications a breeze. It's built on top of [Pinia](https://pinia.vuejs.org) and takes away all of the complexity and boilerplate that comes with fetching data. It's fully typed and tree-shakeable, and it's built with the same principles as Pinia and Vue: It's approachable, flexible, powerful and can be progressively adopted.
 
