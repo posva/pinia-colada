@@ -1185,6 +1185,38 @@ describe('useQuery', () => {
       expect(entry.state.value.data).toBe(undefined)
       expect(wrapper.vm.data).toBe(undefined)
     })
+
+    it('can rfefresh after being aborted with an outside AbortError', async () => {
+      const controller = new AbortController()
+      const { signal } = controller
+      controller.abort()
+      let firstCall = 0
+      const { wrapper } = mountSimple({
+        key: ['key'],
+        async query() {
+          if (!firstCall++) {
+            signal.throwIfAborted()
+          }
+          return 'ok'
+        },
+      })
+
+      await flushPromises()
+
+      expect(wrapper.vm.state).toEqual({
+        data: undefined,
+        error: null,
+        status: 'pending',
+      })
+
+      await wrapper.vm.refresh()
+
+      expect(wrapper.vm.state).toEqual({
+        data: 'ok',
+        error: null,
+        status: 'success',
+      })
+    })
   })
 
   describe('refetchOnWindowFocus', () => {

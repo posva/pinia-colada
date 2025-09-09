@@ -713,8 +713,10 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
               if (entry.state.value.status !== 'pending') {
                 // reset the placeholder data to free up memory
                 entry.placeholderData = null
+                // if the status is pending, the result was ignored, therefore
+                // we didn't update the cache and `when` must not be updated
+                entry.when = Date.now()
               }
-              entry.when = Date.now()
             }
           }),
         when: Date.now(),
