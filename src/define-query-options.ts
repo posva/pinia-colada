@@ -16,6 +16,22 @@ export interface DefineQueryOptionsTagged<
 }
 
 /**
+ * Define dynamic query options with an optional params object.
+ * Not for identity-bearing params (ids) — those should be part of the key. Can be passed directly to
+ * {@link useQuery} (with or without params).
+ *
+ * @param setupOptions - Function receiving an optional params object and returning static query options.
+ */
+export function defineQueryOptions<
+  Params,
+  TData,
+  TError = ErrorDefault,
+  TDataInitial extends TData | undefined = undefined,
+>(
+  setupOptions: (params?: Params) => DefineQueryOptions<TData, TError, TDataInitial>,
+): (params?: Params) => DefineQueryOptionsTagged<TData, TError, TDataInitial>
+
+/**
  * Define dynamic query options by passing a function that accepts an arbitrary
  * parameter and returns the query options. Enables type-safe query keys.
  * Must be passed to {@link useQuery} alongside a getter for the params.
