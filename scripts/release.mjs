@@ -320,17 +320,21 @@ async function main() {
   if (!skipBuild) {
     // the main package is needed for plugins to work
     await runIfNotDry('pnpm', ['run', 'build'])
-    await runIfNotDry('pnpm', [
-      'run',
-      '--stream',
-      '--parallel',
-      // build only on changed packages
-      ...pkgWithVersions.flatMap(({ relativePath }) =>
-        // the root package has already been built
-        relativePath === '' ? [] : ['--filter', `./${relativePath}`],
-      ),
-      'build',
-    ])
+    // avoid building every package if we only want to release the main package
+    const otherPkgs = pkgWithVersions.filter(({ name }) => name !== MAIN_PKG_NAME)
+    if (otherPkgs.length > 0) {
+      await runIfNotDry('pnpm', [
+        'run',
+        '--stream',
+        '--parallel',
+        // build only on changed packages
+        ...pkgWithVersions.flatMap(({ relativePath }) =>
+          // the root package has already been built
+          relativePath === '' ? [] : ['--filter', `./${relativePath}`],
+        ),
+        'build',
+      ])
+    }
   } else {
     console.log(`(skipped)`)
   }
