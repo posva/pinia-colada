@@ -1,3 +1,9 @@
+## [0.17.5](https://github.com/posva/pinia-colada/compare/v0.17.4...v0.17.5) (2025-09-11)
+
+### Features
+
+- **query:** add overloaded for optional define options params ([#386](https://github.com/posva/pinia-colada/issues/386)) ([1c51923](https://github.com/posva/pinia-colada/commit/1c5192381f8ac4c0a4496c25e60e9116a4548454))
+
 ## [0.17.4](https://github.com/posva/pinia-colada/compare/v0.17.3...v0.17.4) (2025-09-09)
 
 ### Bug Fixes
