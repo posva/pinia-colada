@@ -259,10 +259,8 @@ describe('typed query keys', () => {
 
     it('supports optional params as extra query modifiers', () => {
       const documentsListQuery = defineQueryOptions(
-        (
-          { page = 1, withComments = false }: { page?: number; withComments?: boolean } = {},
-        ) => ({
-          key: ['documents', page, { comments: withComments }] as const,
+        ({ page = 1, withComments = false }: { page?: number; withComments?: boolean } = {}) => ({
+          key: ['documents', page, { comments: withComments }],
           query: async () => ({
             page,
             withComments,
@@ -271,8 +269,8 @@ describe('typed query keys', () => {
         }),
       )
 
-      const r1 = useQuery(documentsListQuery)
-      expectTypeOf(r1.data.value).toEqualTypeOf<
+      const r0 = useQuery(documentsListQuery())
+      expectTypeOf(r0.data.value).toEqualTypeOf<
         | {
             page: number
             withComments: boolean
@@ -280,6 +278,10 @@ describe('typed query keys', () => {
           }
         | undefined
       >()
+
+      // can also be not called
+      const r1 = useQuery(documentsListQuery)
+      expectTypeOf(r1).toEqualTypeOf(r0)
 
       const r2 = useQuery(documentsListQuery, () => ({ page: 2, withComments: true }))
       expectTypeOf(r2.data.value).toEqualTypeOf<
@@ -292,10 +294,24 @@ describe('typed query keys', () => {
       >()
 
       const queryCache = useQueryCache()
-      queryCache.getQueryData(
-        documentsListQuery({ page: 3, withComments: true }).key,
-      )
-      queryCache.getQueryData(documentsListQuery().key)
+      expectTypeOf(
+        queryCache.getQueryData(documentsListQuery({ page: 3, withComments: true }).key),
+      ).toEqualTypeOf<
+        | {
+            page: number
+            withComments: boolean
+            list: { id: string; title: string; hasComments: boolean }[]
+          }
+        | undefined
+      >()
+      expectTypeOf(queryCache.getQueryData(documentsListQuery().key)).toEqualTypeOf<
+        | {
+            page: number
+            withComments: boolean
+            list: { id: string; title: string; hasComments: boolean }[]
+          }
+        | undefined
+      >()
     })
   })
 })
