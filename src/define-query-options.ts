@@ -16,11 +16,12 @@ export interface DefineQueryOptionsTagged<
 }
 
 /**
- * Define dynamic query options with an optional params object.
- * Not for identity-bearing params (ids) — those should be part of the key. Can be passed directly to
- * {@link useQuery} (with or without params).
+ * Define dynamic query options by passing a function that accepts an optional
+ * arbitrary parameter and returns the query options. Enables type-safe query
+ * keys. Must be passed to {@link useQuery} with or without a getter to
+ * retrieve the params.
  *
- * @param setupOptions - Function receiving an optional params object and returning static query options.
+ * @param setupOptions - A function that returns the query options.
  */
 export function defineQueryOptions<
   Params,
