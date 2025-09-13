@@ -2,6 +2,7 @@ import { inject } from 'vue'
 import type { InjectionKey, MaybeRefOrGetter } from 'vue'
 import type { EntryKey } from './entry-keys'
 import type { ErrorDefault } from './types-extension'
+import type { _ignoreRemoveMaybeRef } from './utils'
 
 /**
  * Possible values for `refetchOnMount`, `refetchOnWindowFocus`, and `refetchOnReconnect`.
@@ -113,6 +114,16 @@ export interface UseQueryOptions<
     | 'staleTime'
     | 'ssrCatchError'
   > {
+  /**
+   * Phantom property to ensure TError generic parameter is included in the
+   * interface structure.
+   * This property should never be used directly and is only for type system
+   * correctness.
+   *
+   * @internal
+   */
+  readonly [_ignoreRemoveMaybeRef]?: TError;
+
   /**
    * The key used to identify the query. Array of primitives **without**
    * reactive values or a reactive array or getter. It should be treaded as an

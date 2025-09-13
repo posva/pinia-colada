@@ -216,11 +216,28 @@ export type _IsMaybeRefOrGetter<T> = [T] extends [MaybeRefOrGetter<infer U>]
 export type _UnwrapMaybeRefOrGetter<T> = T extends MaybeRefOrGetter<infer U> ? U : T
 
 /**
- * Removes the `MaybeRefOrGetter` wrapper from all fields of an object.
+ * Fields defined with this symbol as key will be excluded from being processed
+ * by `_RemoveMaybeRef`.
+ * 
+ * In the ideal world this should be a simple string prefix, but currently
+ * TypeScript does not provide a way to hide a property from autocomplete,
+ * so we have to resort to a symbol.
+ * 
+ * TypeScript issue: https://github.com/microsoft/TypeScript/issues/47613
+ * 
+ * @internal
+ */
+export declare const _ignoreRemoveMaybeRef: unique symbol;
+
+/**
+ * Removes the `MaybeRefOrGetter` wrapper from all fields of an object,
+ * except for fields declared with symbol key `_ignoreRemoveMaybeRef`.
  * @internal
  */
 export type _RemoveMaybeRef<T> = {
-  [K in keyof T]: _IsMaybeRefOrGetter<NonNullable<T[K]>> extends true
-    ? _UnwrapMaybeRefOrGetter<T[K]>
-    : T[K]
-}
+  [K in keyof T]: K extends typeof _ignoreRemoveMaybeRef
+    ? T[K]
+    : _IsMaybeRefOrGetter<NonNullable<T[K]>> extends true
+      ? _UnwrapMaybeRefOrGetter<T[K]>
+      : T[K];
+};
