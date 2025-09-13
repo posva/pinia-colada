@@ -216,11 +216,14 @@ export type _IsMaybeRefOrGetter<T> = [T] extends [MaybeRefOrGetter<infer U>]
 export type _UnwrapMaybeRefOrGetter<T> = T extends MaybeRefOrGetter<infer U> ? U : T
 
 /**
- * Removes the `MaybeRefOrGetter` wrapper from all fields of an object.
+ * Removes the `MaybeRefOrGetter` wrapper from all fields of an object,
+ * except for fields starting with `__ignore_remove_maybe_ref__`.
  * @internal
  */
 export type _RemoveMaybeRef<T> = {
-  [K in keyof T]: _IsMaybeRefOrGetter<NonNullable<T[K]>> extends true
-    ? _UnwrapMaybeRefOrGetter<T[K]>
-    : T[K]
-}
+  [K in keyof T]: K extends `__ignore_remove_maybe_ref__${string}`
+    ? T[K]
+    : _IsMaybeRefOrGetter<NonNullable<T[K]>> extends true
+      ? _UnwrapMaybeRefOrGetter<T[K]>
+      : T[K];
+};

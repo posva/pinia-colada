@@ -114,6 +114,16 @@ export interface UseQueryOptions<
     | 'ssrCatchError'
   > {
   /**
+   * Phantom property to ensure TError generic parameter is included in the
+   * interface structure.
+   * This property should never be used directly and is only for type system
+   * correctness.
+   *
+   * @internal
+   */
+  readonly __ignore_remove_maybe_ref__terror?: TError;
+
+  /**
    * The key used to identify the query. Array of primitives **without**
    * reactive values or a reactive array or getter. It should be treaded as an
    * array of dependencies of your queries, e.g. if you use the
