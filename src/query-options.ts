@@ -2,6 +2,7 @@ import { inject } from 'vue'
 import type { InjectionKey, MaybeRefOrGetter } from 'vue'
 import type { EntryKey } from './entry-keys'
 import type { ErrorDefault } from './types-extension'
+import type { _ignoreRemoveMaybeRef } from './utils'
 
 /**
  * Possible values for `refetchOnMount`, `refetchOnWindowFocus`, and `refetchOnReconnect`.
@@ -121,7 +122,7 @@ export interface UseQueryOptions<
    *
    * @internal
    */
-  readonly __ignore_remove_maybe_ref__terror?: TError;
+  readonly [_ignoreRemoveMaybeRef]?: TError;
 
   /**
    * The key used to identify the query. Array of primitives **without**
