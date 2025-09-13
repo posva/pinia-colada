@@ -56,23 +56,13 @@ const {
 - The `key` is a serializable array that **uniquely** identifies the query. The array allows to establish [a hierarchy](./guide/query-keys.md#keys-are-hierarchical) of keys that can be invalidated at once.
 - The `query` function **takes no arguments** because that allows Pinia Colada to automatically run it when needed ✨.
 
-`useQuery()` returns an object with quite a few properties. In the example above we use:
+`useQuery()` returns an object with several useful properties. In the example above we use:
 
-- `state`: state of the query. It contains the following properties:
-  - `data`: the data returned by the query. It automatically updates when the query is refetched.
-  - `error`: the error returned by the query. It's `null` if the query was successful.
-  - `status`: the data status of the query. It starts as `'pending'`, and then it changes to `'success'` or `'error'` depending on the outcome of the `query` function:
+- `state`: contains `data`, `error`, and `status` of the query
+- `asyncStatus`: indicates if the query is currently fetching (`'loading'`) or not (`'idle'`)
+- `refresh()`: manually triggers the query
 
-    | status | data | error |
-    | ------ | ---- | ----- |
-    | `'pending'` | `undefined` | `null` |
-    | `'success'` | _defined_ | `null` |
-    | `'error'` | `undefined` or _defined_ | _defined_ |
-
-- `asyncStatus`: the async status of the query. It's either `'idle'` or `'loading'` if the query is currently being fetched.
-- `refresh()`: manually triggers the query.
-
-There are a couple of other properties that can be accessed, most of them are just for convenience like `data` (which is an alias for `state.data`) and `error` (which is an alias for `state.error`).
+For a complete overview of all properties and their behavior, see the [Queries guide](./guide/queries.md#foundations).
 
 Let's see a more complete example with a list view and a detail view:
 
@@ -249,6 +239,14 @@ By using the `onSettled()` hook, we can invalidate queries when the mutation is 
 ### The Query Cache
 
 In the mutation example we introduce the usage of the _Query Cache_. It allows us to access and modify the cache from anywhere as well as trigger cache invalidations. It's a powerful tool that enables us to write decoupled Mutations and Queries in a well organized way.
+
+### Next Steps
+
+As you build more complex applications, consider these approaches for better organization and maintainability:
+
+- **Start with `useQuery()`** for simple use cases and learning
+- **Use `defineQueryOptions()`** for [type-safe cache operations](./guide/query-keys.md#Typing-query-keys) and better organization
+- **Use `defineQuery()`** for [complex reusable queries](./advanced/reusable-queries.md) with shared state
 
 ### Going further
 
