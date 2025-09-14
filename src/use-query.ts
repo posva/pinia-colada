@@ -196,7 +196,7 @@ export function useQuery<
         ),
       }) satisfies UseQueryOptionsWithDefaults<TData, TError, TDataInitial>,
   )
-  const enabled = (): boolean => toValue(options.value.enabled)
+  const enabled = (): boolean => toValue(options.value.enabled) ?? true
 
   // NOTE: here we used to check if the same key was previously called with a different query
   // but it ended up creating too many false positives and was removed. We could add it back

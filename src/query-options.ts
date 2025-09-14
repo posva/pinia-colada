@@ -168,7 +168,7 @@ export interface UseQueryOptions<
 /**
  * Default options for `useQuery()`. Modifying this object will affect all the queries that don't override these
  */
-export const USE_QUERY_DEFAULTS = {
+export const USE_QUERY_DEFAULTS: UseQueryOptionsGlobal = {
   staleTime: 1000 * 5, // 5 seconds
   gcTime: (1000 * 60 * 5) as NonNullable<UseQueryOptions['gcTime']>, // 5 minutes
   // avoid type narrowing to `true`

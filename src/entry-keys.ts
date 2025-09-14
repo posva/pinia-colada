@@ -90,21 +90,21 @@ export type EntryKey = readonly JSONValue[]
  *
  * @internal
  */
-export const ENTRY_DATA_TAG = Symbol('Pinia Colada data tag')
+export const ENTRY_DATA_TAG: unique symbol = Symbol('Pinia Colada data tag')
 
 /**
  * Internal symbol used to tag the error type of the entry key.
  *
  * @internal
  */
-export const ENTRY_ERROR_TAG = Symbol('Pinia Colada error tag')
+export const ENTRY_ERROR_TAG: unique symbol = Symbol('Pinia Colada error tag')
 
 /**
  * Internal symbol used to tag the data initial type of the entry key.
  *
  * @internal
  */
-export const ENTRY_DATA_INITIAL_TAG = Symbol('Pinia Colada data initial tag')
+export const ENTRY_DATA_INITIAL_TAG: unique symbol = Symbol('Pinia Colada data initial tag')
 
 /**
  * Same as {@link EntryKey} but with a data tag that allows inference of the data type.
@@ -132,7 +132,7 @@ export type EntryKeyTagged<
 export function* find<T extends { key: EntryKey | undefined }>(
   map: Map<string, T>,
   partialKey?: EntryKey,
-) {
+): Generator<T, void, unknown> {
   for (const entry of map.values()) {
     if (!partialKey || (entry.key && isSubsetOf(partialKey, entry.key))) {
       yield entry

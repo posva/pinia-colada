@@ -35,7 +35,7 @@ export function useEventListener(
   }
 }
 
-export const IS_CLIENT = typeof window !== 'undefined'
+export const IS_CLIENT: boolean = typeof window !== 'undefined'
 
 /**
  * Type that represents a value that can be an array or a single value.
@@ -149,7 +149,7 @@ export type _MergeObjects<Obj, MaybeNull> = MaybeNull extends undefined | null |
 /**
  * @internal
  */
-export const noop = () => {}
+export const noop = (): void => {}
 
 /**
  * Wraps a getter to be used as a ref. This is useful when you want to use a getter as a ref but you need to modify the
@@ -195,7 +195,7 @@ const warnedMessages = new Set<string>()
  * @param message - Message to show
  * @param id - Unique id for the message, defaults to the message
  */
-export function warnOnce(message: string, id: string = message) {
+export function warnOnce(message: string, id: string = message): void {
   if (warnedMessages.has(id)) return
   warnedMessages.add(id)
   console.warn(`[@pinia/colada]: ${message}`)

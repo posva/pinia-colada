@@ -104,10 +104,10 @@ function createMockConsoleMethod(method: 'warn' | 'error') {
   })
 }
 
-export function mockWarn() {
+export function mockWarn(): void {
   createMockConsoleMethod('warn')
 }
 
-export function mockConsoleError() {
+export function mockConsoleError(): void {
   createMockConsoleMethod('error')
 }

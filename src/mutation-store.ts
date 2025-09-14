@@ -75,11 +75,26 @@ export type UseMutationEntryFilter = EntryFilter<UseMutationEntry>
 export const MUTATION_STORE_ID = '_pc_mutation'
 
 /**
+ * Type definition for the mutation cache store interface
+ */
+interface MutationCacheStore {
+  caches: any
+  create: any
+  ensure: any
+  ensureDefinedMutation: any
+  mutate: any
+  remove: any
+  setEntryState: any
+  getEntries: any
+  untrack: any
+}
+
+/**
  * Composable to get the cache of the mutations. As any other composable, it
  * can be used inside the `setup` function of a component, within another
  * composable, or in injectable contexts like stores and navigation guards.
  */
-export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, ({ action }) => {
+export const useMutationCache: any = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, ({ action }): MutationCacheStore => {
   // We have two versions of the cache, one that track changes and another that doesn't so the actions can be used
   // inside computed properties
   // We have two versions of the cache, one that track changes and another that doesn't so the actions can be used
@@ -203,13 +218,13 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
    * Ensures a query created with {@link defineMutation} is present in the cache. If it's not, it creates a new one.
    * @param fn - function that defines the query
    */
-  const ensureDefinedMutation = action(<T>(fn: () => T) => {
+  const ensureDefinedMutation = action(<T>(fn: () => T): T => {
     let defineMutationResult = defineMutationMap.get(fn)
     if (!defineMutationResult) {
-      defineMutationMap.set(fn, (defineMutationResult = scope.run(fn)))
+      defineMutationMap.set(fn, (defineMutationResult = scope.run(fn)!))
     }
 
-    return defineMutationResult
+    return defineMutationResult as T
   })
 
   /**
@@ -231,7 +246,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
       entry: UseMutationEntry<TData, TVars, TError, TContext>,
       // NOTE: NoInfer ensures correct inference of TData and TError
       state: DataState<NoInfer<TData>, NoInfer<TError>>,
-    ) => {
+    ): void => {
       entry.state.value = state
       entry.when = Date.now()
     },
@@ -250,7 +265,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
       TContext extends Record<any, any> = _EmptyObject,
     >(
       entry: UseMutationEntry<TData, TVars, TError, TContext>,
-    ) => {
+    ): void => {
       if (entry.keyHash) {
         cachesRaw.delete(entry.keyHash)
         triggerCache()
@@ -291,7 +306,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
       TContext extends Record<any, any> = _EmptyObject,
     >(
       entry: UseMutationEntry<TData, TVars, TError, TContext>,
-    ) => {
+    ): void => {
       // schedule a garbage collection if the entry is not active
       if (entry.gcTimeout) return
 

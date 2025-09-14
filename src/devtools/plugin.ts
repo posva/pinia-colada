@@ -16,7 +16,7 @@ function debounce(fn: () => void, delay: number) {
   }
 }
 
-export function addDevtools(app: App, pinia: Pinia) {
+export function addDevtools(app: App, pinia: Pinia): void {
   const queryCache = useQueryCache(pinia)
 
   setupDevtoolsPlugin(

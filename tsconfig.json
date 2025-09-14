@@ -7,6 +7,9 @@
   "references": [
     {
       "path": "./tsconfig.pinia-colada.json"
+    },
+    {
+      "path": "./tsconfig.others.json"
     }
     // {
     //   "path": "./plugins/retry/tsconfig.json"

@@ -226,10 +226,37 @@ type DefineQueryEntry = [
 ]
 
 /**
+ * Type definition for the query cache store interface
+ */
+interface QueryCacheStore {
+  caches: any
+  ensureDefinedQuery: any
+  _s: any
+  setQueryData: any
+  setQueriesData: any
+  getQueryData: any
+  invalidateQueries: any
+  cancelQueries: any
+  invalidate: any
+  fetch: any
+  refresh: any
+  ensure: any
+  extend: any
+  track: any
+  untrack: any
+  cancel: any
+  create: any
+  remove: any
+  get: any
+  setEntryState: any
+  getEntries: any
+}
+
+/**
  * Composable to get the cache of the queries. As any other composable, it can be used inside the `setup` function of a
  * component, within another composable, or in injectable contexts like stores and navigation guards.
  */
-export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ action }) => {
+export const useQueryCache: any = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ action }): QueryCacheStore => {
   // We have two versions of the cache, one that track changes and another that doesn't so the actions can be used
   // inside computed properties
   const cachesRaw = new Map<string, UseQueryEntry<unknown, unknown, unknown>>()
@@ -319,7 +346,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           ext: START_EXT,
           options,
           get stale() {
-            return !this.options || !this.when || Date.now() >= this.when + this.options.staleTime
+            return !this.options || !this.when || Date.now() >= this.when + (this.options?.staleTime ?? 0)
           },
           get active() {
             return this.deps.size > 0
@@ -976,7 +1003,7 @@ export type _UseQueryEntryNodeValueSerialized<TData = unknown, TError = unknown>
 export function hydrateQueryCache(
   queryCache: QueryCache,
   serializedCache: Record<string, _UseQueryEntryNodeValueSerialized>,
-) {
+): void {
   for (const keyHash in serializedCache) {
     queryCache.caches.set(
       keyHash,

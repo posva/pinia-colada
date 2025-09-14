@@ -1,7 +1,7 @@
 import type { mount } from '@vue/test-utils'
 import type { Mock } from 'vitest'
 
-export const delay = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
+export const delay = (ms: number): Promise<void> => new Promise<void>((r) => setTimeout(r, ms))
 
 export type GlobalMountOptions = NonNullable<Parameters<typeof mount>[1]>['global']
 
@@ -15,7 +15,11 @@ export function isSpy(fn: any): fn is Mock {
   )
 }
 
-export function promiseWithResolvers<T = unknown>() {
+export function promiseWithResolvers<T = unknown>(): {
+  promise: Promise<T>
+  resolve: (value: T | PromiseLike<T>) => void
+  reject: (reason?: any) => void
+} {
   let resolve!: (value: T | PromiseLike<T>) => void
   let reject!: (reason?: any) => void
   // the executor is guaranteed to get executed right away

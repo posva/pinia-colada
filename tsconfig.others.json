@@ -1,13 +1,10 @@
 {
   "extends": "./tsconfig.common.json",
   "compilerOptions": {
-    // "baseUrl": ".",
     "rootDir": ".",
     "paths": {
       "@pinia/colada": ["./src/index.ts"]
-    },
-    "declaration": true,
-    "isolatedDeclarations": true
+    }
   },
-  "include": ["src/**/*"]
+  "include": ["plugins/*/src/**/*", "test-utils/**/*"]
 }
