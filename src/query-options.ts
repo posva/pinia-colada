@@ -2,7 +2,6 @@ import { inject } from 'vue'
 import type { InjectionKey, MaybeRefOrGetter } from 'vue'
 import type { EntryKey } from './entry-keys'
 import type { ErrorDefault } from './types-extension'
-import type { _ignoreRemoveMaybeRef } from './utils'
 
 /**
  * Possible values for `refetchOnMount`, `refetchOnWindowFocus`, and `refetchOnReconnect`.
@@ -85,6 +84,11 @@ export interface UseQueryFnContext {
 }
 
 /**
+ * @internal
+ */
+export declare const tErrorSymbol: unique symbol;
+
+/**
  * Options for `useQuery()`. Can be extended by plugins.
  *
  * @example
@@ -122,7 +126,7 @@ export interface UseQueryOptions<
    *
    * @internal
    */
-  readonly [_ignoreRemoveMaybeRef]?: TError;
+  readonly [tErrorSymbol]?: TError;
 
   /**
    * The key used to identify the query. Array of primitives **without**

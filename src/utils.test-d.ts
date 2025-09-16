@@ -40,6 +40,21 @@ describe('utils', () => {
     }>()
 
     expectTypeOf<
+      _RemoveMaybeRef<
+        {
+          enabled?: MaybeRefOrGetter<boolean>
+          b2?: MaybeRefOrGetter<boolean> | undefined
+          b3: MaybeRefOrGetter<boolean> | undefined
+        },
+        "enabled"
+      >
+    >().toEqualTypeOf<{
+      enabled?: MaybeRefOrGetter<boolean>
+      b2?: boolean | undefined
+      b3: boolean | undefined
+    }>()
+
+    expectTypeOf<
       _RemoveMaybeRef<{
         initialData?: () => string | undefined
       }>
