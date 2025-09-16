@@ -46,7 +46,7 @@ describe('utils', () => {
           b2?: MaybeRefOrGetter<boolean> | undefined
           b3: MaybeRefOrGetter<boolean> | undefined
         },
-        "enabled"
+        'enabled'
       >
     >().toEqualTypeOf<{
       enabled?: MaybeRefOrGetter<boolean>

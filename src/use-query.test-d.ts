@@ -265,43 +265,43 @@ describe('useQuery type inference', () => {
   })
 
   it('correctly infers TError when passed a UseQueryOptions', () => {
-    const options = {} as UseQueryOptions<unknown, MyCustomError>;
+    const options = {} as UseQueryOptions<unknown, MyCustomError>
 
-    const { state, error } = useQuery(options);
-    expectTypeOf<MyCustomError | null>(error.value);
-    expectTypeOf<MyCustomError | null>(state.value.error);
+    const { state, error } = useQuery(options)
+    expectTypeOf<MyCustomError | null>(error.value)
+    expectTypeOf<MyCustomError | null>(state.value.error)
   })
 
   it('correctly infers TError when passed a DefineQueryOptions', () => {
-    const options = {} as DefineQueryOptions<unknown, MyCustomError>;
+    const options = {} as DefineQueryOptions<unknown, MyCustomError>
 
-    const { state, error } = useQuery(options);
-    expectTypeOf<MyCustomError | null>(error.value);
-    expectTypeOf<MyCustomError | null>(state.value.error);
+    const { state, error } = useQuery(options)
+    expectTypeOf<MyCustomError | null>(error.value)
+    expectTypeOf<MyCustomError | null>(state.value.error)
   })
 
   it('correctly infers TError when passed a () => DefineQueryOptions', () => {
-    const options = {} as DefineQueryOptions<unknown, MyCustomError>;
+    const options = {} as DefineQueryOptions<unknown, MyCustomError>
 
-    const { state, error } = useQuery(() => options);
-    expectTypeOf<MyCustomError | null>(error.value);
-    expectTypeOf<MyCustomError | null>(state.value.error);
+    const { state, error } = useQuery(() => options)
+    expectTypeOf<MyCustomError | null>(error.value)
+    expectTypeOf<MyCustomError | null>(state.value.error)
   })
 
   it('correctly infers TError when passed a DefineQueryOptionsTagged', () => {
-    const options = {} as DefineQueryOptionsTagged<unknown, MyCustomError>;
+    const options = {} as DefineQueryOptionsTagged<unknown, MyCustomError>
 
-    const { state, error } = useQuery(options);
-    expectTypeOf<MyCustomError | null>(error.value);
-    expectTypeOf<MyCustomError | null>(state.value.error);
+    const { state, error } = useQuery(options)
+    expectTypeOf<MyCustomError | null>(error.value)
+    expectTypeOf<MyCustomError | null>(state.value.error)
   })
 
   it('correctly infers TError when passed a () => DefineQueryOptionsTagged', () => {
-    const options = {} as DefineQueryOptionsTagged<unknown, MyCustomError>;
+    const options = {} as DefineQueryOptionsTagged<unknown, MyCustomError>
 
-    const { state, error } = useQuery(() => options);
-    expectTypeOf<MyCustomError | null>(error.value);
-    expectTypeOf<MyCustomError | null>(state.value.error);
+    const { state, error } = useQuery(() => options)
+    expectTypeOf<MyCustomError | null>(error.value)
+    expectTypeOf<MyCustomError | null>(state.value.error)
   })
 })
 

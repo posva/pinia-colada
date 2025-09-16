@@ -28,7 +28,7 @@ export type DefineQueryOptions<
   TDataInitial extends TData | undefined = undefined,
 > = _RemoveMaybeRef<
   UseQueryOptions<TData, TError, TDataInitial>,
-  typeof tErrorSymbol | "initialData" | "placeholderData"
+  typeof tErrorSymbol | 'initialData' | 'placeholderData'
 >
 
 /**

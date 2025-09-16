@@ -86,7 +86,7 @@ export interface UseQueryFnContext {
 /**
  * @internal
  */
-export declare const tErrorSymbol: unique symbol;
+export declare const tErrorSymbol: unique symbol
 
 /**
  * Options for `useQuery()`. Can be extended by plugins.
@@ -126,7 +126,7 @@ export interface UseQueryOptions<
    *
    * @internal
    */
-  readonly [tErrorSymbol]?: TError;
+  readonly [tErrorSymbol]?: TError
 
   /**
    * The key used to identify the query. Array of primitives **without**

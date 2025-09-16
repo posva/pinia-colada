@@ -225,5 +225,5 @@ export type _RemoveMaybeRef<T, Ignore extends keyof T = never> = {
     ? T[K]
     : _IsMaybeRefOrGetter<NonNullable<T[K]>> extends true
       ? _UnwrapMaybeRefOrGetter<T[K]>
-      : T[K];
-};
+      : T[K]
+}
