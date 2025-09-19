@@ -63,11 +63,11 @@ const {
   - `error`: the error returned by the query. It's `null` if the query was successful.
   - `status`: the data status of the query. It starts as `'pending'`, and then it changes to `'success'` or `'error'` depending on the outcome of the `query` function:
 
-    | status | data | error |
-    | ------ | ---- | ----- |
-    | `'pending'` | `undefined` | `null` |
-    | `'success'` | _defined_ | `null` |
-    | `'error'` | `undefined` or _defined_ | _defined_ |
+    | status      | data                     | error     |
+    | ----------- | ------------------------ | --------- |
+    | `'pending'` | `undefined`              | `null`    |
+    | `'success'` | _defined_                | `null`    |
+    | `'error'`   | `undefined` or _defined_ | _defined_ |
 
 - `asyncStatus`: the async status of the query. It's either `'idle'` or `'loading'` if the query is currently being fetched.
 - `refresh()`: manually triggers the query.
@@ -137,10 +137,7 @@ import ProductItemDetail from '@/components/ProductItemDetail.vue'
 // a specific product
 const route = useRoute()
 
-const {
-  state: product,
-  asyncStatus,
-} = useQuery({
+const { state: product, asyncStatus } = useQuery({
   // `key` can be made dynamic by providing a function or a reactive property
   key: () => ['products', route.params.id as string],
   query: () => getProductById(route.params.id as string),
@@ -177,11 +174,7 @@ import { patchContact } from '@/api/contacts'
 import type { Contact } from '@/api/contacts'
 import ContactDetail from '@/components/ContactDetail.vue'
 
-const {
-  mutate,
-  state,
-  asyncStatus,
-} = useMutation({
+const { mutate, state, asyncStatus } = useMutation({
   mutation: (contact: Contact) => patchContact(contact),
 })
 </script>
@@ -201,6 +194,7 @@ import ErrorMessage from '@/components/ErrorMessage.vue'
 import LoadingIndicator from '@/components/LoadingIndicator.vue'
 // ---cut-end---
 // @moduleResolution: bundler
+// @errors: 2344
 import { useMutation, useQueryCache } from '@pinia/colada'
 import { patchContact } from '@/api/contacts'
 import type { Contact } from '@/api/contacts'
