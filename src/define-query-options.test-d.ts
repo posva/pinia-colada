@@ -262,7 +262,7 @@ describe('typed query keys', () => {
         query: async () => 42,
         key: ['foo'],
         placeholderData: (n) => {
-          expectTypeOf<number | undefined>(n)
+          expectTypeOf(n).toEqualTypeOf<number | undefined>()
           return n ?? 42
         },
       })
