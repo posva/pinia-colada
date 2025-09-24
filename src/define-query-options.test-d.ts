@@ -257,17 +257,23 @@ describe('typed query keys', () => {
       queryCache.setQueryData(DOCUMENTS_KEYS.byId('1'), { toto: true })
     })
 
+    function onlyTakeNumberOrUndefined(n: number | undefined): number | undefined {
+      return n
+    }
+
     it('types the placeholder data', () => {
       defineQueryOptions({
         query: async () => 42,
         key: ['foo'],
         placeholderData: (n) => {
-          expectTypeOf(n).toEqualTypeOf<number | undefined>()
+          // we need this less strict version because the actual type is T
+          expectTypeOf<number | undefined>(n)
+          expectTypeOf(onlyTakeNumberOrUndefined(n)).toEqualTypeOf<number | undefined>()
           return n ?? 42
         },
       })
     })
-    
+
     it('supports optional params as extra query modifiers', () => {
       const documentsListQuery = defineQueryOptions(
         ({ page = 1, withComments = false }: { page?: number; withComments?: boolean } = {}) => ({

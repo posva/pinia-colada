@@ -121,12 +121,18 @@ describe('defineQuery types', () => {
     } satisfies DefineQueryOptions<string, Error>)
   })
 
+  function onlyTakeNumberOrUndefined(n: number | undefined): number | undefined {
+    return n
+  }
+
   it('types the placeholderData', () => {
     defineQuery({
       query: async () => 42,
       key: ['foo'],
       placeholderData: (n) => {
+        // we need this less strict version because the actual type is T
         expectTypeOf<number | undefined>(n)
+        expectTypeOf(onlyTakeNumberOrUndefined(n)).toEqualTypeOf<number | undefined>()
         return n ?? 42
       },
     })
