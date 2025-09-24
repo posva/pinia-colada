@@ -70,7 +70,6 @@ describe('useQuery type inference', () => {
     })
   })
 
-  const query = async () => 42
   it('allows titeral in keys', () => {
     useQuery({
       key: [
@@ -83,7 +82,7 @@ describe('useQuery type inference', () => {
         [2, 53, '', true, null, [{}, 2, [[]]]],
         { array: [], obj: { o: true } },
       ],
-      query,
+      query: async () => 42,
     })
   })
 
@@ -91,21 +90,22 @@ describe('useQuery type inference', () => {
     useQuery({
       // @ts-expect-error: should fail because Error is not a valid key
       key: [new Error('hey')],
-      query,
+      query: async () => 42,
     })
     useQuery({
       // @ts-expect-error: should fail because Error is not a valid key
       key: [new Date()],
-      query,
+      query: async () => 42,
     })
     useQuery({
       // @ts-expect-error: should fail because Error is not a valid key
       key: [undefined],
-      query,
+      query: async () => 42,
     })
   })
 
   it('allows loosely typed keys', () => {
+    // oxlint-disable-next-line consistent-function-scoping
     const query = async () => 42
     useQuery({
       key: [] as (number | string)[],
@@ -222,8 +222,8 @@ describe('useQuery type inference', () => {
       initialData: () => ({ text: 'init', isInit: true }),
       placeholderData: () => ({ text: 'placeholder' }),
     })
-    expectTypeOf<{ text: string, isInit?: boolean }>(data.value)
-    expectTypeOf<{ text: string, isInit?: boolean }>(state.value.data)
+    expectTypeOf<{ text: string; isInit?: boolean }>(data.value)
+    expectTypeOf<{ text: string; isInit?: boolean }>(state.value.data)
   })
 
   it('allows placeholderData to match initialData', async () => {

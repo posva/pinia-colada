@@ -10,6 +10,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     ILucideCheck: typeof import('~icons/lucide/check')['default']
     ILucideCheckCheck: typeof import('~icons/lucide/check-check')['default']
+    ILucideChevronRight: typeof import('~icons/lucide/chevron-right')['default']
     ILucideCircleSlash: typeof import('~icons/lucide/circle-slash')['default']
     ILucideLoader: typeof import('~icons/lucide/loader')['default']
     ILucideMinimize2: typeof import('~icons/lucide/minimize2')['default']
@@ -23,6 +24,8 @@ declare module 'vue' {
     ILucideTrash: typeof import('~icons/lucide/trash')['default']
     ILucideX: typeof import('~icons/lucide/x')['default']
     ILucideXOctagon: typeof import('~icons/lucide/x-octagon')['default']
+    JsonItem: typeof import('./src/panel/components/editable-json/JsonItem.vue')['default']
+    JsonViewer: typeof import('./src/panel/components/editable-json/JsonViewer.vue')['default']
     ListQueryEntry: typeof import('./src/panel/components/ListQueryEntry.vue')['default']
     PiPContainer: typeof import('./src/panel/components/PiPContainer.vue')['default']
     ResizablePanel: typeof import('./src/panel/components/ResizablePanel.vue')['default']

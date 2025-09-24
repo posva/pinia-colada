@@ -143,6 +143,16 @@ describe('useQuery', () => {
       expect(query).toHaveBeenCalledTimes(1)
     })
 
+    it('fetches the first time with refetchOnMount false and placeholderData', async () => {
+      const { query } = mountSimple({
+        refetchOnMount: false,
+        placeholderData: 24,
+      })
+
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+    })
+
     it('skips initial fetch if initialData is set', async () => {
       const { wrapper, query } = mountSimple({
         initialData: () => 24,
@@ -181,7 +191,7 @@ describe('useQuery', () => {
               key: ['key'],
               query: async () => 'ok',
               initialData: () => 'initial',
-              staleTime: 1_000,
+              staleTime: 1000,
             })
             useQueryResult.refetch()
             return {
@@ -494,7 +504,7 @@ describe('useQuery', () => {
       await flushPromises()
       expect(cache.getQueryData(['key'])).toBe(42)
       wrapper.unmount()
-      vi.advanceTimersByTime(1000000)
+      vi.advanceTimersByTime(1_000_000)
       expect(cache.getQueryData(['key'])).toBe(42)
     })
   })
@@ -679,9 +689,7 @@ describe('useQuery', () => {
           .getEntries({
             key: ['id'],
           })
-          .at(0)
-?.state
-.value,
+          .at(0)?.state.value,
       ).toEqual({
         status: 'pending',
         data: undefined,
@@ -694,9 +702,7 @@ describe('useQuery', () => {
           .getEntries({
             key: ['id'],
           })
-          .at(0)
-?.state
-.value,
+          .at(0)?.state.value,
       ).toEqual({
         status: 'success',
         data: 42,
@@ -833,9 +839,7 @@ describe('useQuery', () => {
       queryCache
         .getEntries({ key: ['key'] })
         .at(0)
-        ?.pending
-?.abortController
-.abort()
+        ?.pending?.abortController.abort()
       vi.advanceTimersByTime(26)
       await flushPromises()
       // expect(wrapper.vm.isPlaceholderData).toBe(true)
@@ -854,7 +858,7 @@ describe('useQuery', () => {
 
   describe('refresh data', () => {
     function mountDynamicKey<
-      TData = { id: number, when: number },
+      TData = { id: number; when: number },
       TError = Error,
       TDataInitial extends TData | undefined = undefined,
     >(
@@ -1175,6 +1179,38 @@ describe('useQuery', () => {
       expect(entry.state.value.data).toBe(undefined)
       expect(wrapper.vm.data).toBe(undefined)
     })
+
+    it('can rfefresh after being aborted with an outside AbortError', async () => {
+      const controller = new AbortController()
+      const { signal } = controller
+      controller.abort()
+      let firstCall = 0
+      const { wrapper } = mountSimple({
+        key: ['key'],
+        async query() {
+          if (!firstCall++) {
+            signal.throwIfAborted()
+          }
+          return 'ok'
+        },
+      })
+
+      await flushPromises()
+
+      expect(wrapper.vm.state).toEqual({
+        data: undefined,
+        error: null,
+        status: 'pending',
+      })
+
+      await wrapper.vm.refresh()
+
+      expect(wrapper.vm.state).toEqual({
+        data: 'ok',
+        error: null,
+        status: 'success',
+      })
+    })
   })
 
   describe('refetchOnWindowFocus', () => {
@@ -1338,6 +1374,23 @@ describe('useQuery', () => {
 
     await flushPromises()
     expect(entry.stale).toBe(false)
+  })
+
+  it('propagates falsy errors', async () => {
+    const { wrapper } = mountSimple({
+      key: ['key'],
+      query: async () => {
+        // While it's a terrible pratcie to throw a literal, the error should propagate
+        // eslint-disable-next-line no-throw-literal
+        throw undefined
+      },
+    })
+
+    await flushPromises()
+
+    expect(wrapper.vm.data).toBe(undefined)
+    expect(wrapper.vm.status).toBe('error')
+    expect(wrapper.vm.error).toBe(undefined)
   })
 
   describe('invalidation', () => {

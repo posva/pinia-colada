@@ -229,7 +229,7 @@ describe('defineQuery', () => {
       })
       const query = vi.fn(async () => ({ name: 'Eduardo', id: routeId.value }))
       const useProfile = defineQuery(() => {
-        return useQuery({ key, query, staleTime: 1_000 })
+        return useQuery({ key, query, staleTime: 1000 })
       })
 
       const ViewComponent = defineComponent({
@@ -273,7 +273,7 @@ describe('defineQuery', () => {
       await flushPromises()
 
       // ensure the query is stale so it refetches
-      vi.advanceTimersByTime(1_001)
+      vi.advanceTimersByTime(1001)
       routeId.value = 1
       await flushPromises()
       expect(query).toHaveBeenCalledTimes(1)
@@ -396,7 +396,7 @@ describe('defineQuery', () => {
       const key = vi.fn(() => ['key', routeId.value])
       const query = vi.fn(async () => routeId.value)
       const useProfile = defineQuery(() => {
-        return useQuery({ key, query, staleTime: 1_000 })
+        return useQuery({ key, query, staleTime: 1000 })
       })
 
       const ViewComponent = defineComponent({
@@ -784,7 +784,7 @@ describe('defineQuery', () => {
         const key = vi.fn(() => ['key', routeId.value])
         const query = vi.fn(async () => routeId.value)
         const useProfile = defineQuery(() => {
-          return useQuery({ key, query, gcTime: 1_000 })
+          return useQuery({ key, query, gcTime: 1000 })
         })
 
         const ViewComponent = defineComponent({
@@ -976,7 +976,7 @@ describe('defineQuery', () => {
     // an extra time during dev than not
     it.todo('does not refetch if the component changes', async () => {
       const query = vi.fn(async () => 42)
-      const useMyQuery = defineQuery({ key: ['id'], query, staleTime: 10000 })
+      const useMyQuery = defineQuery({ key: ['id'], query, staleTime: 10_000 })
       const component = defineComponent({
         render: () => null,
         setup() {
@@ -1000,7 +1000,7 @@ describe('defineQuery', () => {
 
     it('avoids refetching when a query is within a component of v-for', async () => {
       const query = vi.fn(async () => 42)
-      const useMyQuery = defineQuery({ key: ['id'], query, staleTime: 1_000 })
+      const useMyQuery = defineQuery({ key: ['id'], query, staleTime: 1000 })
 
       const ArtworkCard = defineComponent({
         render: () => null,

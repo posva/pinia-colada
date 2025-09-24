@@ -684,10 +684,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           .catch((error) => {
             if (
               pendingCall === entry.pending &&
-              error &&
               // when the error is an abort error, it means the request was cancelled
               // we should just ignore the result of the query but not error
-              error.name !== 'AbortError'
+              error?.name !== 'AbortError'
             ) {
               setEntryState(entry, {
                 status: 'error',
@@ -714,8 +713,10 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
               if (entry.state.value.status !== 'pending') {
                 // reset the placeholder data to free up memory
                 entry.placeholderData = null
+                // if the status is pending, the result was ignored, therefore
+                // we didn't update the cache and `when` must not be updated
+                entry.when = Date.now()
               }
-              entry.when = Date.now()
             }
           }),
         when: Date.now(),

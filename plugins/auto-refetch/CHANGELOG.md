@@ -1,3 +1,21 @@
+## [0.2.2](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-auto-refetch@0.2.1...@pinia/colada-plugin-auto-refetch@0.2.2) (2025-08-27)
+
+### Bug Fixes
+
+- auto refetch use fetch ([734fa72](https://github.com/posva/pinia-colada/commit/734fa725132958aeef7a45328db7ba14cdc8fa98)), closes [#373](https://github.com/posva/pinia-colada/issues/373)
+
+## [0.2.1](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-auto-refetch@0.2.0...@pinia/colada-plugin-auto-refetch@0.2.1) (2025-08-25)
+
+### ⚠ BREAKING CHANGES
+
+- `autoRefetch` no longer accepts Ref and Ref-like
+  values, use the function getter instead. This change enables accessing
+  the state of the query
+
+### Features
+
+- allow custom interval ([9585002](https://github.com/posva/pinia-colada/commit/95850024944023a416ffdb21556ecf924afe620a)), closes [#340](https://github.com/posva/pinia-colada/issues/340)
+
 ## [0.2.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-auto-refetch@0.1.0...@pinia/colada-plugin-auto-refetch@0.2.0) (2025-06-03)
 
 ### Bug Fixes

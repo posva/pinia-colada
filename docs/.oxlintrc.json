@@ -1,0 +1,7 @@
+{
+  "$schema": "../node_modules/oxlint/configuration_schema.json",
+  "rules": {
+    "no-console": "off",
+    "no-control-regex": "off"
+  }
+}

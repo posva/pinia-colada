@@ -103,7 +103,7 @@ const MD_CODE_RE = /`(.*?)`/g
  * @param text - The text to apply styles to
  */
 function applyTextStyles(text: string) {
-  const styles: Array<{ pos: number, style: [string, string] }> = []
+  const styles: Array<{ pos: number; style: [string, string] }> = []
 
   const newText = text
     .replace(MD_BOLD_RE, (_m, text, pos) => {

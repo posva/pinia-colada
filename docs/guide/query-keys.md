@@ -194,7 +194,7 @@ const route = useRoute()
 
 const { state } = useQuery({
   key: () => DOCUMENT_QUERY_KEYS.byId(route.params.docId),
-  query: () => getDocumentById(1),
+  query: () => getDocumentById(route.params.docId),
 })
 
 const queryCache = useQueryCache()
@@ -221,7 +221,7 @@ const docList = queryCache.getQueryData<Doc[]>(['documents', 'list'])
 //
 ```
 
-While this helps with types, it's not only manual but not strict. If we define query options with `defineQueryOptions`, the _key_ will be automatically _tagged_ with type information inferred from `query`, making it easier and stricter to use:
+While this helps with types, it's not only manual but also not strict. If we define query options with `defineQueryOptions`, the _key_ will be automatically _tagged_ with type information inferred from `query`, making it easier and stricter to use:
 
 ```ts{3-6,9} twoslash
 import { useQueryCache, defineQueryOptions } from '@pinia/colada'

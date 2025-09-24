@@ -127,7 +127,7 @@ describe('useMutation type inference', () => {
       onSuccess(_d, _v, context) {
         expectTypeOf(context).not.toBeAny()
         if (context.foo != null) {
-          expectTypeOf(context).toMatchTypeOf<{ foo: string, bar: string }>()
+          expectTypeOf(context).toMatchTypeOf<{ foo: string; bar: string }>()
         } else {
           expectTypeOf<never>(context.foo)
           expectTypeOf<never | undefined | string>(context.bar)
@@ -136,7 +136,7 @@ describe('useMutation type inference', () => {
       onError(_e, _v, context) {
         expectTypeOf(context).not.toBeAny()
         if (context.foo != null) {
-          expectTypeOf(context).toMatchTypeOf<{ foo: string, bar: string }>()
+          expectTypeOf(context).toMatchTypeOf<{ foo: string; bar: string }>()
         } else {
           expectTypeOf<never | undefined>(context.foo)
           expectTypeOf<never | undefined>(context.bar)
@@ -145,7 +145,7 @@ describe('useMutation type inference', () => {
       onSettled(_d, _e, _v, context) {
         expectTypeOf(context).not.toBeAny()
         if (context.foo != null) {
-          expectTypeOf(context).toMatchTypeOf<{ foo: string, bar: string }>()
+          expectTypeOf(context).toMatchTypeOf<{ foo: string; bar: string }>()
         } else {
           expectTypeOf<never | undefined>(context.foo)
           expectTypeOf<never | undefined>(context.bar)

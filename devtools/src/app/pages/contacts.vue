@@ -14,20 +14,16 @@ async function prefetchContact(id: number) {
 
 <template>
   <main class="big-layout">
-    <h1 class="mb-12">
-      📇 My Contacts
-    </h1>
+    <h1 class="mb-12">📇 My Contacts</h1>
 
     <div>
-      <button @click="prefetchContact(2)">
-        Prefetch Contact 2
-      </button>
+      <button @click="prefetchContact(2)">Prefetch Contact 2</button>
     </div>
 
     <div class="gap-4 contacts-search md:flex">
       <div>
         <form class="space-x-2" @submit.prevent>
-          <input v-model="searchText" autofocus type="search" placeholder="Eduardo">
+          <input v-model="searchText" autofocus type="search" placeholder="Eduardo" />
           <div v-if="asyncStatus === 'loading'">
             <span class="spinner" /><span> Fetching...</span>
           </div>
@@ -40,7 +36,7 @@ async function prefetchContact(id: number) {
                 v-if="contact.photoURL"
                 :src="contact.photoURL"
                 class="inline-block w-8 rounded-full"
-              >
+              />
               {{ contact.firstName }} {{ contact.lastName }}
             </router-link>
           </li>

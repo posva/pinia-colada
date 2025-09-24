@@ -20,7 +20,7 @@ describe('useQueryState type inference', () => {
     })
 
     const { data } = useQueryState(itemQuery.key)
-    expectTypeOf(data.value).toEqualTypeOf<{ id: number, name: string } | undefined>()
+    expectTypeOf(data.value).toEqualTypeOf<{ id: number; name: string } | undefined>()
   })
 
   it('works with defineQueryOptions dynamic variant', () => {
@@ -30,7 +30,7 @@ describe('useQueryState type inference', () => {
     }))
 
     const { data } = useQueryState(itemQuery, () => 1)
-    expectTypeOf(data.value).toEqualTypeOf<{ id: number, name: string } | undefined>()
+    expectTypeOf(data.value).toEqualTypeOf<{ id: number; name: string } | undefined>()
   })
 
   it('returns correct types for all properties', () => {

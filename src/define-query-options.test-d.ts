@@ -96,7 +96,7 @@ describe('typed query keys', () => {
       }
 
       defineQueryOptions(
-        ({ id, withComments = false }: { id: string, withComments?: boolean }) => ({
+        ({ id, withComments = false }: { id: string; withComments?: boolean }) => ({
           key: DOCUMENT_QUERY_KEYS.byIdWithComments(id, withComments),
           query: async () => [2],
         }),
@@ -266,6 +266,63 @@ describe('typed query keys', () => {
           return n ?? 42
         },
       })
+    })
+    
+    it('supports optional params as extra query modifiers', () => {
+      const documentsListQuery = defineQueryOptions(
+        ({ page = 1, withComments = false }: { page?: number; withComments?: boolean } = {}) => ({
+          key: ['documents', page, { comments: withComments }],
+          query: async () => ({
+            page,
+            withComments,
+            list: [] as { id: string; title: string; hasComments: boolean }[],
+          }),
+        }),
+      )
+
+      const r0 = useQuery(documentsListQuery())
+      expectTypeOf(r0.data.value).toEqualTypeOf<
+        | {
+            page: number
+            withComments: boolean
+            list: { id: string; title: string; hasComments: boolean }[]
+          }
+        | undefined
+      >()
+
+      // can also be not called
+      const r1 = useQuery(documentsListQuery)
+      expectTypeOf(r1).toEqualTypeOf(r0)
+
+      const r2 = useQuery(documentsListQuery, () => ({ page: 2, withComments: true }))
+      expectTypeOf(r2.data.value).toEqualTypeOf<
+        | {
+            page: number
+            withComments: boolean
+            list: { id: string; title: string; hasComments: boolean }[]
+          }
+        | undefined
+      >()
+
+      const queryCache = useQueryCache()
+      expectTypeOf(
+        queryCache.getQueryData(documentsListQuery({ page: 3, withComments: true }).key),
+      ).toEqualTypeOf<
+        | {
+            page: number
+            withComments: boolean
+            list: { id: string; title: string; hasComments: boolean }[]
+          }
+        | undefined
+      >()
+      expectTypeOf(queryCache.getQueryData(documentsListQuery().key)).toEqualTypeOf<
+        | {
+            page: number
+            withComments: boolean
+            list: { id: string; title: string; hasComments: boolean }[]
+          }
+        | undefined
+      >()
     })
   })
 })

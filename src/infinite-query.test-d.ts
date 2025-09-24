@@ -6,7 +6,7 @@ describe('useInfiniteQuery', () => {
     const query = useInfiniteQuery({
       key: ['hey'],
       async query({ next }, { signal }) {
-        console.log('isAborted', signal.aborted)
+        expectTypeOf(signal).toEqualTypeOf<AbortSignal>()
         return [{ next }]
       },
       initialPage: () => ({

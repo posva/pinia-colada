@@ -21,7 +21,8 @@ export function toCacheKey(key: EntryKey | undefined): string | undefined {
             .reduce((result, key) => {
               result[key] = val[key]
               return result
-            }, {} as any))
+            }, {} as any),
+    )
   )
 }
 

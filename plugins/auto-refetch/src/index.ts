@@ -11,9 +11,9 @@ import {
   type PiniaColadaPlugin,
   type UseQueryEntry,
   type UseQueryOptions,
+  type DataState,
 } from '@pinia/colada'
 import { toValue } from 'vue'
-import type { DataState } from '@pinia/colada'
 
 /**
  * Options for the auto-refetch plugin.
@@ -66,18 +66,15 @@ export function PiniaColadaAutoRefetch(
       // Always clear existing timeout first
       clearTimeout(entry.ext[REFETCH_TIMEOUT_KEY])
 
-      // Determine the interval to use
-      const interval = delayMs ?? options.staleTime
-
       // Schedule next refetch
       const timeout = setTimeout(() => {
         const entry: UseQueryEntry | undefined = queryCache.getEntries({
           key: toValue(options.key),
         })?.[0]
         if (entry?.active) {
-          queryCache.refresh(entry).catch(console.error)
+          queryCache.fetch(entry).catch(console.error)
         }
-      }, interval)
+      }, delayMs)
 
       entry.ext[REFETCH_TIMEOUT_KEY] = timeout
     }
@@ -88,7 +85,6 @@ export function PiniaColadaAutoRefetch(
        * Returns { shouldSchedule: boolean, interval?: number }
        */
       function shouldScheduleRefetch(
-        // TODO: should be undefined
         entry: UseQueryEntry<unknown, unknown, unknown>,
         options: UseQueryOptions<unknown, unknown, unknown>,
       ): number | false {
