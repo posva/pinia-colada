@@ -1,6 +1,6 @@
 import { getCurrentInstance, getCurrentScope, onScopeDispose, toValue } from 'vue'
 import type { EffectScope } from 'vue'
-import type { UseQueryOptions } from './query-options'
+import type { tErrorSymbol, UseQueryOptions } from './query-options'
 import { useQueryCache } from './query-store'
 import type { ErrorDefault } from './types-extension'
 import type { UseQueryReturn } from './use-query'
@@ -26,35 +26,10 @@ export type DefineQueryOptions<
   TData = unknown,
   TError = ErrorDefault,
   TDataInitial extends TData | undefined = undefined,
-> = Omit<_RemoveMaybeRef<UseQueryOptions<TData, TError, TDataInitial>>, 'initialData' | 'placeholderData'> & {
-  // NOTE: we need to duplicate the types for initialData and placeholderData to make everything work
-
-  /**
-   * The data which is initially set to the query while the query is loading
-   * for the first time. Note: unlike with {@link placeholderData}, setting the
-   * initial data changes the state of the query (it will be set to `success`).
-   *
-   * @see {@link placeholderData}
-   */
-  initialData?: () => TDataInitial
-
-  /**
-   * A placeholder data that is initially shown while the query is loading for
-   * the first time. This will also show the `status` as `success` until the
-   * query finishes loading (no matter the outcome of the query). Note: unlike
-   * with {@link initialData}, the placeholder does not change the cache state.
-   *
-   * @see {@link initialData}
-   */
-  placeholderData?:
-    | NoInfer<TDataInitial>
-    | NoInfer<TData>
-    // NOTE: the generic here allows to make UseQueryOptions<T> assignable to UseQueryOptions<unknown>
-    // https://www.typescriptlang.org/play/?#code/JYOwLgpgTgZghgYwgAgPIAczAPYgM4A8AKsgLzICuIA1iNgO4gB8yA3gFDLICOAXMgAoAlGRYAFKNgC2wPBGJNOydAH5eSrgHpNyABZwAbqADmyMLpRwoxilIjhkAIygQ41PMmBgNyAD6CBdBcjbAo8ABE4MDh+ADlsAEkQGGgFP0oQABMIGFAITJFSFniklKgFIR9tZCJdWWQDaDwcEGR6bCh3Kp1-AWISCAAPSCyPIiZA4JwwyOj+IhJ-KmzckHzCliJKgF92dlBIWEQUAFFwKABPYjIM2gZmNiVsTBa8fgwsXEJx9JAKABt-uxduwYFQEJ9WggAPr2MCXBQCZ6Qt5oF5fNL+P6AoT8M7wq4-DhcFxgChQVqsZDI17IXa7BBfMDIDzkNb0ZAAZQgYAI+MuE0qeAAdHBMpkBDC4ZcBMSuDx+HA8BcQAhBBtkAAWABMABofOh+AIQBrWgBCNkA-7IFTIVoAKmQ2uQ-E1wKElSAA
-    | (<T extends TData>(
-        previousData: T | undefined,
-      ) => NoInfer<TDataInitial> | NoInfer<TData> | undefined)
-}
+> = _RemoveMaybeRef<
+  UseQueryOptions<TData, TError, TDataInitial>,
+  typeof tErrorSymbol | 'initialData' | 'placeholderData'
+>
 
 /**
  * Define a query with the given options. Similar to `useQuery(options)` but

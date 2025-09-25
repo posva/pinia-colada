@@ -84,6 +84,13 @@ export interface UseQueryFnContext {
 }
 
 /**
+ * Type-only symbol to keep the type
+ *
+ * @internal
+ */
+export declare const tErrorSymbol: unique symbol
+
+/**
  * Options for `useQuery()`. Can be extended by plugins.
  *
  * @example
@@ -163,6 +170,16 @@ export interface UseQueryOptions<
     | (<T extends TData>(
         previousData: T | undefined,
       ) => NoInfer<TDataInitial> | NoInfer<TData> | undefined)
+
+  /**
+   * Ghost property to ensure TError generic parameter is included in the
+   * interface structure. This property should never be used directly and is
+   * only for type system correctness. it could be removed in the future if the
+   * type can be inferred in any other way.
+   *
+   * @internal
+   */
+  readonly [tErrorSymbol]?: TError
 }
 
 /**
