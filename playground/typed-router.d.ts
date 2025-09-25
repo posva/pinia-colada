@@ -41,4 +41,116 @@ declare module 'vue-router/auto-routes' {
     '/warnings/usage-one-[contactId]': RouteRecordInfo<'/warnings/usage-one-[contactId]', '/warnings/usage-one-:contactId', { contactId: ParamValue<true> }, { contactId: ParamValue<false> }>,
     '/warnings/usage-two-[contactId]': RouteRecordInfo<'/warnings/usage-two-[contactId]', '/warnings/usage-two-:contactId', { contactId: ParamValue<true> }, { contactId: ParamValue<false> }>,
   }
+
+  /**
+   * Route file to route info map by unplugin-vue-router.
+   * Used by the volar plugin to automatically type useRoute()
+   *
+   * Each key is a file path relative to the project root with 2 properties:
+   * - routes: union of route names of the possible routes when in this page (passed to useRoute<...>())
+   * - views: names of nested views (can be passed to <RouterView name="...">)
+   *
+   * @internal
+   */
+  export interface _RouteFileInfoMap {
+    'src/pages/(home).vue': {
+      routes: '/(home)'
+      views: never
+    }
+    'src/pages/bug-reports/(bug-reports).vue': {
+      routes: '/bug-reports/(bug-reports)'
+      views: never
+    }
+    'src/pages/bug-reports/issue-154.vue': {
+      routes: '/bug-reports/issue-154'
+      views: never
+    }
+    'src/pages/bug-reports/issue-155.vue': {
+      routes: '/bug-reports/issue-155'
+      views: never
+    }
+    'src/pages/bug-reports/issue-174.vue': {
+      routes: '/bug-reports/issue-174' | '/bug-reports/issue-174/[slug]'
+      views: 'default'
+    }
+    'src/pages/bug-reports/issue-174/[slug].vue': {
+      routes: '/bug-reports/issue-174/[slug]'
+      views: never
+    }
+    'src/pages/bug-reports/issue-267.vue': {
+      routes: '/bug-reports/issue-267'
+      views: never
+    }
+    'src/pages/bug-reports/issue-290.vue': {
+      routes: '/bug-reports/issue-290'
+      views: never
+    }
+    'src/pages/cat-facts.vue': {
+      routes: '/cat-facts'
+      views: never
+    }
+    'src/pages/contacts.vue': {
+      routes: '/contacts' | '/contacts/[id]'
+      views: 'default'
+    }
+    'src/pages/contacts/[id].vue': {
+      routes: '/contacts/[id]'
+      views: never
+    }
+    'src/pages/ecom/index.vue': {
+      routes: '/ecom/'
+      views: never
+    }
+    'src/pages/ecom/item/[id].vue': {
+      routes: '/ecom/item/[id]'
+      views: never
+    }
+    'src/pages/hmr-tests/(hmr-tests).vue': {
+      routes: '/hmr-tests/(hmr-tests)'
+      views: never
+    }
+    'src/pages/hmr-tests/defined-query.vue': {
+      routes: '/hmr-tests/defined-query'
+      views: never
+    }
+    'src/pages/hmr-tests/local-use-query.vue': {
+      routes: '/hmr-tests/local-use-query'
+      views: never
+    }
+    'src/pages/suspense/contacts.vue': {
+      routes: '/suspense/contacts' | '/suspense/contacts/[id]'
+      views: 'default'
+    }
+    'src/pages/suspense/contacts/[id].vue': {
+      routes: '/suspense/contacts/[id]'
+      views: never
+    }
+    'src/pages/warnings/(warnings).vue': {
+      routes: '/warnings/(warnings)'
+      views: never
+    }
+    'src/pages/warnings/duped-[contactId].vue': {
+      routes: '/warnings/duped-[contactId]'
+      views: never
+    }
+    'src/pages/warnings/usage-one-[contactId].vue': {
+      routes: '/warnings/usage-one-[contactId]'
+      views: never
+    }
+    'src/pages/warnings/usage-two-[contactId].vue': {
+      routes: '/warnings/usage-two-[contactId]'
+      views: never
+    }
+  }
+
+  /**
+   * Get a union of possible route names in a certain route component file.
+   * Used by the volar plugin to automatically type useRoute()
+   *
+   * @internal
+   */
+  export type _RouteNamesForFilePath<FilePath extends string> =
+    _RouteFileInfoMap extends Record<FilePath, infer Info>
+      ? Info['routes']
+      : keyof RouteNamedMap
 }
