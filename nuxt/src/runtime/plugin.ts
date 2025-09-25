@@ -23,6 +23,10 @@ export default defineNuxtPlugin({
       nuxtApp.hook('app:rendered', ({ ssrContext }) => {
         if (ssrContext) {
           ssrContext.payload.pinia_colada = markRaw(serializeQueryCache(queryCache))
+          // FIXME: there is a bug between pinia and nuxt that makes skipSerialize not work:
+          // it seems both mjs and cjs are included when doing a generate. This doesn't happen
+          // in SSR. Clearing the cache after serialization avoids it being serialized twice, which
+          // fails because query options are not serializable
           queryCache.caches.clear()
         }
       })
