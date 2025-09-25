@@ -23,9 +23,11 @@ export default defineNuxtPlugin({
       nuxtApp.hook('app:rendered', ({ ssrContext }) => {
         if (ssrContext) {
           ssrContext.payload.pinia_colada = markRaw(serializeQueryCache(queryCache))
+          queryCache.caches.clear()
         }
       })
-    } else if (nuxtApp.payload && nuxtApp.payload.pinia_colada) {
+    }
+    else if (nuxtApp.payload && nuxtApp.payload.pinia_colada) {
       // we are inside of an injectable context so `useQueryCache()` works
       hydrateQueryCache(queryCache, nuxtApp.payload.pinia_colada)
     }
