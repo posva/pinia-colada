@@ -1,3 +1,9 @@
+## [0.2.3](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.2.2...@pinia/colada-nuxt@0.2.3) (2025-09-25)
+
+### Bug Fixes
+
+- prevent internal cache store serialization ([#393](https://github.com/posva/pinia-colada/issues/393)) ([4f3b952](https://github.com/posva/pinia-colada/commit/4f3b95226e5ff14c2df0c87f3cc08061ae76db51))
+
 ## [0.2.2](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.2.1...@pinia/colada-nuxt@0.2.2) (2025-08-25)
 
 ### Features

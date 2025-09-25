@@ -1,3 +1,10 @@
+## [0.17.6](https://github.com/posva/pinia-colada/compare/v0.17.5...v0.17.6) (2025-09-25)
+
+### Bug Fixes
+
+- Improve type of `DefineQueryOptions` ([#388](https://github.com/posva/pinia-colada/issues/388)) ([22297f0](https://github.com/posva/pinia-colada/commit/22297f089c4d7237a2fcfc10f8598ca2bc34477f))
+- make type inference of DefineQueryOptions.placeholderData correct ([#343](https://github.com/posva/pinia-colada/issues/343)) ([7da95dd](https://github.com/posva/pinia-colada/commit/7da95dd6201be2e2bd51749616430a84a7fbd83e))
+
 ## [0.17.5](https://github.com/posva/pinia-colada/compare/v0.17.4...v0.17.5) (2025-09-11)
 
 ### Features
