@@ -136,7 +136,7 @@
     "conventional-changelog-cli": "^4.1.0",
     "execa": "^9.6.0",
     "globby": "^14.1.0",
-    "happy-dom": "^18.0.1",
+    "happy-dom": "^19.0.1",
     "lint-staged": "^16.2.0",
     "minimist": "^1.2.8",
     "oxlint": "^1.18.0",
