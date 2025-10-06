@@ -76,18 +76,159 @@ Most of the time you will find yourself using just `state` and `asyncStatus` to 
 
 - `asyncStatus`: the async status of the query. It's either `'idle'` or `'loading'` if the query is currently being fetched.
 
-  ::: details `state.status`/`status` vs `asyncStatus` ?
-
-  `state.status` (and `status`) is the status of the data itself, while `asyncStatus` is the status of the query call. The query `asyncStatus` is `'idle'` when the query is not fetching and `'loading'` when the query is fetching. While the `state.status` starts as `'pending'` and then becomes `'success'` if the query is successful, and `'error'` if the query fails.
-
-  Technically, these two states could be combined into a single one but having them separate allows you to have more control over the UI and the logic of your application. For example, you might want to show a different loading message if the query is _pending_ (it hasn't ever resolved or rejected) or if it's _loading_ (it's currently fetching data independently from the current `state`).
-
-  :::
-
 - `refresh()`: manually triggers the query, deduplicates requests, and reuses the cached data if it's still fresh.
 - `refetch()`: manually triggers the query, ignoring the cache, and fetching the data again.
 - `data`, `error`, `status`: are aliases for the properties in `state` for convenience and facilitating migration. `state` allows for [type narrowing in TypeScript](#typescript-narrowing-data-and-errors-type-with-status) but depending on your template usage, you might not need it so we simply provide both approaches for convenience.
 - _For everything else, hover over the different properties in the code block above to see their types and documentation_ 😁.
+
+## Understanding Query Status vs Async Status
+
+One of the key features that makes Pinia Colada powerful is the distinction between **data status** (`status`) and **async status** (`asyncStatus`). Understanding this difference is crucial for building great user experiences.
+
+### Data Status (`status`)
+
+The `status` property tells you about the **state of your data**:
+
+- `'pending'`: The query hasn't resolved yet (no data available)
+- `'success'`: The query has successfully resolved (data is available)
+- `'error'`: The query has failed (error is available, data may or may not be available)
+
+### Async Status (`asyncStatus`)
+
+The `asyncStatus` property tells you about the **current fetch operation**:
+
+- `'idle'`: No fetch operation is currently in progress
+- `'loading'`: A fetch operation is currently running
+
+### Why Two Separate Statuses?
+
+Having separate statuses enables powerful UX patterns like **"stale while revalidate"**. Consider these scenarios:
+
+1. **Initial Load**: `status: 'pending'` + `asyncStatus: 'loading'`
+2. **Data Available**: `status: 'success'` + `asyncStatus: 'idle'`
+3. **Refreshing Existing Data**: `status: 'success'` + `asyncStatus: 'loading'`
+4. **Background Refetch**: `status: 'success'` + `asyncStatus: 'loading'`
+
+### Practical Examples
+
+Here are common UI patterns you can implement:
+
+```vue
+<script setup lang="ts">
+import { useQuery } from '@pinia/colada'
+
+const { state, asyncStatus, refresh } = useQuery({
+  key: ['users'],
+  query: () => fetch('/api/users').then((res) => res.json()),
+})
+</script>
+
+<template>
+  <div>
+    <!-- Show initial loading spinner only when there's no data yet -->
+    <div v-if="state.status === 'pending'" class="loading-spinner">
+      Loading users for the first time...
+    </div>
+
+    <!-- Show error state -->
+    <div v-else-if="state.status === 'error'" class="error">
+      Failed to load users: {{ state.error.message }}
+      <button @click="refresh()">
+        Retry
+      </button>
+    </div>
+
+    <!-- Show data with optional refresh indicator -->
+    <div v-else-if="state.data">
+      <!-- Small loading indicator when refreshing existing data -->
+      <div v-if="asyncStatus === 'loading'" class="refresh-indicator">
+        🔄 Refreshing...
+      </div>
+
+      <ul>
+        <li v-for="user in state.data" :key="user.id">
+          {{ user.name }}
+        </li>
+      </ul>
+    </div>
+  </div>
+</template>
+```
+
+### Advanced UI States
+
+You can combine both statuses for more sophisticated UX:
+
+```vue
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useQuery } from '@pinia/colada'
+
+const { state, asyncStatus } = useQuery({
+  key: ['products'],
+  query: () => fetch('/api/products').then((res) => res.json()),
+})
+
+// Derive meaningful UI states
+const uiState = computed(() => {
+  if (state.value.status === 'pending' && asyncStatus.value === 'loading') {
+    return 'initial-loading'
+  }
+  if (state.value.status === 'success' && asyncStatus.value === 'loading') {
+    return 'refreshing'
+  }
+  if (state.value.status === 'success' && asyncStatus.value === 'idle') {
+    return 'success'
+  }
+  if (state.value.status === 'error') {
+    return 'error'
+  }
+  return 'idle'
+})
+</script>
+
+<template>
+  <div>
+    <!-- Different loading states -->
+    <div v-if="uiState === 'initial-loading'" class="skeleton-loader">
+      <!-- Skeleton loading animation -->
+    </div>
+
+    <div v-else-if="uiState === 'refreshing'" class="with-refresh">
+      <!-- Show existing data with subtle refresh indicator -->
+      <ProductList :products="state.data" />
+      <div class="refresh-bar">
+        Updating products...
+      </div>
+    </div>
+
+    <div v-else-if="uiState === 'success'">
+      <ProductList :products="state.data" />
+    </div>
+
+    <div v-else-if="uiState === 'error'">
+      <ErrorMessage :error="state.error" />
+    </div>
+  </div>
+</template>
+```
+
+### When to Use Which Status
+
+**Use `status` when you need to know about the data:**
+- Deciding whether to show data, error, or loading states
+- Type narrowing in TypeScript (with `state`)
+- Determining if data is available for business logic
+
+**Use `asyncStatus` when you need to know about ongoing operations:**
+- Showing loading spinners or refresh indicators
+- Disabling buttons during fetch operations
+- Implementing optimistic UI patterns
+
+**Use both together for advanced UX:**
+- Stale-while-revalidate patterns
+- Different loading states (initial vs refresh)
+- Complex loading indicators
 
 ## Using External Properties in Queries
 
