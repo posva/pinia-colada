@@ -12,7 +12,7 @@ export type {
   DataStateStatus,
 } from './data-state'
 
-export type { EntryKey, EntryKeyTagged, toCacheKey } from './entry-keys'
+export { type EntryKey, type EntryKeyTagged, toCacheKey } from './entry-keys'
 
 export { defineQueryOptions, type DefineQueryOptionsTagged } from './define-query-options'
 
