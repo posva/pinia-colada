@@ -143,7 +143,7 @@ export interface UseMutationOptions<
    *     console.log(foo) // bar
    *     return fetch(`/api/todos/${id}`)
    *   },
-   *   onSuccess(context) {
+   *   onSuccess(data, vars, context) {
    *     console.log(context.foo) // bar
    *   },
    * })
