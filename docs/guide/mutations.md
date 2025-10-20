@@ -61,7 +61,7 @@ const {
 
 Using mutations allows us to easily keep the changed data up to date. We have multiple strategies to do so:
 
-- [Invalidate queries](./query-invalidation.md#invalidation-via-mutations) that depend on the data that was changed.
+- [Invalidate queries](./query-invalidation.md#Invalidation-in-Mutation-Hooks) that depend on the data that was changed.
 - [Optimistic updates](./optimistic-updates.md) to update the UI before the mutation is completed.
 
 ## Reusable mutations
