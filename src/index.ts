@@ -55,6 +55,14 @@ export { defineMutation } from './define-mutation'
 export type { UseMutationReturn } from './use-mutation'
 export { useMutation } from './use-mutation'
 
+export { useMutationState, type UseMutationStateReturn, type UseMutationStateOptions, type MutationFilters } from './use-mutation-state'
+
+export {
+  useMutationCache,
+  type UseMutationEntry,
+  type UseMutationEntryFilter,
+} from './mutation-store'
+
 export { PiniaColada } from './pinia-colada'
 export type { PiniaColadaOptions } from './pinia-colada'
 
