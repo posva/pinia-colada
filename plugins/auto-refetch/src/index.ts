@@ -68,9 +68,6 @@ export function PiniaColadaAutoRefetch(
 
       // Schedule next refetch
       const timeout = setTimeout(() => {
-        const entry: UseQueryEntry | undefined = queryCache.getEntries({
-          key: toValue(options.key),
-        })?.[0]
         if (entry?.active) {
           queryCache.fetch(entry).catch(console.error)
         }
@@ -99,6 +96,10 @@ export function PiniaColadaAutoRefetch(
       if (name === 'ensure') {
         const [options] = args
         after((entry) => {
+          if (!toValue(options.enabled)) {
+            clearTimeout(entry.ext[REFETCH_TIMEOUT_KEY])
+            return
+          }
           const interval = shouldScheduleRefetch(entry, options)
           if (interval) {
             scheduleRefetch(entry, options, interval)
