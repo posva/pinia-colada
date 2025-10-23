@@ -28,13 +28,14 @@
     "test:types": "vue-tsc --noEmit && cd playground && vue-tsc --noEmit"
   },
   "dependencies": {
-    "@nuxt/kit": "^4.1.2",
-    "defu": "^6.1.4"
+    
   },
   "peerDependencies": {
     "@pinia/colada": "workspace:>="
   },
   "devDependencies": {
+    "@nuxt/kit": "^4.1.2",
+    "defu": "^6.1.4",
     "@nuxt/devtools": "^2.6.5",
     "@nuxt/eslint-config": "^1.9.0",
     "@nuxt/module-builder": "1.0.2",
