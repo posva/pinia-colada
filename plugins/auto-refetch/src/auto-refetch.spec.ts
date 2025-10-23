@@ -229,6 +229,38 @@ describe('Auto Refetch plugin', () => {
     expect(query).toHaveBeenCalledTimes(2)
   })
 
+  it('resets the timer when query key changes', async () => {
+    const key = ref(['test', 1])
+    const { query } = mountQuery({
+      key,
+      staleTime: 1000,
+    })
+
+    // Wait for initial query
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(1)
+
+    // Advance time partially (500ms)
+    vi.advanceTimersByTime(500)
+
+    // Change the key - this should trigger a new fetch and reset the timer
+    key.value = ['test', 2]
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(2)
+
+    // Advance time to surpass the original timer (700ms more = 1200ms total from first fetch)
+    vi.advanceTimersByTime(700)
+    await flushPromises()
+    // Should not have triggered another request yet because timer was reset
+    expect(query).toHaveBeenCalledTimes(2)
+
+    // Advance to complete the new stale time (300ms more = 1000ms from key change)
+    vi.advanceTimersByTime(300)
+    await flushPromises()
+    // Now it should have triggered the auto-refetch
+    expect(query).toHaveBeenCalledTimes(3)
+  })
+
   describe('custom interval', () => {
     it('supports number-based autoRefetch intervals', async () => {
       const { query } = mountQuery({
