@@ -1,7 +1,12 @@
 import { fileURLToPath } from 'node:url'
 
 export default defineNuxtConfig({
-  modules: ['@pinia/nuxt', '../src/module'],
+  modules: [
+    '@pinia/nuxt',
+    '../src/module',
+    // Demo module that uses setDefaultPiniaColadaOptions()
+    './modules/demo-module',
+  ],
   devtools: {
     enabled: true,
   },

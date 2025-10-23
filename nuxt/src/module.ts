@@ -5,7 +5,6 @@ import { addImports, addPlugin, addTemplate, createResolver, defineNuxtModule } 
 export default defineNuxtModule<never>({
   meta: {
     name: 'pinia-colada',
-    // NOTE: there is no config in nuxtConfig
     configKey: 'colada',
     compatibility: {
       nuxt: '^3.17.7 || ^4.0.0',
@@ -35,14 +34,18 @@ export default defineNuxtModule<never>({
       opts.references.push({ path: resolve('./types/build.d.ts') })
     })
 
+    // Check for root-level colada.options file
+    const hasRootOptionsFile = existsSync(coladaOptionsPath + '.ts') || existsSync(coladaOptionsPath + '.js')
+
+    // Generate a simple template that exports the options file if it exists
     addTemplate({
       filename: 'colada.options.mjs',
       getContents() {
-        if (!existsSync(coladaOptionsPath + '.ts') && !existsSync(coladaOptionsPath + '.js')) {
+        if (!hasRootOptionsFile) {
           return 'export default {}'
         }
 
-        return `export { default as default } from "${coladaOptionsPath}";`
+        return `export { default } from "${coladaOptionsPath}";`
       },
     })
 

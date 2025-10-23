@@ -55,7 +55,12 @@ export { defineMutation } from './define-mutation'
 export type { UseMutationReturn } from './use-mutation'
 export { useMutation } from './use-mutation'
 
-export { PiniaColada } from './pinia-colada'
+export {
+  PiniaColada,
+  setDefaultPiniaColadaOptions,
+  getDefaultPiniaColadaOptions,
+  resetDefaultPiniaColadaOptions,
+} from './pinia-colada'
 export type { PiniaColadaOptions } from './pinia-colada'
 
 export {
