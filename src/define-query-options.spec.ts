@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineQueryOptions } from './define-query-options'
 import { flushPromises, mount } from '@vue/test-utils'
 import { ref } from 'vue'
@@ -6,8 +6,13 @@ import { createPinia } from 'pinia'
 import { PiniaColada } from './pinia-colada'
 import { useQuery } from './use-query'
 import { useQueryCache } from './query-store'
+import { delay } from '../test-utils'
 
 describe('defineQueryOptions', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+
   it('can describe static options', () => {
     const query = async () => 42
     const optsStatic = defineQueryOptions({ key: ['a'], query })
@@ -120,6 +125,86 @@ describe('defineQueryOptions', () => {
       expect(wrapper.text()).toBe('data:1 (1)')
       // it was refetched correctly
       expect(queryCache.getQueryData(['a', 0])).toBe('data:0 (1)')
+    })
+  })
+
+  describe('abort signal', () => {
+    it('aborts the signal if the query is not active anymore (key changes)', async () => {
+      const opts = defineQueryOptions((id: number) => ({
+        key: ['key', id],
+        async query({ signal }) {
+          await delay(100)
+          if (signal.aborted) {
+            return 'ok:' + id
+          }
+          return 'ko:' + id
+        },
+      }))
+
+      const id = ref(1)
+      const wrapper = mount(
+        {
+          setup() {
+            return {
+              ...useQuery(opts, id),
+            }
+          },
+          template: `<div>{{ data }}</div>`,
+        },
+        {
+          global: {
+            plugins: [createPinia(), PiniaColada],
+          },
+        },
+      )
+
+      await flushPromises()
+      expect(wrapper.vm.data).toBe(undefined)
+      id.value = 2
+      // we advance before letting the new query trigger
+      vi.advanceTimersByTime(100)
+      await flushPromises()
+      const queryCache = useQueryCache()
+      expect(queryCache.getQueryData(['key', 1])).toBe('ok:1')
+      expect(queryCache.getQueryData(['key', 2])).toBe(undefined)
+    })
+
+    it('aborts the signal if the query is not active anymore (unmount)', async () => {
+      const opts = defineQueryOptions({
+        key: ['key'],
+        async query({ signal }) {
+          await delay(100)
+          if (signal.aborted) {
+            return 'ok'
+          }
+          return 'ko'
+        },
+      })
+
+      const wrapper = mount(
+        {
+          setup() {
+            return {
+              ...useQuery(opts),
+            }
+          },
+          template: `<div>{{ data }}</div>`,
+        },
+        {
+          global: {
+            plugins: [createPinia(), PiniaColada],
+          },
+        },
+      )
+
+      await flushPromises()
+      expect(wrapper.vm.data).toBe(undefined)
+      wrapper.unmount()
+      // we advance before letting the new query trigger
+      vi.advanceTimersByTime(100)
+      await flushPromises()
+      const queryCache = useQueryCache()
+      expect(queryCache.getQueryData(['key'])).toBe('ok')
     })
   })
 })

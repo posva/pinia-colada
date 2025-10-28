@@ -1213,6 +1213,50 @@ describe('useQuery', () => {
         status: 'success',
       })
     })
+
+    it('aborts the signal if the query is not active anymore (key changes)', async () => {
+      const key = ref(1)
+      const { wrapper, queryCache } = mountSimple({
+        key: () => ['key', key.value],
+        async query({ signal }) {
+          await delay(100)
+          if (signal.aborted) {
+            return 'ok'
+          }
+          return 'ko'
+        },
+      })
+
+      await flushPromises()
+      expect(wrapper.vm.data).toBe(undefined)
+      key.value = 2
+      // we advance before letting the new query trigger
+      vi.advanceTimersByTime(100)
+      await flushPromises()
+      expect(queryCache.getQueryData(['key', 1])).toBe('ok')
+      expect(queryCache.getQueryData(['key', 2])).toBe(undefined)
+    })
+
+    it('aborts the signal if the query is not active anymore (unmount)', async () => {
+      const { wrapper, queryCache } = mountSimple({
+        key: () => ['key'],
+        async query({ signal }) {
+          await delay(100)
+          if (signal.aborted) {
+            return 'ok'
+          }
+          return 'ko'
+        },
+      })
+
+      await flushPromises()
+      expect(wrapper.vm.data).toBe(undefined)
+      wrapper.unmount()
+      // we advance before letting the new query trigger
+      vi.advanceTimersByTime(100)
+      await flushPromises()
+      expect(queryCache.getQueryData(['key'])).toBe('ok')
+    })
   })
 
   describe('refetchOnWindowFocus', () => {
@@ -1390,6 +1434,84 @@ describe('useQuery', () => {
     expect(wrapper.vm.data).toBe(undefined)
     expect(wrapper.vm.status).toBe('error')
     expect(wrapper.vm.error).toBe(undefined)
+  })
+
+  describe('streams', () => {
+    async function* streamData() {
+      yield 'hey'
+      await delay(50)
+      yield ' '
+      await delay(50)
+      yield 'you'
+    }
+
+    it('simple stream', async () => {
+      const { wrapper, queryCache } = mountSimple({
+        key: ['key'],
+        async query() {
+          let result = ''
+          for await (const chunk of streamData()) {
+            result += chunk
+            queryCache.setQueryData(['key'], result)
+          }
+          return result
+        },
+      })
+
+      await flushPromises()
+      expect(wrapper.vm.data).toBe('hey')
+      expect(wrapper.vm.isLoading).toBe(true)
+
+      vi.advanceTimersByTime(50)
+      await flushPromises()
+      expect(wrapper.vm.data).toBe('hey ')
+      expect(wrapper.vm.isLoading).toBe(true)
+
+      vi.advanceTimersByTime(50)
+      await flushPromises()
+      expect(wrapper.vm.data).toBe('hey you')
+      expect(wrapper.vm.isLoading).toBe(false)
+    })
+
+    it('properly resets the state if the key changes in the midle of a stream', async () => {
+      const key = ref(1)
+      const { wrapper, queryCache } = mountSimple({
+        key: () => ['key', key.value],
+        async query({ signal }) {
+          let result = `${key.value}: `
+          for await (const chunk of streamData()) {
+            result += chunk
+            if (signal.aborted) {
+              // we could also return the result
+              throw new Error('aborted')
+            }
+            queryCache.setQueryData(['key', key.value], result)
+          }
+          return result
+        },
+      })
+
+      await flushPromises()
+      expect(wrapper.vm.data).toBe('1: hey')
+      vi.advanceTimersByTime(50)
+      await flushPromises()
+      // change the key now
+      key.value = 2
+      // we need to manually cancel the query
+      queryCache.cancelQueries({ key: ['key', 1] })
+      await nextTick()
+      // new entry should be empty
+      expect(wrapper.vm.data).toBe(undefined)
+      expect(wrapper.vm.isLoading).toBe(true)
+      vi.advanceTimersByTime(50)
+      await flushPromises()
+      expect(wrapper.vm.data).toBe('2: hey')
+      vi.advanceTimersByTime(50)
+      await flushPromises()
+      vi.advanceTimersByTime(50)
+      await flushPromises()
+      expect(wrapper.vm.data).toBe('2: hey you')
+    })
   })
 
   describe('invalidation', () => {

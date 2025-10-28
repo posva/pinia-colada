@@ -8,7 +8,7 @@ import { useQuery } from './use-query'
 import type { UseQueryOptions } from './query-options'
 import { useQueryCache } from './query-store'
 import { PiniaColada } from './pinia-colada'
-import { isSpy, mockWarn } from '../test-utils'
+import { delay, isSpy, mockWarn } from '../test-utils'
 import type { GlobalMountOptions } from '../test-utils'
 
 describe('defineQuery', () => {
@@ -557,6 +557,86 @@ describe('defineQuery', () => {
       await flushPromises()
 
       expect(spy).toHaveBeenCalledTimes(0)
+    })
+  })
+
+  describe('abort signal', () => {
+    it('aborts the signal if the query is not active anymore (key changes)', async () => {
+      const key = ref(1)
+      const useProfile = defineQuery(() => {
+        return useQuery({
+          key: () => ['key', key.value],
+          async query({ signal }) {
+            await delay(100)
+            if (signal.aborted) {
+              return 'ok'
+            }
+            return 'ko'
+          },
+        })
+      })
+
+      const wrapper = mount(
+        {
+          setup() {
+            return { ...useProfile() }
+          },
+          template: `<div></div>`,
+        },
+        {
+          global: {
+            plugins: [createPinia(), PiniaColada],
+          },
+        },
+      )
+
+      await flushPromises()
+      expect(wrapper.vm.data).toBe(undefined)
+      key.value = 2
+      // we advance before letting the new query trigger
+      vi.advanceTimersByTime(100)
+      await flushPromises()
+      const queryCache = useQueryCache()
+      expect(queryCache.getQueryData(['key', 1])).toBe('ok')
+      expect(queryCache.getQueryData(['key', 2])).toBe(undefined)
+    })
+
+    it('aborts the signal if the query is not active anymore (unmount)', async () => {
+      const useProfile = defineQuery(() => {
+        return useQuery({
+          key: () => ['key'],
+          async query({ signal }) {
+            await delay(100)
+            if (signal.aborted) {
+              return 'ok'
+            }
+            return 'ko'
+          },
+        })
+      })
+
+      const wrapper = mount(
+        {
+          setup() {
+            return { ...useProfile() }
+          },
+          template: `<div></div>`,
+        },
+        {
+          global: {
+            plugins: [createPinia(), PiniaColada],
+          },
+        },
+      )
+
+      await flushPromises()
+      expect(wrapper.vm.data).toBe(undefined)
+      wrapper.unmount()
+      // we advance before letting the new query trigger
+      vi.advanceTimersByTime(100)
+      await flushPromises()
+      const queryCache = useQueryCache()
+      expect(queryCache.getQueryData(['key'])).toBe('ok')
     })
   })
 
