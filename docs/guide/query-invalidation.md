@@ -2,22 +2,31 @@
 
 Query invalidation is crucial for maintaining up-to-date data in your application. Typically, you should invalidate queries following mutations to ensure the cache stays synchronized with the server. However, you can also manually invalidate queries using the [Query Cache](../advanced/query-cache.md). Let's cover both methods.
 
-## Invalidation via Cache Store
+## Invalidation via the Query Cache
 
-You can directly invalidate queries using the cache store. This action marks the query as stale, prompting a refetch if it's active (i.e., currently used by a component). You can filter queries by `key`, `status`, `active`, and more. Additionally, you can use a `predicate` function to filter queries based on custom logic.
+You can directly invalidate queries using the query cache. This marks matching queries as stale, prompting a refetch if it's active (i.e., currently used by a component). You can filter queries by `key`, `status`, `active`, and more.
 
 ```ts twoslash
 import { useQueryCache } from '@pinia/colada'
 
 const queryCache = useQueryCache()
 
-// Invalidate a specific query and it's children
+// Invalidate a specific query and its children
 queryCache.invalidateQueries({ key: ['todos'] })
 // Invalidate a specific query only
 queryCache.invalidateQueries({ key: ['todos'], exact: true })
 
 // Refetch all active queries
 queryCache.invalidateQueries()
+```
+
+You can also use a `predicate` function for custom filtering logic. It receives a query entry and returns a boolean indicating whether the query should be invalidated:
+
+```ts
+queryCache.invalidateQueries({
+  // Invalidate queries that key starts with `users` or `todos`
+  predicate: (entry) => entry.key[0] === 'users' || entry.key[0] === 'todos',
+})
 ```
 
 By default, `invalidateQueries()` invalidates all queries (both active and inactive) but only refetches active queries. Inactive queries are marked as stale and will be refetched when they become active again. You can change this behavior by passing a second parameter to refetch all queries:
@@ -32,7 +41,7 @@ The `useQueryCache` composable grants access to the query cache. It can be used 
 
 :::
 
-## Invalidation via Mutations
+## Invalidation in Mutation Hooks
 
 When we mutate a resource, we can be sure that the data has changed. This is a good time to invalidate queries that depend on that resource. You can use the `onSettled` callback to invalidate queries after the mutation completes. This ensures that the cache is updated with the latest data.
 
