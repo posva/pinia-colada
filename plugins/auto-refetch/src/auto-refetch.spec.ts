@@ -82,7 +82,7 @@ describe('Auto Refetch plugin', () => {
     expect(query).toHaveBeenCalledTimes(2)
   })
 
-  it('respects enabled option globally', async () => {
+  it('can be disabled globally', async () => {
     const { query } = mountQuery(
       {
         staleTime: 1000,
@@ -100,7 +100,7 @@ describe('Auto Refetch plugin', () => {
     expect(query).toHaveBeenCalledTimes(1)
   })
 
-  it('respects disabled option per query', async () => {
+  it('can be disabled locally', async () => {
     const { query } = mountQuery({
       staleTime: 1000,
       autoRefetch: false,
