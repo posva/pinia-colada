@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { globbySync } from 'globby'
 import fs from 'node:fs'
 
-const pluginsProjects: TestProjectInlineConfiguration['test'][] = globbySync('./plugins/*', {
+const pluginsProjects: TestProjectInlineConfiguration[] = globbySync('./plugins/*', {
   onlyDirectories: true,
 })
   .map((dir) => {
@@ -13,9 +13,13 @@ const pluginsProjects: TestProjectInlineConfiguration['test'][] = globbySync('./
         fs.readFileSync(fileURLToPath(new URL(`${dir}/package.json`, import.meta.url)), 'utf-8'),
       )
       return {
-        name: '🔌 ' + pkg.name,
-        root: dir,
-      } satisfies TestProjectInlineConfiguration['test']
+        // inherit from root config
+        extends: true,
+        test: {
+          name: '🔌 ' + pkg.name,
+          root: dir,
+        },
+      } satisfies TestProjectInlineConfiguration
     } catch (error) {
       console.error(`Error reading package.json from "${dir}"`, error)
       return null
@@ -35,9 +39,6 @@ export default defineConfig({
 
   test: {
     projects: [
-      // you can use a list of glob patterns to define your workspaces
-      // Vitest expects a list of config files
-      // or directories where there is a config file
       {
         // inherit from root config
         extends: true,
@@ -49,20 +50,10 @@ export default defineConfig({
           },
         },
       },
-      // './plugins/*',
-      // you can even run the same tests,
-      // but with different configs in the same "vitest" process
-      // () => ({}),
-      ...pluginsProjects.map(
-        (project) =>
-          ({
-            extends: true,
-            test: {
-              ...project,
-            },
-          }) satisfies TestProjectInlineConfiguration,
-      ),
+      ...pluginsProjects,
     ],
+
+    // common config for all projects
     include: ['src/**/*.{test,spec}.ts'],
     environment: 'happy-dom',
     fakeTimers: {
