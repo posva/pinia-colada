@@ -51,6 +51,8 @@ export default defineConfig({
         },
       },
       ...pluginsProjects,
+      // TODO: once they upgrade to vitest 4
+      // './nuxt',
     ],
 
     // common config for all projects
