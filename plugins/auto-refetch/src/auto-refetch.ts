@@ -38,6 +38,7 @@ export interface PiniaColadaAutoRefetchOptions<
 
 /**
  * To store timeouts in the entry extensions.
+ *
  * @internal
  */
 const REFETCH_TIMEOUT_KEY = Symbol()
