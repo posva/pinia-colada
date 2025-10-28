@@ -7,8 +7,8 @@ import { defineComponent } from 'vue'
 import { createPinia } from 'pinia'
 import { useQuery, PiniaColada } from '@pinia/colada'
 import type { UseQueryOptions } from '@pinia/colada'
-import type { PiniaColadaAutoRefetchOptions } from '.'
-import { PiniaColadaAutoRefetch } from '.'
+import type { PiniaColadaAutoRefetchOptions } from './auto-refetch'
+import { PiniaColadaAutoRefetch } from './auto-refetch'
 import { isSpy, mockConsoleError, mockWarn } from '../../../test-utils'
 
 describe('Auto Refetch plugin', () => {

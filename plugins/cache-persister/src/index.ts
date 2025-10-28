@@ -1,1 +1,1 @@
-export default function test() {}
+export * from './cache-persister'
