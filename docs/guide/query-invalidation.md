@@ -2,7 +2,7 @@
 
 Query invalidation is crucial for maintaining up-to-date data in your application. Typically, you should invalidate queries following mutations to ensure the cache stays synchronized with the server. However, you can also manually invalidate queries using the [Query Cache](../advanced/query-cache.md). Let's cover both methods.
 
-## Invalidation via Query Cache
+## Invalidation via the Query Cache
 
 You can directly invalidate queries using the query cache. This marks matching queries as stale, prompting a refetch if it's active (i.e., currently used by a component). You can filter queries by `key`, `status`, `active`, and more.
 
@@ -23,10 +23,9 @@ queryCache.invalidateQueries()
 You can also use a `predicate` function for custom filtering logic. It receives a query entry and returns a boolean indicating whether the query should be invalidated:
 
 ```ts
-// Invalidate queries that key starts with `users` or `todos`
-const resourcesToInvalidate = ['users', 'todos']
 queryCache.invalidateQueries({
-  predicate: (entry) => resourcesToInvalidate.includes(entry.key[0]),
+  // Invalidate queries that key starts with `users` or `todos`
+  predicate: (entry) => entry.key[0] === 'users' || entry.key[0] === 'todos',
 })
 ```
 
