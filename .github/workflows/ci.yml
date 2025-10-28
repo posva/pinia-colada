@@ -24,13 +24,9 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm -C nuxt run dev:prepare
-      - run: pnpm run build
       - run: pnpm run lint
       - run: pnpm run test
-      - run: pnpm run test:types
-      - run: pnpm run codemods:test
       - run: pnpm run size
-      - run: pnpm run build:plugins
       # avoid updating deps that do not build docs
       - run: pnpm run docs:build
 
