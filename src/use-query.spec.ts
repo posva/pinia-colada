@@ -55,10 +55,12 @@ describe('useQuery', () => {
           '_e' in plugin
         )
       }) || createPinia()
+    let queryCache!: ReturnType<typeof useQueryCache>
     const wrapper = mount(
       defineComponent({
         render: () => null,
         setup() {
+          queryCache = useQueryCache()
           const useQueryResult = useQuery<TData, TError, TDataInitial>({
             key: ['key'],
             ...options,
@@ -77,7 +79,7 @@ describe('useQuery', () => {
         },
       },
     )
-    return Object.assign([wrapper, query] as const, { wrapper, query, pinia })
+    return Object.assign([wrapper, query] as const, { wrapper, query, pinia, queryCache })
   }
 
   describe('initial fetch', () => {
@@ -1180,7 +1182,7 @@ describe('useQuery', () => {
       expect(wrapper.vm.data).toBe(undefined)
     })
 
-    it('can rfefresh after being aborted with an outside AbortError', async () => {
+    it('can refresh after being aborted with an outside AbortError', async () => {
       const controller = new AbortController()
       const { signal } = controller
       controller.abort()
@@ -1310,7 +1312,7 @@ describe('useQuery', () => {
   })
 
   it('can be cancelled through the queryCache without refetching', async () => {
-    const { query } = mountSimple({
+    const { query, queryCache } = mountSimple({
       key: ['key'],
       query: async () => {
         await delay(100)
@@ -1318,7 +1320,6 @@ describe('useQuery', () => {
       },
     })
 
-    const queryCache = useQueryCache()
     const entry = queryCache.getEntries({ key: ['key'] })[0]
     expect(entry).toBeDefined()
     if (!entry) throw new Error('ko')
@@ -1331,7 +1332,7 @@ describe('useQuery', () => {
   })
 
   it('stays stale if it is cancelled before the query resolves', async () => {
-    mountSimple({
+    const { queryCache } = mountSimple({
       key: ['key'],
       query: async () => {
         await delay(100)
@@ -1339,7 +1340,6 @@ describe('useQuery', () => {
       },
     })
 
-    const queryCache = useQueryCache()
     const entry = queryCache.getEntries({ key: ['key'] })[0]
     expect(entry).toBeDefined()
     if (!entry) throw new Error('ko')
@@ -1352,7 +1352,7 @@ describe('useQuery', () => {
   })
 
   it('stays not stale if it is cancelled but has resolved before', async () => {
-    mountSimple({
+    const { queryCache } = mountSimple({
       key: ['key'],
       query: async () => {
         await delay(100)
@@ -1364,7 +1364,6 @@ describe('useQuery', () => {
     vi.advanceTimersByTime(100)
     await flushPromises()
 
-    const queryCache = useQueryCache()
     const entry = queryCache.getEntries({ key: ['key'] })[0]
     expect(entry).toBeDefined()
     if (!entry) throw new Error('ko')
