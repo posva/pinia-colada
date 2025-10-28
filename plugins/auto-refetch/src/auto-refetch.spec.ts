@@ -3,7 +3,7 @@
  */
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent } from 'vue'
+import { defineComponent, ref } from 'vue'
 import { createPinia } from 'pinia'
 import { useQuery, PiniaColada } from '@pinia/colada'
 import type { UseQueryOptions } from '@pinia/colada'
@@ -190,6 +190,43 @@ describe('Auto Refetch plugin', () => {
     await flushPromises()
     // TODO: why just one error log?
     expect('Request failed').toHaveBeenErroredTimes(1)
+  })
+
+  it('respects query enabled option', async () => {
+    const enabled = ref(false)
+    const { query } = mountQuery({
+      enabled,
+      staleTime: 1000,
+    })
+
+    // When query enabled = false, query should not be called initially
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(0)
+
+    vi.advanceTimersByTime(2000)
+    await flushPromises()
+    // Still should not refetch because query is disabled
+    expect(query).toHaveBeenCalledTimes(0)
+
+    // Change query enabled to true
+    enabled.value = true
+    await flushPromises()
+    // Now query should be called
+    expect(query).toHaveBeenCalledTimes(1)
+
+    vi.advanceTimersByTime(1000)
+    await flushPromises()
+    // Should refetch because query is enabled and auto-refetch is active
+    expect(query).toHaveBeenCalledTimes(2)
+
+    // Change query enabled back to false
+    enabled.value = false
+    await flushPromises()
+    // Advance time - should NOT refetch because query is disabled
+    vi.advanceTimersByTime(2000)
+    await flushPromises()
+    // Should not refetch because query is disabled again
+    expect(query).toHaveBeenCalledTimes(2)
   })
 
   describe('custom interval', () => {
