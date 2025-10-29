@@ -3,7 +3,7 @@
  */
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent } from 'vue'
+import { defineComponent, ref } from 'vue'
 import { createPinia } from 'pinia'
 import { useQuery, PiniaColada } from '@pinia/colada'
 import type { UseQueryOptions } from '@pinia/colada'
@@ -190,6 +190,60 @@ describe('Auto Refetch plugin', () => {
     await flushPromises()
     // TODO: why just one error log?
     expect('Request failed').toHaveBeenErroredTimes(1)
+  })
+
+  it('respects query enabled option', async () => {
+    const enabled = ref(true)
+    const { query } = mountQuery({
+      enabled,
+      staleTime: 1000,
+    })
+
+    // Wait for initial query
+    await flushPromises()
+    // Now query should be called
+    expect(query).toHaveBeenCalledTimes(1)
+
+    // Change query enabled to false
+    enabled.value = false
+    await flushPromises()
+    // Advance time - should NOT refetch because query is disabled
+    vi.advanceTimersByTime(2000)
+    await flushPromises()
+    // Should not refetch because query is disabled again
+    expect(query).toHaveBeenCalledTimes(1)
+  })
+
+  it('resets the timer when query key changes', async () => {
+    const key = ref(['test', 1])
+    const { query } = mountQuery({
+      key,
+      staleTime: 1000,
+    })
+
+    // Wait for initial query
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(1)
+
+    // Advance time partially (500ms)
+    vi.advanceTimersByTime(500)
+
+    // Change the key - this should trigger a new fetch and reset the timer
+    key.value = ['test', 2]
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(2)
+
+    // Advance time to surpass the original timer (700ms more = 1200ms total from first fetch)
+    vi.advanceTimersByTime(700)
+    await flushPromises()
+    // Should not have triggered another request yet because timer was reset
+    expect(query).toHaveBeenCalledTimes(2)
+
+    // Advance to complete the new stale time (300ms more = 1000ms from key change)
+    vi.advanceTimersByTime(300)
+    await flushPromises()
+    // Now it should have triggered the auto-refetch
+    expect(query).toHaveBeenCalledTimes(3)
   })
 
   describe('custom interval', () => {
