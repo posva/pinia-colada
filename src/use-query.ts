@@ -184,7 +184,7 @@ export function useQuery<
   const currentEffect = currentDefineQueryEffect || getCurrentScope()
   const isPaused = currentDefineQueryEntry?.[3]
 
-  const options = computed(
+  const options = computed<UseQueryOptionsWithDefaults<TData, TError, TDataInitial>>(
     () =>
       ({
         ...optionDefaults,

@@ -12,6 +12,7 @@ import {
   type UseQueryEntry,
   type UseQueryOptions,
   type DataState,
+  type UseQueryOptionsWithDefaults,
 } from '@pinia/colada'
 import { toValue } from 'vue'
 
@@ -59,7 +60,6 @@ export function PiniaColadaAutoRefetch(
     function scheduleRefetch(
       // TODO: should be undefined
       entry: UseQueryEntry<unknown, unknown, unknown>,
-      options: UseQueryOptions<unknown, unknown, unknown>,
       delayMs: number,
     ) {
       if (!entry.active) return
@@ -69,7 +69,7 @@ export function PiniaColadaAutoRefetch(
 
       // Schedule next refetch
       const timeout = setTimeout(() => {
-        if (entry?.active) {
+        if (entry?.active && entry.options && toValue(entry.options.enabled)) {
           queryCache.fetch(entry).catch(console.error)
         }
       }, delayMs)
@@ -82,28 +82,26 @@ export function PiniaColadaAutoRefetch(
        * Whether to schedule a refetch for the given entry and determine the interval
        * Returns { shouldSchedule: boolean, interval?: number }
        */
-      function shouldScheduleRefetch(
-        entry: UseQueryEntry<unknown, unknown, unknown>,
-        options: UseQueryOptions<unknown, unknown, unknown>,
-      ): number | false {
-        const autoRefetchValue = _toValueWithArgs(
-          options.autoRefetch ?? autoRefetch,
-          entry.state.value,
+      function shouldScheduleRefetch({
+        state,
+        options,
+      }: UseQueryEntry<unknown, unknown, unknown>): number | false {
+        const autoRefetchValue =
+          !!options && _toValueWithArgs(options.autoRefetch ?? autoRefetch, state.value)
+        return (
+          !!options &&
+          toValue(options.enabled) &&
+          (autoRefetchValue === true ? options.staleTime! : autoRefetchValue)
         )
-        return autoRefetchValue === true ? options.staleTime! : autoRefetchValue
       }
 
       // Trigger a fetch on creation to enable auto-refetch on initial load
       if (name === 'ensure') {
-        const [options] = args
         after((entry) => {
-          if (toValue(options.enabled) !== true) {
-            clearTimeout(entry.ext[REFETCH_TIMEOUT_KEY])
-            return
-          }
-          const interval = shouldScheduleRefetch(entry, options)
+          // after ensure, options are always defined
+          const interval = shouldScheduleRefetch(entry)
           if (interval) {
-            scheduleRefetch(entry, options, interval)
+            scheduleRefetch(entry, interval)
           }
         })
       }
@@ -117,9 +115,9 @@ export function PiniaColadaAutoRefetch(
 
         after(async () => {
           if (!entry.options) return
-          const interval = shouldScheduleRefetch(entry, entry.options)
+          const interval = shouldScheduleRefetch(entry)
           if (interval) {
-            scheduleRefetch(entry, entry.options, interval)
+            scheduleRefetch(entry, interval)
           }
         })
       }

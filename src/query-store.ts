@@ -507,6 +507,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       opts: UseQueryOptions<TData, TError, TDataInitial>,
       previousEntry?: UseQueryEntry<TData, TError, TDataInitial>,
     ): UseQueryEntry<TData, TError, TDataInitial> => {
+      // NOTE: in the code we always pass the options with the defaults but it's convenient
+      // to allow ensure be called with just the user options
       const options: UseQueryOptionsWithDefaults<TData, TError, TDataInitial> = {
         ...optionDefaults,
         ...opts,
