@@ -286,7 +286,7 @@ export function useQuery<
   if (hasCurrentInstance) {
     // only happens on server, app awaits this
     onServerPrefetch(async () => {
-      if (toValue(enabled)) await refresh(!options.value.ssrCatchError)
+      if (enabled()) await refresh(!options.value.ssrCatchError)
     })
   }
 
@@ -327,7 +327,7 @@ export function useQuery<
       }
 
       // TODO: does this trigger after unmount?
-      if (toValue(enabled)) refresh()
+      if (enabled()) refresh()
     },
     {
       immediate: true,
@@ -365,7 +365,7 @@ export function useQuery<
   if (IS_CLIENT) {
     useEventListener(document, 'visibilitychange', () => {
       const refetchControl = toValue(options.value.refetchOnWindowFocus)
-      if (document.visibilityState === 'visible' && toValue(enabled)) {
+      if (document.visibilityState === 'visible' && enabled()) {
         if (refetchControl === 'always') {
           refetch()
         } else if (refetchControl) {
@@ -375,7 +375,7 @@ export function useQuery<
     })
 
     useEventListener(window, 'online', () => {
-      if (toValue(enabled)) {
+      if (enabled()) {
         const refetchControl = toValue(options.value.refetchOnReconnect)
         if (refetchControl === 'always') {
           refetch()
