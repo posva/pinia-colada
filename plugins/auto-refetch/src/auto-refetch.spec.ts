@@ -214,6 +214,34 @@ describe('Auto Refetch plugin', () => {
     expect(query).toHaveBeenCalledTimes(1)
   })
 
+  it('starts auto-refetch when query becomes enabled', async () => {
+    const enabled = ref(false)
+    const { query } = mountQuery({
+      enabled,
+      staleTime: 1000,
+    })
+
+    // Query should not be called initially
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(0)
+
+    // Advance time - should still not fetch while disabled
+    vi.advanceTimersByTime(2000)
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(0)
+
+    // Enable the query
+    enabled.value = true
+    await flushPromises()
+    // Should fetch once when enabled
+    expect(query).toHaveBeenCalledTimes(1)
+
+    // Advance time past stale time - should auto-refetch
+    vi.advanceTimersByTime(1000)
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(2)
+  })
+
   it('resets the timer when query key changes', async () => {
     const key = ref(['test', 1])
     const { query } = mountQuery({
