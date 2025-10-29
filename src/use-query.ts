@@ -335,7 +335,7 @@ export function useQuery<
   )
 
   // avoid adding a watcher if enabled cannot change
-  if (typeof enabled !== 'boolean') {
+  if (typeof options.value.enabled !== 'boolean') {
     watch(enabled, (newEnabled) => {
       // no need to check for the previous value since the watcher will only trigger if the value changed
       if (newEnabled) refresh()
