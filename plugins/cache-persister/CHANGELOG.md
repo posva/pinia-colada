@@ -1,3 +1,7 @@
+## [0.0.4](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-cache-persister@0.0.3...@pinia/colada-plugin-cache-persister@0.0.4) (2025-10-30)
+
+No changes in this release.
+
 ## [0.0.3](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-cache-persister@0.0.2...@pinia/colada-plugin-cache-persister@0.0.3) (2025-04-25)
 
 ### Bug Fixes

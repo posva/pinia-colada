@@ -1,3 +1,14 @@
+## [0.17.7](https://github.com/posva/pinia-colada/compare/v0.17.6...v0.17.7) (2025-10-30)
+
+### Bug Fixes
+
+- Export `toCacheKey` ([#400](https://github.com/posva/pinia-colada/issues/400)) ([d1d8f3e](https://github.com/posva/pinia-colada/commit/d1d8f3e628fe2bfe6f15b5b29880d287c5632cf9))
+- **query:** abort signal if query becomes inactive ([1728749](https://github.com/posva/pinia-colada/commit/1728749adb2969741f8db9e365ff965a63410547))
+
+### Performance Improvements
+
+- avoid watched on enabled ([30439c0](https://github.com/posva/pinia-colada/commit/30439c0473a458afd9e20368074dbec6c639b07e))
+
 ## [0.17.6](https://github.com/posva/pinia-colada/compare/v0.17.5...v0.17.6) (2025-09-25)
 
 ### Bug Fixes

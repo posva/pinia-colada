@@ -1,3 +1,9 @@
+## [0.2.4](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-auto-refetch@0.2.3...@pinia/colada-plugin-auto-refetch@0.2.4) (2025-10-30)
+
+### Bug Fixes
+
+- **auto-refetch:** prevent wrong entry refetch on reactive key change ([#416](https://github.com/posva/pinia-colada/issues/416)) ([4bf4ab4](https://github.com/posva/pinia-colada/commit/4bf4ab4f17ea5b6b36e6302d4d4778d8a36a620b))
+
 ## [0.2.3](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-auto-refetch@0.2.2...@pinia/colada-plugin-auto-refetch@0.2.3) (2025-09-25)
 
 No changes in this release.
