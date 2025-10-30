@@ -95,6 +95,8 @@ export default defineConfig({
       dirs: [resolve(__dirname, './src/panel/components')],
       // to avoid erasing the generated dts file during dev
       dts: process.env.NODE_ENV !== 'production',
+      // avoid declaring the .ce components twice
+      globsExclude: ['**/*.ce.vue'],
       resolvers: [
         (componentName) => {
           if (UiComponentRe.test(componentName)) {

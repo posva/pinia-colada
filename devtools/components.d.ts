@@ -36,13 +36,9 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     UButton: typeof import('./src/panel/components/UButton.ce.vue')['default']
-    'UButton.ce': typeof import('./src/panel/components/UButton.ce.vue')['default']
     UCircleProgress: typeof import('./src/panel/components/UCircleProgress.ce.vue')['default']
-    'UCircleProgress.ce': typeof import('./src/panel/components/UCircleProgress.ce.vue')['default']
     UCollapse: typeof import('./src/panel/components/UCollapse.ce.vue')['default']
-    'UCollapse.ce': typeof import('./src/panel/components/UCollapse.ce.vue')['default']
     UInput: typeof import('./src/panel/components/UInput.ce.vue')['default']
-    'UInput.ce': typeof import('./src/panel/components/UInput.ce.vue')['default']
   }
 }
 
@@ -72,11 +68,7 @@ declare global {
   const RouterLink: typeof import('vue-router')['RouterLink']
   const RouterView: typeof import('vue-router')['RouterView']
   const UButton: typeof import('./src/panel/components/UButton.ce.vue')['default']
-  const 'UButton.ce': typeof import('./src/panel/components/UButton.ce.vue')['default']
   const UCircleProgress: typeof import('./src/panel/components/UCircleProgress.ce.vue')['default']
-  const 'UCircleProgress.ce': typeof import('./src/panel/components/UCircleProgress.ce.vue')['default']
   const UCollapse: typeof import('./src/panel/components/UCollapse.ce.vue')['default']
-  const 'UCollapse.ce': typeof import('./src/panel/components/UCollapse.ce.vue')['default']
   const UInput: typeof import('./src/panel/components/UInput.ce.vue')['default']
-  const 'UInput.ce': typeof import('./src/panel/components/UInput.ce.vue')['default']
 }
