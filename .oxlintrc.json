@@ -52,6 +52,7 @@
     "nuxt",
     "dist",
     "devtools/dist",
+    "devtools/components.d.ts",
     "devtools/dist-*",
     "**/CLAUDE.md"
   ]
