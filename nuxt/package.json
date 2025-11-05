@@ -34,16 +34,16 @@
     "@pinia/colada": "workspace:>="
   },
   "devDependencies": {
-    "@nuxt/devtools": "^3.0.0",
+    "@nuxt/devtools": "^3.0.1",
     "@nuxt/eslint-config": "^1.9.0",
     "@nuxt/module-builder": "1.0.2",
     "@nuxt/schema": "^4.2.0",
     "@nuxt/test-utils": "^3.20.1",
     "@pinia/colada": "workspace:*",
-    "@pinia/nuxt": "^0.11.2",
-    "nuxi": "^3.29.3",
+    "@pinia/nuxt": "^0.11.3",
+    "nuxi": "^3.30.0",
     "nuxt": "^4.2.0",
     "typescript": "~5.9.3",
-    "vue-tsc": "^3.1.2"
+    "vue-tsc": "^3.1.3"
   }
 }

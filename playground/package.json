@@ -23,26 +23,26 @@
     "@vueuse/router": "^14.0.0",
     "fuse.js": "^7.1.0",
     "mande": "^2.0.9",
-    "pinia": "^3.0.3",
+    "pinia": "^3.0.4",
     "vue": "^3.5.22",
     "vue-router": "^4.5.1",
     "water.css": "^2.1.1"
   },
   "devDependencies": {
     "@pinia/colada-devtools": "workspace:^",
-    "@tailwindcss/vite": "^4.1.13",
+    "@tailwindcss/vite": "^4.1.16",
     "@tsconfig/node18": "^18.2.4",
-    "@types/node": "^24.9.1",
+    "@types/node": "^24.10.0",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.8.1",
     "autoprefixer": "^10.4.21",
     "json-server": "0.17.4",
     "npm-run-all2": "^8.0.4",
-    "tailwindcss": "^4.1.13",
+    "tailwindcss": "^4.1.16",
     "typescript": "~5.9.2",
     "unplugin-vue-router": "^0.16.1",
-    "vite": "^7.1.12",
+    "vite": "^7.2.0",
     "vite-plugin-vue-devtools": "^8.0.3",
-    "vue-tsc": "^3.1.2"
+    "vue-tsc": "^3.1.3"
   }
 }
