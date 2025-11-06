@@ -157,6 +157,86 @@ const { data } = useQuery(documentByIdQuery, () => ({
 
 You will notice that the docs use a lot `useQuery()` with simple options. This is to keep this documentation simple and focused fewer concepts. In practice, **it is recommended to use** [key factories](./query-keys.md#Managing-query-keys-key-factories-) **and** [`defineQueryOptions()`](./query-keys.md#Typing-query-keys) to keep your queries organized and type-safe.
 
+### Passing extra options + `defineQueryOptions()`
+
+Sometimes, you need to customize the behavior of a query _just_ in one page or component, for example, `enable` it conditionally. Since `defineQueryOptions()` only types what is passed to it, you can use it as is and pass a getter for the options to `useQuery()`:
+
+```ts twoslash
+import { ref } from 'vue'
+import { useQuery } from '@pinia/colada'
+import { productDetailsQuery } from '@/queries/products'
+
+const enabled = ref(false)
+useQuery(() => ({
+  // get the base options
+  ...productDetailsQuery('24'),
+  // override `enabled` just for this usage
+  enabled: enabled.value,
+}))
+```
+
+In this case, the defined options `productDetailsQuery` require the product id as an argument, so we call it with the product id. If the query options are not dynamic, then it will just be an object:
+
+```ts twoslash
+import { ref } from 'vue'
+import { useQuery, defineQueryOptions } from '@pinia/colada'
+
+const todoListQuery = defineQueryOptions({
+  key: ['todos'],
+  query: () => fetch('/api/todos').then((res) => res.json()),
+})
+
+const enabled = ref(false)
+useQuery(() => ({
+  // get the base options
+  ...todoListQuery,
+  // override `enabled` just for this usage
+  enabled: enabled.value,
+}))
+```
+
+## Refetching Queries
+
+You can manually trigger queries using the `refetch()` and `refresh()` methods. Both return a promise, with errors caught to prevent _Uncaught Promise Rejection_ errors when used directly in the template. They both return the `state` object, which contains the `status`, `data`, and `error` properties.
+
+```ts twoslash
+// ---cut-start---
+import { useQuery } from '@pinia/colada'
+import { defineComponent } from 'vue'
+// ---cut-end---
+const {
+  // ...
+  refresh,
+  refetch,
+} = useQuery({
+  // ...
+  // ---cut-start---
+  key: ['user-info'],
+  query: async () => ({ name: 'John Doe', id: 2 }),
+  // ---cut-end---
+})
+
+refetch().then(({ data, error }) => {
+  if (error) {
+    console.log('Last data:', data)
+    console.error('Unexpected Error:', error)
+  } else {
+    console.log('Fetched data:', data)
+  }
+})
+
+// Pass `true` to throw if the query fails
+refetch(true).catch((error) => {
+  console.error('Error refetching:', error)
+})
+```
+
+### When to use `refetch()` and `refresh()`
+
+In practice, aim to use `refresh()` as much as possible because it will **reuse any loading request** and **avoid unnecessary network calls** based on `staleTime`.
+
+Use `refetch()` when you are certain you need to refetch the data, regardless of the current status. This is useful when you want to force a new request, such as when the user explicitly requests a _refresh_.
+
 ## Pausing queries
 
 It's possible to temporarily stop a query from refreshing, like pausing it. This has many use cases and is especially handy when you have some kind of auto refetch happening.
@@ -296,44 +376,3 @@ const {
 ```
 
 :::
-
-## Refetching Queries
-
-You can manually trigger queries using the `refetch()` and `refresh()` methods. Both return a promise, with errors caught to prevent _Uncaught Promise Rejection_ errors when used directly in the template. They both return the `state` object, which contains the `status`, `data`, and `error` properties.
-
-```ts twoslash
-// ---cut-start---
-import { useQuery } from '@pinia/colada'
-import { defineComponent } from 'vue'
-// ---cut-end---
-const {
-  // ...
-  refresh,
-  refetch,
-} = useQuery({
-  // ...
-  // ---cut-start---
-  key: ['user-info'],
-  query: async () => ({ name: 'John Doe', id: 2 }),
-  // ---cut-end---
-})
-
-refetch().then(({ data, error }) => {
-  if (error) {
-    console.error('Last Error:', error)
-  } else {
-    console.log('Fetched data:', data)
-  }
-})
-
-// Pass `true` to throw if the query fails
-refetch(true).catch((error) => {
-  console.error('Error refetching:', error)
-})
-```
-
-### When to use `refetch()` and `refresh()`
-
-In practice, aim to use `refresh()` as much as possible because it will **reuse any loading request** and **avoid unnecessary network calls** based on `staleTime`.
-
-Use `refetch()` when you are certain you need to refetch the data, regardless of the current status. This is useful when you want to force a new request, such as when the user explicitly requests a _refresh_.
