@@ -16,5 +16,11 @@
     "./components.d.ts",
     "./typed-router.d.ts",
     "./vite.config.*"
-  ]
+  ],
+  "vueCompilerOptions": {
+    "plugins": [
+      "unplugin-vue-router/volar/sfc-route-blocks",
+      "unplugin-vue-router/volar/sfc-typed-router"
+    ]
+  }
 }
