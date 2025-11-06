@@ -43,7 +43,7 @@ export default defineConfig({
     // NOTE: needed to avoid HMR not working when using the devtools
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
     // allows to be changed when consuming the devtools
-    'NODE_ENV': process.env.NODE_ENV === 'production' ? `process.env.NODE_ENV` : '"development"',
+    NODE_ENV: process.env.NODE_ENV === 'production' ? `process.env.NODE_ENV` : '"development"',
   },
 
   build: {
@@ -95,6 +95,8 @@ export default defineConfig({
       dirs: [resolve(__dirname, './src/panel/components')],
       // to avoid erasing the generated dts file during dev
       dts: process.env.NODE_ENV !== 'production',
+      // avoid declaring the .ce components twice
+      globsExclude: ['**/*.ce.vue'],
       resolvers: [
         (componentName) => {
           if (UiComponentRe.test(componentName)) {

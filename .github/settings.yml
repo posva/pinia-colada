@@ -1,6 +1,6 @@
 repository:
   homepage: https://pinia-colada.esm.dev
-  description: 🍹 The smart data fetching layer for Pinia
+  description: 🍹 The smart data fetching layer for Vue
 labels:
   - name: 🐞 bug
     color: ee0701
@@ -46,9 +46,18 @@ labels:
     color: ffffff
     description: this issue won't be fixed
     oldname: wontfix
-  - name: meta
+  - name: 🟣 meta
     color: 5319e7
     description: related to the project itself
   - name: 🔌 plugins
     color: baffc9
     description: related to plugins
+  - name: ↗️ upstream
+    color: baffc9
+    description: blocked by an external dependency
+  - name: 🛠️ devtools
+    color: baffc9
+    description: related to devtools
+  - name: 🏔️ nuxt
+    color: 00dc82
+    description: related to Nuxt

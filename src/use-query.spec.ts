@@ -55,10 +55,12 @@ describe('useQuery', () => {
           '_e' in plugin
         )
       }) || createPinia()
+    let queryCache!: ReturnType<typeof useQueryCache>
     const wrapper = mount(
       defineComponent({
         render: () => null,
         setup() {
+          queryCache = useQueryCache()
           const useQueryResult = useQuery<TData, TError, TDataInitial>({
             key: ['key'],
             ...options,
@@ -77,7 +79,7 @@ describe('useQuery', () => {
         },
       },
     )
-    return Object.assign([wrapper, query] as const, { wrapper, query, pinia })
+    return Object.assign([wrapper, query] as const, { wrapper, query, pinia, queryCache })
   }
 
   describe('initial fetch', () => {
@@ -143,6 +145,16 @@ describe('useQuery', () => {
       expect(query).toHaveBeenCalledTimes(1)
     })
 
+    it('fetches the first time with refetchOnMount false and placeholderData', async () => {
+      const { query } = mountSimple({
+        refetchOnMount: false,
+        placeholderData: 24,
+      })
+
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+    })
+
     it('skips initial fetch if initialData is set', async () => {
       const { wrapper, query } = mountSimple({
         initialData: () => 24,
@@ -181,7 +193,7 @@ describe('useQuery', () => {
               key: ['key'],
               query: async () => 'ok',
               initialData: () => 'initial',
-              staleTime: 1_000,
+              staleTime: 1000,
             })
             useQueryResult.refetch()
             return {
@@ -494,7 +506,7 @@ describe('useQuery', () => {
       await flushPromises()
       expect(cache.getQueryData(['key'])).toBe(42)
       wrapper.unmount()
-      vi.advanceTimersByTime(1000000)
+      vi.advanceTimersByTime(1_000_000)
       expect(cache.getQueryData(['key'])).toBe(42)
     })
   })
@@ -679,9 +691,7 @@ describe('useQuery', () => {
           .getEntries({
             key: ['id'],
           })
-          .at(0)
-?.state
-.value,
+          .at(0)?.state.value,
       ).toEqual({
         status: 'pending',
         data: undefined,
@@ -694,9 +704,7 @@ describe('useQuery', () => {
           .getEntries({
             key: ['id'],
           })
-          .at(0)
-?.state
-.value,
+          .at(0)?.state.value,
       ).toEqual({
         status: 'success',
         data: 42,
@@ -833,9 +841,7 @@ describe('useQuery', () => {
       queryCache
         .getEntries({ key: ['key'] })
         .at(0)
-        ?.pending
-?.abortController
-.abort()
+        ?.pending?.abortController.abort()
       vi.advanceTimersByTime(26)
       await flushPromises()
       // expect(wrapper.vm.isPlaceholderData).toBe(true)
@@ -854,7 +860,7 @@ describe('useQuery', () => {
 
   describe('refresh data', () => {
     function mountDynamicKey<
-      TData = { id: number, when: number },
+      TData = { id: number; when: number },
       TError = Error,
       TDataInitial extends TData | undefined = undefined,
     >(
@@ -1175,6 +1181,82 @@ describe('useQuery', () => {
       expect(entry.state.value.data).toBe(undefined)
       expect(wrapper.vm.data).toBe(undefined)
     })
+
+    it('can refresh after being aborted with an outside AbortError', async () => {
+      const controller = new AbortController()
+      const { signal } = controller
+      controller.abort()
+      let firstCall = 0
+      const { wrapper } = mountSimple({
+        key: ['key'],
+        async query() {
+          if (!firstCall++) {
+            signal.throwIfAborted()
+          }
+          return 'ok'
+        },
+      })
+
+      await flushPromises()
+
+      expect(wrapper.vm.state).toEqual({
+        data: undefined,
+        error: null,
+        status: 'pending',
+      })
+
+      await wrapper.vm.refresh()
+
+      expect(wrapper.vm.state).toEqual({
+        data: 'ok',
+        error: null,
+        status: 'success',
+      })
+    })
+
+    it('aborts the signal if the query is not active anymore (key changes)', async () => {
+      const key = ref(1)
+      const { wrapper, queryCache } = mountSimple({
+        key: () => ['key', key.value],
+        async query({ signal }) {
+          await delay(100)
+          if (signal.aborted) {
+            return 'ok'
+          }
+          return 'ko'
+        },
+      })
+
+      await flushPromises()
+      expect(wrapper.vm.data).toBe(undefined)
+      key.value = 2
+      // we advance before letting the new query trigger
+      vi.advanceTimersByTime(100)
+      await flushPromises()
+      expect(queryCache.getQueryData(['key', 1])).toBe('ok')
+      expect(queryCache.getQueryData(['key', 2])).toBe(undefined)
+    })
+
+    it('aborts the signal if the query is not active anymore (unmount)', async () => {
+      const { wrapper, queryCache } = mountSimple({
+        key: () => ['key'],
+        async query({ signal }) {
+          await delay(100)
+          if (signal.aborted) {
+            return 'ok'
+          }
+          return 'ko'
+        },
+      })
+
+      await flushPromises()
+      expect(wrapper.vm.data).toBe(undefined)
+      wrapper.unmount()
+      // we advance before letting the new query trigger
+      vi.advanceTimersByTime(100)
+      await flushPromises()
+      expect(queryCache.getQueryData(['key'])).toBe('ok')
+    })
   })
 
   describe('refetchOnWindowFocus', () => {
@@ -1274,7 +1356,7 @@ describe('useQuery', () => {
   })
 
   it('can be cancelled through the queryCache without refetching', async () => {
-    const { query } = mountSimple({
+    const { query, queryCache } = mountSimple({
       key: ['key'],
       query: async () => {
         await delay(100)
@@ -1282,7 +1364,6 @@ describe('useQuery', () => {
       },
     })
 
-    const queryCache = useQueryCache()
     const entry = queryCache.getEntries({ key: ['key'] })[0]
     expect(entry).toBeDefined()
     if (!entry) throw new Error('ko')
@@ -1295,7 +1376,7 @@ describe('useQuery', () => {
   })
 
   it('stays stale if it is cancelled before the query resolves', async () => {
-    mountSimple({
+    const { queryCache } = mountSimple({
       key: ['key'],
       query: async () => {
         await delay(100)
@@ -1303,7 +1384,6 @@ describe('useQuery', () => {
       },
     })
 
-    const queryCache = useQueryCache()
     const entry = queryCache.getEntries({ key: ['key'] })[0]
     expect(entry).toBeDefined()
     if (!entry) throw new Error('ko')
@@ -1316,7 +1396,7 @@ describe('useQuery', () => {
   })
 
   it('stays not stale if it is cancelled but has resolved before', async () => {
-    mountSimple({
+    const { queryCache } = mountSimple({
       key: ['key'],
       query: async () => {
         await delay(100)
@@ -1328,7 +1408,6 @@ describe('useQuery', () => {
     vi.advanceTimersByTime(100)
     await flushPromises()
 
-    const queryCache = useQueryCache()
     const entry = queryCache.getEntries({ key: ['key'] })[0]
     expect(entry).toBeDefined()
     if (!entry) throw new Error('ko')
@@ -1338,6 +1417,101 @@ describe('useQuery', () => {
 
     await flushPromises()
     expect(entry.stale).toBe(false)
+  })
+
+  it('propagates falsy errors', async () => {
+    const { wrapper } = mountSimple({
+      key: ['key'],
+      query: async () => {
+        // While it's a terrible pratcie to throw a literal, the error should propagate
+        // eslint-disable-next-line no-throw-literal
+        throw undefined
+      },
+    })
+
+    await flushPromises()
+
+    expect(wrapper.vm.data).toBe(undefined)
+    expect(wrapper.vm.status).toBe('error')
+    expect(wrapper.vm.error).toBe(undefined)
+  })
+
+  describe('streams', () => {
+    async function* streamData() {
+      yield 'hey'
+      await delay(50)
+      yield ' '
+      await delay(50)
+      yield 'you'
+    }
+
+    it('simple stream', async () => {
+      const { wrapper, queryCache } = mountSimple({
+        key: ['key'],
+        async query() {
+          let result = ''
+          for await (const chunk of streamData()) {
+            result += chunk
+            queryCache.setQueryData(['key'], result)
+          }
+          return result
+        },
+      })
+
+      await flushPromises()
+      expect(wrapper.vm.data).toBe('hey')
+      expect(wrapper.vm.isLoading).toBe(true)
+
+      vi.advanceTimersByTime(50)
+      await flushPromises()
+      expect(wrapper.vm.data).toBe('hey ')
+      expect(wrapper.vm.isLoading).toBe(true)
+
+      vi.advanceTimersByTime(50)
+      await flushPromises()
+      expect(wrapper.vm.data).toBe('hey you')
+      expect(wrapper.vm.isLoading).toBe(false)
+    })
+
+    it('properly resets the state if the key changes in the midle of a stream', async () => {
+      const key = ref(1)
+      const { wrapper, queryCache } = mountSimple({
+        key: () => ['key', key.value],
+        async query({ signal }) {
+          let result = `${key.value}: `
+          for await (const chunk of streamData()) {
+            result += chunk
+            if (signal.aborted) {
+              // we could also return the result
+              throw new Error('aborted')
+            }
+            queryCache.setQueryData(['key', key.value], result)
+          }
+          return result
+        },
+      })
+
+      await flushPromises()
+      expect(wrapper.vm.data).toBe('1: hey')
+      vi.advanceTimersByTime(50)
+      await flushPromises()
+      // change the key now
+      key.value = 2
+      // we need to manually cancel the query
+      queryCache.cancelQueries({ key: ['key', 1] })
+      await nextTick()
+      // new entry should be empty
+      expect(wrapper.vm.data).toBe(undefined)
+      expect(wrapper.vm.isLoading).toBe(true)
+      vi.advanceTimersByTime(50)
+      await flushPromises()
+      expect(wrapper.vm.data).toBe('2: hey')
+      vi.advanceTimersByTime(50)
+      await flushPromises()
+      vi.advanceTimersByTime(50)
+      await flushPromises()
+      expect(wrapper.vm.data).toBe('2: hey you')
+    })
   })
 
   describe('invalidation', () => {

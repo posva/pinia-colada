@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useRoute } from 'vue-router/auto'
+import { useRoute } from 'vue-router'
 import ContactCard from '@/components/ContactCard.vue'
 import { updateContact as _updateContact, getContactById } from '@/api/contacts'
 import type { Contact } from '@/api/contacts'

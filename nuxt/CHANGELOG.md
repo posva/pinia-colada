@@ -1,3 +1,19 @@
+## [0.2.4](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.2.3...@pinia/colada-nuxt@0.2.4) (2025-10-30)
+
+No changes in this release.
+
+## [0.2.3](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.2.2...@pinia/colada-nuxt@0.2.3) (2025-09-25)
+
+### Bug Fixes
+
+- prevent internal cache store serialization ([#393](https://github.com/posva/pinia-colada/issues/393)) ([4f3b952](https://github.com/posva/pinia-colada/commit/4f3b95226e5ff14c2df0c87f3cc08061ae76db51))
+
+## [0.2.2](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.2.1...@pinia/colada-nuxt@0.2.2) (2025-08-25)
+
+### Features
+
+- support nuxt 4 ([bc75525](https://github.com/posva/pinia-colada/commit/bc75525e3bbcb0d92e4186af28313de1b61cace2))
+
 ## [0.2.1](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.2.0...@pinia/colada-nuxt@0.2.1) (2025-06-03)
 
 ### Features

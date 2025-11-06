@@ -25,8 +25,8 @@
 
   --ui-bg: light-dark(var(--color-white), var(--color-gray-900));
   --ui-bg-muted: light-dark(var(--color-gray-50), var(--color-gray-800));
-  --ui-bg-elevated: light-dark(var(--color-gray-100), var(--color-gray-800));
-  --ui-bg-accented: light-dark(var(--color-gray-200), var(--color-gray-700));
+  --ui-bg-elevated: light-dark(var(--color-gray-100), var(--color-gray-700));
+  --ui-bg-accented: light-dark(var(--color-gray-200), var(--color-gray-600));
   --ui-bg-inverted: light-dark(var(--color-gray-900), var(--color-white));
 
   /* --ui-border: light-dark(var(--color-gray-200), var(--color-gray-800)); */
@@ -37,6 +37,14 @@
   /* --ui-border-muted: light-dark(var(--color-gray-200), var(--color-gray-700)); */
   /* --ui-border-accented: light-dark(var(--color-gray-300), var(--color-gray-700)); */
   /* --ui-border-inverted: light-dark(var(--color-gray-900), var(--color-white)); */
+
+  --devtools-syntax-orange: light-dark(#fe640b, #fab387);
+  --devtools-syntax-purple: light-dark(#8839ef, #cba6f7);
+  --devtools-syntax-gray: light-dark(#4c4f69, #cdd6f4);
+  --devtools-syntax-green: light-dark(#40a02b, #a6e3a1);
+  --devtools-syntax-red: light-dark(#d20f39, #f38ba8);
+  --devtools-syntax-yellow: light-dark(#df8e1d, #f9e2af);
+  --devtools-syntax-sapphire: light-dark(#209fb5, #74c7ec);
 
   @variant dark {
     --color-primary-50: var(--color-yellow-50);

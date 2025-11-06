@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
-import { computed, ref, watch } from 'vue'
+import { computed, watch } from 'vue'
 import { useDuplexChannel, useQueryEntries } from '../../composables/duplex-channel'
 import { formatDuration } from '../../utils/time'
 import { useRoute } from 'vue-router'
@@ -13,7 +13,7 @@ import ICircleX from '~icons/lucide/circle-x'
 import IBraces from '~icons/lucide/braces'
 import IHistory from '~icons/lucide/history'
 import ISigmaSquare from '~icons/lucide/sigma-square'
-import { useTimeAgo, formatTimeAgo } from '@vueuse/core'
+import { useTimeAgo, formatTimeAgo, useLocalStorage } from '@vueuse/core'
 import type { FormatTimeAgoOptions } from '@vueuse/core'
 
 const route = useRoute('/queries/[queryId]')
@@ -21,6 +21,23 @@ const queries = useQueryEntries()
 
 const selectedQuery = computed<UseQueryEntryPayload | null>(() => {
   return queries.value.find((entry) => entry.keyHash === route.params.queryId) ?? null
+})
+
+const serializedHistoryEntries = computed(() => {
+  return (
+    selectedQuery.value?.devtools.history.map((entry) => {
+      let value: string
+      try {
+        value = JSON.stringify(entry, null, 2)
+      } catch (error) {
+        value = `Error serializing entry: ${String(error)}`
+      }
+      return {
+        ...entry,
+        data: value,
+      }
+    }) ?? []
+  )
 })
 
 const TIME_AGO_OPTIONS: FormatTimeAgoOptions = {
@@ -31,7 +48,7 @@ const TIME_AGO_OPTIONS: FormatTimeAgoOptions = {
 
 const lastUpdate = useTimeAgo(() => selectedQuery.value?.devtools.updatedAt ?? 0, {
   ...TIME_AGO_OPTIONS,
-  updateInterval: 3_000,
+  updateInterval: 3000,
 })
 
 // TODO: we should be able to highlight components using this query
@@ -54,10 +71,10 @@ const lastUpdate = useTimeAgo(() => selectedQuery.value?.devtools.updatedAt ?? 0
 
 const channel = useDuplexChannel()
 
-const isDataOpen = ref(false)
+const isDataOpen = useLocalStorage<boolean>('pc:query:details:data:open', false, {})
 let wasDataOpen = isDataOpen.value
 let lastStatus: DataStateStatus | null = null
-const isErrorOpen = ref(false)
+const isErrorOpen = useLocalStorage<boolean>('pc:query:details:error:open', false, {})
 watch(
   () => selectedQuery.value?.state,
   (state) => {
@@ -118,8 +135,8 @@ watch(
             <span>Fetch duration:</span>
             <span class="font-bold">{{
               formatDuration(
-                selectedQuery.devtools.history.at(0)!.fetchTime!.end!
-                  - selectedQuery.devtools.history.at(0)!.fetchTime!.start,
+                selectedQuery.devtools.history.at(0)!.fetchTime!.end! -
+                  selectedQuery.devtools.history.at(0)!.fetchTime!.start,
               )
             }}</span>
           </p>
@@ -128,7 +145,9 @@ watch(
             class="grid grid-cols-[auto_1fr] gap-x-2"
             title="How many components and effects are using this query"
           >
-            <span>Observers: <span class="font-bold">{{ selectedQuery.deps.length }}</span></span>
+            <span
+              >Observers: <span class="font-bold">{{ selectedQuery.deps.length }}</span></span
+            >
           </p>
 
           <p
@@ -138,8 +157,8 @@ watch(
           >
             <template
               v-if="
-                typeof selectedQuery.options.gcTime === 'number'
-                  && Number.isFinite(selectedQuery.options.gcTime)
+                typeof selectedQuery.options.gcTime === 'number' &&
+                Number.isFinite(selectedQuery.options.gcTime)
               "
             >
               <span>Will be <i>gced</i></span>
@@ -229,16 +248,14 @@ watch(
         </div>
       </UCollapse>
 
-      <UCollapse v-model:open="isDataOpen" title="Data" :icon="IFileText">
-        <div class="py-1">
-          <pre
-            v-if="selectedQuery.state.data !== undefined"
-            class="rounded p-1 overflow-auto max-h-[1200px]"
-          >{{ selectedQuery.state.data }}</pre>
-          <p v-else class="text-neutral-500/50">
-            No data
-          </p>
-        </div>
+      <UCollapse
+        v-model:open="isDataOpen"
+        title="Data"
+        :icon="IFileText"
+        class="font-mono"
+        no-padding
+      >
+        <JsonViewer :data="selectedQuery.state.data" />
       </UCollapse>
 
       <UCollapse
@@ -250,9 +267,7 @@ watch(
           <pre v-if="selectedQuery.state.error" class="rounded p-1 overflow-auto max-h-[1200px]">{{
             selectedQuery.state.error
           }}</pre>
-          <p v-else class="text-neutral-500/50">
-            No error
-          </p>
+          <p v-else class="text-neutral-500/50">No error</p>
         </div>
       </UCollapse>
 
@@ -286,12 +301,12 @@ watch(
       >
         <div class="py-1">
           <UCollapse
-            v-for="entry of selectedQuery.devtools.history"
+            v-for="entry of serializedHistoryEntries"
             :key="entry.updatedAt"
             :title="`Entry nº${entry.id} (${formatTimeAgo(new Date(entry.updatedAt), TIME_AGO_OPTIONS)})`"
             :open="false"
           >
-            <pre class="rounded p-1 overflow-auto max-h-[1200px]">{{ entry }}</pre>
+            <pre class="rounded p-1 overflow-auto max-h-[1200px]">{{ entry.data }}</pre>
           </UCollapse>
         </div>
       </UCollapse>
@@ -301,7 +316,8 @@ watch(
           <pre
             v-if="selectedQuery.options"
             class="rounded bg-neutral-500/20 p-1 overflow-auto max-h-[1200px]"
-          >{{ selectedQuery.options }}</pre>
+            >{{ selectedQuery.options }}</pre
+          >
           <p v-else>
             This Query entry has no options. It might have been created from the server or manually
             set with

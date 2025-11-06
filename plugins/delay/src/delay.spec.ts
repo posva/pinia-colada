@@ -4,7 +4,7 @@ import { defineComponent } from 'vue'
 import { createPinia } from 'pinia'
 import { useQuery, PiniaColada } from '@pinia/colada'
 import type { PiniaColadaOptions, UseQueryOptions } from '@pinia/colada'
-import { PiniaColadaDelay } from '.'
+import { PiniaColadaDelay } from './delay'
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))
 

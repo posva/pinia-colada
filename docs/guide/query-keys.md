@@ -39,6 +39,16 @@ Anything that is serializable is valid in a key. These are all different keys:
 - `['products', 'search', { filters: { type: ['book', 'comic'] }}]`
 - `['products', 'search', { filters: { type: ['book', 'comic'], limit: 10 }}]`
 
+As you might expect, order in objects does not matter, so these two are equivalent ✅:
+
+- `['products', { id: 1, type: 'book' }]`
+- `['products', { type: 'book', id: 1 }]`
+
+They do matter in arrays, so these two are different ❌:
+
+- `['products', ['book', 'comic']]`
+- `['products', ['comic', 'book']]`
+
 ## Dynamic keys with variables
 
 Dynamic keys are keys that depend on reactive variables (`ref`, `computed`, the _route_, etc). For example, let's say you have a query that fetches a product by its ID:
@@ -141,8 +151,12 @@ useQuery({
 Both queries have different keys, but they share the same root key `['products', productId]`. This allows us to invalidate all the data related to a specific product at once with
 
 ```ts
+// this invalidates both the full product and the search summary
+// (and any other query whose key starts with ['products', productId])
 queryCache.invalidateQueries({ key: ['products', productId.value] })
-// or even
+
+// We can be more specific and invalidate only variants of the product
+// this does not invalidate ['products', productId.value]
 queryCache.invalidateQueries({
   key: [
     'products',
@@ -188,18 +202,23 @@ export const DOCUMENT_COMMENT_QUERY_KEYS = {
 
 You can then reuse these keys in your queries and when interacting with the cache:
 
-```ts
-// TODO: import types
+```ts twoslash
+//---cut-start---
+import { useQuery, useQueryCache } from '@pinia/colada'
+import { useRoute } from 'vue-router'
+import { getDocumentById } from '@/api/documents'
+import { DOCUMENT_QUERY_KEYS } from '@/queries/documents'
+//---cut-end---
 const route = useRoute()
 
 const { state } = useQuery({
-  key: () => DOCUMENT_QUERY_KEYS.byId(route.params.docId),
-  query: () => getDocumentById(1),
+  key: () => DOCUMENT_QUERY_KEYS.byId(route.params.docId as string),
+  query: () => getDocumentById(route.params.docId as string),
 })
 
 const queryCache = useQueryCache()
 queryCache.invalidateQueries({
-  key: DOCUMENT_QUERY_KEYS.byId(route.params.docId),
+  key: DOCUMENT_QUERY_KEYS.byId(route.params.docId as string),
 })
 ```
 
@@ -221,7 +240,7 @@ const docList = queryCache.getQueryData<Doc[]>(['documents', 'list'])
 //
 ```
 
-While this helps with types, it's not only manual but not strict. If we define query options with `defineQueryOptions`, the _key_ will be automatically _tagged_ with type information inferred from `query`, making it easier and stricter to use:
+While this helps with types, it's not only manual but also not strict. If we define query options with `defineQueryOptions`, the _key_ will be automatically _tagged_ with type information inferred from `query`, making it easier and stricter to use:
 
 ```ts{3-6,9} twoslash
 import { useQueryCache, defineQueryOptions } from '@pinia/colada'
@@ -293,3 +312,5 @@ const { state } = useQuery(documentByIdQuery, () => ({
 ```
 
 This second parameter can be a `ref`, a `computed`, or a _getter_ function (just like `key`).
+
+You can also [pass any extra options](./queries.md#Passing-extra-options-defineQueryOptions-) to `useQuery` that will override the ones defined in `defineQueryOptions`.

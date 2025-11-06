@@ -184,7 +184,7 @@ export function useQuery<
   const currentEffect = currentDefineQueryEffect || getCurrentScope()
   const isPaused = currentDefineQueryEntry?.[3]
 
-  const options = computed(
+  const options = computed<UseQueryOptionsWithDefaults<TData, TError, TDataInitial>>(
     () =>
       ({
         ...optionDefaults,
@@ -286,7 +286,7 @@ export function useQuery<
   if (hasCurrentInstance) {
     // only happens on server, app awaits this
     onServerPrefetch(async () => {
-      if (toValue(enabled)) await refresh(true)
+      if (enabled()) await refresh(!options.value.ssrCatchError)
     })
   }
 
@@ -327,20 +327,18 @@ export function useQuery<
       }
 
       // TODO: does this trigger after unmount?
-      if (toValue(enabled)) refresh()
+      if (enabled()) refresh()
     },
     {
       immediate: true,
     },
   )
 
-  // avoid adding a watcher if enabled cannot change
-  if (typeof enabled !== 'boolean') {
-    watch(enabled, (newEnabled) => {
-      // no need to check for the previous value since the watcher will only trigger if the value changed
-      if (newEnabled) refresh()
-    })
-  }
+  // since options can be a getter, enabled might change
+  watch(enabled, (newEnabled) => {
+    // no need to check for the previous value since the watcher will only trigger if the value changed
+    if (newEnabled) refresh()
+  })
 
   // only happens on client
   // we could also call fetch instead but forcing a refresh is more interesting
@@ -352,8 +350,8 @@ export function useQuery<
           refetch()
         } else if (
           refetchControl ||
-          // always refetch if the query is not enabled
-          queryReturn.status.value === 'pending'
+          // always refetch if the query has no real data (even if placeholderData is shown)
+          entry.value.state.value.status === 'pending'
         ) {
           refresh()
         }
@@ -365,7 +363,7 @@ export function useQuery<
   if (IS_CLIENT) {
     useEventListener(document, 'visibilitychange', () => {
       const refetchControl = toValue(options.value.refetchOnWindowFocus)
-      if (document.visibilityState === 'visible' && toValue(enabled)) {
+      if (document.visibilityState === 'visible' && enabled()) {
         if (refetchControl === 'always') {
           refetch()
         } else if (refetchControl) {
@@ -375,7 +373,7 @@ export function useQuery<
     })
 
     useEventListener(window, 'online', () => {
-      if (toValue(enabled)) {
+      if (enabled()) {
         const refetchControl = toValue(options.value.refetchOnReconnect)
         if (refetchControl === 'always') {
           refetch()

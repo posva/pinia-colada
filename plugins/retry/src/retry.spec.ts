@@ -4,7 +4,7 @@ import { defineComponent } from 'vue'
 import { createPinia } from 'pinia'
 import { useQuery, PiniaColada } from '@pinia/colada'
 import type { UseQueryOptions } from '@pinia/colada'
-import { PiniaColadaRetry } from '.'
+import { PiniaColadaRetry } from './retry'
 
 describe('Pinia Colada Retry Plugin', () => {
   beforeEach(() => {
@@ -35,6 +35,7 @@ describe('Pinia Colada Retry Plugin', () => {
           plugins: [
             createPinia(),
             [
+              // split lines
               PiniaColada,
               { plugins: [PiniaColadaRetry(RETRY_OPTIONS_DEFAULTS)] },
             ],

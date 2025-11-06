@@ -1,3 +1,50 @@
+## [0.17.7](https://github.com/posva/pinia-colada/compare/v0.17.6...v0.17.7) (2025-10-30)
+
+### Bug Fixes
+
+- Export `toCacheKey` ([#400](https://github.com/posva/pinia-colada/issues/400)) ([d1d8f3e](https://github.com/posva/pinia-colada/commit/d1d8f3e628fe2bfe6f15b5b29880d287c5632cf9))
+- **query:** abort signal if query becomes inactive ([1728749](https://github.com/posva/pinia-colada/commit/1728749adb2969741f8db9e365ff965a63410547))
+
+### Performance Improvements
+
+- avoid watched on enabled ([30439c0](https://github.com/posva/pinia-colada/commit/30439c0473a458afd9e20368074dbec6c639b07e))
+
+## [0.17.6](https://github.com/posva/pinia-colada/compare/v0.17.5...v0.17.6) (2025-09-25)
+
+### Bug Fixes
+
+- Improve type of `DefineQueryOptions` ([#388](https://github.com/posva/pinia-colada/issues/388)) ([22297f0](https://github.com/posva/pinia-colada/commit/22297f089c4d7237a2fcfc10f8598ca2bc34477f))
+- make type inference of DefineQueryOptions.placeholderData correct ([#343](https://github.com/posva/pinia-colada/issues/343)) ([7da95dd](https://github.com/posva/pinia-colada/commit/7da95dd6201be2e2bd51749616430a84a7fbd83e))
+
+## [0.17.5](https://github.com/posva/pinia-colada/compare/v0.17.4...v0.17.5) (2025-09-11)
+
+### Features
+
+- **query:** add overloaded for optional define options params ([#386](https://github.com/posva/pinia-colada/issues/386)) ([1c51923](https://github.com/posva/pinia-colada/commit/1c5192381f8ac4c0a4496c25e60e9116a4548454))
+
+## [0.17.4](https://github.com/posva/pinia-colada/compare/v0.17.3...v0.17.4) (2025-09-09)
+
+### Bug Fixes
+
+- refresh after an aborterror ([7c07ec8](https://github.com/posva/pinia-colada/commit/7c07ec801e966facd72781b7d61d155ce30c59b6)), closes [#383](https://github.com/posva/pinia-colada/issues/383)
+
+## [0.17.3](https://github.com/posva/pinia-colada/compare/v0.17.2...v0.17.3) (2025-09-01)
+
+### Features
+
+- add ssrCatchError ([#376](https://github.com/posva/pinia-colada/issues/376)) ([6ba6a36](https://github.com/posva/pinia-colada/commit/6ba6a369ee69b7f05df196e31ab9a2e7bdb41754))
+
+## [0.17.2](https://github.com/posva/pinia-colada/compare/v0.17.1...v0.17.2) (2025-08-25)
+
+### Features
+
+- expose internal method to plugins ([740e1ce](https://github.com/posva/pinia-colada/commit/740e1ce70bdc68da529bdabe7f79d98c5ad3bc9e))
+
+### Bug Fixes
+
+- allow initial fetch with refetchOnMount false and placeholderData ([#350](https://github.com/posva/pinia-colada/issues/350)) ([e9b9972](https://github.com/posva/pinia-colada/commit/e9b9972d4f47dbb69533926bb89de0b03c5535f0))
+- always propagate errors ([9268b37](https://github.com/posva/pinia-colada/commit/9268b37805a6efb22de1a668c2213465e158421a)), closes [#371](https://github.com/posva/pinia-colada/issues/371)
+
 ## [0.17.1](https://github.com/posva/pinia-colada/compare/v0.17.0...v0.17.1) (2025-06-13)
 
 ### Bug Fixes

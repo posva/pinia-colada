@@ -8,10 +8,10 @@ export type GlobalMountOptions = NonNullable<Parameters<typeof mount>[1]>['globa
 export function isSpy<Fn extends (...args: unknown[]) => unknown>(fn: any): fn is Mock<Fn>
 export function isSpy(fn: any): fn is Mock {
   return (
-    typeof fn === 'function'
-    && 'mock' in fn
-    && typeof fn.mock === 'object'
-    && Array.isArray(fn.mock.calls)
+    typeof fn === 'function' &&
+    'mock' in fn &&
+    typeof fn.mock === 'object' &&
+    Array.isArray(fn.mock.calls)
   )
 }
 

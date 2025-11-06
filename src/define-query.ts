@@ -1,6 +1,6 @@
 import { getCurrentInstance, getCurrentScope, onScopeDispose, toValue } from 'vue'
 import type { EffectScope } from 'vue'
-import type { UseQueryOptions } from './query-options'
+import type { tErrorSymbol, UseQueryOptions } from './query-options'
 import { useQueryCache } from './query-store'
 import type { ErrorDefault } from './types-extension'
 import type { UseQueryReturn } from './use-query'
@@ -26,18 +26,10 @@ export type DefineQueryOptions<
   TData = unknown,
   TError = ErrorDefault,
   TDataInitial extends TData | undefined = undefined,
-> = _RemoveMaybeRef<UseQueryOptions<TData, TError, TDataInitial>> & {
-  // NOTE: we need to duplicate the types for initialData and placeholderData to make everything work
-  // we omit the descriptions because they are inherited from the original type
-  initialData?: () => TDataInitial
-
-  placeholderData?:
-    | NoInfer<TDataInitial>
-    | NoInfer<TData>
-    | (<T extends TData>(
-        previousData: T | undefined,
-      ) => NoInfer<TDataInitial> | NoInfer<TData> | undefined)
-}
+> = _RemoveMaybeRef<
+  UseQueryOptions<TData, TError, TDataInitial>,
+  typeof tErrorSymbol | 'initialData' | 'placeholderData'
+>
 
 /**
  * Define a query with the given options. Similar to `useQuery(options)` but

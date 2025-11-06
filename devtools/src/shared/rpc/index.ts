@@ -1,6 +1,8 @@
 import type { DataState, EntryKey, UseQueryEntryFilter } from '@pinia/colada'
 import type { UseQueryEntryPayload } from '../query-serialized'
 import { toRaw } from 'vue'
+import { restoreClonedDeep, safeSerialize } from './custom-values'
+import { isPlainObject } from '../json'
 
 export class DuplexChannel<
   const Emits extends Record<EmitsKeys, any[]>,
@@ -38,8 +40,9 @@ export class DuplexChannel<
     const listeners = this.listenersByEvent.get(event.data.id)
     if (!listeners) return
 
+    const restoredData = restoreClonedDeep(event.data.data as Listens[keyof Listens])
     for (const listener of listeners.values()) {
-      listener(...(event.data.data as Listens[keyof Listens]))
+      listener(...restoredData)
     }
   }
 
@@ -105,7 +108,7 @@ export function _testTypes() {
   // client.emit('queries:all', [{ id: '', active: false, asyncStatus: 'idle',   }])
   client.on('queries:clear', () => {})
   client.on('queries:clear', (filters = {}) => {
-    console.log(filters.key)
+    console.error('not implemented yet', filters.key)
     // ...
   })
 
@@ -119,14 +122,8 @@ function toRawDeep(val: unknown): unknown {
     return val.map((item) => toRawDeep(item))
   }
   // TODO: custom classes?
-  if (val && typeof val === 'object' && !isError(val)) {
+  if (isPlainObject(val)) {
     return Object.fromEntries(Object.entries(val).map(([key, value]) => [key, toRawDeep(value)]))
   }
-  return toRaw(val)
-}
-
-function isError(err: unknown): err is Error {
-  return 'isError' in Error && typeof Error.isError === 'function'
-    ? Error.isError(err)
-    : err instanceof Error
+  return safeSerialize(toRaw(val))
 }

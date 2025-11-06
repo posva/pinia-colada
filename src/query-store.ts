@@ -424,6 +424,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     // and we know its gcTime value
     if (entry.deps.size > 0 || !entry.options) return
     clearTimeout(entry.gcTimeout)
+    entry.pending?.abortController.abort()
     // avoid setting a timeout with false, Infinity or NaN
     if ((Number.isFinite as (val: unknown) => val is number)(entry.options.gcTime)) {
       entry.gcTimeout = setTimeout(() => {
@@ -506,6 +507,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       opts: UseQueryOptions<TData, TError, TDataInitial>,
       previousEntry?: UseQueryEntry<TData, TError, TDataInitial>,
     ): UseQueryEntry<TData, TError, TDataInitial> => {
+      // NOTE: in the code we always pass the options with the defaults but it's convenient
+      // to allow ensure be called with just the user options
       const options: UseQueryOptionsWithDefaults<TData, TError, TDataInitial> = {
         ...optionDefaults,
         ...opts,
@@ -684,10 +687,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           .catch((error) => {
             if (
               pendingCall === entry.pending &&
-              error &&
               // when the error is an abort error, it means the request was cancelled
               // we should just ignore the result of the query but not error
-              error.name !== 'AbortError'
+              error?.name !== 'AbortError'
             ) {
               setEntryState(entry, {
                 status: 'error',
@@ -714,8 +716,10 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
               if (entry.state.value.status !== 'pending') {
                 // reset the placeholder data to free up memory
                 entry.placeholderData = null
+                // if the status is pending, the result was ignored, therefore
+                // we didn't update the cache and `when` must not be updated
+                entry.when = Date.now()
               }
-              entry.when = Date.now()
             }
           }),
         when: Date.now(),

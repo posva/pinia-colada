@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useRoute } from 'vue-router/auto'
+import { useRoute } from 'vue-router'
 import { useQuery } from '@pinia/colada'
 import { getContactById } from '@/api/contacts'
 

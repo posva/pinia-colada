@@ -8,7 +8,7 @@ import { useQuery } from './use-query'
 import type { UseQueryOptions } from './query-options'
 import { useQueryCache } from './query-store'
 import { PiniaColada } from './pinia-colada'
-import { isSpy, mockWarn } from '../test-utils'
+import { delay, isSpy, mockWarn } from '../test-utils'
 import type { GlobalMountOptions } from '../test-utils'
 
 describe('defineQuery', () => {
@@ -229,7 +229,7 @@ describe('defineQuery', () => {
       })
       const query = vi.fn(async () => ({ name: 'Eduardo', id: routeId.value }))
       const useProfile = defineQuery(() => {
-        return useQuery({ key, query, staleTime: 1_000 })
+        return useQuery({ key, query, staleTime: 1000 })
       })
 
       const ViewComponent = defineComponent({
@@ -273,7 +273,7 @@ describe('defineQuery', () => {
       await flushPromises()
 
       // ensure the query is stale so it refetches
-      vi.advanceTimersByTime(1_001)
+      vi.advanceTimersByTime(1001)
       routeId.value = 1
       await flushPromises()
       expect(query).toHaveBeenCalledTimes(1)
@@ -396,7 +396,7 @@ describe('defineQuery', () => {
       const key = vi.fn(() => ['key', routeId.value])
       const query = vi.fn(async () => routeId.value)
       const useProfile = defineQuery(() => {
-        return useQuery({ key, query, staleTime: 1_000 })
+        return useQuery({ key, query, staleTime: 1000 })
       })
 
       const ViewComponent = defineComponent({
@@ -557,6 +557,86 @@ describe('defineQuery', () => {
       await flushPromises()
 
       expect(spy).toHaveBeenCalledTimes(0)
+    })
+  })
+
+  describe('abort signal', () => {
+    it('aborts the signal if the query is not active anymore (key changes)', async () => {
+      const key = ref(1)
+      const useProfile = defineQuery(() => {
+        return useQuery({
+          key: () => ['key', key.value],
+          async query({ signal }) {
+            await delay(100)
+            if (signal.aborted) {
+              return 'ok'
+            }
+            return 'ko'
+          },
+        })
+      })
+
+      const wrapper = mount(
+        {
+          setup() {
+            return { ...useProfile() }
+          },
+          template: `<div></div>`,
+        },
+        {
+          global: {
+            plugins: [createPinia(), PiniaColada],
+          },
+        },
+      )
+
+      await flushPromises()
+      expect(wrapper.vm.data).toBe(undefined)
+      key.value = 2
+      // we advance before letting the new query trigger
+      vi.advanceTimersByTime(100)
+      await flushPromises()
+      const queryCache = useQueryCache()
+      expect(queryCache.getQueryData(['key', 1])).toBe('ok')
+      expect(queryCache.getQueryData(['key', 2])).toBe(undefined)
+    })
+
+    it('aborts the signal if the query is not active anymore (unmount)', async () => {
+      const useProfile = defineQuery(() => {
+        return useQuery({
+          key: () => ['key'],
+          async query({ signal }) {
+            await delay(100)
+            if (signal.aborted) {
+              return 'ok'
+            }
+            return 'ko'
+          },
+        })
+      })
+
+      const wrapper = mount(
+        {
+          setup() {
+            return { ...useProfile() }
+          },
+          template: `<div></div>`,
+        },
+        {
+          global: {
+            plugins: [createPinia(), PiniaColada],
+          },
+        },
+      )
+
+      await flushPromises()
+      expect(wrapper.vm.data).toBe(undefined)
+      wrapper.unmount()
+      // we advance before letting the new query trigger
+      vi.advanceTimersByTime(100)
+      await flushPromises()
+      const queryCache = useQueryCache()
+      expect(queryCache.getQueryData(['key'])).toBe('ok')
     })
   })
 
@@ -784,7 +864,7 @@ describe('defineQuery', () => {
         const key = vi.fn(() => ['key', routeId.value])
         const query = vi.fn(async () => routeId.value)
         const useProfile = defineQuery(() => {
-          return useQuery({ key, query, gcTime: 1_000 })
+          return useQuery({ key, query, gcTime: 1000 })
         })
 
         const ViewComponent = defineComponent({
@@ -976,7 +1056,7 @@ describe('defineQuery', () => {
     // an extra time during dev than not
     it.todo('does not refetch if the component changes', async () => {
       const query = vi.fn(async () => 42)
-      const useMyQuery = defineQuery({ key: ['id'], query, staleTime: 10000 })
+      const useMyQuery = defineQuery({ key: ['id'], query, staleTime: 10_000 })
       const component = defineComponent({
         render: () => null,
         setup() {
@@ -1000,7 +1080,7 @@ describe('defineQuery', () => {
 
     it('avoids refetching when a query is within a component of v-for', async () => {
       const query = vi.fn(async () => 42)
-      const useMyQuery = defineQuery({ key: ['id'], query, staleTime: 1_000 })
+      const useMyQuery = defineQuery({ key: ['id'], query, staleTime: 1000 })
 
       const ArtworkCard = defineComponent({
         render: () => null,

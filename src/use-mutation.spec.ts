@@ -125,7 +125,7 @@ describe('useMutation', () => {
     it('invokes the "onMutate" hook before mutating', async () => {
       const onMutate = vi.fn()
       const { wrapper } = mountSimple({
-        mutation: async ({ a, b }: { a: number, b: number }) => {
+        mutation: async ({ a, b }: { a: number; b: number }) => {
           return a + b
         },
         onMutate,
@@ -486,7 +486,7 @@ describe('useMutation', () => {
       expect(cache.getEntries()).toHaveLength(1)
 
       wrapper.unmount()
-      vi.advanceTimersByTime(1000000)
+      vi.advanceTimersByTime(1_000_000)
       expect(cache.getEntries()).toHaveLength(1)
     })
 

@@ -1,3 +1,22 @@
+## [0.1.8](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.1.7...@pinia/colada-devtools@0.1.8) (2025-10-30)
+
+No changes in this release.
+
+## [0.1.7](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.1.6...@pinia/colada-devtools@0.1.7) (2025-09-25)
+
+No changes in this release.
+
+## [0.1.6](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.1.5...@pinia/colada-devtools@0.1.6) (2025-08-25)
+
+### Features
+
+- **devtools:** better JSON display ([#310](https://github.com/posva/pinia-colada/issues/310)) ([ae0dd16](https://github.com/posva/pinia-colada/commit/ae0dd1657b199f39cd86e87c2e047f7dbdf34bd0))
+- **devtools:** Enhance serialization with type safety and optimized binary data handling ([#356](https://github.com/posva/pinia-colada/issues/356)) ([640f730](https://github.com/posva/pinia-colada/commit/640f73003264e1ad8483317fd6e562fc0cf4a5b3))
+
+### Bug Fixes
+
+- display collections ([ecf716c](https://github.com/posva/pinia-colada/commit/ecf716c41993a7e207709e4e9d2268b66d984523))
+
 ## [0.1.5](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.1.4...@pinia/colada-devtools@0.1.5) (2025-06-16)
 
 ### Bug Fixes

@@ -3,7 +3,7 @@ import { ref, watch } from 'vue'
 import { StarIcon } from '@heroicons/vue/20/solid'
 import { HeartIcon } from '@heroicons/vue/24/outline'
 import { useMutation, useQuery } from '@pinia/colada'
-import { useRoute } from 'vue-router/auto'
+import { useRoute } from 'vue-router'
 import { changeProductAvailability, getProductById } from '@/api/products'
 import type { ProductListItem } from '@/api/products'
 import { delay } from '@/api/utils'
@@ -77,7 +77,7 @@ const { mutate: bookProduct } = useMutation({
   <div v-if="item" class="bg-white">
     <div class="max-w-2xl px-4 py-16 mx-auto sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
       <div class="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-8">
-        <img :src="item?.imageSrc" class="object-cover object-center w-full h-full sm:rounded-lg">
+        <img :src="item?.imageSrc" class="object-cover object-center w-full h-full sm:rounded-lg" />
 
         <!-- Product info -->
         <div class="px-4 mt-10 sm:mt-16 sm:px-0 lg:mt-0">
@@ -86,19 +86,13 @@ const { mutate: bookProduct } = useMutation({
           </h1>
 
           <div class="mt-3">
-            <h2 class="sr-only">
-              Product information
-            </h2>
-            <p class="text-3xl tracking-tight text-gray-900">
-              {{ item?.price }} €
-            </p>
+            <h2 class="sr-only">Product information</h2>
+            <p class="text-3xl tracking-tight text-gray-900">{{ item?.price }} €</p>
           </div>
 
           <!-- Reviews -->
           <div class="mt-3">
-            <h3 class="sr-only">
-              Reviews
-            </h3>
+            <h3 class="sr-only">Reviews</h3>
             <div class="flex items-center">
               <div v-if="item?.rating" class="flex items-center">
                 <StarIcon
@@ -109,16 +103,12 @@ const { mutate: bookProduct } = useMutation({
                   aria-hidden="true"
                 />
               </div>
-              <p class="sr-only">
-                {{ item?.rating }} out of 5 stars
-              </p>
+              <p class="sr-only">{{ item?.rating }} out of 5 stars</p>
             </div>
           </div>
 
           <div class="mt-6">
-            <h3 class="sr-only">
-              Description
-            </h3>
+            <h3 class="sr-only">Description</h3>
 
             <div class="space-y-6 text-base text-gray-700" v-html="item?.description" />
           </div>
@@ -144,7 +134,5 @@ const { mutate: bookProduct } = useMutation({
       </div>
     </div>
   </div>
-  <div v-else-if="isPending">
-    Loading...
-  </div>
+  <div v-else-if="isPending">Loading...</div>
 </template>

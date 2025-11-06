@@ -7,8 +7,8 @@ import type {
 import { inject } from 'vue'
 import type { InjectionKey, Ref } from 'vue'
 
-export const DUPLEX_CHANNEL_KEY: InjectionKey<DuplexChannel<DevtoolsEmits, AppEmits>>
-  = Symbol('duplex-channel')
+export const DUPLEX_CHANNEL_KEY: InjectionKey<DuplexChannel<DevtoolsEmits, AppEmits>> =
+  Symbol('duplex-channel')
 
 export function useDuplexChannel() {
   const channel = inject(DUPLEX_CHANNEL_KEY)

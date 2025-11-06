@@ -14,7 +14,7 @@
   color-scheme: light dark;
 
   --bg-color: light-dark(rgb(225, 255, 255), rgb(0, 20, 30));
-  --fg-color: light-dark( rgb(0, 20, 30), rgb(225, 255, 255));
+  --fg-color: light-dark(rgb(0, 20, 30), rgb(225, 255, 255));
 
   padding: 5px 5px;
   border-radius: 50%;
@@ -41,7 +41,8 @@
     outline-offset: 2px;
   }
 
-  &:hover, &:focus {
+  &:hover,
+  &:focus {
     cursor: pointer;
     border-width: 2px;
     border-color: color-mix(in srgb, var(--fg-color), black 10%);

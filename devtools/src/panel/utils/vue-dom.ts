@@ -22,8 +22,8 @@ export function findVueComponents(
       continue
     }
     // NOTE: these properties are private API for devtools
-    const component = ((node as any).__vueParentComponent
-      || (node as any).__vue_app_?._instance) as ComponentInternalInstance | null
+    const component = ((node as any).__vueParentComponent ||
+      (node as any).__vue_app_?._instance) as ComponentInternalInstance | null
     if (!component) {
       continue
     }

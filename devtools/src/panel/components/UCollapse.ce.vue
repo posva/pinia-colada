@@ -4,6 +4,7 @@ import type { Component } from 'vue'
 defineProps<{
   title?: string
   icon?: Component
+  noPadding?: boolean
 }>()
 
 const open = defineModel<boolean>('open', {
@@ -24,7 +25,7 @@ function scrollIfNeeded(event: TransitionEvent) {
 
 <template>
   <div class="collapse collapse-arrow">
-    <input v-model="open" type="checkbox">
+    <input v-model="open" type="checkbox" />
     <div class="collapse-title px-2 py-0.5 bg-neutral-200 dark:bg-neutral-800 theme-neutral">
       <slot name="title" :open :title>
         <h3 class="font-semibold text-sm flex gap-x-1 items-center">
@@ -35,7 +36,11 @@ function scrollIfNeeded(event: TransitionEvent) {
         </h3>
       </slot>
     </div>
-    <div class="collapse-content px-2 text-sm overflow-hidden" @transitionend="scrollIfNeeded">
+    <div
+      :class="!noPadding && 'px-2'"
+      class="collapse-content text-sm overflow-hidden"
+      @transitionend="scrollIfNeeded"
+    >
       <slot :open />
     </div>
   </div>

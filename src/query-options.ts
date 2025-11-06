@@ -62,6 +62,12 @@ export interface UseQueryOptionsGlobal {
    * with `initialData`, the placeholder does not change the cache state.
    */
   placeholderData?: (previousData: unknown) => any // any allows us to not worry about the types when merging options
+
+  /**
+   * Whether to catch errors during SSR (onServerPrefetch) when the query fails.
+   * @default false
+   */
+  ssrCatchError?: boolean
 }
 
 /**
@@ -76,6 +82,13 @@ export interface UseQueryFnContext {
    */
   signal: AbortSignal
 }
+
+/**
+ * Type-only symbol to keep the type
+ *
+ * @internal
+ */
+export declare const tErrorSymbol: unique symbol
 
 /**
  * Options for `useQuery()`. Can be extended by plugins.
@@ -105,6 +118,7 @@ export interface UseQueryOptions<
     | 'refetchOnReconnect'
     | 'refetchOnWindowFocus'
     | 'staleTime'
+    | 'ssrCatchError'
   > {
   /**
    * The key used to identify the query. Array of primitives **without**
@@ -156,6 +170,16 @@ export interface UseQueryOptions<
     | (<T extends TData>(
         previousData: T | undefined,
       ) => NoInfer<TDataInitial> | NoInfer<TData> | undefined)
+
+  /**
+   * Ghost property to ensure TError generic parameter is included in the
+   * interface structure. This property should never be used directly and is
+   * only for type system correctness. it could be removed in the future if the
+   * type can be inferred in any other way.
+   *
+   * @internal
+   */
+  readonly [tErrorSymbol]?: TError
 }
 
 /**
@@ -189,6 +213,7 @@ export type UseQueryOptionsGlobalDefaults = Pick<
   | 'refetchOnReconnect'
   | 'refetchOnWindowFocus'
   | 'staleTime'
+  | 'ssrCatchError'
 > &
   typeof USE_QUERY_DEFAULTS
 

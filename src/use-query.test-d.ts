@@ -1,6 +1,9 @@
 import { assertType, describe, expectTypeOf, it } from 'vitest'
 import type { Ref } from 'vue'
 import { useQuery } from './use-query'
+import type { UseQueryOptions } from './query-options'
+import type { DefineQueryOptions } from './define-query'
+import type { DefineQueryOptionsTagged } from './define-query-options'
 
 describe('useQuery type inference', () => {
   it('infers the data type', () => {
@@ -70,7 +73,6 @@ describe('useQuery type inference', () => {
     })
   })
 
-  const query = async () => 42
   it('allows titeral in keys', () => {
     useQuery({
       key: [
@@ -83,7 +85,7 @@ describe('useQuery type inference', () => {
         [2, 53, '', true, null, [{}, 2, [[]]]],
         { array: [], obj: { o: true } },
       ],
-      query,
+      query: async () => 42,
     })
   })
 
@@ -91,21 +93,22 @@ describe('useQuery type inference', () => {
     useQuery({
       // @ts-expect-error: should fail because Error is not a valid key
       key: [new Error('hey')],
-      query,
+      query: async () => 42,
     })
     useQuery({
       // @ts-expect-error: should fail because Error is not a valid key
       key: [new Date()],
-      query,
+      query: async () => 42,
     })
     useQuery({
       // @ts-expect-error: should fail because Error is not a valid key
       key: [undefined],
-      query,
+      query: async () => 42,
     })
   })
 
   it('allows loosely typed keys', () => {
+    // oxlint-disable-next-line consistent-function-scoping
     const query = async () => 42
     useQuery({
       key: [] as (number | string)[],
@@ -222,8 +225,8 @@ describe('useQuery type inference', () => {
       initialData: () => ({ text: 'init', isInit: true }),
       placeholderData: () => ({ text: 'placeholder' }),
     })
-    expectTypeOf<{ text: string, isInit?: boolean }>(data.value)
-    expectTypeOf<{ text: string, isInit?: boolean }>(state.value.data)
+    expectTypeOf<{ text: string; isInit?: boolean }>(data.value)
+    expectTypeOf<{ text: string; isInit?: boolean }>(state.value.data)
   })
 
   it('allows placeholderData to match initialData', async () => {
@@ -259,6 +262,46 @@ describe('useQuery type inference', () => {
   it('disallows passing a second argument', () => {
     // @ts-expect-error: should fail
     useQuery({ key: ['id'], query: async () => 42 }, () => ({}))
+  })
+
+  it('correctly infers TError when passed a UseQueryOptions', () => {
+    const options = {} as UseQueryOptions<unknown, MyCustomError>
+
+    const { state, error } = useQuery(options)
+    expectTypeOf<MyCustomError | null>(error.value)
+    expectTypeOf<MyCustomError | null>(state.value.error)
+  })
+
+  it('correctly infers TError when passed a DefineQueryOptions', () => {
+    const options = {} as DefineQueryOptions<unknown, MyCustomError>
+
+    const { state, error } = useQuery(options)
+    expectTypeOf<MyCustomError | null>(error.value)
+    expectTypeOf<MyCustomError | null>(state.value.error)
+  })
+
+  it('correctly infers TError when passed a () => DefineQueryOptions', () => {
+    const options = {} as DefineQueryOptions<unknown, MyCustomError>
+
+    const { state, error } = useQuery(() => options)
+    expectTypeOf<MyCustomError | null>(error.value)
+    expectTypeOf<MyCustomError | null>(state.value.error)
+  })
+
+  it('correctly infers TError when passed a DefineQueryOptionsTagged', () => {
+    const options = {} as DefineQueryOptionsTagged<unknown, MyCustomError>
+
+    const { state, error } = useQuery(options)
+    expectTypeOf<MyCustomError | null>(error.value)
+    expectTypeOf<MyCustomError | null>(state.value.error)
+  })
+
+  it('correctly infers TError when passed a () => DefineQueryOptionsTagged', () => {
+    const options = {} as DefineQueryOptionsTagged<unknown, MyCustomError>
+
+    const { state, error } = useQuery(() => options)
+    expectTypeOf<MyCustomError | null>(error.value)
+    expectTypeOf<MyCustomError | null>(state.value.error)
   })
 })
 

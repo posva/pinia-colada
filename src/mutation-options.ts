@@ -143,7 +143,7 @@ export interface UseMutationOptions<
    *     console.log(foo) // bar
    *     return fetch(`/api/todos/${id}`)
    *   },
-   *   onSuccess(context) {
+   *   onSuccess(data, vars, context) {
    *     console.log(context.foo) // bar
    *   },
    * })
@@ -240,6 +240,7 @@ export const USE_MUTATION_OPTIONS_KEY: InjectionKey<UseMutationOptionsGlobalDefa
 
 /**
  * Injects the global query options.
+ *
  * @internal
  */
 export const useMutationOptions = (): UseMutationOptionsGlobal =>

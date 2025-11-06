@@ -21,16 +21,21 @@ function startResizing() {
   isResizing.value = true
 }
 
-useEventListener(window, 'mousemove', (e: MouseEvent) => {
-  if (!isResizing.value) return
+useEventListener(
+  window,
+  'mousemove',
+  (e: MouseEvent) => {
+    if (!isResizing.value) return
 
-  // Clamp the translate value between 20vh and 80% of the viewport height
-  const maxTranslate = window.innerHeight * 0.8
-  const minTranslate = window.innerHeight * 0.2
-  const rawTranslate = window.innerHeight - e.clientY
+    // Clamp the translate value between 20vh and 80% of the viewport height
+    const maxTranslate = window.innerHeight * 0.8
+    const minTranslate = window.innerHeight * 0.2
+    const rawTranslate = window.innerHeight - e.clientY
 
-  translate.value = Math.min(maxTranslate, Math.max(minTranslate, rawTranslate))
-}, { passive: true })
+    translate.value = Math.min(maxTranslate, Math.max(minTranslate, rawTranslate))
+  },
+  { passive: true },
+)
 
 useEventListener(window, 'mouseup', () => {
   isResizing.value = false

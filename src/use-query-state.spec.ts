@@ -44,8 +44,6 @@ describe('useQueryState', () => {
   it('accesses existing query state by key', async () => {
     const pinia = createPinia()
     setActivePinia(pinia)
-    const queryCache = useQueryCache(pinia)
-    queryCache.setQueryData(['test-key'], 42)
     const wrapper = mount(
       defineComponent({
         setup() {
@@ -55,7 +53,14 @@ describe('useQueryState', () => {
       }),
       {
         global: {
-          plugins: [pinia, PiniaColada],
+          plugins: [
+            pinia,
+            PiniaColada,
+            () => {
+              const queryCache = useQueryCache(pinia)
+              queryCache.setQueryData(['test-key'], 42)
+            },
+          ],
         },
       },
     )
@@ -71,9 +76,6 @@ describe('useQueryState', () => {
     setActivePinia(pinia)
     const keyId = ref(1)
 
-    const queryCache = useQueryCache(pinia)
-    queryCache.setQueryData(['item', 1], { id: 1, name: 'Item 1' })
-
     const wrapper = mount(
       defineComponent({
         setup() {
@@ -85,7 +87,14 @@ describe('useQueryState', () => {
       }),
       {
         global: {
-          plugins: [pinia, PiniaColada],
+          plugins: [
+            pinia,
+            PiniaColada,
+            () => {
+              const queryCache = useQueryCache(pinia)
+              queryCache.setQueryData(['item', 1], { id: 1, name: 'Item 1' })
+            },
+          ],
         },
       },
     )
@@ -103,9 +112,6 @@ describe('useQueryState', () => {
       key: ['item', id],
       query: async () => ({ id, name: `Item ${id}` }),
     }))
-    const queryCache = useQueryCache(pinia)
-    queryCache.setQueryData(itemQuery(1).key, { id: 1, name: 'Item 1' })
-    queryCache.setQueryData(itemQuery(2).key, { id: 2, name: 'Item 2' })
 
     const keyId = ref(1)
     const wrapper = mount(
@@ -117,7 +123,15 @@ describe('useQueryState', () => {
       }),
       {
         global: {
-          plugins: [pinia, PiniaColada],
+          plugins: [
+            pinia,
+            PiniaColada,
+            () => {
+              const queryCache = useQueryCache(pinia)
+              queryCache.setQueryData(itemQuery(1).key, { id: 1, name: 'Item 1' })
+              queryCache.setQueryData(itemQuery(2).key, { id: 2, name: 'Item 2' })
+            },
+          ],
         },
       },
     )

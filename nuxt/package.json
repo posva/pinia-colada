@@ -4,7 +4,7 @@
     "access": "public"
   },
   "type": "module",
-  "version": "0.2.1",
+  "version": "0.2.4",
   "description": "Pinia Colada Nuxt module",
   "license": "MIT",
   "repository": "posva/pinia-colada",
@@ -28,22 +28,22 @@
     "test:types": "vue-tsc --noEmit && cd playground && vue-tsc --noEmit"
   },
   "dependencies": {
-    "@nuxt/kit": "^4.0.0"
+    "@nuxt/kit": "^4.2.0"
   },
   "peerDependencies": {
     "@pinia/colada": "workspace:>="
   },
   "devDependencies": {
-    "@nuxt/devtools": "^2.6.2",
-    "@nuxt/eslint-config": "^1.4.1",
-    "@nuxt/module-builder": "1.0.1",
-    "@nuxt/schema": "^4.0.0",
-    "@nuxt/test-utils": "^3.19.2",
+    "@nuxt/devtools": "^3.0.1",
+    "@nuxt/eslint-config": "^1.9.0",
+    "@nuxt/module-builder": "1.0.2",
+    "@nuxt/schema": "^4.2.0",
+    "@nuxt/test-utils": "^3.20.1",
     "@pinia/colada": "workspace:*",
-    "@pinia/nuxt": "^0.11.2",
-    "nuxi": "^3.26.2",
-    "nuxt": "^4.0.0",
-    "typescript": "~5.8.3",
-    "vue-tsc": "^3.0.3"
+    "@pinia/nuxt": "^0.11.3",
+    "nuxi": "^3.30.0",
+    "nuxt": "^4.2.0",
+    "typescript": "~5.9.3",
+    "vue-tsc": "^3.1.3"
   }
 }

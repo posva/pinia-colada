@@ -1,0 +1,36 @@
+<script lang="ts">
+function isExpandable(
+  value: unknown,
+): value is unknown[] | Record<string, unknown> | Map<unknown, unknown> | Set<unknown> {
+  return (
+    !!value &&
+    (Array.isArray(value) || isPlainObject(value) || value instanceof Map || value instanceof Set)
+  )
+}
+</script>
+
+<script setup lang="ts">
+import { formatValue, getValueTypeClass, isPlainObject } from '@pinia/colada-devtools/shared'
+import JsonItem from './JsonItem.vue'
+
+defineProps<{
+  data: unknown
+}>()
+</script>
+
+<template>
+  <!-- Handle expandable items -->
+  <template v-if="isExpandable(data)">
+    <JsonItem
+      v-for="[key, value] in Object.entries(data)"
+      :key="key"
+      :item-key="key"
+      :value="value"
+      :depth="0"
+    />
+  </template>
+  <!-- Handle primitive root values -->
+  <template v-else>
+    <span :class="getValueTypeClass(data)">{{ formatValue(data) }}</span>
+  </template>
+</template>
