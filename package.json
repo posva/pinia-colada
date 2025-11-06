@@ -94,7 +94,7 @@
     },
     {
       "name": "useQuery only",
-      "path": "dist/index.js",
+      "path": "dist/index.mjs",
       "import": "{ useQuery, PiniaColada }",
       "ignore": [
         "vue",
@@ -104,7 +104,7 @@
     },
     {
       "name": "useQuery + useMutation",
-      "path": "dist/index.js",
+      "path": "dist/index.mjs",
       "import": "{ useQuery, PiniaColada, useMutation }",
       "ignore": [
         "vue",
