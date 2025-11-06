@@ -1,6 +1,6 @@
 # Paginated Queries
 
-Paginated queries are a way to retrieve a subset of the results of a query. Pinia Colada doesn't provide a specific API for paginated queries, all you need is to **pass the page to the `key` function**.
+Paginated queries are a way to retrieve a subset of the results of a query. In Pinia Colada all you need for paginated queries is to **pass the page to the `key` function**.
 
 ```vue{7,9} twoslash
 <script setup lang="ts">
@@ -122,9 +122,7 @@ watch(loadMoreEl, (el) => {
         {{ fact }}
       </blockquote>
 
-      <p v-if="facts.data.nextPage" ref="load-more">
-        Loading more...
-      </p>
+      <p v-if="facts.data.nextPage" ref="load-more">Loading more...</p>
     </template>
   </div>
 </template>
@@ -135,7 +133,7 @@ import { mande } from 'mande'
 
 export interface CatFacts {
   current_page: number
-  data: Array<{ fact: string, length: number }>
+  data: Array<{ fact: string; length: number }>
   first_page_url: string
   from: number
   last_page: number

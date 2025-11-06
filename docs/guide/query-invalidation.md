@@ -54,14 +54,16 @@ const queryCache = useQueryCache()
 
 const { mutate } = useMutation({
   mutation: (text: string) => createTodo(text),
-  onSettled: () => queryCache.invalidateQueries({ key: ['todos'], exact: true }),
+  onSettled: () => {
+    queryCache.invalidateQueries({ key: ['todos'], exact: true })
+  },
 })
 </script>
 ```
 
 ### To `await` or not to `await`
 
-In mutations, it's possible to `await` within the different hooks. This will effectively delay the resolution or rejection of the mutation and its `asyncStatus`:
+In mutations, it's possible to `await` (or return a promise) within the different hooks. This will effectively delay the resolution or rejection of the mutation and its `asyncStatus`:
 
 ```ts
 const queryCache = useQueryCache()
