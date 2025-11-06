@@ -55,6 +55,11 @@ export function readSnippets(
       Object.assign(files, readSnippets(fullPath, baseDir))
     } else {
       files[relativePath] = fs.readFileSync(fullPath, 'utf-8')
+
+      // make imports from ./queries/ allow @/queries/ too
+      if (relativePath.startsWith('./queries')) {
+        files['@' + relativePath.slice(1)] = fs.readFileSync(fullPath, 'utf-8')
+      }
     }
   }
 
