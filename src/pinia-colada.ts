@@ -49,7 +49,7 @@ export const PiniaColada: Plugin<[options?: PiniaColadaOptions]> = (
     pinia = app.config.globalProperties.$pinia,
     plugins,
     queryOptions,
-    mutationOptions = {},
+    mutationOptions,
   } = options
 
   app.provide(USE_QUERY_OPTIONS_KEY, {
