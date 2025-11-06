@@ -1,10 +1,10 @@
 # Queries
 
-Queries manage asynchronous state declaratively, allowing you to focus on the state, its status, and any potential errors. They automatically deduplicate multiple requests and cache results, enhancing user experience with faster performance.
+Queries manage asynchronous state declaratively, allowing you to focus on the state, its status, and any potential errors. They automatically deduplicate multiple requests and cache results, enhancing user experience and your app performance.
 
-Queries are designed to **read** data from asynchronous sources, such as handling `GET` requests in a REST API but they can be used along any function returning a Promise. For **writing** or mutating data, consider using [mutations](./mutations.md), which are better suited for those operations.
+They are designed to **read** data from asynchronous sources, such as handling `GET` requests in a REST API but they can be used along **any function returning a Promise** (GraphQL, WebSockets, etc). For **writing** or mutating data, consider using [mutations](./mutations.md), which are better suited for those operations.
 
-Queries are created with `useQuery()`. They can be combined with [`defineQueryOptions()` for organization and typing](./query-keys.md#Typing-query-keys) or [`defineQuery()`](../advanced/reusable-queries.md) for reusability.
+Queries are created with `useQuery()` and can be combined with [`defineQueryOptions()` for organization and typing](./query-keys.md#Typing-query-keys). There is also [`defineQuery()`](../advanced/reusable-queries.md) to combine queries with extra state, similar to a _tiny_ Pinia store.
 
 ## Foundations
 
@@ -39,12 +39,8 @@ const {
 
 <template>
   <main>
-    <div v-if="asyncStatus === 'loading'">
-      Loading...
-    </div>
-    <div v-else-if="state.status === 'error'">
-      Oops, an error happened...
-    </div>
+    <div v-if="asyncStatus === 'loading'">Loading...</div>
+    <div v-else-if="state.status === 'error'">Oops, an error happened...</div>
     <div v-else-if="state.data">
       <TodoItem v-for="todo in state.data" :key="todo.id" :todo="todo" />
     </div>
@@ -68,11 +64,11 @@ Most of the time you will find yourself using just `state` and `asyncStatus` to 
   - `error`: the error returned by the query. It's `null` if the query was successful.
   - `status`: the data status of the query. It starts as `'pending'`, and then it changes to `'success'` or `'error'` depending on the outcome of the `query` function:
 
-    | status | data | error |
-    | ------ | ---- | ----- |
-    | `'pending'` | `undefined` | `null` |
-    | `'success'` | _defined_ | `null` |
-    | `'error'` | `undefined` or _defined_ | _defined_ |
+    | status      | data                     | error     |
+    | ----------- | ------------------------ | --------- |
+    | `'pending'` | `undefined`              | `null`    |
+    | `'success'` | _defined_                | `null`    |
+    | `'error'`   | `undefined` or _defined_ | _defined_ |
 
 - `asyncStatus`: the async status of the query. It's either `'idle'` or `'loading'` if the query is currently being fetched.
 
@@ -137,7 +133,7 @@ export const DOCUMENT_QUERY_KEYS = {
 }
 
 export const documentByIdQuery = defineQueryOptions(
-  ({ id, withComments = false }: { id: string, withComments?: boolean }) => ({
+  ({ id, withComments = false }: { id: string; withComments?: boolean }) => ({
     key: DOCUMENT_QUERY_KEYS.byIdWithComments(id, withComments),
     query: () => getDocumentById(id, { withComments }),
   }),
@@ -172,10 +168,9 @@ export const useCurrentDeck = defineQuery(() => {
   const result = useQuery({
     key: () => ['decks', Number(route.params.deckId)],
     query: () =>
-    // you might need to cast the param or suffix it with `!`
-    // for TS
-      fetch(`/api/decks?deckId=${route.params.deckId}`)
-        .then((res) => res.json()),
+      // you might need to cast the param or suffix it with `!`
+      // for TS
+      fetch(`/api/decks?deckId=${route.params.deckId}`).then((res) => res.json()),
     // only enable the query when we are on /decks/some-deck-id
     enabled: () => 'deckId' in route.params,
   })
@@ -242,29 +237,18 @@ This approach is necessary because in Vue we have to use `Ref` wrappers for vari
 import { useQuery } from '@pinia/colada'
 // @errors: 18047 18048
 
-const {
-  data,
-  status,
-  error,
-} = useQuery({
+const { data, status, error } = useQuery({
   // ...
   // ---cut-start---
   key: ['user-info'],
-  query: () =>
-    fetch('/api/user-info').then(
-      (res) => res.json() as Promise<{ name: string }>,
-    ),
+  query: () => fetch('/api/user-info').then((res) => res.json() as Promise<{ name: string }>),
   // ---cut-end---
 })
 </script>
 
 <template>
-  <div v-if="status === 'pending'">
-    Loading...
-  </div>
-  <div v-else-if="status === 'error'">
-    Error fetching user info: {{ error.message }}
-  </div>
+  <div v-if="status === 'pending'">Loading...</div>
+  <div v-else-if="status === 'error'">Error fetching user info: {{ error.message }}</div>
   <!-- no need to check for the last possible status: 'success' -->
   <div v-else>
     {{ data.name }}

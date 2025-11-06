@@ -99,4 +99,4 @@ app.use(PiniaColada, {
 })
 ```
 
-Other plugins must be installed separately (e.g. [Delay plugin](https://github.com/posva/pinia-colada/tree/main/plugins/delay), [Auto refetch](https://github.com/posva/pinia-colada/tree/main/plugins/auto-refetch)) and can also be created directly in your project for any custom behavior like offline, cache normalization, etc.
+Other plugins must be installed separately (e.g. [Retries](https://github.com/posva/pinia-colada/tree/main/plugins/retry), [Loading delay](https://github.com/posva/pinia-colada/tree/main/plugins/delay), [Auto refetch](https://github.com/posva/pinia-colada/tree/main/plugins/auto-refetch)) and can also be created directly in your project for any custom behavior like offline, cache normalization, etc.
