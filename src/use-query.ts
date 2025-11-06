@@ -334,13 +334,11 @@ export function useQuery<
     },
   )
 
-  // avoid adding a watcher if enabled cannot change
-  if (typeof options.value.enabled !== 'boolean') {
-    watch(enabled, (newEnabled) => {
-      // no need to check for the previous value since the watcher will only trigger if the value changed
-      if (newEnabled) refresh()
-    })
-  }
+  // since options can be a getter, enabled might change
+  watch(enabled, (newEnabled) => {
+    // no need to check for the previous value since the watcher will only trigger if the value changed
+    if (newEnabled) refresh()
+  })
 
   // only happens on client
   // we could also call fetch instead but forcing a refresh is more interesting

@@ -41,7 +41,7 @@ describe('defineQueryOptions', () => {
     })
   })
 
-  describe('useDynamicQuery', () => {
+  describe('with useQuery', () => {
     it('can use dynamic options', async () => {
       const query = vi.fn((id: number) => `data:${id}`)
 
@@ -125,6 +125,38 @@ describe('defineQueryOptions', () => {
       expect(wrapper.text()).toBe('data:1 (1)')
       // it was refetched correctly
       expect(queryCache.getQueryData(['a', 0])).toBe('data:0 (1)')
+    })
+
+    it('can be combined with specific static options', async () => {
+      const query = vi.fn(async () => 'ok')
+      const definedOpts = defineQueryOptions({ key: ['a'], query })
+
+      const enabled = ref(false)
+      const pinia = createPinia()
+      const wrapper = mount(
+        {
+          setup() {
+            return {
+              ...useQuery(() => ({
+                ...definedOpts,
+                enabled: enabled.value,
+              })),
+            }
+          },
+          template: `<div>{{ data }}</div>`,
+        },
+        {
+          global: {
+            plugins: [pinia, PiniaColada],
+          },
+        },
+      )
+
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(0)
+      enabled.value = true
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
     })
   })
 
