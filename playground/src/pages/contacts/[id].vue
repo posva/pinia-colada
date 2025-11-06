@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { useRoute } from 'vue-router/auto'
+import { useRoute } from 'vue-router'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import ContactCard from '@/components/ContactCard.vue'
-import { updateContact as _updateContact, getContactById } from '@/api/contacts'
+import { updateContact as _updateContact } from '@/api/contacts'
 import type { Contact } from '@/api/contacts'
 import { contactByIdQuery } from '@/queries/contacts'
 
@@ -21,8 +21,6 @@ const queryCache = useQueryCache()
 // })
 
 const { data: contact, error, asyncStatus } = useQuery(contactByIdQuery, () => route.params.id)
-
-console.log('hey')
 
 const { mutate: updateContact } = useMutation({
   mutation: (contact: Partial<Contact> & { id: number }) => _updateContact(contact),
@@ -48,7 +46,7 @@ const { mutate: updateContact } = useMutation({
 </script>
 
 <template>
-  <section class="flex-grow pt-6 md:pt-0">
+  <section class="grow pt-6 md:pt-0">
     <pre>{{ asyncStatus }}</pre>
     <template v-if="error">
       <div>Error: {{ error }}</div>

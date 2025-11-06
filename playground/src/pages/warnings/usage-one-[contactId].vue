@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useRoute } from 'vue-router/auto'
+import { useRoute } from 'vue-router'
 import { useMutation, useQuery } from '@pinia/colada'
 import ContactCard from '@/components/ContactCard.vue'
 import { updateContact as _updateContact, getContactById } from '@/api/contacts'
@@ -17,15 +17,13 @@ const {
 })
 
 const { mutate: updateContact } = useMutation({
-  invalidateKeys: ({ id }) => [['contacts-search'], ['contacts', id]],
+  // invalidateKeys: ({ id }) => [['contacts-search'], ['contacts', id]],
   mutation: (contact: Partial<Contact> & { id: number }) => _updateContact(contact),
 })
 </script>
 
 <template>
-  <RouterLink :to="{ name: '/warnings/usage-two-[contactId]' }">
-    Go to other page
-  </RouterLink>
+  <RouterLink :to="{ name: '/warnings/usage-two-[contactId]' }"> Go to other page </RouterLink>
 
   <section class="flex-grow pt-6 md:pt-0">
     <pre>{{ asyncStatus }}</pre>

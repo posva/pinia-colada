@@ -1,5 +1,5 @@
 import { createApp } from 'vue'
-import { createRouter, createWebHistory } from 'vue-router/auto'
+import { createRouter, createWebHistory } from 'vue-router'
 import { routes } from 'vue-router/auto-routes'
 import { createPinia, getActivePinia } from 'pinia'
 import { PiniaColada, PiniaColadaQueryHooksPlugin, useQueryCache } from '@pinia/colada'
