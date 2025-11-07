@@ -1,3 +1,10 @@
+## [0.17.8](https://github.com/posva/pinia-colada/compare/v0.17.7...v0.17.8) (2025-11-07)
+
+### Bug Fixes
+
+- allow passing extra options to defineQueryOptions ([597597f](https://github.com/posva/pinia-colada/commit/597597f4e125edb781708de30f673a3a9839ccd5))
+- **types:** allow interfaces in keys ([19ab616](https://github.com/posva/pinia-colada/commit/19ab61697534a16e7eac0c3efa8319fea0f7527e)), closes [#420](https://github.com/posva/pinia-colada/issues/420)
+
 ## [0.17.7](https://github.com/posva/pinia-colada/compare/v0.17.6...v0.17.7) (2025-10-30)
 
 ### Bug Fixes
