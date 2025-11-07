@@ -34,16 +34,16 @@
   "exports": {
     ".": {
       "types": {
-        "import": "./dist/index.d.ts",
+        "import": "./dist/index.d.mts",
         "require": "./dist/index.d.cts"
       },
-      "import": "./dist/index.js",
+      "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
     }
   },
   "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
   "typesVersions": {
     "*": {
       "*": [
@@ -58,7 +58,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "tsdown",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s --commit-path . -l @pinia/colada-plugin-auto-refetch -r 1",
     "test": "vitest --ui"
   },

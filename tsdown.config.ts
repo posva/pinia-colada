@@ -1,18 +1,14 @@
-import { defineConfig } from 'tsup'
-import type { Options } from 'tsup'
+import { defineConfig } from 'tsdown'
+import type { UserConfig } from 'tsdown'
 
 const commonOptions = {
-  // splitting: false,
   sourcemap: true,
   format: ['cjs', 'esm'],
   external: ['vue', 'pinia', '@pinia/colada', '@vue/devtools-api'],
   target: 'esnext',
-  dts: {
-    compilerOptions: {
-      composite: false,
-    },
-  },
-} satisfies Options
+  tsconfig: 'tsconfig.pinia-colada.json',
+  dts: true,
+} satisfies UserConfig
 
 export default defineConfig([
   {

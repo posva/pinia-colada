@@ -35,18 +35,18 @@
   "exports": {
     ".": {
       "types": {
-        "import": "./dist/index.d.ts",
+        "import": "./dist/index.d.mts",
         "require": "./dist/index.d.cts"
       },
-      "import": "./dist/index.js",
+      "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
     }
   },
   "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "unpkg": "dist/index.global.js",
   "jsdelivr": "dist/index.global.js",
-  "types": "./dist/index.d.ts",
+  "types": "./dist/index.d.mts",
   "typesVersions": {
     "*": {
       "*": [
@@ -62,6 +62,7 @@
     "dist"
   ],
   "scripts": {
+    "nuxt:prepare": "pnpm run --filter './nuxt' dev:prepare",
     "dev": "vitest --ui",
     "docs": "vitepress dev docs",
     "docs:build": "pnpm run docs:api:build && vitepress build docs",
@@ -74,7 +75,7 @@
     "lint:fix": "oxlint --fix .",
     "test:types": "tsc --build ./tsconfig.json",
     "test:cov": "vitest run --coverage",
-    "build": "tsup",
+    "build": "tsdown",
     "build:plugins": "pnpm run --stream --parallel --filter './plugins/*' --filter './nuxt' --filter './devtools' build",
     "size": "size-limit",
     "codemods:test": "ast-grep test",
@@ -93,7 +94,7 @@
     },
     {
       "name": "useQuery only",
-      "path": "dist/index.js",
+      "path": "dist/index.mjs",
       "import": "{ useQuery, PiniaColada }",
       "ignore": [
         "vue",
@@ -103,7 +104,7 @@
     },
     {
       "name": "useQuery + useMutation",
-      "path": "dist/index.js",
+      "path": "dist/index.mjs",
       "import": "{ useQuery, PiniaColada, useMutation }",
       "ignore": [
         "vue",
@@ -146,7 +147,7 @@
     "semver": "^7.7.2",
     "simple-git-hooks": "^2.13.1",
     "size-limit": "^11.2.0",
-    "tsup": "^8.5.0",
+    "tsdown": "^0.16.0",
     "typedoc": "^0.28.14",
     "typedoc-plugin-markdown": "^4.9.0",
     "typedoc-vitepress-theme": "^1.1.2",

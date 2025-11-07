@@ -1,20 +1,21 @@
-import { defineConfig } from 'tsup'
-import type { Options } from 'tsup'
+import { defineConfig } from 'tsdown'
+import type { UserConfig } from 'tsdown'
 
 const commonOptions = {
-  // splitting: false,
   sourcemap: true,
   format: ['cjs', 'esm'],
   external: ['vue', 'pinia', '@pinia/colada'],
-  dts: true,
+  dts: {
+    build: true,
+  },
   target: 'esnext',
-} satisfies Options
+} satisfies UserConfig
 
 export default defineConfig([
   {
     ...commonOptions,
     clean: true,
     entry: ['src/index.ts'],
-    globalName: 'PiniaColadaRetry',
+    globalName: 'PiniaColadaAutoRefetch',
   },
 ])
