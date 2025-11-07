@@ -67,9 +67,11 @@ export type JSONValue = JSONPrimitive | JSONObject | JSONArray
  *
  * @internal
  */
-export interface JSONObject {
-  readonly [key: string]: JSONValue | undefined
-}
+export type JSONObject = object
+// NOTE: this doesn't allow interfaces to be assigned to it due to its index signature
+// export interface JSONObject {
+//   readonly [key: string]: JSONValue | undefined
+// }
 
 /**
  * Used for keys. Interface to avoid deep recursion.
@@ -80,10 +82,10 @@ export interface JSONArray extends Array<JSONValue> {}
 
 /**
  * Key used to identify a query or a mutation. Must be a JSON serializable
- * value. Type is unknwon to avoid deep type recursion.
+ * value. Type is unknwon to avoid annoying type errors like recursive types
+ * and not being able to assign an interface to it due to its index signature.
  */
 export type EntryKey = readonly JSONValue[]
-// export type EntryKey = readonly (unknown)[]
 
 /**
  * Internal symbol used to tag the data type of the entry key.

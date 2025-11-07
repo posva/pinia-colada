@@ -90,19 +90,32 @@ describe('useQuery type inference', () => {
   })
 
   it('forbids non-idempotent serializable values', () => {
+    // NOTE: this had to be removed to allow interfaces in keys
+    // https://github.com/posva/pinia-colada/issues/420
+    // useQuery({
+    //   // @ts-expect-error: should fail because Error is not a valid key
+    //   key: [new Error('hey')],
+    //   query: async () => 42,
+    // })
+    // useQuery({
+    //   // @ts-expect-error: should fail because Date is not a valid key
+    //   key: [new Date()],
+    //   query: async () => 42,
+    // })
     useQuery({
-      // @ts-expect-error: should fail because Error is not a valid key
-      key: [new Error('hey')],
-      query: async () => 42,
-    })
-    useQuery({
-      // @ts-expect-error: should fail because Error is not a valid key
-      key: [new Date()],
-      query: async () => 42,
-    })
-    useQuery({
-      // @ts-expect-error: should fail because Error is not a valid key
+      // @ts-expect-error: should fail because undefined is not a valid key
       key: [undefined],
+      query: async () => 42,
+    })
+  })
+
+  it('allows an interface as part of the key', () => {
+    interface MyKeyObject {
+      id: number
+    }
+    const keyObject: MyKeyObject = { id: 5 }
+    useQuery({
+      key: [keyObject],
       query: async () => 42,
     })
   })
