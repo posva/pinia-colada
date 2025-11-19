@@ -56,19 +56,20 @@
     "build": "pnpm run --stream '/^build:/'"
   },
   "devDependencies": {
-    "@iconify-json/lucide": "^1.2.72",
+    "@iconify-json/lucide": "^1.2.73",
     "@pinia/colada": "workspace:^*",
     "@posva/splitpanes": "^4.0.6",
-    "@tailwindcss/vite": "^4.1.16",
+    "@tailwindcss/vite": "^4.1.17",
     "@vueuse/core": "^14.0.0",
     "mande": "^2.0.9",
     "match-container": "^0.1.0",
     "pinia": "^3.0.4",
-    "tailwindcss": "^4.1.16",
+    "tailwindcss": "^4.1.17",
     "unplugin-icons": "^22.5.0",
     "unplugin-vue-components": "^30.0.0",
-    "unplugin-vue-router": "^0.16.1",
+    "unplugin-vue-router": "^0.17.0",
     "vite-plugin-dts": "^4.5.4",
+    "vue": "^3.5.24",
     "vue-router": "^4.5.1"
   }
 }
