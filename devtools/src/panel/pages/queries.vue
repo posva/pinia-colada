@@ -8,6 +8,7 @@ import type { UseQueryEntryPayloadStatus } from '../utils/query-state'
 import type { UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
 import { useContainerMediaQuery } from '../composables/use-container-media-query'
 import { useLocalStorage } from '@vueuse/core'
+import { useRoute } from 'vue-router'
 
 const searchQuery = ref('')
 

@@ -1,8 +1,15 @@
 {
-  "extends": "../tsconfig.common.json",
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
-    // "baseUrl": ".",
     "rootDir": "..",
+    "baseUrl": ".",
+    "composite": true,
+    "noEmit": true,
+    "module": "esnext",
+    "target": "esnext",
+    "lib": ["esnext", "dom"],
+    "moduleResolution": "Bundler",
     "paths": {
       "@pinia/colada-devtools/panel": ["./src/panel/index.ts"],
       "@pinia/colada-devtools/shared": ["./src/shared/index.ts"],
@@ -12,6 +19,7 @@
   },
   "include": [
     "./src/**/*",
+    "./env.d.ts",
     "./auto-imports.d.ts",
     "./components.d.ts",
     "./typed-router.d.ts",

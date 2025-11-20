@@ -244,8 +244,8 @@ function attachCssPropertyRules(el: HTMLElement, doc: Document = document) {
   const style = doc.getElementById('__pc-tw-properties') ?? doc.createElement('style')
   style.setAttribute('id', '__pc-tw-properties')
 
-  const cssPropertyRulesText = [...el.shadowRoot.styleSheets]
-    .flatMap((s) => [...s.cssRules])
+  const cssPropertyRulesText = Array.from(el.shadowRoot.styleSheets)
+    .flatMap((s) => Array.from(s.cssRules))
     .filter((rule) => rule instanceof CSSPropertyRule)
     .map((rule) => rule.cssText)
     .join('')

@@ -11,7 +11,9 @@ import 'water.css'
 const app = createApp(App)
 app.provide('test', 'IT WORKS!')
 app.use(createPinia())
-app.use(PiniaColada, {})
+app.use(PiniaColada, {
+  queryOptions: {},
+})
 
 const router = createRouter({
   history: createWebHistory(),

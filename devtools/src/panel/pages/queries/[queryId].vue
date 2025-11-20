@@ -16,7 +16,7 @@ import ISigmaSquare from '~icons/lucide/sigma-square'
 import { useTimeAgo, formatTimeAgo, useLocalStorage } from '@vueuse/core'
 import type { FormatTimeAgoOptions } from '@vueuse/core'
 
-const route = useRoute('/queries/[queryId]')
+const route = useRoute()
 const queries = useQueryEntries()
 
 const selectedQuery = computed<UseQueryEntryPayload | null>(() => {
