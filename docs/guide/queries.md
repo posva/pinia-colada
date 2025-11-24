@@ -107,7 +107,7 @@ Each unique `key` generates a new query entry in the cache. When you switch back
 
 ## Organizing Queries
 
-As your project grows and you start using more and more queries as well as concepts as [Optimistic Updates](./optimistic-updates.md), you will want to organize your queries. You can do this by using [`defineQueryOptions()`](../advanced/reusable-queries.md) and placing your query options **and their corresponding keys** in separate files:
+As your project grows and you start using more and more queries as well as concepts as [Optimistic Updates](./optimistic-updates.md), you will want to organize your queries. You can do this by using `defineQueryOptions()` and placing your query options **and their corresponding keys** in dedicated files:
 
 ```
 ./queries

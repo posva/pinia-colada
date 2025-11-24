@@ -66,27 +66,13 @@ const { todoList, search } = useFilteredTodos()
 
 Consider `useFilteredTodos()` as a globally shared composable, instantiated only once. This ensures the `search` ref is shared across all components using this query, reflecting changes universally across components.
 
-TODO: talk about defineQueryOptions instead
-
-When you just want to organize your queries, you can also pass an object of options to `defineQuery()`:
-
-```ts twoslash
-// src/queries/todos.ts
-import { defineQuery } from '@pinia/colada'
-
-export const useTodos = defineQuery({
-  key: ['todos'],
-  query: () => fetch('/api/todos').then((res) => res.json()),
-})
-```
-
 ::: tip When to use `defineQuery()` over just `useQuery()`?
 
-If you find yourself with the same query (same `key` value) used in multiple components that are also mounted at the same time, you **must** use `defineQuery()`. This will ensure that the query is shared among all components.
+If you find yourself with the same query (same `key` value) used in multiple components that are also mounted at the same time, you **should** use `defineQuery()`. This will ensure that the query is shared among all components.
 
-If you need to reuse a query in multiple components, move the query to a separate file (e.g. `src/queries/todos.ts`) and use `defineQuery()` to define it. This will ensure that the query code isn't partially updated in your code base.
+If you need to reuse a query in multiple components, move the query to a separate file (e.g. `src/queries/todos.ts`) and [use `defineQueryOptions()`](../guide/queries.md#Organizing-Queries) to define reusable options. This will ensure that the query code isn't partially updated in your code base.
 
-If you need to define custom parameters **that aren't global**, you don't need to do anything special, create a custom composable instead and call `useQuery()` within it.
+If you need to define custom parameters **that aren't global**, [prefer using `defineQueryOptions`](../guide/queries.md#Organizing-Queries). You can also or write a custom composable and call `useQuery()` within it.
 
 :::
 
