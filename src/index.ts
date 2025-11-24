@@ -51,7 +51,11 @@ export type {
   UseMutationOptionsGlobalDefaults,
 } from './mutation-options'
 
+export { useMutationCache } from './mutation-store'
+export type { UseMutationEntryFilter, UseMutationEntry } from './mutation-store'
+
 export { defineMutation } from './define-mutation'
+
 export type { UseMutationReturn } from './use-mutation'
 export { useMutation } from './use-mutation'
 
@@ -63,9 +67,9 @@ export {
   type PiniaColadaQueryHooksPluginOptions,
 } from './plugins/query-hooks'
 
-export type { TypesConfig } from './types-extension'
-
 export type { PiniaColadaPlugin, PiniaColadaPluginContext } from './plugins'
+
+export type { TypesConfig } from './types-extension'
 
 // internals
 export type {
