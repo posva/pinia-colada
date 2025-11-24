@@ -51,8 +51,14 @@ export type {
   UseMutationOptionsGlobalDefaults,
 } from './mutation-options'
 
-export { useMutationCache } from './mutation-store'
-export type { UseMutationEntryFilter, UseMutationEntry } from './mutation-store'
+export {
+  isMutationCache,
+  type MutationCache,
+  useMutationCache,
+  type UseMutationEntry,
+  type UseMutationEntryExtensions,
+  type UseMutationEntryFilter,
+} from './mutation-store'
 
 export { defineMutation } from './define-mutation'
 

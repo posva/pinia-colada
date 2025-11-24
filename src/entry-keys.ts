@@ -141,3 +141,10 @@ export function* find<T extends { key: EntryKey | undefined }>(
     }
   }
 }
+
+/**
+ * Empty starting object for extensions that allows to detect when to update.
+ *
+ * @internal
+ */
+export const START_EXT = {}

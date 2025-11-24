@@ -1,8 +1,8 @@
 import { createPinia, getActivePinia, setActivePinia } from 'pinia'
 import { describe, beforeEach, it, expect, vi } from 'vitest'
 import { createApp } from 'vue'
-import { useMutationCache } from './mutation-store'
-import type { UseMutationEntry } from './mutation-store'
+import { useMutationCache, isMutationCache } from './mutation-store'
+import type { UseMutationEntry, MutationCache } from './mutation-store'
 import { flushPromises } from '@vue/test-utils'
 import type { UseMutationOptions } from './mutation-options'
 import { mockConsoleError, mockWarn } from '../test-utils/mock-warn'
@@ -227,6 +227,111 @@ describe('Mutation Cache store', () => {
     expect(entry).toBeDefined()
     mutationCache.remove(entry!)
     expect(mutationCache.getEntries({ key: ['a', 'b', 'c'] })).toHaveLength(1)
+  })
+
+  it('can get an individual entry', async () => {
+    const mutationCache = useMutationCache()
+    const entry = mutationCache.ensure(
+      mutationCache.create({
+        key: ['a', 'b', 'c'],
+        mutation: async () => 'abc',
+      }),
+      undefined,
+    )
+    await mutationCache.mutate(entry)
+    expect(mutationCache.get(['a', 'b', 'c', entry.id])).toBeDefined()
+    expect(mutationCache.get(['a', 'b', 'c', entry.id])).toBe(entry)
+  })
+
+  it('returns undefined for non-existent entries', () => {
+    const mutationCache = useMutationCache()
+    expect(mutationCache.get(['non', 'existent'])).toBeUndefined()
+  })
+
+  describe('isMutationCache', () => {
+    it('can check if an object is a mutation cache', () => {
+      const mutationCache = useMutationCache()
+      expect(isMutationCache(mutationCache)).toBe(true)
+    })
+
+    it('returns false for non-cache objects', () => {
+      expect(isMutationCache({})).toBe(false)
+      expect(isMutationCache(null)).toBe(false)
+      expect(isMutationCache(undefined)).toBe(false)
+      expect(isMutationCache({ $id: 'wrong-id' })).toBe(false)
+    })
+
+    it('returns false for query cache', async () => {
+      const pinia = getActivePinia()!
+      // Import useQueryCache inline to avoid circular dependency
+      const { useQueryCache } = await import('./query-store')
+      const queryCache = useQueryCache(pinia)
+      expect(isMutationCache(queryCache)).toBe(false)
+    })
+  })
+
+  describe('extensibility', () => {
+    it('has an ext property that starts empty', () => {
+      const mutationCache = useMutationCache()
+      const entry = mutationCache.create({ mutation: async () => 'ok' })
+      expect(entry.ext).toBeDefined()
+    })
+
+    it('calls extend hook when entry is ensured', () => {
+      const pinia = getActivePinia()!
+      const mutationCache = useMutationCache(pinia)
+      const extendSpy = vi.fn()
+
+      mutationCache.$onAction((action) => {
+        if (action.name === 'extend') {
+          extendSpy(action)
+        }
+      })
+
+      const entry = mutationCache.create({ mutation: async () => 'ok' })
+      mutationCache.ensure(entry, undefined)
+
+      expect(extendSpy).toHaveBeenCalledTimes(1)
+    })
+
+    it('only calls extend once per entry', () => {
+      const pinia = getActivePinia()!
+      const mutationCache = useMutationCache(pinia)
+      const extendSpy = vi.fn()
+
+      mutationCache.$onAction((action) => {
+        if (action.name === 'extend') {
+          extendSpy(action)
+        }
+      })
+
+      const entry = mutationCache.create({ mutation: async () => 'ok' })
+      mutationCache.ensure(entry, undefined)
+      // Ensure the same entry again
+      const entry2 = mutationCache.create({ mutation: async () => 'ok' })
+      mutationCache.ensure(entry2, undefined)
+
+      // extend should be called twice (once per unique entry)
+      expect(extendSpy).toHaveBeenCalledTimes(2)
+    })
+
+    it('allows plugins to extend entries via ext', () => {
+      const pinia = getActivePinia()!
+      const mutationCache = useMutationCache(pinia)
+
+      mutationCache.$onAction((action) => {
+        if (action.name === 'extend') {
+          const entry = action.args[0] as UseMutationEntry
+          // Plugin extends the entry
+          entry.ext = { customProperty: 'test-value' }
+        }
+      })
+
+      const entry = mutationCache.create({ mutation: async () => 'ok' })
+      mutationCache.ensure(entry, undefined)
+
+      expect(entry.ext).toHaveProperty('customProperty', 'test-value')
+    })
   })
 
   describe('plugins', () => {

@@ -15,7 +15,7 @@ import type { EntryKeyTagged, EntryKey } from './entry-keys'
 import { useQueryOptions } from './query-options'
 import type { UseQueryOptions, UseQueryOptionsWithDefaults } from './query-options'
 import type { EntryFilter } from './entry-filter'
-import { find, toCacheKey } from './entry-keys'
+import { find, START_EXT, toCacheKey } from './entry-keys'
 import type { ErrorDefault } from './types-extension'
 import { noop, toValueWithArgs, warnOnce } from './utils'
 
@@ -170,13 +170,6 @@ export function isEntryUsingPlaceholderData<TDataInitial>(
  * @see {@link QueryCache#invalidateQueries}
  */
 export type UseQueryEntryFilter = EntryFilter<UseQueryEntry>
-
-/**
- * Empty starting object for extensions that allows to detect when to update.
- *
- * @internal
- */
-export const START_EXT = {}
 
 /**
  * UseQueryEntry method to serialize the entry to JSON.

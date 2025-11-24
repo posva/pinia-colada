@@ -2,7 +2,7 @@ import type { ShallowRef } from 'vue'
 import type { AsyncStatus, DataState } from './data-state'
 import { defineStore, skipHydrate } from 'pinia'
 import { customRef, getCurrentScope, hasInjectionContext, shallowRef } from 'vue'
-import { find, toCacheKey } from './entry-keys'
+import { find, START_EXT, toCacheKey } from './entry-keys'
 import type { EntryFilter } from './entry-filter'
 import type { _EmptyObject } from './utils'
 import { noop, toValueWithArgs, warnOnce } from './utils'
@@ -10,6 +10,20 @@ import type { _ReduceContext } from './use-mutation'
 import { useMutationOptions } from './mutation-options'
 import type { UseMutationOptions } from './mutation-options'
 import type { EntryKey } from './entry-keys'
+
+/**
+ * Allows defining extensions to the mutation entry that are returned by `useMutation()`.
+ */
+export interface UseMutationEntryExtensions<
+  // oxlint-disable-next-line no-unused-vars
+  TData,
+  // oxlint-disable-next-line no-unused-vars
+  TVars,
+  // oxlint-disable-next-line no-unused-vars
+  TError,
+  // oxlint-disable-next-line no-unused-vars
+  TContext extends Record<any, any> = _EmptyObject,
+> {}
 
 /**
  * A mutation entry in the cache.
@@ -65,6 +79,11 @@ export interface UseMutationEntry<
    * Timeout id that scheduled a garbage collection. It is set here to clear it when the entry is used by a different component.
    */
   gcTimeout: ReturnType<typeof setTimeout> | undefined
+
+  /**
+   * Extensions to the mutation entry added by plugins.
+   */
+  ext: UseMutationEntryExtensions<TData, TVars, TError, TContext>
 }
 
 /**
@@ -72,6 +91,10 @@ export interface UseMutationEntry<
  */
 export type UseMutationEntryFilter = EntryFilter<UseMutationEntry>
 
+/**
+ * The id of the store used for mutations.
+ * @internal
+ */
 export const MUTATION_STORE_ID = '_pc_mutation'
 
 /**
@@ -157,6 +180,9 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
             key,
             keyHash: toCacheKey(key),
             options,
+            // eslint-disable-next-line ts/ban-ts-comment
+            // @ts-ignore: some plugins are adding properties to the entry type
+            ext: START_EXT,
           }) satisfies UseMutationEntry<TData, TVars, TError, TContext>,
       )!,
   )
@@ -205,6 +231,12 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     cachesRaw.set(keyHash, entry as unknown as UseMutationEntry)
     triggerCache()
 
+    // extend the entry with plugins the first time only
+    if (entry.ext === START_EXT) {
+      entry.ext = {} as UseMutationEntryExtensions<TData, TVars, TError, TContext>
+      extend(entry)
+    }
+
     return entry
   }
 
@@ -220,6 +252,38 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
 
     return defineMutationResult
   })
+
+  /**
+   * Action called when an entry is ensured for the first time to allow plugins to extend it.
+   *
+   * @param _entry - the entry of the mutation to extend
+   */
+  const extend = action(
+    <
+      TData = unknown,
+      TVars = unknown,
+      TError = unknown,
+      TContext extends Record<any, any> = _EmptyObject,
+    >(
+      _entry: UseMutationEntry<TData, TVars, TError, TContext>,
+    ) => {},
+  )
+
+  /**
+   * Gets a single mutation entry from the cache based on the key of the mutation.
+   *
+   * @param key - the key of the mutation
+   */
+  function get<
+    TData = unknown,
+    TVars = unknown,
+    TError = unknown,
+    TContext extends Record<any, any> = _EmptyObject,
+  >(key: EntryKey): UseMutationEntry<TData, TVars, TError, TContext> | undefined {
+    return caches.value.get(toCacheKey(key)) as
+      | UseMutationEntry<TData, TVars, TError, TContext>
+      | undefined
+  }
 
   /**
    * Sets the state of a query entry in the cache and updates the
@@ -429,9 +493,37 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     ensureDefinedMutation,
     mutate,
     remove,
+    extend,
+    get,
 
     setEntryState,
     getEntries,
     untrack,
+
+    /**
+     * Scope to track effects and components that use the mutation cache.
+     * @internal
+     */
+    _s: scope,
   }
 })
+
+/**
+ * The cache of the mutations. It's the store returned by {@link useMutationCache}.
+ */
+export type MutationCache = ReturnType<typeof useMutationCache>
+
+/**
+ * Checks if the given object is a mutation cache. Used in SSR to apply custom serialization.
+ *
+ * @param cache - the object to check
+ *
+ * @see {@link MutationCache}
+ */
+export function isMutationCache(cache: unknown): cache is MutationCache {
+  return (
+    typeof cache === 'object' &&
+    !!cache &&
+    (cache as Record<string, unknown>).$id === MUTATION_STORE_ID
+  )
+}
