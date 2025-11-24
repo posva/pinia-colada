@@ -74,6 +74,12 @@ export default defineConfig({
         //
         '**/src/index.ts',
         'src/utils.ts',
+        // we are not event sure to keep them because we have
+        // our own devtools
+        'src/devtools',
+        // just for show, so better not include in coverage
+        // as it has no tests
+        'plugins/debug',
         '**/*.test-d.ts',
       ],
     },
