@@ -1,11 +1,11 @@
 import type { ShallowRef } from 'vue'
 import type { AsyncStatus, DataState } from './data-state'
 import { defineStore, skipHydrate } from 'pinia'
-import { customRef, getCurrentScope, shallowRef } from 'vue'
+import { customRef, getCurrentScope, hasInjectionContext, shallowRef } from 'vue'
 import { find, toCacheKey } from './entry-keys'
 import type { EntryFilter } from './entry-filter'
 import type { _EmptyObject } from './utils'
-import { noop, toValueWithArgs } from './utils'
+import { noop, toValueWithArgs, warnOnce } from './utils'
 import type { _ReduceContext } from './use-mutation'
 import { useMutationOptions } from './mutation-options'
 import type { UseMutationOptions } from './mutation-options'
@@ -106,6 +106,15 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
 
   // this allows use to attach reactive effects to the scope later on
   const scope = getCurrentScope()!
+
+  if (process.env.NODE_ENV !== 'production') {
+    if (!hasInjectionContext()) {
+      warnOnce(
+        `useMutationCache() was called outside of an injection context (component setup, store, navigation guard) You will get a warning about "inject" being used incorrectly from Vue. Make sure to use it only in allowed places.\n` +
+          `See https://vuejs.org/guide/reusability/composables.html#usage-restrictions`,
+      )
+    }
+  }
 
   const globalOptions = useMutationOptions()
   const defineMutationMap = new WeakMap<() => unknown, unknown>()
