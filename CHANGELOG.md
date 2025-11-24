@@ -1,3 +1,11 @@
+## [0.17.9](https://github.com/posva/pinia-colada/compare/v0.17.8...v0.17.9) (2025-11-24)
+
+### Features
+
+- export mutation cache ([892049f](https://github.com/posva/pinia-colada/commit/892049f222663acde070aaf505ac7d09d69a60d6))
+- expose mutation cache ([7f6316f](https://github.com/posva/pinia-colada/commit/7f6316f14681ee18f9dee45236348299e464f322))
+- warn wrong useMutationcache usage ([211911d](https://github.com/posva/pinia-colada/commit/211911d74d82f55551da0d232a64d74085306cab))
+
 ## [0.17.8](https://github.com/posva/pinia-colada/compare/v0.17.7...v0.17.8) (2025-11-07)
 
 ### Bug Fixes

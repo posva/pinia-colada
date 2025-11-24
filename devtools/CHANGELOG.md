@@ -1,3 +1,7 @@
+## [0.1.9](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.1.8...@pinia/colada-devtools@0.1.9) (2025-11-24)
+
+Dependencies updates.
+
 ## [0.1.8](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.1.7...@pinia/colada-devtools@0.1.8) (2025-10-30)
 
 No changes in this release.
