@@ -136,23 +136,28 @@ export function useIsMutating(filters?: UseMutationEntryFilter): ComputedRef<boo
 }
 ```
 
+:::
+
 Given the agnostic nature of TanStack Query, these utilities [are not straightforward to implement](https://github.com/TanStack/query/blob/main/packages/vue-query/src/useIsFetching.ts#L10-L38) but Pinia Colada's tight integration with Vue makes them _just work™_
 
 ### Reusable queries
 
-Pinia Colada tries to reuse state as much as possible to reduce memory footprint and improve performance, so instead of passing shared options to `useQuery`, it encourages you [to use `defineQuery()`](../advanced/reusable-queries.md) to encapsulates the shared logic. This patterns is even more powerful in Pinia Colada as it allows you to define custom logic and properties along the queries and reuse them across your components.
+Pinia Colada sticks to Vue reactivity principles and encourages you to embrace them. Often, you will be able to pass a getter to options (often looks like `() => myOption.value`), this keeps reactivity working as expected.
+In TanStack Vue Query, you might use [`queryOptions`](https://tanstack.com/query/latest/docs/framework/vue/reference/queryOptions), in Pinia Colada, there is a similar feature but it's even more encouraged to use, it's [`defineQueryOptions`](../guide/queries.md#Organizing-Queries). There is also [`defineQuery`](../advanced/reusable-queries.md) which has no equivalent in TanStack Vue Query.
 
 In its simplest form, you can reuse queries like this:
 
 ```ts
-export const options = { // [!code --]
-  queryKey: ['list'], // [!code --]
+export const todosQuery = queryOptions({ // [!code --]
+  // [!code --]
+  queryKey: ['todos'], // [!code --]
   queryFn: getList, // [!code --]
-} // [!code --]
-export const useList = defineQuery({ // [!code ++]
+}) // [!code --]
+export const todosQuery = defineQueryOptions({ // [!code ++]
+  // [!code ++]
   key: ['list'], // [!code ++]
   query: getList, // [!code ++]
 }) // [!code ++]
 ```
 
-Check the [Reusable Queries](../advanced/reusable-queries.md) section for more information.
+Check the [Organizing Queries](/docs/guide/queries.md#Organizing-Queries) section for more information, you will seed that there is dynamic version of `defineQueryOptions` that allows passing reactive parameters and that using key factories is also encouraged.
