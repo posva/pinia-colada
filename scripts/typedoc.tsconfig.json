@@ -2,7 +2,6 @@
   "include": ["../src/**/*.ts", "../plugins/*/src/**/*.ts"],
   "exclude": ["**/*.spec.ts", "../playground"],
   "compilerOptions": {
-    "baseUrl": ".",
     "rootDir": "..",
     "outDir": "dist",
     "sourceMap": false,

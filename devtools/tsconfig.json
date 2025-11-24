@@ -2,8 +2,7 @@
   "extends": "@vue/tsconfig/tsconfig.dom.json",
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
-    "rootDir": "..",
-    "baseUrl": ".",
+    "rootDir": ".",
     "composite": true,
     "noEmit": true,
     "module": "esnext",
