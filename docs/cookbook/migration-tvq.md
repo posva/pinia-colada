@@ -91,6 +91,53 @@ watch(data, (newData, oldData) => {
 })
 ```
 
+### Missing utilities
+
+Many utilities provided by TanStack are not included in Pinia Colada to let users get familiar with the [Query Cache](../advanced/query-cache.md) and implement their own utilities as needed. For example, there is no `useIsFetching` or `useIsMutating` composables, but you can easily implement them using the query cache (or mutation cache):
+
+::: code-group
+
+```ts [src/utils/pinia-colada.ts] twoslash
+import {
+  useMutationCache,
+  useQueryCache,
+  type UseMutationEntryFilter,
+  type UseQueryEntryFilter,
+} from '@pinia/colada'
+import { computed, type ComputedRef } from 'vue'
+
+/**
+ * Returns a computed ref that indicates whether there are any ongoing queries
+ * matching the provided filters.
+ * @param filters - Optional filters to narrow down the queries to check.
+ * @returns A computed ref that is true if there are ongoing queries, false otherwise.
+ */
+export function useIsLoading(filters?: UseQueryEntryFilter): ComputedRef<boolean> {
+  const queryCache = useQueryCache()
+
+  return computed(() =>
+    queryCache.getEntries(filters).some((entry) => entry.asyncStatus.value === 'loading'),
+  )
+}
+
+/**
+ * Returns a computed ref that indicates whether there are any ongoing mutations
+ * matching the provided filters.
+ *
+ * @param filters - Optional filters to narrow down the mutations to check.
+ * @returns A computed ref that is true if there are ongoing mutations, false otherwise.
+ */
+export function useIsMutating(filters?: UseMutationEntryFilter): ComputedRef<boolean> {
+  const mutationCache = useMutationCache()
+
+  return computed(() =>
+    mutationCache.getEntries(filters).some((entry) => entry.asyncStatus.value === 'loading'),
+  )
+}
+```
+
+Given the agnostic nature of TanStack Query, these utilities [are not straightforward to implement](https://github.com/TanStack/query/blob/main/packages/vue-query/src/useIsFetching.ts#L10-L38) but Pinia Colada's tight integration with Vue makes them _just work™_
+
 ### Reusable queries
 
 Pinia Colada tries to reuse state as much as possible to reduce memory footprint and improve performance, so instead of passing shared options to `useQuery`, it encourages you [to use `defineQuery()`](../advanced/reusable-queries.md) to encapsulates the shared logic. This patterns is even more powerful in Pinia Colada as it allows you to define custom logic and properties along the queries and reuse them across your components.
