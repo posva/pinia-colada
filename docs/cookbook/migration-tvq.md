@@ -160,4 +160,4 @@ export const todosQuery = defineQueryOptions({ // [!code ++]
 }) // [!code ++]
 ```
 
-Check the [Organizing Queries](/docs/guide/queries.md#Organizing-Queries) section for more information, you will seed that there is dynamic version of `defineQueryOptions` that allows passing reactive parameters and that using key factories is also encouraged.
+Check the [Organizing Queries](../guide/queries.md#Organizing-Queries) section for more information, you will seed that there is dynamic version of `defineQueryOptions` that allows passing reactive parameters and that using key factories is also encouraged.
