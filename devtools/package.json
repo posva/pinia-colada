@@ -50,6 +50,7 @@
     "dev:app": "vite",
     "dev:db": "pnpm run -C ../playground dev:db",
     "dev": "pnpm run --stream '/^dev:/'",
+    "test:types": "vue-tsc --noEmit",
     "build:main": "vite build --config vite.config.ts",
     "build:shared": "vite build --config vite.config.shared.ts",
     "build:panel": "vite build --config vite.config.panel.ts",
@@ -70,6 +71,7 @@
     "unplugin-vue-router": "^0.17.1",
     "vite-plugin-dts": "^4.5.4",
     "vue": "^3.5.24",
-    "vue-router": "^4.5.1"
+    "vue-router": "^4.5.1",
+    "vue-tsc": "^3.1.3"
   }
 }
