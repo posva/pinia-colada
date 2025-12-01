@@ -133,7 +133,7 @@ describe('defineQueryOptions', () => {
 
       const enabled = ref(false)
       const pinia = createPinia()
-      const wrapper = mount(
+      mount(
         {
           setup() {
             return {
