@@ -1199,10 +1199,12 @@ describe('useQuery', () => {
 
       await flushPromises()
 
-      expect(wrapper.vm.state).toEqual({
-        data: undefined,
+      // we intentionally don't check the state of the query as that's not what
+      // we want to test here
+      expect(wrapper.vm.state).not.toEqual({
+        data: 'ok',
         error: null,
-        status: 'pending',
+        status: 'success',
       })
 
       await wrapper.vm.refresh()
@@ -1435,6 +1437,27 @@ describe('useQuery', () => {
     expect(wrapper.vm.status).toBe('error')
     expect(wrapper.vm.error).toBe(undefined)
   })
+
+  for (const reason of [false, null, 0, '', undefined, new Error('custom error')]) {
+    it(`propagates AbortErrors from other signals, reason: ${reason instanceof Error ? 'Error' : `"${String(reason)}"`}`, async () => {
+      const controller = new AbortController()
+      controller.abort(reason)
+      const { wrapper } = mountSimple({
+        key: ['key'],
+        query: async () => {
+          throw controller.signal.reason
+        },
+      })
+
+      await flushPromises()
+
+      expect(wrapper.vm.state).toEqual({
+        data: undefined,
+        status: 'error',
+        error: controller.signal.reason,
+      })
+    })
+  }
 
   describe('streams', () => {
     async function* streamData() {

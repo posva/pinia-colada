@@ -680,11 +680,12 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
             return entry.state.value
           })
           .catch((error) => {
+            // we skip updating the state if a new request was made
+            // or if the error is from our own abort signal
             if (
               pendingCall === entry.pending &&
-              // when the error is an abort error, it means the request was cancelled
-              // we should just ignore the result of the query but not error
-              error?.name !== 'AbortError'
+              // does the error come from a different reason than the abort signal?
+              (error !== signal.reason || !signal.aborted)
             ) {
               setEntryState(entry, {
                 status: 'error',
