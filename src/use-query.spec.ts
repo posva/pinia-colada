@@ -1173,8 +1173,8 @@ describe('useQuery', () => {
       const queryCache = useQueryCache()
       const entry = queryCache.getEntries({ key: ['key'] })[0]
       expect(entry).toBeDefined()
-      if (!entry) throw new Error('ko')
-      entry.pending?.abortController.abort(new Error('from test'))
+      if (!entry?.pending) throw new Error('ko')
+      entry.pending.abortController.abort(new Error('from test'))
       resolve()
 
       await flushPromises()
