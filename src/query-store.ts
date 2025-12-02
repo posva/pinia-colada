@@ -701,11 +701,6 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           .finally(() => {
             entry.asyncStatus.value = 'idle'
             if (pendingCall === entry.pending) {
-              // update the time amounts based on the current request
-              // NOTE: Normally these should be the same everywhere but the
-              // same query could be instantiated with different options
-              // entry.gcTime = options!.gcTime
-              // entry.staleTime = options!.staleTime
               entry.pending = null
               // there are cases when the result is ignored, in that case, we still
               // do not have a real result so we keep the placeholder data
