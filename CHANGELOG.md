@@ -1,3 +1,20 @@
+## [0.18.0](https://github.com/posva/pinia-colada/compare/v0.17.9...v0.18.0) (2025-12-02)
+
+### ⚠ BREAKING CHANGES
+
+- While technically a fix, this is a breaking change if
+  you were relying on an external signal that aborts within the `query`.
+  It used to not set the state by just being an AbortError DomException
+  and now it will become an error. This behavior is more correct as we
+  don't want to ignore aborted signals that are external. Each fetch
+  creates an AbortController and passes the signal to `query` which is
+  aborted (without a reason) if any other method of the store fetches
+  again. This is done to avoid using an _outdated_ request.
+
+### Bug Fixes
+
+- **query:** preserve any external AbortError ([0cdf7b9](https://github.com/posva/pinia-colada/commit/0cdf7b9a48ba346f25f2c4940d73834e77a4f25f))
+
 ## [0.17.9](https://github.com/posva/pinia-colada/compare/v0.17.8...v0.17.9) (2025-11-24)
 
 ### Features
