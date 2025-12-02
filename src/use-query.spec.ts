@@ -713,6 +713,29 @@ describe('useQuery', () => {
       expect(cache.getQueryData(['id'])).toBe(42)
     })
 
+    it('removes the placeholderData when setting the query data', async () => {
+      const pinia = createPinia()
+      const [w1, query] = mountSimple(
+        {
+          key: ['id'],
+          placeholderData: 24,
+        },
+        { plugins: [pinia] },
+      )
+
+      // ensure data is there
+      expect(w1.vm.data).toBe(24)
+
+      const cache = useQueryCache(pinia)
+      cache.setQueryData(['id'], 99)
+
+      await nextTick()
+      expect(w1.vm.data).toBe(99)
+
+      await flushPromises()
+      query.mockResolvedValueOnce(42)
+    })
+
     it('uses the placeholderData immediately after changing the key', async () => {
       const key = ref(1)
       const placeholderData = { data: 'ok' }
