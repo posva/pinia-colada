@@ -42,11 +42,11 @@ declare module 'vue-router/auto-routes' {
       '/queries',
       Record<never, never>,
       Record<never, never>,
-      | '/queries/'
+      | '/queries/(unselected)'
       | '/queries/[queryId]'
     >,
-    '/queries/': RouteRecordInfo<
-      '/queries/',
+    '/queries/(unselected)': RouteRecordInfo<
+      '/queries/(unselected)',
       '/queries',
       Record<never, never>,
       Record<never, never>,
@@ -94,14 +94,14 @@ declare module 'vue-router/auto-routes' {
     'src/panel/pages/queries.vue': {
       routes:
         | '/queries'
-        | '/queries/'
+        | '/queries/(unselected)'
         | '/queries/[queryId]'
       views:
         | 'default'
     }
-    'src/panel/pages/queries/index.vue': {
+    'src/panel/pages/queries/(unselected).vue': {
       routes:
-        | '/queries/'
+        | '/queries/(unselected)'
       views:
         | never
     }
