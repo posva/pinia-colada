@@ -146,7 +146,7 @@
     "prettier": "^3.6.2",
     "semver": "^7.7.2",
     "simple-git-hooks": "^2.13.1",
-    "size-limit": "^11.2.0",
+    "size-limit": "^12.0.0",
     "tsdown": "^0.16.0",
     "typedoc": "^0.28.14",
     "typedoc-plugin-markdown": "^4.9.0",
