@@ -29,10 +29,10 @@ importers:
         version: 3.14.0(@nuxt/kit@3.20.0(magicast@0.3.5))(typescript@5.9.3)
       '@size-limit/esbuild-why':
         specifier: ^12.0.0
-        version: 12.0.0(size-limit@11.2.0)
+        version: 12.0.0(size-limit@12.0.0(jiti@2.6.1))
       '@size-limit/preset-small-lib':
         specifier: ^12.0.0
-        version: 12.0.0(size-limit@11.2.0)
+        version: 12.0.0(size-limit@12.0.0(jiti@2.6.1))
       '@types/node':
         specifier: ^24.10.1
         version: 24.10.1
@@ -88,8 +88,8 @@ importers:
         specifier: ^2.13.1
         version: 2.13.1
       size-limit:
-        specifier: ^11.2.0
-        version: 11.2.0
+        specifier: ^12.0.0
+        version: 12.0.0(jiti@2.6.1)
       tsdown:
         specifier: ^0.16.0
         version: 0.16.0(typescript@5.9.3)(vue-tsc@3.1.3(typescript@5.9.3))
@@ -6312,10 +6312,15 @@ packages:
   sisteransi@1.0.5:
     resolution: {integrity: sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==}
 
-  size-limit@11.2.0:
-    resolution: {integrity: sha512-2kpQq2DD/pRpx3Tal/qRW1SYwcIeQ0iq8li5CJHQgOC+FtPn2BVmuDtzUCgNnpCrbgtfEHqh+iWzxK+Tq6C+RQ==}
-    engines: {node: ^18.0.0 || >=20.0.0}
+  size-limit@12.0.0:
+    resolution: {integrity: sha512-JBG8dioIs0m2kHOhs9jD6E/tZKD08vmbf2bfqj/rJyNWqJxk/ZcakixjhYtsqdbi+AKVbfPkt3g2RRZiKaizYA==}
+    engines: {node: ^20.0.0 || ^22.0.0 || >=24.0.0}
     hasBin: true
+    peerDependencies:
+      jiti: ^2.0.0
+    peerDependenciesMeta:
+      jiti:
+        optional: true
 
   slash@5.1.0:
     resolution: {integrity: sha512-ZA6oR3T/pEyuqwMgAKT0/hAv8oAXckzbkmR0UkUosQ+Mc4RxGoJkRmwHgHufaenlyAgE1Mxgpdcrf75y6XcnDg==}
@@ -9495,27 +9500,27 @@ snapshots:
 
   '@sindresorhus/merge-streams@4.0.0': {}
 
-  '@size-limit/esbuild-why@12.0.0(size-limit@11.2.0)':
+  '@size-limit/esbuild-why@12.0.0(size-limit@12.0.0(jiti@2.6.1))':
     dependencies:
       esbuild-visualizer: 0.7.0
       open: 11.0.0
-      size-limit: 11.2.0
+      size-limit: 12.0.0(jiti@2.6.1)
 
-  '@size-limit/esbuild@12.0.0(size-limit@11.2.0)':
+  '@size-limit/esbuild@12.0.0(size-limit@12.0.0(jiti@2.6.1))':
     dependencies:
       esbuild: 0.27.0
       nanoid: 5.1.6
-      size-limit: 11.2.0
+      size-limit: 12.0.0(jiti@2.6.1)
 
-  '@size-limit/file@12.0.0(size-limit@11.2.0)':
+  '@size-limit/file@12.0.0(size-limit@12.0.0(jiti@2.6.1))':
     dependencies:
-      size-limit: 11.2.0
+      size-limit: 12.0.0(jiti@2.6.1)
 
-  '@size-limit/preset-small-lib@12.0.0(size-limit@11.2.0)':
+  '@size-limit/preset-small-lib@12.0.0(size-limit@12.0.0(jiti@2.6.1))':
     dependencies:
-      '@size-limit/esbuild': 12.0.0(size-limit@11.2.0)
-      '@size-limit/file': 12.0.0(size-limit@11.2.0)
-      size-limit: 11.2.0
+      '@size-limit/esbuild': 12.0.0(size-limit@12.0.0(jiti@2.6.1))
+      '@size-limit/file': 12.0.0(size-limit@12.0.0(jiti@2.6.1))
+      size-limit: 12.0.0(jiti@2.6.1)
 
   '@speed-highlight/core@1.2.8': {}
 
@@ -14156,15 +14161,15 @@ snapshots:
 
   sisteransi@1.0.5: {}
 
-  size-limit@11.2.0:
+  size-limit@12.0.0(jiti@2.6.1):
     dependencies:
       bytes-iec: 3.1.1
-      chokidar: 4.0.3
-      jiti: 2.6.1
       lilconfig: 3.1.3
       nanospinner: 1.2.2
       picocolors: 1.1.1
       tinyglobby: 0.2.15
+    optionalDependencies:
+      jiti: 2.6.1
 
   slash@5.1.0: {}
 
