@@ -29,6 +29,18 @@ export function addDevtoolsInfo(queryCache: QueryCache): void {
       simulate: null,
       history: [],
     }
+
+    // add any entry that was added with SSR or without a fetch
+    if (entry.when > 0) {
+      entry[DEVTOOLS_INFO_KEY].history.push({
+        id: 0,
+        key: entry.key,
+        state: entry.state.value,
+        updatedAt: entry.when,
+        createdAt: entry.when,
+        fetchTime: null,
+      })
+    }
   }
 
   queryCache.$onAction(({ name, args, after, onError }) => {
