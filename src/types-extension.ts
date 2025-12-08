@@ -9,6 +9,9 @@
  * declare module '@pinia/colada' {
  *   interface TypesConfig {
  *     defaultError: MyCustomError
+ *     queryMeta: {
+ *      onErrorMessage?: string
+ *      }
  *   }
  * }
  * ```
@@ -23,4 +26,12 @@ export interface TypesConfig {
  */
 export type ErrorDefault = TypesConfig extends Record<'defaultError', infer E> ? E : Error
 
-// TODO: meta to add properties?
+/**
+ * The meta information stored alongside each query inferred from the {@link TypesConfig}.
+ * @internal
+ */
+export type QueryMeta =
+  TypesConfig extends Record<'queryMeta', infer M> ? M : Record<string, unknown>
+
+// TODO:
+// export type MutationMeta = TypesConfig extends Record<'mutationMeta', infer M>

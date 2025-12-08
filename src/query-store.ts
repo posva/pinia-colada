@@ -17,7 +17,7 @@ import { useQueryOptions } from './query-options'
 import type { UseQueryOptions, UseQueryOptionsWithDefaults } from './query-options'
 import type { EntryFilter } from './entry-filter'
 import { find, START_EXT, toCacheKey } from './entry-keys'
-import type { ErrorDefault } from './types-extension'
+import type { ErrorDefault, QueryMeta } from './types-extension'
 import { toValueWithArgs, warnOnce } from './utils'
 
 /**
@@ -124,6 +124,12 @@ export interface UseQueryEntry<
   readonly active: boolean
 
   /**
+   * Resolved meta information for this query. This is the computed value
+   * from options.meta (function/ref resolved to raw object).
+   */
+  meta: QueryMeta
+
+  /**
    * Extensions to the query entry added by plugins.
    */
   ext: UseQueryEntryExtensions<TData, TError, TDataInitial>
@@ -183,11 +189,12 @@ export type UseQueryEntryFilter = EntryFilter<UseQueryEntry>
  */
 export const queryEntry_toJSON: <TData, TError>(
   entry: UseQueryEntry<TData, TError>,
-) => _UseQueryEntryNodeValueSerialized<TData, TError> = ({ state: { value }, when }) => [
+) => _UseQueryEntryNodeValueSerialized<TData, TError> = ({ state: { value }, when, meta }) => [
   value.data,
   value.error,
   // because of time zones, we create a relative time
   when ? Date.now() - when : -1,
+  meta,
 ]
 // TODO: errors are not serializable by default. We should provide a way to serialize custom errors and, by default provide one that serializes the name and message
 
@@ -270,6 +277,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * @param [initialData] - initial data of the query if any
    * @param [error] - initial error of the query if any
    * @param [when] - relative when was the data or error fetched (will be added to Date.now())
+   * @param [meta] - resolved meta information for the query
    */
   const create = action(
     <TData, TError, TDataInitial extends TData | undefined>(
@@ -278,6 +286,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       initialData?: TDataInitial,
       error: TError | null = null,
       when: number = 0,
+      meta: QueryMeta = {},
       // when: number = initialData === undefined ? 0 : Date.now(),
     ): UseQueryEntry<TData, TError, TDataInitial> =>
       scope.run(() => {
@@ -309,6 +318,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           // @ts-ignore: some plugins are adding properties to the entry type
           ext: START_EXT,
           options,
+          meta,
           get stale() {
             return !this.options || !this.when || Date.now() >= this.when + this.options.staleTime
           },
@@ -525,7 +535,12 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       let entry = cachesRaw.get(keyHash) as UseQueryEntry<TData, TError, TDataInitial> | undefined
       // ensure the state
       if (!entry) {
-        cachesRaw.set(keyHash, (entry = create(key, options, options.initialData?.())))
+        // Resolve the meta from options.meta (could be function, ref, or raw object)
+
+        cachesRaw.set(
+          keyHash,
+          (entry = create(key, options, options.initialData?.(), null, 0, toValue(options.meta))),
+        )
         // the placeholderData is only used if the entry is initially loading
         if (options.placeholderData && entry.state.value.status === 'pending') {
           entry.placeholderData = toValueWithArgs(
@@ -954,6 +969,11 @@ export type _UseQueryEntryNodeValueSerialized<TData = unknown, TError = unknown>
    * When was this data fetched the last time in ms
    */
   when?: number,
+
+  /**
+   * Meta information associated with the query
+   */
+  meta?: QueryMeta,
 ]
 
 /**
@@ -968,7 +988,12 @@ export function hydrateQueryCache(
   for (const keyHash in serializedCache) {
     queryCache.caches.set(
       keyHash,
-      queryCache.create(JSON.parse(keyHash), undefined, ...(serializedCache[keyHash] ?? [])),
+      queryCache.create(
+        JSON.parse(keyHash),
+        undefined,
+        // data, error, when, meta
+        ...(serializedCache[keyHash] ?? []),
+      ),
     )
   }
 }

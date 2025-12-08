@@ -2105,4 +2105,57 @@ describe('useQuery', () => {
       // No warnings!
     })
   })
+
+  describe('meta', () => {
+    it('accepts a raw meta object', async () => {
+      const meta = { priority: 'high', cache: true }
+      const { pinia } = mountSimple({ meta })
+      const queryCache = useQueryCache(pinia)
+
+      await flushPromises()
+
+      const entry = queryCache.getEntries({ key: ['key'] }).at(0)!
+      expect(entry).toBeDefined()
+      expect(entry.meta).toEqual(meta)
+      expect(entry.options?.meta).toBe(meta)
+    })
+
+    it('accepts meta as a function', async () => {
+      const { pinia } = mountSimple({
+        meta: () => ({ priority: 'high' }),
+      })
+      const queryCache = useQueryCache(pinia)
+
+      await flushPromises()
+
+      const entry = queryCache.getEntries({ key: ['key'] }).at(0)!
+      expect(entry).toBeDefined()
+      expect(entry.meta).toEqual({ priority: 'high' })
+      expect(entry.options?.meta).toBeTypeOf('function')
+    })
+
+    it('accepts meta as a ref', async () => {
+      const metaRef = ref({ priority: 'high' })
+      const { pinia } = mountSimple({ meta: metaRef })
+      const queryCache = useQueryCache(pinia)
+
+      await flushPromises()
+
+      const entry = queryCache.getEntries({ key: ['key'] }).at(0)!
+      expect(entry).toBeDefined()
+      expect(entry.meta).toEqual({ priority: 'high' })
+      expect(entry.options?.meta).toBe(metaRef)
+    })
+
+    it('defaults to empty object when meta is not provided', async () => {
+      const { pinia } = mountSimple()
+      const queryCache = useQueryCache(pinia)
+
+      await flushPromises()
+
+      const entry = queryCache.getEntries({ key: ['key'] }).at(0)!
+      expect(entry).toBeDefined()
+      expect(entry.meta).toEqual({})
+    })
+  })
 })

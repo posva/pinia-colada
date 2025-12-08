@@ -1,7 +1,7 @@
 import { inject } from 'vue'
 import type { InjectionKey, MaybeRefOrGetter } from 'vue'
 import type { EntryKey } from './entry-keys'
-import type { ErrorDefault } from './types-extension'
+import type { ErrorDefault, QueryMeta } from './types-extension'
 
 /**
  * Possible values for `refetchOnMount`, `refetchOnWindowFocus`, and `refetchOnReconnect`.
@@ -170,6 +170,44 @@ export interface UseQueryOptions<
     | (<T extends TData>(
         previousData: T | undefined,
       ) => NoInfer<TDataInitial> | NoInfer<TData> | undefined)
+
+  /**
+   * Meta information associated with the query. Can be a raw object, a function
+   * returning the meta object, or a ref containing the meta object.
+   * The meta is resolved when the entry is **created** and stored in
+   * `entry.meta`.
+   *
+   * **Note**: Meta is serialized during SSR, so it must be serializable (no functions,
+   * class instances, or circular references). You can also completely ignore
+   * it during SSR with a ternary: `meta: import.meta.ev.SSR ? {} : actualMeta`
+   *
+   * @example
+   * ```ts
+   * // SSR-safe: simple serializable data
+   * useQuery({
+   *   key: ['user', id],
+   *   query: () => fetchUser(id),
+   *   meta: { errorMessage: true }
+   * })
+   *
+   * // Using a function to compute meta
+   * useQuery({
+   *   key: ['user', id],
+   *   query: () => fetchUser(id),
+   *   meta: () => ({ timestamp: Date.now() })
+   * })
+   *
+   * // Skipping meta during SSR
+   * useQuery({
+   *   key: ['user', id],
+   *   query: () => fetchUser(id),
+   *   meta: {
+   *     onError: import.meta.env.SSR ? undefined : ((err) => console.log('error'))
+   *   }
+   * })
+   * ```
+   */
+  meta?: MaybeRefOrGetter<QueryMeta>
 
   /**
    * Ghost property to ensure TError generic parameter is included in the
