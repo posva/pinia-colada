@@ -34,8 +34,10 @@ export type UseQueryEntryPayloadDep =
   | UseQueryEntryPayloadDepComponent
   | UseQueryEntryPayloadDepEffect
 
-export interface UseQueryEntryPayloadOptions
-  extends Pick<UseQueryOptionsWithDefaults, 'gcTime' | 'staleTime'> {
+export interface UseQueryEntryPayloadOptions extends Pick<
+  UseQueryOptionsWithDefaults,
+  'gcTime' | 'staleTime'
+> {
   // manually overriden to extract only plain values
   enabled: boolean
   refetchOnMount: RefetchOnControl
