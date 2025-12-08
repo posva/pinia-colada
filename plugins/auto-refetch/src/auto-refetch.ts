@@ -133,8 +133,11 @@ export function PiniaColadaAutoRefetch(
 
 // Add types for the new option
 declare module '@pinia/colada' {
-  interface UseQueryOptions<TData, TError, TDataInitial>
-    extends PiniaColadaAutoRefetchOptions<TData, TError, TDataInitial> {}
+  interface UseQueryOptions<TData, TError, TDataInitial> extends PiniaColadaAutoRefetchOptions<
+    TData,
+    TError,
+    TDataInitial
+  > {}
 
   interface UseQueryOptionsGlobal extends PiniaColadaAutoRefetchOptions {}
 
