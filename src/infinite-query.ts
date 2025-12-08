@@ -15,9 +15,9 @@ export interface UseInfiniteQueryOptions<
   TDataInitial extends TData | undefined = TData | undefined,
   TPages = unknown,
 > extends Omit<
-    UseQueryOptions<TData, TError, TDataInitial>,
-    'query' | 'initialData' | 'placeholderData' | 'key'
-  > {
+  UseQueryOptions<TData, TError, TDataInitial>,
+  'query' | 'initialData' | 'placeholderData' | 'key'
+> {
   key: UseQueryOptions<TPages, TError, TPages>['key']
   /**
    * The function that will be called to fetch the data. It **must** be async.
@@ -27,8 +27,10 @@ export interface UseInfiniteQueryOptions<
   merge: (result: NoInfer<TPages>, current: NoInfer<TData>) => NoInfer<TPages>
 }
 
-export interface UseInfiniteQueryReturn<TPage = unknown, TError = ErrorDefault>
-  extends Omit<UseQueryReturn<TPage, TError, TPage>, 'refetch' | 'refresh'> {
+export interface UseInfiniteQueryReturn<TPage = unknown, TError = ErrorDefault> extends Omit<
+  UseQueryReturn<TPage, TError, TPage>,
+  'refetch' | 'refresh'
+> {
   loadMore: () => Promise<unknown>
 }
 

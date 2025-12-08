@@ -97,9 +97,7 @@ const { mutate: updateContact, isLoading } = useMutation({
 
 <template>
   <section>
-    <p v-if="isPending">
-      Loading...
-    </p>
+    <p v-if="isPending">Loading...</p>
     <ContactCard
       v-else
       :key="contact.id"

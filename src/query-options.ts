@@ -111,15 +111,15 @@ export interface UseQueryOptions<
   TError = ErrorDefault,
   TDataInitial extends TData | undefined = undefined,
 > extends Pick<
-    UseQueryOptionsGlobal,
-    | 'gcTime'
-    | 'enabled'
-    | 'refetchOnMount'
-    | 'refetchOnReconnect'
-    | 'refetchOnWindowFocus'
-    | 'staleTime'
-    | 'ssrCatchError'
-  > {
+  UseQueryOptionsGlobal,
+  | 'gcTime'
+  | 'enabled'
+  | 'refetchOnMount'
+  | 'refetchOnReconnect'
+  | 'refetchOnWindowFocus'
+  | 'staleTime'
+  | 'ssrCatchError'
+> {
   /**
    * The key used to identify the query. Array of primitives **without**
    * reactive values or a reactive array or getter. It should be treaded as an

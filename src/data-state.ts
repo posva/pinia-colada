@@ -28,13 +28,17 @@ export interface _DataState_Base<TData, TError> {
   status: DataStateStatus
 }
 
-export interface DataState_Success<TData, TDataInitial>
-  extends _DataState_Base<TData | Exclude<TDataInitial, undefined>, null> {
+export interface DataState_Success<TData, TDataInitial> extends _DataState_Base<
+  TData | Exclude<TDataInitial, undefined>,
+  null
+> {
   status: 'success'
 }
 
-export interface DataState_Error<TData, TError, TDataInitial>
-  extends _DataState_Base<TData | TDataInitial, TError> {
+export interface DataState_Error<TData, TError, TDataInitial> extends _DataState_Base<
+  TData | TDataInitial,
+  TError
+> {
   status: 'error'
 }
 
