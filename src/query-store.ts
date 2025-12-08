@@ -1,6 +1,5 @@
 import { defineStore, getActivePinia, skipHydrate } from 'pinia'
 import {
-  customRef,
   effectScope,
   getCurrentInstance,
   getCurrentScope,
@@ -8,6 +7,8 @@ import {
   markRaw,
   shallowRef,
   toValue,
+  watch,
+  triggerRef,
 } from 'vue'
 import type { App, ComponentInternalInstance, EffectScope, ShallowRef } from 'vue'
 import type { AsyncStatus, DataState } from './data-state'
@@ -17,7 +18,7 @@ import type { UseQueryOptions, UseQueryOptionsWithDefaults } from './query-optio
 import type { EntryFilter } from './entry-filter'
 import { find, START_EXT, toCacheKey } from './entry-keys'
 import type { ErrorDefault } from './types-extension'
-import { noop, toValueWithArgs, warnOnce } from './utils'
+import { toValueWithArgs, warnOnce } from './utils'
 
 /**
  * Allows defining extensions to the query entry that are returned by `useQuery()`.
@@ -227,24 +228,20 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   // We have two versions of the cache, one that track changes and another that doesn't so the actions can be used
   // inside computed properties
   const cachesRaw = new Map<string, UseQueryEntry<unknown, unknown, unknown>>()
-  let triggerCache!: () => void
-  const caches = skipHydrate(
-    customRef(
-      (track, trigger) =>
-        (triggerCache = trigger) && {
-          // eslint-disable-next-line no-sequences
-          get: () => (track(), cachesRaw),
-          set:
-            process.env.NODE_ENV !== 'production'
-              ? () => {
-                  console.error(
-                    `[@pinia/colada]: The query cache instance cannot be set directly, it must be modified. This will fail in production.`,
-                  )
-                }
-              : noop,
-        },
-    ),
-  )
+  const caches = skipHydrate(shallowRef(cachesRaw))
+
+  if (process.env.NODE_ENV !== 'production') {
+    watch(
+      () => caches.value !== cachesRaw,
+      (isDifferent) => {
+        if (isDifferent) {
+          console.error(
+            `[@pinia/colada] The query cache cannot be directly set, it must be modified only. This will fail on production`,
+          )
+        }
+      },
+    )
+  }
 
   // this version of the cache cannot be hydrated because it would miss all of the actions
   // and plugins won't be able to hook into entry creation and fetching
@@ -377,7 +374,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     // clearTimeout ignores anything that isn't a timerId
     clearTimeout(entry.gcTimeout)
     entry.gcTimeout = undefined
-    triggerCache()
+    triggerRef(caches)
   }
 
   /**
@@ -408,7 +405,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     }
 
     entry.deps.delete(effect)
-    triggerCache()
+    triggerRef(caches)
 
     scheduleGarbageCollection(entry)
   }
@@ -539,7 +536,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
               : previousEntry?.state.value.data,
           )
         }
-        triggerCache()
+        triggerRef(caches)
       }
 
       // during HMR, staleTime could be long and if we change the query function, the query won't trigger a refetch
@@ -819,7 +816,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
         data: toValueWithArgs(data, entry.state.value.data),
       })
       scheduleGarbageCollection(entry)
-      triggerCache()
+      triggerRef(caches)
     },
   )
 
@@ -855,7 +852,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       })
       scheduleGarbageCollection(entry)
     }
-    triggerCache()
+    triggerRef(caches)
   }
 
   /**
@@ -879,7 +876,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   const remove = action((entry: UseQueryEntry) => {
     // setting without a value is like setting it to undefined
     cachesRaw.delete(entry.keyHash)
-    triggerCache()
+    triggerRef(caches)
   })
 
   return {

@@ -7,6 +7,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { computed, createApp, nextTick, watch } from 'vue'
 import { useQuery } from './use-query'
 import { PiniaColada } from './pinia-colada'
+import { mockConsoleError, mockWarn } from '../test-utils'
 
 describe('Query Cache store', () => {
   let app!: ReturnType<typeof createApp>
@@ -16,6 +17,9 @@ describe('Query Cache store', () => {
     app.use(pinia)
     setActivePinia(pinia)
   })
+
+  mockConsoleError()
+  mockWarn()
 
   it('should not trigger too often', async () => {
     const queryCache = useQueryCache()
@@ -262,5 +266,13 @@ describe('Query Cache store', () => {
       })
       expect(onActionCreate).toHaveBeenCalledTimes(1)
     })
+  })
+
+  it('warns if the user directly sets the cache', async () => {
+    const queryCache = useQueryCache()
+    queryCache.caches = new Map()
+    // let the watcher trigger then check for the warning
+    await nextTick()
+    expect('The query cache cannot be directly set').toHaveBeenErrored()
   })
 })
