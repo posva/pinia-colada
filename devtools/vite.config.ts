@@ -81,7 +81,6 @@ export default defineConfig({
         },
       ],
     }),
-    // @ts-expect-error: Vite bug?
     Vue({
       template: {
         compilerOptions: {
@@ -92,7 +91,6 @@ export default defineConfig({
       },
     }),
     Icons({ compiler: 'vue3' }),
-    // @ts-expect-error: Vite bug?
     VueDevtools(),
     Components({
       dirs: [resolve(__dirname, './src/panel/components')],
