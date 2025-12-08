@@ -24,7 +24,7 @@ export function addDevtoolsInfo(queryCache: QueryCache): void {
         errored: 0,
         cancelled: 0,
       },
-      updatedAt: now(),
+      updatedAt: entry.when > 0 ? entry.when : now(),
       inactiveAt: 0,
       simulate: null,
       history: [],
