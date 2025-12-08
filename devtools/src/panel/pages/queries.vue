@@ -61,7 +61,7 @@ function updatePanesSize({ panes }: { panes: { size: number }[] }) {
   <section class="grid grid-rows-[auto_1fr] overflow-hidden @container">
     <!-- Search & Actions Bar -->
     <div class="flex items-center p-2 border-b border-(--ui-border) gap-2">
-      <div class="relative flex-grow">
+      <div class="relative grow">
         <i-lucide-search
           class="absolute left-2 top-1/2 -translate-y-1/2 text-ui-text-muted size-4"
         />
