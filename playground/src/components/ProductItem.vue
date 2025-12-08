@@ -23,7 +23,7 @@ const cart = useBasket()
           :src="product.imageSrc"
           :alt="product.imageAlt"
           class="object-cover object-center w-full h-full"
-        >
+        />
       </RouterLink>
     </div>
     <div class="py-2">
@@ -36,9 +36,7 @@ const cart = useBasket()
             {{ product.color }}
           </div>
         </div>
-        <div class="text-sm font-medium text-gray-900">
-          {{ product.price }} €
-        </div>
+        <div class="text-sm font-medium text-gray-900">{{ product.price }} €</div>
       </div>
       <div class="flex justify-between">
         <div>
@@ -52,33 +50,15 @@ const cart = useBasket()
               cart.setItemQuantity(product.id, Number(($event.target as HTMLInputElement).value))
             "
           >
-            <option value="0">
-              0
-            </option>
-            <option value="1">
-              1
-            </option>
-            <option value="2">
-              2
-            </option>
-            <option value="3">
-              3
-            </option>
-            <option value="4">
-              4
-            </option>
-            <option value="5">
-              5
-            </option>
-            <option value="6">
-              6
-            </option>
-            <option value="7">
-              7
-            </option>
-            <option value="8">
-              8
-            </option>
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
           </select>
         </div>
         <div>{{ product.availability }} left</div>

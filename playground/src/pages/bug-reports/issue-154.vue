@@ -48,12 +48,10 @@ onMounted(() => {
 
 <template>
   <div>
-    <button type="button" @click="clickHandler">
-      Click me
-    </button>
-    <br>
+    <button type="button" @click="clickHandler">Click me</button>
+    <br />
     queryKey: {{ queryKey }}
-    <br>
+    <br />
     data: {{ data }}
   </div>
 </template>

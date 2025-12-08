@@ -6,10 +6,10 @@ const bugLinks = router
   .getRoutes()
   .filter(
     (route) =>
-      route.name
-      && route.path.includes('bug-reports/')
+      route.name &&
+      route.path.includes('bug-reports/') &&
       // should ignore nested pages from bug-reports/
-      && route.path.split('/').length === 3,
+      route.path.split('/').length === 3,
   )
   .map((route) => ({ name: route.name! }))
 console.log(bugLinks)

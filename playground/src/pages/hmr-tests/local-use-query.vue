@@ -48,20 +48,14 @@ function getData(key = ['id']) {
 </script>
 
 <template>
-  <button @click="refresh()">
-    Refresh
-  </button>
-  <button @click="refetch()">
-    Refetch
-  </button>
+  <button @click="refresh()">Refresh</button>
+  <button @click="refetch()">Refetch</button>
 
   <pre>{{ state }}</pre>
 
-  <hr>
+  <hr />
 
-  <input v-model="dataId" type="text">
-  <button @click="getData(dataId.split(' ') || ['id'])">
-    Refresh Data get
-  </button>
+  <input v-model="dataId" type="text" />
+  <button @click="getData(dataId.split(' ') || ['id'])">Refresh Data get</button>
   <pre>{{ dataFromRead }}</pre>
 </template>

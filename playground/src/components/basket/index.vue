@@ -26,21 +26,15 @@ const totalPrice = computed(() =>
     aria-labelledby="summary-heading"
     class="w-full px-4 py-6 mt-16 rounded-lg bg-gray-50 sm:p-6 lg:mt-0 lg:p-8"
   >
-    <h2 id="summary-heading" class="text-lg font-medium text-gray-900">
-      Order summary
-    </h2>
+    <h2 id="summary-heading" class="text-lg font-medium text-gray-900">Order summary</h2>
 
     <dl v-if="products" class="mt-6 space-y-4">
       <template v-for="product in itemsList" :key="product.id">
         <BasketDetails :product="product" />
       </template>
       <div class="flex items-center justify-between pt-4 border-t border-gray-200">
-        <dt class="text-base font-medium text-gray-900">
-          Order total
-        </dt>
-        <dd class="text-base font-medium text-gray-900">
-          {{ totalPrice }} €
-        </dd>
+        <dt class="text-base font-medium text-gray-900">Order total</dt>
+        <dd class="text-base font-medium text-gray-900">{{ totalPrice }} €</dd>
       </div>
     </dl>
 

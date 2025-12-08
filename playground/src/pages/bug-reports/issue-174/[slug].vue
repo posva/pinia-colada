@@ -50,7 +50,7 @@ const entryTwo = computed(() => {
     <pre>test data: {{ state }}</pre>
     <pre>asyncStatus: {{ asyncStatus }}</pre>
 
-    <hr>
+    <hr />
 
     entryOne:
     <pre v-if="entryOne">{{ entryOne }}</pre>
@@ -62,6 +62,7 @@ state: {{ entryTwo.state }}
 deps size: {{ entryTwo.deps.size }}
 when: {{ entryTwo.when }}
 stale: {{ entryTwo.stale }}
-        </pre>
+        </pre
+    >
   </div>
 </template>

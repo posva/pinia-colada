@@ -21,14 +21,12 @@ onErrorCaptured((err) => {
 
 <template>
   <main class="big-layout">
-    <h1 class="mb-12">
-      📇 My Contacts
-    </h1>
+    <h1 class="mb-12">📇 My Contacts</h1>
 
     <div class="gap-4 contacts-search md:flex">
       <div>
         <form class="space-x-2" @submit.prevent>
-          <input v-model="searchText" autofocus type="search" placeholder="Eduardo">
+          <input v-model="searchText" autofocus type="search" placeholder="Eduardo" />
           <!-- NOTE: ensure no fetch is done on client while hydrating or this will cause
            a Hydration mismatch -->
           <!-- <div v-if="asyncStatus === 'loading'"> -->
@@ -48,7 +46,7 @@ onErrorCaptured((err) => {
                 v-if="contact.photoURL"
                 :src="contact.photoURL"
                 class="inline-block w-8 rounded-full"
-              >
+              />
               {{ contact.firstName }} {{ contact.lastName }}
             </RouterLink>
           </li>

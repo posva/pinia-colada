@@ -41,7 +41,8 @@ const navigation = [
                 :href="item.href"
                 class="block rounded-md py-2 pr-2 pl-10 text-sm leading-6 font-semibold text-gray-700"
                 :class="[item.current ? 'bg-gray-50' : 'hover:bg-gray-50']"
-              >{{ item.name }}</a>
+                >{{ item.name }}</a
+              >
               <Disclosure v-else v-slot="{ open }" as="div">
                 <DisclosureButton
                   class="flex items-center w-full text-left rounded-md p-2 gap-x-3 text-sm leading-6 font-semibold text-gray-700"

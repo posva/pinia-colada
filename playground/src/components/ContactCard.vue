@@ -36,29 +36,25 @@ function randomizeAvatar() {
 <template>
   <div class="space-y-6">
     <div v-if="isEditing && copy" class="flex flex-col items-center mx-auto">
-      <img :key="copy.photoURL" class="w-40 h-40 mx-auto rounded-full" :src="copy.photoURL">
-      <button class="mt-1" @click="randomizeAvatar">
-        Randomize photo
-      </button>
+      <img :key="copy.photoURL" class="w-40 h-40 mx-auto rounded-full" :src="copy.photoURL" />
+      <button class="mt-1" @click="randomizeAvatar">Randomize photo</button>
     </div>
-    <img v-else class="w-40 h-40 mx-auto rounded-full" :src="contact.photoURL">
+    <img v-else class="w-40 h-40 mx-auto rounded-full" :src="contact.photoURL" />
 
     <div class="space-y-2">
       <div class="space-y-1 font-medium leading-6 text-center">
         <form v-if="copy" class="flex flex-col max-w-md mx-auto" @submit.prevent="saveEdits()">
           <label for="contact-edit-first-name"> First Name </label>
-          <input id="contact-edit-first-name" v-model="copy.firstName" type="text">
+          <input id="contact-edit-first-name" v-model="copy.firstName" type="text" />
           <label for="contact-edit-last-name"> Last Name </label>
-          <input id="contact-edit-last-name" v-model="copy.lastName" type="text">
+          <input id="contact-edit-last-name" v-model="copy.lastName" type="text" />
           <label for="contact-edit-bio"> Bio: </label>
           <textarea id="contact-edit-bio" v-model="copy.bio" cols="30" rows="5" />
 
-          <hr>
+          <hr />
 
           <button>Save</button>
-          <button type="button" @click="cancelEdit()">
-            Cancel
-          </button>
+          <button type="button" @click="cancelEdit()">Cancel</button>
         </form>
 
         <template v-else>
@@ -74,12 +70,10 @@ function randomizeAvatar() {
     </div>
 
     <template v-if="!isEditing">
-      <hr>
+      <hr />
 
       <div class="flex justify-end px-6 mx-auto space-x-2">
-        <button @click="startEdit()">
-          Edit
-        </button>
+        <button @click="startEdit()">Edit</button>
       </div>
     </template>
   </div>

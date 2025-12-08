@@ -2,7 +2,7 @@ import { mande } from 'mande'
 
 export interface CatFacts {
   current_page: number
-  data: Array<{ fact: string, length: number }>
+  data: Array<{ fact: string; length: number }>
   first_page_url: string
   from: number
   last_page: number

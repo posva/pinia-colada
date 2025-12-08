@@ -6,9 +6,7 @@ const router = useRouter()
 
 <template>
   <main>
-    <p class="p-2">
-      Go to one of these links
-    </p>
+    <p class="p-2">Go to one of these links</p>
 
     <ul class="ml-5 list-disc">
       <li

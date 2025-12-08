@@ -18,8 +18,6 @@ function clickhandler() {
 
     <pre><code>{{ JSON.stringify(queryKeyPart, null, 2) }}</code></pre>
 
-    <button @click="clickhandler">
-      Trigger
-    </button>
+    <button @click="clickhandler">Trigger</button>
   </div>
 </template>

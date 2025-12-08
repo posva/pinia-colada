@@ -34,7 +34,8 @@ const open = ref(false)
         :key="item.name"
         :href="item.href"
         class="text-sm font-semibold leading-6 text-gray-900"
-      >{{ item.name }}</a>
+        >{{ item.name }}</a
+      >
       <a href="/about"> A propos </a>
     </div>
     <div class="hidden lg:flex lg:flex-1 lg:justify-end">

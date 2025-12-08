@@ -45,9 +45,7 @@ function togglePage() {
 
 <template>
   <nav>
-    <button @click="togglePage()">
-      Toggle Page
-    </button>
+    <button @click="togglePage()">Toggle Page</button>
   </nav>
 
   <pre>{{ route.fullPath }}</pre>
