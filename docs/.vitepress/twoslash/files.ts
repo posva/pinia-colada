@@ -26,6 +26,26 @@ declare module '*.vue' {
   export default defineComponent({})
 }
 `.trimStart(),
+
+  'types-extension.d.ts': `
+/// <reference types="vite/client" />
+import '@pinia/colada'
+
+declare module '@pinia/colada' {
+  interface TypesConfig {
+    queryMeta: {
+      priority?: 'high' | 'low'
+      errorMessage?: string
+      logLevel?: 'debug' | 'info' | 'warn' | 'error'
+      callback?: () => void
+      onError?: (err: unkwown) => void
+      timestamp?: number
+    }
+  }
+}
+
+export {}
+`.trimStart(),
 }
 
 /**
