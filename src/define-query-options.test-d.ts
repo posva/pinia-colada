@@ -330,5 +330,20 @@ describe('typed query keys', () => {
         | undefined
       >()
     })
+
+    it('disallows function in meta', () => {
+      // @ts-expect-error: meta cannot be a function
+      defineQueryOptions({
+        key: ['a'],
+        query: async () => 'ok',
+        meta: () => ({}),
+      })
+
+      defineQueryOptions({
+        key: ['a'],
+        query: async () => 'ok',
+        meta: { hello: 'world' },
+      })
+    })
   })
 })
