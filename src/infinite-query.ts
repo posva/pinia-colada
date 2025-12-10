@@ -5,6 +5,28 @@ import type { UseQueryReturn } from './use-query'
 import type { ErrorDefault } from './types-extension'
 
 /**
+ * Structure of data stored for infinite queries.
+ */
+export interface UseInfiniteQueryData<TData, TPageParam> {
+  /**
+   * Each page of data fetched in order.
+   */
+  pages: TData[]
+
+  /**
+   * Each page parameter used to fetch the corresponding page in the same order.
+   */
+  pageParams: TPageParam[]
+}
+
+export interface UseInfiniteQueryFnContext<TPageParam> extends UseQueryFnContext {
+  /**
+   * The page parameter for the current fetch.
+   */
+  pageParam: TPageParam
+}
+
+/**
  * Options for {@link useInfiniteQuery}.
  *
  * @experimental See https://github.com/posva/pinia-colada/issues/178
@@ -12,25 +34,41 @@ import type { ErrorDefault } from './types-extension'
 export interface UseInfiniteQueryOptions<
   TData,
   TError,
-  TDataInitial extends TData | undefined = TData | undefined,
-  TPages = unknown,
+  TPageParam,
+  TDataInitial extends UseInfiniteQueryData<TData, TPageParam> | undefined =
+    | UseInfiniteQueryData<TData, TPageParam>
+    | undefined,
 > extends Omit<
-  UseQueryOptions<TData, TError, TDataInitial>,
-  'query' | 'initialData' | 'placeholderData' | 'key'
-> {
-  key: UseQueryOptions<TPages, TError, TPages>['key']
+    UseQueryOptions<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>,
+    'query' | 'key'
+  > {
+  key: UseQueryOptions<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>['key']
+
   /**
    * The function that will be called to fetch the data. It **must** be async.
    */
-  query: (pages: NoInfer<TPages>, context: UseQueryFnContext) => Promise<TData>
-  initialPage: TPages | (() => TPages)
-  merge: (result: NoInfer<TPages>, current: NoInfer<TData>) => NoInfer<TPages>
+  query: (context: UseInfiniteQueryFnContext<NoInfer<TPageParam>>) => Promise<TData>
+
+  /**
+   * Initial page parameter or function returning it. It's passed to the query
+   */
+  initialPageParam: TPageParam | (() => TPageParam)
+
+  /**
+   * Function to get the next page parameter based on the last page and all
+   * pages fetched so far. If it returns `undefined` or `null`, it will
+   * consider there are no more pages to fetch.
+   */
+  getNextPageParam: (
+    lastPage: TData,
+    allPages: TData[],
+    lastPageParam: TPageParam,
+    allPageParams: TPageParam[],
+  ) => TPageParam | undefined | null
 }
 
-export interface UseInfiniteQueryReturn<TPage = unknown, TError = ErrorDefault> extends Omit<
-  UseQueryReturn<TPage, TError, TPage>,
-  'refetch' | 'refresh'
-> {
+export interface UseInfiniteQueryReturn<TPage = unknown, TError = ErrorDefault>
+  extends Omit<UseQueryReturn<TPage, TError, TPage>, 'refetch' | 'refresh'> {
   loadMore: () => Promise<unknown>
 }
 
