@@ -67,9 +67,12 @@ export interface UseInfiniteQueryOptions<
   ) => TPageParam | undefined | null
 }
 
-export interface UseInfiniteQueryReturn<TPage = unknown, TError = ErrorDefault>
-  extends Omit<UseQueryReturn<TPage, TError, TPage>, 'refetch' | 'refresh'> {
-  loadMore: () => Promise<unknown>
+export interface UseInfiniteQueryReturn<
+  TData = unknown,
+  TError = ErrorDefault,
+  TPageParam = unknown,
+> extends UseQueryReturn<UseInfiniteQueryData<TData, TPageParam>, TError> {
+  // loadMore: () => Promise<unknown>
 }
 
 /**
@@ -81,25 +84,32 @@ export interface UseInfiniteQueryReturn<TPage = unknown, TError = ErrorDefault>
  *
  * @experimental See https://github.com/posva/pinia-colada/issues/178
  */
-export function useInfiniteQuery<TData, TError = ErrorDefault, TPage = unknown>(
-  options: UseInfiniteQueryOptions<TData, TError, TData | undefined, TPage>,
-): UseInfiniteQueryReturn<TPage, TError> {
-  let pages: TPage = toValue(options.initialPage)
-
-  const { refetch, refresh, ...query } = useQuery<TPage, TError, TPage>({
-    ...options,
-    initialData: () => pages,
-    // since we hijack the query function and augment the data, we cannot refetch the data
-    // like usual
-    staleTime: Infinity,
-    async query(context) {
-      const data: TData = await options.query(pages, context)
-      return (pages = options.merge(pages, data))
-    },
+export function useInfiniteQuery<
+  TData,
+  TError = ErrorDefault,
+  TPageParam = unknown,
+  TDataInitial extends UseInfiniteQueryData<TData, TPageParam> | undefined =
+    | UseInfiniteQueryData<TData, TPageParam>
+    | undefined,
+>(
+  options: UseInfiniteQueryOptions<TData, TError, TPageParam, TDataInitial>,
+): UseInfiniteQueryReturn<TData, TError, TPageParam> {
+  const query = useQuery(() => {
+    const opts = toValue(options)
+    return {
+      ...opts,
+      query: async (context) => {
+        const pageParam = opts.getNextPageParam()
+        const data = opts.query({
+          ...context,
+          pageParam: 0 as any,
+        })
+      },
+    }
   })
 
   return {
     ...query,
-    loadMore: () => refetch(),
+    // loadMore: () => refetch(),
   }
 }
