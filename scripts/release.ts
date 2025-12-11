@@ -67,7 +67,7 @@ const PKG_FOLDERS = [
   join(__dirname, '../nuxt'),
   // @pinia/colada-devtools
   join(__dirname, '../devtools'),
-  globSync(join(__dirname, '../plugins/*/')),
+  ...globSync(join(__dirname, '../plugins/*/')),
 ]
 
 // files to add and commit after building a new version
