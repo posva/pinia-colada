@@ -79,6 +79,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/bug-reports/issue-463': RouteRecordInfo<
+      '/bug-reports/issue-463',
+      '/bug-reports/issue-463',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/cat-facts': RouteRecordInfo<
       '/cat-facts',
       '/cat-facts',
@@ -236,6 +243,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/bug-reports/issue-290.vue': {
       routes:
         | '/bug-reports/issue-290'
+      views:
+        | never
+    }
+    'src/pages/bug-reports/issue-463.vue': {
+      routes:
+        | '/bug-reports/issue-463'
       views:
         | never
     }

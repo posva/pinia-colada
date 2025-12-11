@@ -322,7 +322,9 @@ export function useQuery<
       }
       // track the current effect and component
       queryCache.track(entry, hasCurrentInstance)
-      if (currentEffect !== defineQueryEffect) {
+      // if we have acurrent instance we don't track the effect because in Vue each component
+      // has its own scope that is detached
+      if (!hasCurrentInstance && currentEffect !== defineQueryEffect) {
         queryCache.track(entry, currentEffect)
       }
 

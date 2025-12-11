@@ -509,6 +509,24 @@ describe('useQuery', () => {
       vi.advanceTimersByTime(1_000_000)
       expect(cache.getQueryData(['key'])).toBe(42)
     })
+
+    // https://github.com/posva/pinia-colada/issues/436
+    it('frees the cache if the entry is recreated within a component', async () => {
+      const key = ref(1)
+      const { wrapper } = mountSimple({
+        key: () => ['key', key.value],
+        gcTime: 1000,
+      })
+      // we change it immediately to create an entry right away
+      key.value++
+      const cache = useQueryCache()
+
+      await flushPromises()
+
+      wrapper.unmount()
+      vi.advanceTimersByTime(1000)
+      expect(cache.getEntries({ key: ['key'] }).length).toBe(0)
+    })
   })
 
   describe('placeholderData', () => {
