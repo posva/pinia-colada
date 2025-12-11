@@ -1,3 +1,13 @@
+## [0.18.1](https://github.com/posva/pinia-colada/compare/v0.18.0...v0.18.1) (2025-12-11)
+
+### Bug Fixes
+
+- **query:** do not track components effect ([f85f556](https://github.com/posva/pinia-colada/commit/f85f5563211133cb5081ebab7a369f57eb41105c)), closes [#436](https://github.com/posva/pinia-colada/issues/436)
+
+### Features
+
+- **query:** add meta ([6f1f28e](https://github.com/posva/pinia-colada/commit/6f1f28e306df466257fd370a74c9162e0720cc67)), closes [#313](https://github.com/posva/pinia-colada/issues/313)
+
 ## [0.18.0](https://github.com/posva/pinia-colada/compare/v0.17.9...v0.18.0) (2025-12-02)
 
 ### ⚠ BREAKING CHANGES

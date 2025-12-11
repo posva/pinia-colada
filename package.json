@@ -1,7 +1,7 @@
 {
   "name": "@pinia/colada",
   "type": "module",
-  "version": "0.18.0",
+  "version": "0.18.1",
   "packageManager": "pnpm@10.25.0",
   "description": "The smart data fetching layer for Vue.js",
   "publishConfig": {
