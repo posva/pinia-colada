@@ -1,12 +1,10 @@
 import { defineConfig, type TestProjectInlineConfiguration } from 'vitest/config'
 import Vue from '@vitejs/plugin-vue'
 import { fileURLToPath } from 'node:url'
-import { globbySync } from 'globby'
 import fs from 'node:fs'
 
-const pluginsProjects: TestProjectInlineConfiguration[] = globbySync('./plugins/*', {
-  onlyDirectories: true,
-})
+const pluginsProjects: TestProjectInlineConfiguration[] = fs
+  .globSync('./plugins/*/')
   .map((dir) => {
     try {
       const pkg = JSON.parse(

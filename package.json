@@ -14,10 +14,7 @@
   "license": "MIT",
   "funding": "https://github.com/sponsors/posva",
   "homepage": "https://pinia-colada.esm.dev",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/posva/pinia-colada.git"
-  },
+  "repository": "posva/pinia-colada",
   "bugs": {
     "url": "https://github.com/posva/pinia-colada/issues"
   },
@@ -69,7 +66,7 @@
     "docs:api:build": "node ./scripts/run-typedoc.js",
     "play": "pnpm -C playground dev",
     "prepublishOnly": "pnpm run build",
-    "release": "node scripts/release.mjs",
+    "release": "node scripts/release.ts",
     "test": "pnpm run build && pnpm run test:cov && pnpm run build:plugins && pnpm run test:types && pnpm run codemods:test",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
@@ -134,14 +131,12 @@
     "@vitest/ui": "^4.0.15",
     "@vue/test-utils": "^2.4.6",
     "chalk": "^5.6.2",
-    "conventional-changelog-cli": "^4.1.0",
+    "conventional-changelog": "^7.1.1",
+    "conventional-changelog-angular": "^8.1.0",
     "execa": "^9.6.1",
-    "globby": "^16.0.0",
     "happy-dom": "^20.0.11",
     "lint-staged": "^16.2.7",
-    "minimist": "^1.2.8",
     "oxlint": "^1.32.0",
-    "p-series": "^3.0.0",
     "pinia": "^3.0.4",
     "prettier": "^3.7.4",
     "semver": "^7.7.2",

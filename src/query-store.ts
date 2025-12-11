@@ -691,7 +691,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
             }
             return entry.state.value
           })
-          .catch((error) => {
+          .catch((error: unknown) => {
             // we skip updating the state if a new request was made
             // or if the error is from our own abort signal
             if (
@@ -702,7 +702,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
               setEntryState(entry, {
                 status: 'error',
                 data: entry.state.value.data,
-                error,
+                error: error as any,
               })
             }
 

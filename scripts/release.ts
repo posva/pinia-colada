@@ -1,43 +1,49 @@
 import fs from 'node:fs/promises'
-import { existsSync } from 'node:fs'
+import { existsSync, globSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
+import { parseArgs } from 'node:util'
 import { fileURLToPath } from 'node:url'
-import minimist from 'minimist'
 import chalk from 'chalk'
-import semver from 'semver'
+import semver, { type ReleaseType } from 'semver'
 import prompts from '@posva/prompts'
-import { execa } from 'execa'
-import pSeries from 'p-series'
-import { globby } from 'globby'
+import { execa, type Options as ExecaOptions } from 'execa'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-const args = minimist(process.argv.slice(2))
 const {
-  skipBuild,
-  tag: optionTag,
-  dry: isDryRun,
-  skipCleanCheck: skipCleanGitCheck,
-  noDepsUpdate,
-  noPublish,
-  noLockUpdate,
-  all: skipChangeCheck,
-} = args
+  values: {
+    tag: optionTag,
+    dry: isDryRun,
+    skipCleanCheck: skipCleanGitCheck,
+    noDepsUpdate,
+    noLockUpdate,
+    all: skipChangeCheck,
+    help: showHelp,
+  },
+} = parseArgs({
+  options: {
+    tag: { type: 'string' },
+    dry: { type: 'boolean', default: false },
+    skipCleanCheck: { type: 'boolean', default: false },
+    noDepsUpdate: { type: 'boolean', default: false },
+    noLockUpdate: { type: 'boolean', default: false },
+    all: { type: 'boolean', default: false },
+    help: { type: 'boolean', short: 'h', default: false },
+  },
+})
 
-if (args.h || args.help) {
+if (showHelp) {
   console.log(
     `
-Usage: node release.mjs [flags]
-       node release.mjs [ -h | --help ]
+Usage: node release.ts [flags]
+       node release.ts [ -h | --help ]
 
 Flags:
-  --skipBuild         Skip building packages
   --tag               Publish under a given npm dist tag
   --dry               Dry run
   --skipCleanCheck    Skip checking if the git repo is clean
   --noDepsUpdate      Skip updating dependencies in package.json files
-  --noPublish         Skip publishing packages
   --noLockUpdate      Skips updating the lock with "pnpm install"
   --all               Skip checking if the packages have changed since last release
 `.trim(),
@@ -51,21 +57,17 @@ Flags:
 const EXPECTED_BRANCH = 'main'
 // this package will use tags like v1.0.0 while the rest will use the full package name like @pinia/testing@1.0.0
 const MAIN_PKG_NAME = '@pinia/colada'
-// whether the main package is at the root of the mono repo or this is not a mono repo
-const IS_MAIN_PKG_ROOT = true
+// whether the main package is at the root of the mono repo or true if this is not a mono repo
+const IS_MAIN_PKG_AT_ROOT = true
 // array of folders of packages to release
 const PKG_FOLDERS = [
-  // comment for multiline format
   // @pinia/colada
   join(__dirname, '..'),
   // @pinia/colada-nuxt
   join(__dirname, '../nuxt'),
   // @pinia/colada-devtools
   join(__dirname, '../devtools'),
-  // globby expects `/` even on windows
-  ...(await globby(join(__dirname, '../plugins/*').replace(/\\/g, '/'), {
-    onlyFiles: false,
-  })),
+  globSync(join(__dirname, '../plugins/*/')),
 ]
 
 // files to add and commit after building a new version
@@ -85,23 +87,33 @@ const FILES_TO_COMMIT = [
   'nuxt/CHANGELOG.md',
 ]
 
-/**
- * @type {typeof execa}
- */
-const run = (bin, args, opts = {}) => execa(bin, args, { stdio: 'inherit', ...opts })
-/**
- * @param bin {string}
- * @param args {string[]}
- * @param opts {import('execa').Options}
- */
-const dryRun = async (bin, args, opts = {}) =>
+const run = (bin: string, args: string[], opts: ExecaOptions = {}) =>
+  execa(bin, args, { stdio: 'inherit', ...opts })
+
+const dryRun = async (bin: string, args: string[], opts: unknown = {}) =>
   console.log(chalk.blue(`[dry-run] ${bin} ${args.join(' ')}`), opts)
+
 const runIfNotDry = isDryRun ? dryRun : run
 
-/**
- * @param msg {string[]}
- */
-const step = (...msg) => console.log(chalk.cyan(...msg))
+const step = (...msg: string[]) => console.log(chalk.cyan(...msg))
+
+interface PackageJson {
+  name: string
+  version: string
+  private?: boolean
+  dependencies?: Record<string, string>
+  peerDependencies?: Record<string, string>
+  [key: string]: any
+}
+
+interface PackageInfo {
+  name: string
+  path: string
+  relativePath: string
+  version: string
+  pkg: PackageJson
+  start: string
+}
 
 async function main() {
   if (!skipCleanGitCheck) {
@@ -131,7 +143,7 @@ async function main() {
     )
 
     const isOutdatedGit = isOutdatedRE.test(
-      (await run('git', ['remote', 'show', 'origin'], { stdio: 'pipe' })).stdout,
+      (await run('git', ['remote', 'show', 'origin'], { stdio: 'pipe' })).stdout as string,
     )
 
     if (isOutdatedGit) {
@@ -175,74 +187,79 @@ async function main() {
 
   step(`Ready to release ${packagesToRelease.map(({ name }) => chalk.bold.white(name)).join(', ')}`)
 
-  const pkgWithVersions = await pSeries(
-    packagesToRelease.map(({ name, path, pkg, relativePath }) => async () => {
-      let { version } = pkg
+  const pkgWithVersions: PackageInfo[] = []
+  for (const { name, path, pkg, relativePath } of packagesToRelease) {
+    let { version } = pkg
 
-      const prerelease = semver.prerelease(version)
-      const preId = prerelease && prerelease[0]
+    const prerelease = semver.prerelease(version)
+    const preId = prerelease && prerelease[0]
 
-      const versionIncrements = [
-        'patch',
-        'minor',
-        'major',
-        ...(preId ? ['prepatch', 'preminor', 'premajor', 'prerelease'] : []),
-      ]
+    const versionIncrements: ReleaseType[] = [
+      'patch',
+      'minor',
+      'major',
+      ...(preId ? (['prepatch', 'preminor', 'premajor', 'prerelease'] as const) : []),
+    ]
 
-      const betaVersion = semver.inc(version, 'prerelease', 'beta')
+    const betaVersion = semver.inc(version, 'prerelease', 'beta')
 
-      const { release } = await prompts({
-        type: 'select',
-        name: 'release',
-        message: `Select release type for ${chalk.bold.white(name)}`,
-        choices: versionIncrements
-          .map((release) => {
-            const newVersion = semver.inc(version, release, preId)
-            return {
-              value: newVersion,
-              title: `${release}: ${name} (${newVersion})`,
-            }
-          })
-          .concat(
-            optionTag === 'beta'
-              ? [
-                  {
-                    title: `beta: ${name} (${betaVersion})`,
-                    value: betaVersion,
-                  },
-                ]
-              : [],
-          )
-          .concat([{ value: 'custom', title: 'custom' }]),
-      })
+    const { release } = await prompts({
+      type: 'select',
+      name: 'release',
+      message: `Select release type for ${chalk.bold.white(name)}`,
+      choices: versionIncrements
+        .map((release) => {
+          const newVersion = semver.inc(version, release, preId as string)
+          return {
+            value: newVersion,
+            title: `${release}: ${name} (${newVersion})`,
+          }
+        })
+        .concat(
+          optionTag === 'beta'
+            ? [
+                {
+                  title: `beta: ${name} (${betaVersion})`,
+                  value: betaVersion,
+                },
+              ]
+            : [],
+        )
+        .concat([{ value: 'custom', title: 'custom' }]),
+    })
 
-      console.log(release)
+    if (release === 'custom') {
+      version = (
+        await prompts({
+          type: 'text',
+          name: 'version',
+          message: `Input custom version (${chalk.bold.white(name)})`,
+          initial: version,
+        })
+      ).version
+    } else {
+      version = release
+    }
 
-      if (release === 'custom') {
-        version = (
-          await prompts({
-            type: 'text',
-            name: 'version',
-            message: `Input custom version (${chalk.bold.white(name)})`,
-            initial: version,
-          })
-        ).version
-      } else {
-        version = release
-      }
+    if (!semver.valid(version)) {
+      throw new Error(`invalid target version: ${version}`)
+    }
 
-      if (!semver.valid(version)) {
-        throw new Error(`invalid target version: ${version}`)
-      }
-
-      return { name, path, relativePath, version, pkg }
-    }),
-  )
+    pkgWithVersions.push({
+      name,
+      path,
+      relativePath,
+      version,
+      pkg,
+      // start is set later
+      start: '',
+    })
+  }
 
   // put the main package first as others might depend on it
-  const mainPkgIndex = packagesToRelease.find(({ name }) => name === MAIN_PKG_NAME)
+  const mainPkgIndex = packagesToRelease.findIndex(({ name }) => name === MAIN_PKG_NAME)
   if (mainPkgIndex > 0) {
-    packagesToRelease.unshift(packagesToRelease.splice(mainPkgIndex, 1)[0])
+    packagesToRelease.unshift(packagesToRelease.splice(mainPkgIndex, 1)[0]!)
   }
 
   const { yes: isReleaseConfirmed } = await prompts({
@@ -284,23 +301,26 @@ async function main() {
           'CHANGELOG.md',
           '--same-file',
           '-p',
-          'conventionalcommits',
+          'angular',
           '-r',
           changelogExists ? '1' : '0',
           '--commit-path',
           // in the case of a mono repo with the main package at the root
           // using `.` would add all the changes of all packages
-          ...(pkg.name === MAIN_PKG_NAME && IS_MAIN_PKG_ROOT
+          ...(pkg.name === MAIN_PKG_NAME && IS_MAIN_PKG_AT_ROOT
             ? [join(pkg.path, 'src'), join(pkg.path, 'package.json')]
             : ['.']),
-          ...(pkg.name === MAIN_PKG_NAME && IS_MAIN_PKG_ROOT ? [] : ['--lerna-package', pkg.name]),
+          ...(pkg.name === MAIN_PKG_NAME && IS_MAIN_PKG_AT_ROOT
+            ? []
+            : ['--lerna-package', pkg.name]),
           ...(pkg.name === MAIN_PKG_NAME ? [] : ['--tag-prefix', `${pkg.name}@`]),
         ],
         { cwd: pkg.path },
       )
-      await runIfNotDry(`pnpm`, ['exec', 'prettier', '--write', 'CHANGELOG.md'], {
-        cwd: pkg.path,
-      })
+      // NOTE: lint-staged is set up to format the markdown
+      // await runIfNotDry(`pnpm`, ['exec', 'prettier', '--write', 'CHANGELOG.md'], {
+      //   cwd: pkg.path,
+      // })
       // NOTE: pnpm publish automatically copies the LICENSE file
     }),
   )
@@ -314,29 +334,6 @@ async function main() {
 
   if (!isChangelogCorrect) {
     return
-  }
-
-  step('\nBuilding all packages...')
-  if (!skipBuild) {
-    // the main package is needed for plugins to work
-    await runIfNotDry('pnpm', ['run', 'build'])
-    // avoid building every package if we only want to release the main package
-    const otherPkgs = pkgWithVersions.filter(({ name }) => name !== MAIN_PKG_NAME)
-    if (otherPkgs.length > 0) {
-      await runIfNotDry('pnpm', [
-        'run',
-        '--stream',
-        '--parallel',
-        // build only on changed packages
-        ...pkgWithVersions.flatMap(({ relativePath }) =>
-          // the root package has already been built
-          relativePath === '' ? [] : ['--filter', `./${relativePath}`],
-        ),
-        'build',
-      ])
-    }
-  } else {
-    console.log(`(skipped)`)
   }
 
   const { stdout } = await run('git', ['diff'], { stdio: 'pipe' })
@@ -353,7 +350,7 @@ async function main() {
   }
 
   step('\nCreating tags...')
-  const versionsToPush = []
+  const versionsToPush: string[] = []
   for (const pkg of pkgWithVersions) {
     const tagName = pkg.name === MAIN_PKG_NAME ? `v${pkg.version}` : `${pkg.name}@${pkg.version}`
 
@@ -361,25 +358,12 @@ async function main() {
     await runIfNotDry('git', ['tag', '-a', `${tagName}`, '-m', `Release ${tagName}`])
   }
 
-  if (!noPublish) {
-    step('\nPublishing packages...')
-    for (const pkg of pkgWithVersions) {
-      await publishPackage(pkg)
-    }
-
-    step('\nPushing to Github...')
-    await runIfNotDry('git', ['push', 'origin', ...versionsToPush])
-    await runIfNotDry('git', ['push'])
-  } else {
-    console.log(chalk.bold.white(`Skipping publishing...`))
-  }
+  step('\nPushing to Github...')
+  await runIfNotDry('git', ['push', 'origin', ...versionsToPush])
+  await runIfNotDry('git', ['push'])
 }
 
-/**
- *
- * @param packageList {{ name: string; path: string; version: string, pkg: any }[]}
- */
-async function updateVersions(packageList) {
+async function updateVersions(packageList: PackageInfo[]) {
   return Promise.all(
     packageList.map(({ pkg, version, path, name }) => {
       pkg.version = version
@@ -399,14 +383,18 @@ async function updateVersions(packageList) {
   )
 }
 
-function updateDeps(pkg, depType, updatedPackages) {
+function updateDeps(
+  pkg: PackageJson,
+  depType: 'dependencies' | 'peerDependencies',
+  updatedPackages: PackageInfo[],
+) {
   const deps = pkg[depType]
   if (!deps) return
   step(`Updating ${chalk.bold(depType)} for ${chalk.bold.white(pkg.name)}...`)
   Object.keys(deps).forEach((dep) => {
     const updatedDep = updatedPackages.find((pkg) => pkg.name === dep)
     // avoid updated peer deps that are external like @vue/devtools-api
-    if (dep && updatedDep) {
+    if (dep && updatedDep && deps[dep]) {
       // skip any workspace reference, pnpm will handle it
       if (deps[dep].startsWith('workspace:')) {
         console.log(chalk.yellow.dim(`${pkg.name} -> ${depType} -> ${dep}@${deps[dep]} (skipped)`))
@@ -418,43 +406,10 @@ function updateDeps(pkg, depType, updatedPackages) {
   })
 }
 
-async function publishPackage(pkg) {
-  step(`Publishing ${pkg.name}...`)
-
-  try {
-    await runIfNotDry(
-      'pnpm',
-      [
-        'publish',
-        ...(optionTag ? ['--tag', optionTag] : []),
-        ...(skipCleanGitCheck ? ['--no-git-checks'] : []),
-        '--access',
-        'public',
-        // only needed for branches other than main
-        '--publish-branch',
-        EXPECTED_BRANCH,
-      ],
-      {
-        cwd: pkg.path,
-        stdio: 'pipe',
-      },
-    )
-    console.log(chalk.green(`Successfully published ${pkg.name}@${pkg.version}`))
-  } catch (e) {
-    if (e.stderr.match(/previously published/)) {
-      console.log(chalk.red(`Skipping already published: ${pkg.name}`))
-    } else {
-      throw e
-    }
-  }
-}
-
 /**
  * Get the last tag published for a package or null if there are no tags
- *
- * @param {string} pkgName - package name
  */
-async function getLastTag(pkgName) {
+async function getLastTag(pkgName: string): Promise<string> {
   try {
     const { stdout } = await run(
       'git',
@@ -470,8 +425,8 @@ async function getLastTag(pkgName) {
       },
     )
 
-    return stdout
-  } catch (error) {
+    return stdout as string
+  } catch (error: any) {
     console.log(chalk.dim(`Couldn't get "${chalk.bold(pkgName)}" last tag, using first commit...`))
 
     // 128 is the git exit code when there is nothing to describe
@@ -479,17 +434,14 @@ async function getLastTag(pkgName) {
       console.error(error)
     }
     const { stdout } = await run('git', ['rev-list', '--max-parents=0', 'HEAD'], { stdio: 'pipe' })
-    return stdout
+    return stdout as string
   }
 }
 
 /**
  * Get the packages that have changed. Based on `lerna changed` but without lerna.
- *
- * @param {string[]} folders
- * @returns {Promise<{ name: string; path: string; relativePath: string; pkg: any; version: string; start: string }[]} a promise of changed packages
  */
-async function getChangedPackages(...folders) {
+async function getChangedPackages(...folders: string[]): Promise<PackageInfo[]> {
   const pkgs = await Promise.all(
     folders.map(async (folder) => {
       if (!(await fs.lstat(folder)).isDirectory()) {
@@ -497,7 +449,7 @@ async function getChangedPackages(...folders) {
         return null
       }
 
-      const pkg = JSON.parse(await fs.readFile(join(folder, 'package.json'), 'utf-8'))
+      const pkg: PackageJson = JSON.parse(await fs.readFile(join(folder, 'package.json'), 'utf-8'))
       if (pkg.private) {
         console.info(chalk.dim(`Skipping "${pkg.name}" it's private`))
         return null
@@ -505,20 +457,24 @@ async function getChangedPackages(...folders) {
 
       const lastTag = await getLastTag(pkg.name)
 
-      const { stdout: hasChanges } = await run(
-        'git',
-        [
-          'diff',
-          '--name-only',
-          lastTag,
-          '--',
-          // apparently {src,package.json} doesn't work
-          join(folder, 'src'),
-          // TODO: should not check dev deps and should compare to last tag changes
-          join(folder, 'package.json'),
-        ],
-        { stdio: 'pipe' },
-      )
+      const hasChanges = (
+        await run(
+          'git',
+          [
+            'diff',
+            '--name-only',
+            lastTag,
+            '--',
+            // TODO: should allow build files tsdown.config.ts
+            // apparently {src,package.json} doesn't work
+            join(folder, 'src'),
+            join(folder, 'index.js'),
+            // TODO: should not check dev deps and should compare to last tag changes
+            join(folder, 'package.json'),
+          ],
+          { stdio: 'pipe' },
+        )
+      ).stdout as string
       const relativePath = relative(join(__dirname, '..'), folder)
 
       if (hasChanges || skipChangeCheck) {
@@ -547,7 +503,7 @@ async function getChangedPackages(...folders) {
     }),
   )
 
-  return pkgs.filter((p) => p)
+  return pkgs.filter((p): p is PackageInfo => !!p)
 }
 
 main().catch((error) => {
