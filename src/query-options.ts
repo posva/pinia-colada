@@ -2,6 +2,7 @@ import { inject } from 'vue'
 import type { InjectionKey, MaybeRefOrGetter } from 'vue'
 import type { EntryKey } from './entry-keys'
 import type { ErrorDefault, QueryMeta } from './types-extension'
+import type { UseQueryEntry } from './query-store'
 
 /**
  * Possible values for `refetchOnMount`, `refetchOnWindowFocus`, and `refetchOnReconnect`.
@@ -74,13 +75,24 @@ export interface UseQueryOptionsGlobal {
  * Context object passed to the `query` function of `useQuery()`.
  * @see {@link UseQueryOptions}
  */
-export interface UseQueryFnContext {
+export interface UseQueryFnContext<
+  TData = unknown,
+  TError = unknown,
+  // allows for UseQueryEntry to have unknown everywhere (generic version)
+  TDataInitial extends TData | undefined = unknown extends TData ? unknown : undefined,
+  >
+  {
   /**
    * `AbortSignal` instance attached to the query call. If the call becomes
    * outdated (e.g. due to a new call with the same key), the signal will be
    * aborted.
    */
   signal: AbortSignal
+
+  /**
+   * The query entry associated with the current query.
+   */
+  entry: UseQueryEntry<TData, TError, TDataInitial>
 }
 
 /**

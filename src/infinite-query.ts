@@ -3,6 +3,8 @@ import type { UseQueryFnContext, UseQueryOptions } from './query-options'
 import { useQuery } from './use-query'
 import type { UseQueryReturn } from './use-query'
 import type { ErrorDefault } from './types-extension'
+import { useQueryCache } from './query-store'
+import type { DefineQueryOptions } from './define-query'
 
 /**
  * Structure of data stored for infinite queries.
@@ -39,9 +41,9 @@ export interface UseInfiniteQueryOptions<
     | UseInfiniteQueryData<TData, TPageParam>
     | undefined,
 > extends Omit<
-    UseQueryOptions<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>,
-    'query' | 'key'
-  > {
+  UseQueryOptions<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>,
+  'query' | 'key'
+> {
   key: UseQueryOptions<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>['key']
 
   /**
@@ -65,6 +67,9 @@ export interface UseInfiniteQueryOptions<
     lastPageParam: TPageParam,
     allPageParams: TPageParam[],
   ) => TPageParam | undefined | null
+
+  // TODO: placeholderData should be adapted to infinite queries
+  // TODO: initialData should be adapted to infinite queries
 }
 
 export interface UseInfiniteQueryReturn<
@@ -94,22 +99,53 @@ export function useInfiniteQuery<
 >(
   options: UseInfiniteQueryOptions<TData, TError, TPageParam, TDataInitial>,
 ): UseInfiniteQueryReturn<TData, TError, TPageParam> {
-  const query = useQuery(() => {
+  const queryCache = useQueryCache()
+  const query = useQuery<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>(() => {
     const opts = toValue(options)
     return {
-      ...opts,
-      query: async (context) => {
-        const pageParam = opts.getNextPageParam()
-        const data = opts.query({
+      // ...opts,
+      key: toValue(opts.key),
+      query: async (
+        context: UseQueryFnContext<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>,
+      ) => {
+        const { entry } = context
+        const allData = entry.state.value.data
+        // we create copies to ensure the old versions are preserved
+        // where they are needed (e.g. devtools)
+        const pages = allData?.pages.slice() ?? []
+        const pageParams = allData?.pageParams.slice() ?? []
+        const lastPage = pages.at(-1)
+        const lastPageParam = pageParams.at(-1)
+        const pageParam =
+          (lastPage &&
+            lastPageParam &&
+            opts.getNextPageParam(lastPage, pages!, lastPageParam, pageParams!)) ??
+          toValue(opts.initialPageParam)
+
+        const data = await opts.query({
           ...context,
-          pageParam: 0 as any,
+          pageParam,
         })
+
+        // TODO: depend on direction
+        pages.push(data)
+        pageParams.push(pageParam)
+        return { pages, pageParams }
       },
-    }
+
+      // other options that need to be normalized
+      meta: toValue(opts.meta),
+      enabled: toValue(opts.enabled),
+      refetchOnMount: toValue(opts.refetchOnMount),
+      refetchOnReconnect: toValue(opts.refetchOnReconnect),
+      refetchOnWindowFocus: toValue(opts.refetchOnWindowFocus),
+      // initialData,
+    } satisfies DefineQueryOptions<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>
   })
 
   return {
     ...query,
+    // loadNextPage
     // loadMore: () => refetch(),
   }
 }
