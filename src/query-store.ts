@@ -690,7 +690,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       const pendingCall = (entry.pending = {
         abortController,
         // wrapping with async allows us to catch synchronous errors too
-        refreshCall: (async () => options!.query({ signal }))()
+        refreshCall: (async () => options!.query({ signal, entry }))()
           .then((data) => {
             if (pendingCall === entry.pending) {
               setEntryState(entry, {
