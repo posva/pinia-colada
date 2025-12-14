@@ -68,6 +68,13 @@ export interface UseInfiniteQueryOptions<
     allPageParams: TPageParam[],
   ) => TPageParam | undefined | null
 
+  getPreviousPageParam?: (
+    firstPage: TData,
+    allPages: TData[],
+    firstPageParam: TPageParam,
+    allPageParams: TPageParam[],
+  ) => TPageParam | undefined | null
+
   // TODO: placeholderData should be adapted to infinite queries
   // TODO: initialData should be adapted to infinite queries
 }
@@ -77,7 +84,9 @@ export interface UseInfiniteQueryReturn<
   TError = ErrorDefault,
   TPageParam = unknown,
 > extends UseQueryReturn<UseInfiniteQueryData<TData, TPageParam>, TError> {
-  // loadMore: () => Promise<unknown>
+  loadNextPage: () => Promise<unknown>
+
+  loadPreviousPage?: () => Promise<unknown>
 }
 
 /**
@@ -103,7 +112,7 @@ export function useInfiniteQuery<
   const query = useQuery<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>(() => {
     const opts = toValue(options)
     return {
-      // ...opts,
+      ...opts,
       key: toValue(opts.key),
       query: async (
         context: UseQueryFnContext<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>,
@@ -117,10 +126,9 @@ export function useInfiniteQuery<
         const lastPage = pages.at(-1)
         const lastPageParam = pageParams.at(-1)
         const pageParam =
-          (lastPage &&
-            lastPageParam &&
-            opts.getNextPageParam(lastPage, pages!, lastPageParam, pageParams!)) ??
-          toValue(opts.initialPageParam)
+          (lastPage && lastPageParam != null
+            ? opts.getNextPageParam(lastPage, pages!, lastPageParam, pageParams!)
+            : null) ?? toValue(opts.initialPageParam)
 
         const data = await opts.query({
           ...context,
@@ -135,7 +143,7 @@ export function useInfiniteQuery<
 
       // other options that need to be normalized
       meta: toValue(opts.meta),
-      enabled: toValue(opts.enabled),
+      // enabled: toValue(opts.enabled),
       refetchOnMount: toValue(opts.refetchOnMount),
       refetchOnReconnect: toValue(opts.refetchOnReconnect),
       refetchOnWindowFocus: toValue(opts.refetchOnWindowFocus),
@@ -143,8 +151,21 @@ export function useInfiniteQuery<
     } satisfies DefineQueryOptions<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>
   })
 
+  async function loadNextPage(): Promise<unknown> {
+    const opts = toValue(options)
+    const entry = queryCache.get(toValue(opts.key))
+    if (!entry) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('[useInfiniteQuery] Cannot load next page: query entry not found in cache.')
+      }
+      return null
+    }
+    return queryCache.fetch(entry)
+  }
+
   return {
     ...query,
+    loadNextPage,
     // loadNextPage
     // loadMore: () => refetch(),
   }
