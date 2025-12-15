@@ -153,7 +153,7 @@ export function useMutation<
     mutationCache.create(options),
   )
 
-  // Track the mutation entry if a component or effect scope is available
+  // Untrack the mutation entry when component or effect scope is disposed
   if (hasCurrentInstance) {
     onUnmounted(() => {
       mutationCache.untrack(entry.value)

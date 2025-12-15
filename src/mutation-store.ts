@@ -322,12 +322,9 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
   })
 
   /**
-   * Untracks an effect or component that uses a mutation.
+   * Untracks a mutation entry, scheduling garbage collection.
    *
-   * @param entry - the entry of the mutation
-   * @param effect - the effect or component to untrack
-   *
-   * @see {@link track}
+   * @param entry - the entry of the mutation to untrack
    */
   const untrack = action(
     <
