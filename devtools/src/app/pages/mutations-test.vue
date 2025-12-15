@@ -126,147 +126,104 @@ function runMultipleParallel() {
       new entry with a unique ID ($0, $1, $2, etc.).
     </p>
 
-    <div style="display: grid; gap: 1.5rem; max-width: 900px">
+    <div class="grid gap-6 max-w-3xl">
       <!-- Simple Mutation -->
-      <section style="border: 1px solid #ddd; border-radius: 8px; padding: 1.5rem; background: white">
-        <h2 style="margin: 0 0 0.75rem 0; font-size: 1.25rem; font-weight: 600">
-          1. Simple Success Mutation
-        </h2>
-        <p style="margin: 0 0 1rem 0; font-size: 0.875rem; color: #666">
-          A basic mutation that always succeeds after 1 second delay.
-        </p>
-        <div style="display: flex; gap: 0.5rem; align-items: center">
-          <button
-            style="padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer"
-            @click="runSimpleMutation"
-          >
+      <section class="mutation-test">
+        <h2>1. Simple Success Mutation</h2>
+        <p>A basic mutation that always succeeds after 1 second delay.</p>
+        <div>
+          <button style="background: #3b82f6" @click="runSimpleMutation">
             Run Simple Mutation
           </button>
-          <span style="font-size: 0.875rem; color: #666">Status: {{ simpleStatus }}</span>
+          <span>Status: {{ simpleStatus }}</span>
         </div>
       </section>
 
       <!-- Failable Mutation -->
-      <section style="border: 1px solid #ddd; border-radius: 8px; padding: 1.5rem; background: white">
-        <h2 style="margin: 0 0 0.75rem 0; font-size: 1.25rem; font-weight: 600">
-          2. Failable Mutation
-        </h2>
-        <p style="margin: 0 0 1rem 0; font-size: 0.875rem; color: #666">
-          Toggle the switch to make this mutation fail or succeed.
-        </p>
-        <div style="margin-bottom: 1rem">
-          <label style="display: flex; align-items: center; gap: 0.5rem">
-            <input v-model="shouldFail" type="checkbox" style="width: 1rem; height: 1rem" />
-            <span style="font-size: 0.875rem">Should Fail</span>
+      <section class="mutation-test">
+        <h2>2. Failable Mutation</h2>
+        <p>Toggle the switch to make this mutation fail or succeed.</p>
+        <div>
+          <label>
+            <input v-model="shouldFail" type="checkbox" />
+            <span>Should Fail</span>
           </label>
         </div>
-        <div style="display: flex; gap: 0.5rem; align-items: center">
-          <button
-            style="padding: 0.5rem 1rem; background: #a855f7; color: white; border: none; border-radius: 4px; cursor: pointer"
-            @click="runFailableMutation"
-          >
+        <div>
+          <button style="background: #a855f7" @click="runFailableMutation">
             Run Failable Mutation
           </button>
-          <span style="font-size: 0.875rem; color: #666">Status: {{ failableStatus }}</span>
+          <span>Status: {{ failableStatus }}</span>
         </div>
       </section>
 
       <!-- Long Running Mutation -->
-      <section style="border: 1px solid #ddd; border-radius: 8px; padding: 1.5rem; background: white">
-        <h2 style="margin: 0 0 0.75rem 0; font-size: 1.25rem; font-weight: 600">
-          3. Long-Running Mutation
-        </h2>
-        <p style="margin: 0 0 1rem 0; font-size: 0.875rem; color: #666">
-          Test mutations with different execution durations.
-        </p>
-        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap">
-          <button
-            style="padding: 0.5rem 1rem; background: #22c55e; color: white; border: none; border-radius: 4px; cursor: pointer"
-            @click="runLongMutation(2000)"
-          >
-            Run (2s)
-          </button>
-          <button
-            style="padding: 0.5rem 1rem; background: #22c55e; color: white; border: none; border-radius: 4px; cursor: pointer"
-            @click="runLongMutation(5000)"
-          >
-            Run (5s)
-          </button>
-          <button
-            style="padding: 0.5rem 1rem; background: #22c55e; color: white; border: none; border-radius: 4px; cursor: pointer"
-            @click="runLongMutation(10000)"
-          >
-            Run (10s)
-          </button>
-          <span style="font-size: 0.875rem; color: #666">Status: {{ longStatus }}</span>
+      <section class="mutation-test">
+        <h2>3. Long-Running Mutation</h2>
+        <p>Test mutations with different execution durations.</p>
+        <div>
+          <button style="background: #22c55e" @click="runLongMutation(2000)">Run (2s)</button>
+          <button style="background: #22c55e" @click="runLongMutation(5000)">Run (5s)</button>
+          <button style="background: #22c55e" @click="runLongMutation(10000)">Run (10s)</button>
+          <span>Status: {{ longStatus }}</span>
         </div>
       </section>
 
       <!-- Complex Variables Mutation -->
-      <section style="border: 1px solid #ddd; border-radius: 8px; padding: 1.5rem; background: white">
-        <h2 style="margin: 0 0 0.75rem 0; font-size: 1.25rem; font-weight: 600">
-          4. Complex Variables Mutation
-        </h2>
-        <p style="margin: 0 0 1rem 0; font-size: 0.875rem; color: #666">
-          Mutation with nested objects to test variable display in DevTools.
-        </p>
-        <div style="display: flex; gap: 0.5rem; align-items: center">
-          <button
-            style="padding: 0.5rem 1rem; background: #f97316; color: white; border: none; border-radius: 4px; cursor: pointer"
-            @click="runComplexMutation"
-          >
+      <section class="mutation-test">
+        <h2>4. Complex Variables Mutation</h2>
+        <p>Mutation with nested objects to test variable display in DevTools.</p>
+        <div>
+          <button style="background: #f97316" @click="runComplexMutation">
             Run Complex Mutation
           </button>
-          <span style="font-size: 0.875rem; color: #666">Status: {{ complexStatus }}</span>
+          <span>Status: {{ complexStatus }}</span>
         </div>
       </section>
 
       <!-- Anonymous Mutation -->
-      <section style="border: 1px solid #ddd; border-radius: 8px; padding: 1.5rem; background: white">
-        <h2 style="margin: 0 0 0.75rem 0; font-size: 1.25rem; font-weight: 600">
-          5. Anonymous Mutation (No Key)
-        </h2>
-        <p style="margin: 0 0 1rem 0; font-size: 0.875rem; color: #666">
-          Mutation without a key to test how DevTools handles anonymous mutations.
-        </p>
-        <button
-          style="padding: 0.5rem 1rem; background: #ec4899; color: white; border: none; border-radius: 4px; cursor: pointer"
-          @click="runAnonymousMutation"
-        >
+      <section class="mutation-test">
+        <h2>5. Anonymous Mutation (No Key)</h2>
+        <p>Mutation without a key to test how DevTools handles anonymous mutations.</p>
+        <button style="background: #ec4899" @click="runAnonymousMutation">
           Run Anonymous Mutation
         </button>
       </section>
 
       <!-- Batch Operations -->
-      <section style="border: 1px solid #ddd; border-radius: 8px; padding: 1.5rem; background: white">
-        <h2 style="margin: 0 0 0.75rem 0; font-size: 1.25rem; font-weight: 600">
-          6. Batch Operations
-        </h2>
-        <p style="margin: 0 0 1rem 0; font-size: 0.875rem; color: #666">
-          Run multiple mutations to see how DevTools handles them.
-        </p>
-        <div style="display: flex; gap: 0.5rem">
-          <button
-            style="padding: 0.5rem 1rem; background: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer"
-            @click="runMultipleSequential"
-          >
+      <section class="mutation-test">
+        <h2>6. Batch Operations</h2>
+        <p>Run multiple mutations to see how DevTools handles them.</p>
+        <div>
+          <button style="background: #6366f1" @click="runMultipleSequential">
             Run 3 Sequential
           </button>
-          <button
-            style="padding: 0.5rem 1rem; background: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer"
-            @click="runMultipleParallel"
-          >
-            Run 3 Parallel
-          </button>
+          <button style="background: #6366f1" @click="runMultipleParallel">Run 3 Parallel</button>
         </div>
       </section>
     </div>
 
-    <div style="margin-top: 2rem; padding: 1.5rem; background: #f3f4f6; border-radius: 8px; max-width: 900px">
-      <h3 style="margin: 0 0 0.5rem 0; font-weight: 600">Total Executions: {{ executionCount }}</h3>
-      <p style="margin: 0; font-size: 0.875rem; color: #666">
-        Each execution should appear as a separate entry in the DevTools Mutations tab.
-      </p>
+    <div>
+      <h3>Total Executions: {{ executionCount }}</h3>
+      <p>Each execution should appear as a separate entry in the DevTools Mutations tab.</p>
     </div>
+
+    <!-- for devtools to be displayed -->
+    <hr class="mb-[700px]" />
   </main>
 </template>
+
+<style scoped>
+.mutation-test {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1.5rem;
+  row-gap: 0.6em;
+
+  & > h2 {
+    margin-top: 0;
+  }
+}
+</style>
