@@ -5,16 +5,13 @@ import { useMutation } from '@pinia/colada'
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 // Mutation 1: Simple success mutation
-const {
-  mutate: simpleMutation,
-  mutateAsync: simpleMutationAsync,
-  asyncStatus: simpleStatus,
-} = useMutation({
+const { mutateAsync: simpleMutationAsync, asyncStatus: simpleStatus } = useMutation({
   key: () => ['simple-mutation'],
   mutation: async (data: { name: string; value: number }) => {
     await delay(1000)
     return { success: true, ...data, timestamp: Date.now() }
   },
+  gcTime: 3000,
 })
 
 // Mutation 2: Mutation that can fail

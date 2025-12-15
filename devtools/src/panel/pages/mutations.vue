@@ -40,6 +40,7 @@ const mutationsGrouped = computed<
     error: [],
     pending: [],
     idle: [],
+    inactive: filteredItems.value.filter((item) => !item.active),
     ...Object.groupBy(filteredItems.value, (item) => getMutationStatus(item)),
   }
 })

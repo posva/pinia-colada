@@ -11,7 +11,7 @@ import IFileText from '~icons/lucide/file-text'
 import ICircleX from '~icons/lucide/circle-x'
 import IBraces from '~icons/lucide/braces'
 import IVariable from '~icons/lucide/variable'
-import { useTimeAgo, useLocalStorage } from '@vueuse/core'
+import { useTimeAgo, useLocalStorage, formatTimeAgo } from '@vueuse/core'
 import type { FormatTimeAgoOptions } from '@vueuse/core'
 
 const route = useRoute()
@@ -138,6 +138,30 @@ watch(
           <p class="grid grid-cols-[auto_1fr] gap-x-2" title="When was the mutation last updated">
             <span>Last update:</span>
             <span class="font-bold">{{ lastUpdate }}</span>
+          </p>
+
+          <p
+            v-if="!selectedMutation.active && selectedMutation.options"
+            class="grid grid-cols-[auto_1fr] gap-x-2"
+            title="When is this mutation entry garbage collected"
+          >
+            <template
+              v-if="
+                typeof selectedMutation.options.gcTime === 'number' &&
+                Number.isFinite(selectedMutation.options.gcTime)
+              "
+            >
+              <span>Will be <i>gced</i></span>
+              <span class="font-bold">{{
+                formatTimeAgo(
+                  new Date(selectedMutation.devtools.inactiveAt + selectedMutation.options.gcTime),
+                  {
+                    ...TIME_AGO_OPTIONS,
+                    max: undefined,
+                  },
+                )
+              }}</span>
+            </template>
           </p>
         </div>
       </UCollapse>

@@ -4,11 +4,13 @@ import type { UseMutationEntryPayload } from '@pinia/colada-devtools/shared'
 import { computed } from 'vue'
 import { getMutationStatus, STATUS_COLOR_CLASSES } from '../utils/mutation-state'
 import { useRouter } from 'vue-router'
+import { usePerformanceNow } from '../composables/performance-now'
 
 const { entry } = defineProps<{
   entry: UseMutationEntryPayload
 }>()
 const router = useRouter()
+const now = usePerformanceNow()
 
 function unselect(event: MouseEvent) {
   event.preventDefault()
@@ -49,7 +51,10 @@ const status = computed(() => getMutationStatus(entry))
   >
     <div
       class="grid grid-cols-[minmax(0,auto)_1fr] grid-flow-col items-center gap-x-2 p-1 relative text-sm @container"
-      :class="[isActive ? 'bg-neutral-200 dark:bg-neutral-700' : 'hover:bg-(--ui-bg-elevated)']"
+      :class="[
+        isActive ? 'bg-neutral-200 dark:bg-neutral-700' : 'hover:bg-(--ui-bg-elevated)',
+        entry.active ? '' : 'text-(--ui-text)/50',
+      ]"
     >
       <div class="h-full w-6 relative">
         <div
@@ -74,6 +79,11 @@ const status = computed(() => getMutationStatus(entry))
             aria-label="Pending icon"
           />
           <i-lucide-circle v-else-if="status === 'idle'" title="Idle" aria-label="Idle icon" />
+          <i-lucide-circle
+            v-else-if="status === 'inactive'"
+            title="Inactive"
+            aria-label="Inactive icon"
+          />
         </div>
       </div>
 
@@ -102,6 +112,24 @@ const status = computed(() => getMutationStatus(entry))
           </ol>
         </div>
       </a>
+
+      <div
+        v-if="
+          !entry.active &&
+          entry.gcTimeout &&
+          entry.devtools.inactiveAt &&
+          typeof entry.options?.gcTime === 'number' &&
+          Number.isFinite(entry.options.gcTime) &&
+          entry.options.gcTime <= 30_000
+        "
+        title="This mutation will be garbage collected"
+      >
+        <UCircleProgress
+          class="size-[1em] dark:text-neutral-500 text-neutral-400"
+          :max="entry.options.gcTime"
+          :value="entry.devtools.inactiveAt + entry.options.gcTime - now"
+        />
+      </div>
     </div>
   </RouterLink>
 </template>

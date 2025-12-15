@@ -56,6 +56,11 @@ export interface UseQueryDevtoolsInfo {
 export interface UseMutationDevtoolsInfo {
   updatedAt: number
 
+  /**
+   * When was this entry last inactive. 0 if it has never been inactive.
+   */
+  inactiveAt: number
+
   simulate: 'error' | 'loading' | null
 }
 

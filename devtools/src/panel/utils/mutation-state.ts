@@ -1,6 +1,12 @@
 import type { UseMutationEntryPayload } from '@pinia/colada-devtools/shared'
 
-export type UseMutationEntryPayloadStatus = 'loading' | 'success' | 'error' | 'pending' | 'idle'
+export type UseMutationEntryPayloadStatus =
+  | 'loading'
+  | 'success'
+  | 'error'
+  | 'pending'
+  | 'idle'
+  | 'inactive'
 
 export function getMutationStatus(entry: UseMutationEntryPayload): UseMutationEntryPayloadStatus {
   if (entry.asyncStatus === 'loading') {
@@ -51,6 +57,11 @@ export const STATUS_COLOR_CLASSES: Record<
     text: 'text-warning-100',
   },
   idle: {
+    base: 'bg-neutral-400',
+    clear: 'bg-neutral-200',
+    text: 'text-neutral-100',
+  },
+  inactive: {
     base: 'bg-neutral-400',
     clear: 'bg-neutral-200',
     text: 'text-neutral-100',

@@ -192,6 +192,7 @@ export function addDevtoolsInfoForMutations(mutationCache: MutationCache): void 
   for (const entry of mutationCache.getEntries()) {
     entry[DEVTOOLS_INFO_KEY] ??= {
       updatedAt: entry.when > 0 ? entry.when : now(),
+      inactiveAt: 0,
       simulate: null,
     }
   }
@@ -201,6 +202,7 @@ export function addDevtoolsInfoForMutations(mutationCache: MutationCache): void 
       after((entry) => {
         entry[DEVTOOLS_INFO_KEY] = {
           updatedAt: now(),
+          inactiveAt: 0,
           simulate: null,
         }
       })
@@ -211,6 +213,11 @@ export function addDevtoolsInfoForMutations(mutationCache: MutationCache): void 
       const [entry] = args
       after(() => {
         entry[DEVTOOLS_INFO_KEY].updatedAt = now()
+      })
+    } else if (name === 'untrack') {
+      const [entry] = args
+      after(() => {
+        entry[DEVTOOLS_INFO_KEY].inactiveAt = now()
       })
     }
   })
@@ -226,9 +233,10 @@ export function createMutationEntryPayload(entry: UseMutationEntry): UseMutation
     when: entry.when,
     vars: entry.vars,
     options: entry.options && {
-      gcTime: entry.options.gcTime,
+      gcTime: entry.options.gcTime === false ? undefined : entry.options.gcTime,
     },
     gcTimeout: typeof entry.gcTimeout === 'number' ? (entry.gcTimeout as number) : null,
+    active: entry[DEVTOOLS_INFO_KEY].inactiveAt === 0,
     devtools: entry[DEVTOOLS_INFO_KEY],
   }
 }

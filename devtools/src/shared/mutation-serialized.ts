@@ -48,6 +48,11 @@ export interface UseMutationEntryPayload {
   gcTimeout: number | null
 
   /**
+   * Whether the mutation is currently being used by a component or effect scope.
+   */
+  active: boolean
+
+  /**
    * DevTools-specific tracking info.
    */
   devtools: UseMutationEntry[typeof DEVTOOLS_INFO_KEY]
