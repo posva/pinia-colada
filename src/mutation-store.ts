@@ -35,9 +35,9 @@ export interface UseMutationEntry<
   TContext extends Record<any, any> = _EmptyObject,
 > {
   /**
-   * Unique id of the mutation entry. Empty string if the entry is not yet in the cache.
+   * Unique id of the mutation entry. 0 if the entry is not yet in the cache.
    */
-  id: string
+  id: number
 
   /**
    * The state of the mutation. Contains the data, error and status.
@@ -56,14 +56,9 @@ export interface UseMutationEntry<
 
   /**
    * The serialized key associated with this mutation entry.
-   */
-  key: EntryKey | undefined
-
-  /**
-   * Seriaized version of the key. Used to retrieve the entry from the cache.
    * Can be `undefined` if the entry has no key.
    */
-  keyHash: string | undefined
+  key: EntryKey | undefined
 
   /**
    * The variables used to call the mutation.
@@ -107,7 +102,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
   // inside computed properties
   // We have two versions of the cache, one that track changes and another that doesn't so the actions can be used
   // inside computed properties
-  const cachesRaw = new Map<string, UseMutationEntry<unknown, any, unknown, any>>()
+  const cachesRaw = new Map<number, UseMutationEntry<unknown, any, unknown, any>>()
   let triggerCache!: () => void
   const caches = skipHydrate(
     customRef(
@@ -142,8 +137,8 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
   const globalOptions = useMutationOptions()
   const defineMutationMap = new WeakMap<() => unknown, unknown>()
 
-  let nextMutationId = 0
-  const generateMutationId = () => `$${nextMutationId++}`
+  let nextMutationId = 1
+  const generateMutationId = () => nextMutationId++
 
   /**
    * Creates a mutation entry and its state without adding it to the cache.
@@ -167,7 +162,8 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
       scope.run(
         () =>
           ({
-            id: '', // not a real id yet, indicates that the entry is not in the cache
+            // only ids > 0 are real ids
+            id: 0,
             state: shallowRef<DataState<TData, TError>>({
               status: 'pending',
               data: undefined,
@@ -178,7 +174,6 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
             when: 0,
             vars,
             key,
-            keyHash: toCacheKey(key),
             options,
             // eslint-disable-next-line ts/ban-ts-comment
             // @ts-ignore: some plugins are adding properties to the entry type
@@ -204,31 +199,16 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
   ): UseMutationEntry<TData, TVars, TError, TContext> {
     const options = entry.options
     const id = generateMutationId()
-    const key: EntryKey = [...toValueWithArgs(options.key || [], vars), id]
-    const keyHash = toCacheKey(key)
+    const key: EntryKey | undefined = options.key && toValueWithArgs(options.key, vars)
 
-    if (process.env.NODE_ENV !== 'production') {
-      const badKey = key
-        ?.slice(0, -1) // the last part is the id
-        .find(
-          (k) =>
-            typeof k === 'string' && k.startsWith('$') && String(Number(k.slice(1))) === k.slice(1),
-        )
-      if (badKey) {
-        console.warn(
-          `[@pinia/colada] A mutation entry was created with a reserved key part "${badKey}". Do not name keys with "$<number>" as these are reserved in mutations.`,
-        )
-      }
-    }
-
+    // override the existing entry and untrack it if it was already created
     entry = entry.id ? (untrack(entry), create(options, key, vars)) : entry
     entry.id = id
     entry.key = key
-    entry.keyHash = keyHash
     entry.vars = vars
 
-    // store the entry with a generated key
-    cachesRaw.set(keyHash, entry as unknown as UseMutationEntry)
+    // store the entry with the mutation ID as the map key
+    cachesRaw.set(id, entry as unknown as UseMutationEntry)
     triggerCache()
 
     // extend the entry with plugins the first time only
@@ -270,19 +250,17 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
   )
 
   /**
-   * Gets a single mutation entry from the cache based on the key of the mutation.
+   * Gets a single mutation entry from the cache based on the ID of the mutation.
    *
-   * @param key - the key of the mutation
+   * @param id - the ID of the mutation
    */
   function get<
     TData = unknown,
     TVars = unknown,
     TError = unknown,
     TContext extends Record<any, any> = _EmptyObject,
-  >(key: EntryKey): UseMutationEntry<TData, TVars, TError, TContext> | undefined {
-    return caches.value.get(toCacheKey(key)) as
-      | UseMutationEntry<TData, TVars, TError, TContext>
-      | undefined
+  >(id: number): UseMutationEntry<TData, TVars, TError, TContext> | undefined {
+    return caches.value.get(id) as UseMutationEntry<TData, TVars, TError, TContext> | undefined
   }
 
   /**
@@ -311,9 +289,9 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
   )
 
   /**
-   * Removes a query entry from the cache if it has a key. If it doesn't then it does nothing.
+   * Removes a mutation entry from the cache if it has an id. If it doesn't then it does nothing.
    *
-   * @param entry - the entry of the query to remove
+   * @param entry - the entry of the mutation to remove
    */
   const remove = action(
     <
@@ -324,8 +302,8 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     >(
       entry: UseMutationEntry<TData, TVars, TError, TContext>,
     ) => {
-      if (entry.keyHash) {
-        cachesRaw.delete(entry.keyHash)
+      if (entry.id !== 0) {
+        cachesRaw.delete(entry.id)
         triggerCache()
       }
     },
@@ -333,19 +311,17 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
 
   /**
    * Returns all the entries in the cache that match the filters.
+   * Note that you can have multiple entries with the exact same key if they
+   * were called multiple times.
    *
    * @param filters - filters to apply to the entries
    */
   const getEntries = action((filters: UseMutationEntryFilter = {}): UseMutationEntry[] => {
-    return filters.exact
-      ? filters.key
-        ? [caches.value.get(toCacheKey(filters.key))].filter((v) => !!v)
-        : [] // no key, no exact entry
-      : [...find(caches.value, filters.key)].filter(
-          (entry) =>
-            (filters.status == null || entry.state.value.status === filters.status) &&
-            (!filters.predicate || filters.predicate(entry)),
-        )
+    return [...find(caches.value, filters.key)].filter(
+      (entry) =>
+        (filters.status == null || entry.state.value.status === filters.status) &&
+        (!filters.predicate || filters.predicate(entry)),
+    )
   })
 
   /**
@@ -395,7 +371,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     if (process.env.NODE_ENV !== 'production') {
       const key = entry.key?.join('/')
       const keyMessage = key ? `with key "${key}"` : 'without a key'
-      if (!entry.id) {
+      if (entry.id === 0) {
         console.error(
           `[@pinia/colada] A mutation entry ${keyMessage} was mutated before being ensured. If you are manually calling the "mutationCache.mutate()", you should always ensure the entry first If not, this is probably a bug. Please, open an issue on GitHub with a boiled down reproduction.`,
         )
