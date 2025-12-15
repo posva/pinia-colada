@@ -5,7 +5,11 @@ import { useMutation } from '@pinia/colada'
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 // Mutation 1: Simple success mutation
-const { mutate: simpleMutation, asyncStatus: simpleStatus } = useMutation({
+const {
+  mutate: simpleMutation,
+  mutateAsync: simpleMutationAsync,
+  asyncStatus: simpleStatus,
+} = useMutation({
   key: () => ['simple-mutation'],
   mutation: async (data: { name: string; value: number }) => {
     await delay(1000)
@@ -61,7 +65,10 @@ const executionCount = ref(0)
 
 function runSimpleMutation() {
   executionCount.value++
-  simpleMutation({ name: `Test ${executionCount.value}`, value: executionCount.value * 10 })
+  return simpleMutationAsync({
+    name: `Test ${executionCount.value}`,
+    value: executionCount.value * 10,
+  })
 }
 
 function runFailableMutation() {
@@ -105,9 +112,10 @@ function runAnonymousMutation() {
   anonymousMutation(`Message #${executionCount.value}`)
 }
 
-function runMultipleSequential() {
+async function runMultipleSequential() {
   for (let i = 0; i < 3; i++) {
-    setTimeout(() => runSimpleMutation(), i * 200)
+    await delay(20 * i)
+    await runSimpleMutation()
   }
 }
 

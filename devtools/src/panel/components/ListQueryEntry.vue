@@ -81,9 +81,9 @@ const status = computed(() => getQueryStatus(entry))
         :title="entry.active ? 'Active query' : 'Inactive query'"
         @click="isActive ? unselect($event) : navigate($event)"
       >
-        <ol class="flex font-mono flex-grow gap-0.5 overflow-auto items-center">
+        <ol class="flex font-mono grow gap-0.5 overflow-auto items-center">
           <template v-for="(key, i) in formattedKey" :key="key">
-            <li class="text-wrap break-words rounded bg-(--ui-text)/5 px-0.5">{{ key }}</li>
+            <li class="text-wrap wrap-break-word rounded bg-(--ui-text)/5 px-0.5">{{ key }}</li>
             <li v-if="i < formattedKey.length - 1" aria-hidden="true">/</li>
           </template>
         </ol>

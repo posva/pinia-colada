@@ -255,6 +255,29 @@ transmitter.on('mutations:simulate:error:stop', (key) => {
   }
 })
 
+transmitter.on('mutations:replay', (key) => {
+  const originalEntry = mutationCache.get(key)
+
+  if (!originalEntry) {
+    console.warn('[@pinia/colada] Cannot replay: mutation entry not found')
+    return
+  }
+
+  if (originalEntry.vars === undefined) {
+    console.warn('[@pinia/colada] Cannot replay: mutation has no stored variables')
+    return
+  }
+
+  // Create new entry to avoid reuse warnings and maintain history
+  const newEntry = mutationCache.create(originalEntry.options)
+  const ensuredEntry = mutationCache.ensure(newEntry, originalEntry.vars)
+
+  // Trigger the mutation - errors will be handled by existing cache listeners
+  mutationCache.mutate(ensuredEntry).catch(() => {
+    // Errors are automatically emitted via mutations:update
+  })
+})
+
 // PiP window handling
 const pipWindow = shallowRef<Window | null>(null)
 

@@ -112,6 +112,8 @@ export interface DevtoolsEmits {
   'mutations:simulate:error:stop': [entryKey: EntryKey]
   'mutations:simulate:loading': [entryKey: EntryKey]
   'mutations:simulate:loading:stop': [entryKey: EntryKey]
+
+  'mutations:replay': [entryKey: EntryKey]
 }
 
 export function _testTypes() {

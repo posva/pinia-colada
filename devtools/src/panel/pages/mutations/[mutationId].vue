@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { UseMutationEntryPayload } from '@pinia/colada-devtools/shared'
-import { computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useDuplexChannel, useMutationEntries } from '../../composables/duplex-channel'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import type { DataStateStatus } from '@pinia/colada'
 
 import IWrench from '~icons/lucide/wrench'
@@ -15,6 +15,7 @@ import { useTimeAgo, useLocalStorage } from '@vueuse/core'
 import type { FormatTimeAgoOptions } from '@vueuse/core'
 
 const route = useRoute()
+const router = useRouter()
 const mutations = useMutationEntries()
 
 const selectedMutation = computed<UseMutationEntryPayload | null>(() => {
@@ -44,6 +45,44 @@ const lastUpdate = useTimeAgo(() => selectedMutation.value?.devtools.updatedAt ?
 })
 
 const channel = useDuplexChannel()
+
+// Track when we're replaying to auto-navigate to new mutation
+const justReplayed = ref(false)
+const mutationCountBeforeReplay = ref(0)
+
+function replayMutation(key: UseMutationEntryPayload['key']) {
+  if (!key) return
+
+  // Track state before replay
+  mutationCountBeforeReplay.value = mutations.value.length
+  justReplayed.value = true
+
+  // Emit the replay event
+  channel.emit('mutations:replay', key)
+}
+
+// Watch for new mutations and auto-navigate after replay
+watch(
+  () => mutations.value.length,
+  (newCount) => {
+    if (justReplayed.value && newCount > mutationCountBeforeReplay.value) {
+      // Find the most recently updated mutation (the replayed one)
+      const newest = mutations.value.toSorted(
+        (a, b) => Number(b.id.slice(1)) - Number(a.id.slice(1)),
+      )[0]
+
+      if (newest) {
+        router.push({
+          name: '/mutations/[mutationId]',
+          params: { mutationId: newest.id },
+        })
+      }
+
+      // Reset flag
+      justReplayed.value = false
+    }
+  },
+)
 
 const isDataOpen = useLocalStorage<boolean>('pc:mutation:details:data:open', false, {})
 const isVarsOpen = useLocalStorage<boolean>('pc:mutation:details:vars:open', true, {})
@@ -143,6 +182,17 @@ watch(
             @click="channel.emit('mutations:simulate:error:stop', selectedMutation.key)"
           >
             <i-lucide-rotate-ccw /> Remove error
+          </UButton>
+
+          <UButton
+            v-if="selectedMutation.vars !== undefined && selectedMutation.key"
+            class="theme-success"
+            size="sm"
+            title="Re-trigger this mutation with the same variables"
+            @click="replayMutation(selectedMutation.key)"
+          >
+            <i-lucide-repeat-2 />
+            Replay
           </UButton>
 
           <UButton

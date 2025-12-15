@@ -92,7 +92,7 @@ const status = computed(() => getMutationStatus(entry))
           <ol class="flex font-mono grow gap-0.5 overflow-auto items-center">
             <template v-for="(key, i) in formattedKey" :key="i">
               <li
-                class="text-wrap wrap-break-words rounded px-0.5"
+                class="text-wrap wrap-break-word rounded px-0.5"
                 :class="isAnonymous ? 'bg-(--ui-text)/10 italic' : 'bg-(--ui-text)/5'"
               >
                 {{ key }}
