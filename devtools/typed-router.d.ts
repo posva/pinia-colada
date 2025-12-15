@@ -35,6 +35,21 @@ declare module 'vue-router/auto-routes' {
       '/mutations',
       Record<never, never>,
       Record<never, never>,
+      | '/mutations/(unselected)'
+      | '/mutations/[mutationId]'
+    >,
+    '/mutations/(unselected)': RouteRecordInfo<
+      '/mutations/(unselected)',
+      '/mutations',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/mutations/[mutationId]': RouteRecordInfo<
+      '/mutations/[mutationId]',
+      '/mutations/:mutationId',
+      { mutationId: ParamValue<true> },
+      { mutationId: ParamValue<false> },
       | never
     >,
     '/queries': RouteRecordInfo<
@@ -88,6 +103,20 @@ declare module 'vue-router/auto-routes' {
     'src/panel/pages/mutations.vue': {
       routes:
         | '/mutations'
+        | '/mutations/(unselected)'
+        | '/mutations/[mutationId]'
+      views:
+        | 'default'
+    }
+    'src/panel/pages/mutations/(unselected).vue': {
+      routes:
+        | '/mutations/(unselected)'
+      views:
+        | never
+    }
+    'src/panel/pages/mutations/[mutationId].vue': {
+      routes:
+        | '/mutations/[mutationId]'
       views:
         | never
     }

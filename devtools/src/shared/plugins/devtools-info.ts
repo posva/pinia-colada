@@ -53,6 +53,12 @@ export interface UseQueryDevtoolsInfo {
   history: UseQueryEntryHistoryEntry[]
 }
 
+export interface UseMutationDevtoolsInfo {
+  updatedAt: number
+
+  simulate: 'error' | 'loading' | null
+}
+
 declare module '@pinia/colada' {
   // eslint-disable-next-line unused-imports/no-unused-vars
   interface UseQueryEntry<TData, TError, TDataInitial> {
@@ -60,5 +66,10 @@ declare module '@pinia/colada' {
      * Returns whether the query is currently delaying its `asyncStatus` from becoming `'loading'`. Requires the {@link PiniaColadaDelay} plugin.
      */
     [DEVTOOLS_INFO_KEY]: UseQueryDevtoolsInfo
+  }
+
+  // eslint-disable-next-line unused-imports/no-unused-vars
+  interface UseMutationEntry<TData, TVars, TError, TContext> {
+    [DEVTOOLS_INFO_KEY]: UseMutationDevtoolsInfo
   }
 }

@@ -3,6 +3,7 @@ import type {
   DevtoolsEmits,
   DuplexChannel,
   UseQueryEntryPayload,
+  UseMutationEntryPayload,
 } from '@pinia/colada-devtools/shared'
 import { inject } from 'vue'
 import type { InjectionKey, Ref } from 'vue'
@@ -27,6 +28,18 @@ export function useQueryEntries() {
   if (!entries) {
     throw new Error(
       'The query entries are not provided. Make sure to use it inside the context of a component that provides it.',
+    )
+  }
+  return entries
+}
+
+export const MUTATIONS_KEY: InjectionKey<Ref<UseMutationEntryPayload[]>> = Symbol('mutations')
+
+export function useMutationEntries() {
+  const entries = inject(MUTATIONS_KEY)
+  if (!entries) {
+    throw new Error(
+      'The mutation entries are not provided. Make sure to use it inside the context of a component that provides it.',
     )
   }
   return entries

@@ -2,10 +2,14 @@
  * Pinia Colada plugin that counts how many times a query has been fetched, has resolved, rejected, etc.
  *
  */
-import type { QueryCache, UseQueryEntry } from '@pinia/colada'
+import type { QueryCache, UseQueryEntry, MutationCache, UseMutationEntry } from '@pinia/colada'
 import { toValue } from 'vue'
 import { DEVTOOLS_INFO_KEY } from '@pinia/colada-devtools/shared'
-import type { UseQueryEntryHistoryEntry, UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
+import type {
+  UseQueryEntryHistoryEntry,
+  UseQueryEntryPayload,
+  UseMutationEntryPayload,
+} from '@pinia/colada-devtools/shared'
 
 const now = () => performance.timeOrigin + performance.now()
 
@@ -178,4 +182,56 @@ export function createQueryEntryPayload(entry: UseQueryEntry): UseQueryEntryPayl
   }
 }
 
+export function addDevtoolsInfoForMutations(mutationCache: MutationCache): void {
+  if (mutationInstallationMap.has(mutationCache)) {
+    return
+  }
+  mutationInstallationMap.set(mutationCache, true)
+
+  // apply initialization to any existing entries
+  for (const entry of mutationCache.getEntries()) {
+    entry[DEVTOOLS_INFO_KEY] ??= {
+      updatedAt: entry.when > 0 ? entry.when : now(),
+      simulate: null,
+    }
+  }
+
+  mutationCache.$onAction(({ name, args, after }) => {
+    if (name === 'create') {
+      after((entry) => {
+        entry[DEVTOOLS_INFO_KEY] = {
+          updatedAt: now(),
+          simulate: null,
+        }
+      })
+    } else if (name === 'mutate') {
+      const [entry] = args
+      entry[DEVTOOLS_INFO_KEY].updatedAt = now()
+    } else if (name === 'setEntryState') {
+      const [entry] = args
+      after(() => {
+        entry[DEVTOOLS_INFO_KEY].updatedAt = now()
+      })
+    }
+  })
+}
+
+export function createMutationEntryPayload(entry: UseMutationEntry): UseMutationEntryPayload {
+  return {
+    id: entry.id,
+    key: entry.key,
+    keyHash: entry.keyHash,
+    state: entry.state.value,
+    asyncStatus: entry.asyncStatus.value,
+    when: entry.when,
+    vars: entry.vars,
+    options: entry.options && {
+      gcTime: entry.options.gcTime,
+    },
+    gcTimeout: typeof entry.gcTimeout === 'number' ? (entry.gcTimeout as number) : null,
+    devtools: entry[DEVTOOLS_INFO_KEY],
+  }
+}
+
 const installationMap = new WeakMap<object, boolean>()
+const mutationInstallationMap = new WeakMap<object, boolean>()

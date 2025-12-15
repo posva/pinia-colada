@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { onBeforeUnmount, shallowRef, useTemplateRef, watch } from 'vue'
-import { useQueryCache } from '@pinia/colada'
+import { useQueryCache, useMutationCache } from '@pinia/colada'
 import { DuplexChannel, DEVTOOLS_INFO_KEY } from '@pinia/colada-devtools/shared'
 import type { AppEmits, DevtoolsEmits } from '@pinia/colada-devtools/shared'
-import { addDevtoolsInfo, createQueryEntryPayload } from './pc-devtools-info-plugin'
+import {
+  addDevtoolsInfo,
+  createQueryEntryPayload,
+  addDevtoolsInfoForMutations,
+  createMutationEntryPayload,
+} from './pc-devtools-info-plugin'
 // use dependency free simple useEventListener because this component is used directly in the app
 import { useEventListener } from './use-event-listener'
 
@@ -12,6 +17,9 @@ const emit = defineEmits<{
 }>()
 
 const queryCache = useQueryCache()
+const mutationCache = useMutationCache()
+
+addDevtoolsInfoForMutations(mutationCache)
 
 queryCache.$onAction(({ name, after, onError, args }) => {
   if (name === 'remove') {
@@ -67,6 +75,38 @@ queryCache.$onAction(({ name, after, onError, args }) => {
       const entry = queryCache.getEntries({ key, exact: true })[0]
       if (entry) {
         transmitter.emit('queries:update', createQueryEntryPayload(entry))
+      }
+    })
+  }
+})
+
+mutationCache.$onAction(({ name, args, after, onError }) => {
+  if (name === 'remove') {
+    const [entry] = args
+    after(() => {
+      transmitter.emit('mutations:delete', createMutationEntryPayload(entry))
+    })
+  } else if (name === 'mutate' || name === 'setEntryState') {
+    const [entry] = args
+
+    // on mutate we want to see it loading
+    if (name === 'mutate') {
+      const payload = createMutationEntryPayload(entry)
+      payload.asyncStatus = 'loading'
+      transmitter.emit('mutations:update', payload)
+    }
+
+    after(() => {
+      transmitter.emit('mutations:update', createMutationEntryPayload(entry))
+    })
+    onError(() => {
+      transmitter.emit('mutations:update', createMutationEntryPayload(entry))
+    })
+  } else if (name === 'ensure') {
+    const [entry] = args
+    after(() => {
+      if (entry.id) {
+        transmitter.emit('mutations:update', createMutationEntryPayload(entry))
       }
     })
   }
@@ -155,6 +195,63 @@ transmitter.on('queries:simulate:error:stop', (key) => {
     })
     entry[DEVTOOLS_INFO_KEY].simulate = null
     transmitter.emit('queries:update', createQueryEntryPayload(entry))
+  }
+})
+
+transmitter.on('mutations:clear', (filters = {}) => {
+  const entries = mutationCache.getEntries(filters)
+  entries.forEach((entry) => mutationCache.remove(entry))
+})
+
+transmitter.on('mutations:remove', (key) => {
+  const entry = mutationCache.get(key)
+  if (entry) {
+    mutationCache.remove(entry)
+  }
+})
+
+transmitter.on('mutations:simulate:loading', (key) => {
+  const entry = mutationCache.get(key)
+  if (entry) {
+    entry.asyncStatus.value = 'loading'
+    entry[DEVTOOLS_INFO_KEY].simulate = 'loading'
+    transmitter.emit('mutations:update', createMutationEntryPayload(entry))
+  }
+})
+
+transmitter.on('mutations:simulate:loading:stop', (key) => {
+  const entry = mutationCache.get(key)
+  if (entry && entry[DEVTOOLS_INFO_KEY].simulate === 'loading') {
+    entry.asyncStatus.value = 'idle'
+    entry[DEVTOOLS_INFO_KEY].simulate = null
+    transmitter.emit('mutations:update', createMutationEntryPayload(entry))
+  }
+})
+
+transmitter.on('mutations:simulate:error', (key) => {
+  const entry = mutationCache.get(key)
+  if (entry) {
+    mutationCache.setEntryState(entry, {
+      ...entry.state.value,
+      status: 'error',
+      error: new Error('Simulated error'),
+    })
+    // we set after because setting the entry state resets the simulation
+    entry[DEVTOOLS_INFO_KEY].simulate = 'error'
+    transmitter.emit('mutations:update', createMutationEntryPayload(entry))
+  }
+})
+
+transmitter.on('mutations:simulate:error:stop', (key) => {
+  const entry = mutationCache.get(key)
+  if (entry && entry[DEVTOOLS_INFO_KEY].simulate === 'error') {
+    mutationCache.setEntryState(entry, {
+      ...entry.state.value,
+      status: entry.state.value.data !== undefined ? 'success' : 'pending',
+      error: null,
+    })
+    entry[DEVTOOLS_INFO_KEY].simulate = null
+    transmitter.emit('mutations:update', createMutationEntryPayload(entry))
   }
 })
 
@@ -274,11 +371,7 @@ async function devtoolsOnReady() {
   }
   attachCssPropertyRules(devtoolsEl.value)
   transmitter.emit('queries:all', queryCache.getEntries().map(createQueryEntryPayload))
-  transmitter.emit(
-    'mutations:all',
-    // FIXME: add mutations
-    queryCache.getEntries().map(createQueryEntryPayload),
-  )
+  transmitter.emit('mutations:all', mutationCache.getEntries().map(createMutationEntryPayload))
 }
 </script>
 

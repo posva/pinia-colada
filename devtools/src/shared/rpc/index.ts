@@ -1,5 +1,11 @@
-import type { DataState, EntryKey, UseQueryEntryFilter } from '@pinia/colada'
+import type {
+  DataState,
+  EntryKey,
+  UseQueryEntryFilter,
+  UseMutationEntryFilter,
+} from '@pinia/colada'
 import type { UseQueryEntryPayload } from '../query-serialized'
+import type { UseMutationEntryPayload } from '../mutation-serialized'
 import { toRaw } from 'vue'
 import { restoreClonedDeep, safeSerialize } from './custom-values'
 import { isPlainObject } from '../json'
@@ -81,7 +87,9 @@ export interface AppEmits {
   'queries:all': [entries: UseQueryEntryPayload[]]
   'queries:update': [entry: UseQueryEntryPayload]
   'queries:delete': [entry: UseQueryEntryPayload]
-  'mutations:all': [entries: unknown[]]
+  'mutations:all': [entries: UseMutationEntryPayload[]]
+  'mutations:update': [entry: UseMutationEntryPayload]
+  'mutations:delete': [entry: UseMutationEntryPayload]
 }
 
 export interface DevtoolsEmits {
@@ -96,6 +104,14 @@ export interface DevtoolsEmits {
   'queries:simulate:loading:stop': [entryKey: EntryKey]
 
   'queries:set:state': [entryKey: EntryKey, state: DataState<unknown, unknown, unknown>]
+
+  'mutations:clear': [] | [filters: UseMutationEntryFilter]
+  'mutations:remove': [entryKey: EntryKey]
+
+  'mutations:simulate:error': [entryKey: EntryKey]
+  'mutations:simulate:error:stop': [entryKey: EntryKey]
+  'mutations:simulate:loading': [entryKey: EntryKey]
+  'mutations:simulate:loading:stop': [entryKey: EntryKey]
 }
 
 export function _testTypes() {

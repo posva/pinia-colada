@@ -3,7 +3,7 @@ import { createApp } from 'vue'
 // import { createRouter, createWebHistory } from 'vue-router'
 // import { routes } from 'vue-router/auto-routes'
 import { createPinia, getActivePinia } from 'pinia'
-import { hydrateQueryCache, PiniaColada, useQueryCache } from '@pinia/colada'
+import { hydrateQueryCache, PiniaColada, useMutationCache, useQueryCache } from '@pinia/colada'
 import { createRouter, createWebHistory } from 'vue-router'
 import './style.css'
 import 'water.css'
@@ -21,6 +21,10 @@ if (typeof document !== 'undefined') {
   hydrateQueryCache(queryCache, {
     '["ssr"]': [{ text: 'I was serializaed!', when: Date.now() }, null, 0],
   })
+  // @ts-expect-error: for debugging
+  window.queryCache = queryCache
+  // @ts-expect-error: for debugging
+  window.mutationCache = useMutationCache(getActivePinia())
 }
 
 const router = createRouter({
@@ -33,6 +37,10 @@ const router = createRouter({
     {
       path: '/multi-types',
       component: () => import('./pages/multi-types.vue'),
+    },
+    {
+      path: '/mutations-test',
+      component: () => import('./pages/mutations-test.vue'),
     },
     {
       path: '/contacts',

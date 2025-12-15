@@ -29,6 +29,7 @@ const {
 })
 
 const { mutate: updateContact } = useMutation({
+  key: (contact) => ['contacts', contact.id],
   mutation: (contact: Partial<Contact> & { id: number }) => _updateContact(contact),
 
   onMutate() {
@@ -52,7 +53,7 @@ const { mutate: updateContact } = useMutation({
 </script>
 
 <template>
-  <section class="flex-grow pt-6 md:pt-0">
+  <section class="grow pt-6 md:pt-0">
     <pre>{{ asyncStatus }}</pre>
     <template v-if="error">
       <div>Error: {{ error }}</div>
