@@ -57,11 +57,7 @@ const status = computed(() => getMutationStatus(entry))
           :class="STATUS_COLOR_CLASSES[status].base"
           :title="status"
         >
-          <i-lucide-loader
-            v-if="status === 'loading'"
-            title="Loading"
-            aria-label="Loading icon"
-          />
+          <i-lucide-loader v-if="status === 'loading'" title="Loading" aria-label="Loading icon" />
           <i-lucide-check-check
             v-else-if="status === 'success'"
             title="Success"
@@ -84,20 +80,19 @@ const status = computed(() => getMutationStatus(entry))
       <a
         :href
         class="hover:cursor-pointer block overflow-hidden"
-        :title="`Mutation execution ${entry.id}`"
+        :title="`${isAnonymous ? 'Anonymous' : 'Mutation'} execution ${entry.id}`"
         @click="isActive ? unselect($event) : navigate($event)"
       >
         <div class="flex items-center gap-1.5">
           <i-lucide-file-question
             v-if="isAnonymous"
-            class="size-3.5 text-(--ui-text-muted) flex-shrink-0"
+            class="text-(--ui-text-muted)"
             title="Anonymous mutation"
-            aria-label="Anonymous mutation icon"
           />
-          <ol class="flex font-mono flex-grow gap-0.5 overflow-auto items-center">
+          <ol class="flex font-mono grow gap-0.5 overflow-auto items-center">
             <template v-for="(key, i) in formattedKey" :key="i">
               <li
-                class="text-wrap break-words rounded px-0.5"
+                class="text-wrap wrap-break-words rounded px-0.5"
                 :class="isAnonymous ? 'bg-(--ui-text)/10 italic' : 'bg-(--ui-text)/5'"
               >
                 {{ key }}

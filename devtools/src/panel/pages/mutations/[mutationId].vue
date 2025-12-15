@@ -83,15 +83,12 @@ watch(
           <p v-if="selectedMutation.key" class="grid grid-cols-[auto_1fr] gap-1">
             <span>key:</span>
             <span class="flex items-center gap-1.5">
-              <code
-                class="rounded p-0.5"
-                :class="isAnonymous ? 'bg-neutral-500/30 italic' : 'bg-neutral-500/20'"
-              >
+              <code class="rounded p-0.5 bg-neutral-500/20">
                 {{ selectedMutation.key }}
               </code>
               <span
                 v-if="isAnonymous"
-                class="text-xs text-(--ui-text-muted) italic"
+                class="text-xs text-(--ui-text-muted) italic cursor-help"
                 title="This mutation was created without a custom key"
               >
                 (anonymous)
