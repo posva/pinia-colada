@@ -639,5 +639,39 @@ describe('useMutation', () => {
       // All entries should be removed (no memory leak)
       expect(cache.getEntries({ key: ['mutation'] })).toHaveLength(0)
     })
+
+    it('untracks previous mutation entry when retriggering', async () => {
+      const { wrapper } = mountSimple({
+        key: ['test-mutation'],
+        gcTime: 1000,
+      })
+      const cache = useMutationCache()
+
+      // First mutation call
+      wrapper.vm.mutate()
+      await flushPromises()
+
+      // Should have one entry
+      const entriesAfterFirst = cache.getEntries({ key: ['test-mutation'] })
+      expect(entriesAfterFirst).toHaveLength(1)
+      const firstEntryId = entriesAfterFirst[0]!.id
+
+      // Second mutation call - should untrack the first one and create a new entry
+      wrapper.vm.mutate()
+      await flushPromises()
+
+      // Should now have two entries (first one is untracked but not yet removed)
+      const entriesAfterSecond = cache.getEntries({ key: ['test-mutation'] })
+      expect(entriesAfterSecond.length).toBeGreaterThanOrEqual(1)
+
+      // Advance time by gcTime to trigger GC of the first entry
+      vi.advanceTimersByTime(1000)
+
+      // The first entry should be removed by now
+      const remainingEntries = cache.getEntries({ key: ['test-mutation'] })
+      expect(remainingEntries).toHaveLength(1)
+      // The remaining entry should be the second one (different id from the first)
+      expect(remainingEntries[0]!.id).not.toBe(firstEntryId)
+    })
   })
 })
