@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount, enableAutoUnmount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
-import { defineComponent, effectScope, createApp } from 'vue'
+import { defineComponent, effectScope, createApp, ref, nextTick } from 'vue'
 import type { GlobalMountOptions } from '../test-utils/utils'
 import { delay } from '../test-utils/utils'
 import type { UseMutationOptions } from './mutation-options'
@@ -521,6 +521,123 @@ describe('useMutation', () => {
       expect(cache.getEntries()).toHaveLength(1)
       vi.advanceTimersByTime(1)
       expect(cache.getEntries()).toHaveLength(0)
+    })
+
+    it('deletes old entries when mutation key changes while mounted', async () => {
+      const key = ref(1)
+      const { wrapper, mutation } = mountSimple({
+        key: () => ['mutation', key.value],
+        gcTime: 1000,
+      })
+      const cache = useMutationCache()
+
+      await flushPromises()
+
+      // Trigger the first mutation with key = 1
+      wrapper.vm.mutate()
+      await flushPromises()
+
+      expect(mutation).toHaveBeenCalledTimes(1)
+      expect(cache.getEntries({ key: ['mutation', 1] })).toHaveLength(1)
+
+      // Change key and trigger a new mutation
+      key.value = 2
+      await nextTick()
+      wrapper.vm.mutate()
+      await flushPromises()
+
+      expect(mutation).toHaveBeenCalledTimes(2)
+      // Both entries should exist initially
+      expect(cache.getEntries({ key: ['mutation', 1] })).toHaveLength(1)
+      expect(cache.getEntries({ key: ['mutation', 2] })).toHaveLength(1)
+
+      // Advance time to trigger GC for the old entry
+      vi.advanceTimersByTime(1000)
+
+      // Old entry (key=1) should be removed, new entry (key=2) should remain
+      expect(cache.getEntries({ key: ['mutation', 1] })).toHaveLength(0)
+      expect(cache.getEntries({ key: ['mutation', 2] })).toHaveLength(1)
+    })
+
+    it('keeps cache if mutation key switches back before GC delay', async () => {
+      const key = ref(1)
+      const { wrapper, mutation } = mountSimple({
+        key: () => ['mutation', key.value],
+        gcTime: 1000,
+      })
+      const cache = useMutationCache()
+
+      await flushPromises()
+
+      // Trigger mutation with key = 1
+      wrapper.vm.mutate()
+      await flushPromises()
+
+      expect(mutation).toHaveBeenCalledTimes(1)
+      expect(cache.getEntries({ key: ['mutation', 1] })).toHaveLength(1)
+
+      // Change key and trigger mutation
+      key.value = 2
+      await nextTick()
+      wrapper.vm.mutate()
+      await flushPromises()
+
+      expect(mutation).toHaveBeenCalledTimes(2)
+      expect(cache.getEntries({ key: ['mutation', 1] })).toHaveLength(1)
+      expect(cache.getEntries({ key: ['mutation', 2] })).toHaveLength(1)
+
+      // Advance time but not enough to trigger GC
+      vi.advanceTimersByTime(999)
+
+      // Both entries should still exist
+      expect(cache.getEntries({ key: ['mutation', 1] })).toHaveLength(1)
+      expect(cache.getEntries({ key: ['mutation', 2] })).toHaveLength(1)
+
+      // Switch back to key = 1 and trigger
+      key.value = 1
+      await nextTick()
+      wrapper.vm.mutate()
+      await flushPromises()
+
+      expect(mutation).toHaveBeenCalledTimes(3)
+
+      // Both entries should still exist (old one wasn't GC'd)
+      expect(cache.getEntries({ key: ['mutation', 1] }).length).toBeGreaterThan(0)
+      expect(cache.getEntries({ key: ['mutation', 2] })).toHaveLength(1)
+    })
+
+    it('frees cache if entry is recreated within a component', async () => {
+      const key = ref(1)
+      const { wrapper } = mountSimple({
+        key: () => ['mutation', key.value],
+        gcTime: 1000,
+      })
+      const cache = useMutationCache()
+
+      await flushPromises()
+
+      // Trigger first mutation
+      wrapper.vm.mutate()
+      await flushPromises()
+
+      // Quickly change the key to create multiple entries
+      key.value = 2
+      await nextTick()
+      wrapper.vm.mutate()
+      await flushPromises()
+
+      // Verify multiple entries were created
+      const totalEntries = cache.getEntries({ key: ['mutation'] }).length
+      expect(totalEntries).toBeGreaterThan(0)
+
+      // Unmount the component
+      wrapper.unmount()
+
+      // Advance time to trigger GC
+      vi.advanceTimersByTime(1000)
+
+      // All entries should be removed (no memory leak)
+      expect(cache.getEntries({ key: ['mutation'] })).toHaveLength(0)
     })
   })
 })
