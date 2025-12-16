@@ -203,15 +203,15 @@ transmitter.on('mutations:clear', (filters = {}) => {
   entries.forEach((entry) => mutationCache.remove(entry))
 })
 
-transmitter.on('mutations:remove', (key) => {
-  const entry = mutationCache.get(key)
+transmitter.on('mutations:remove', (id) => {
+  const entry = mutationCache.get(id)
   if (entry) {
     mutationCache.remove(entry)
   }
 })
 
-transmitter.on('mutations:simulate:loading', (key) => {
-  const entry = mutationCache.get(key)
+transmitter.on('mutations:simulate:loading', (id) => {
+  const entry = mutationCache.get(id)
   if (entry) {
     entry.asyncStatus.value = 'loading'
     entry[DEVTOOLS_INFO_KEY].simulate = 'loading'
@@ -219,8 +219,8 @@ transmitter.on('mutations:simulate:loading', (key) => {
   }
 })
 
-transmitter.on('mutations:simulate:loading:stop', (key) => {
-  const entry = mutationCache.get(key)
+transmitter.on('mutations:simulate:loading:stop', (id) => {
+  const entry = mutationCache.get(id)
   if (entry && entry[DEVTOOLS_INFO_KEY].simulate === 'loading') {
     entry.asyncStatus.value = 'idle'
     entry[DEVTOOLS_INFO_KEY].simulate = null
@@ -228,8 +228,8 @@ transmitter.on('mutations:simulate:loading:stop', (key) => {
   }
 })
 
-transmitter.on('mutations:simulate:error', (key) => {
-  const entry = mutationCache.get(key)
+transmitter.on('mutations:simulate:error', (id) => {
+  const entry = mutationCache.get(id)
   if (entry) {
     mutationCache.setEntryState(entry, {
       ...entry.state.value,
@@ -242,8 +242,8 @@ transmitter.on('mutations:simulate:error', (key) => {
   }
 })
 
-transmitter.on('mutations:simulate:error:stop', (key) => {
-  const entry = mutationCache.get(key)
+transmitter.on('mutations:simulate:error:stop', (id) => {
+  const entry = mutationCache.get(id)
   if (entry && entry[DEVTOOLS_INFO_KEY].simulate === 'error') {
     mutationCache.setEntryState(entry, {
       ...entry.state.value,
@@ -255,8 +255,8 @@ transmitter.on('mutations:simulate:error:stop', (key) => {
   }
 })
 
-transmitter.on('mutations:replay', (key) => {
-  const originalEntry = mutationCache.get(key)
+transmitter.on('mutations:replay', (id) => {
+  const originalEntry = mutationCache.get(id)
 
   if (!originalEntry) {
     console.warn('[@pinia/colada] Cannot replay: mutation entry not found')

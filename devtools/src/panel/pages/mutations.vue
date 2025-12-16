@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef } from 'vue'
-import type { ComponentPublicInstance } from 'vue'
 import { Pane, Splitpanes } from '@posva/splitpanes'
 import { useMutationEntries } from '../composables/duplex-channel'
 import { getMutationStatus, STATUS_COLOR_CLASSES } from '../utils/mutation-state'
@@ -8,7 +7,6 @@ import type { UseMutationEntryPayloadStatus } from '../utils/mutation-state'
 import type { UseMutationEntryPayload } from '@pinia/colada-devtools/shared'
 import { useContainerMediaQuery } from '../composables/use-container-media-query'
 import { useLocalStorage } from '@vueuse/core'
-import { useRoute } from 'vue-router'
 
 const searchQuery = ref('')
 
@@ -31,19 +29,19 @@ const filteredItems = computed(() => {
   })
 })
 
-const mutationsGrouped = computed<
-  Record<UseMutationEntryPayloadStatus, UseMutationEntryPayload[]>
->(() => {
-  return {
-    loading: [],
-    success: [],
-    error: [],
-    pending: [],
-    idle: [],
-    inactive: filteredItems.value.filter((item) => !item.active),
-    ...Object.groupBy(filteredItems.value, (item) => getMutationStatus(item)),
-  }
-})
+const mutationsGrouped = computed<Record<UseMutationEntryPayloadStatus, UseMutationEntryPayload[]>>(
+  () => {
+    return {
+      loading: [],
+      success: [],
+      error: [],
+      pending: [],
+      idle: [],
+      inactive: filteredItems.value.filter((item) => !item.active),
+      ...Object.groupBy(filteredItems.value, (item) => getMutationStatus(item)),
+    }
+  },
+)
 
 const container = useTemplateRef('split-panes-container')
 const isNarrow = useContainerMediaQuery('(width < 768px)', () => container.value?.$el)
@@ -66,12 +64,7 @@ function updatePanesSize({ panes }: { panes: { size: number }[] }) {
         <i-lucide-search
           class="absolute left-2 top-1/2 -translate-y-1/2 text-ui-text-muted size-4"
         />
-        <UInput
-          v-model="searchQuery"
-          type="search"
-          class="w-full"
-          placeholder="Search Mutations"
-        />
+        <UInput v-model="searchQuery" type="search" class="w-full" placeholder="Search Mutations" />
       </div>
 
       <div class="flex gap-x-1">

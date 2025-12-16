@@ -19,7 +19,8 @@ const router = useRouter()
 const mutations = useMutationEntries()
 
 const selectedMutation = computed<UseMutationEntryPayload | null>(() => {
-  return mutations.value.find((entry) => entry.id === route.params.mutationId) ?? null
+  const mutationId = route.params.mutationId as string | undefined
+  return mutations.value.find((entry) => entry.id === Number(mutationId)) ?? null
 })
 
 const isAnonymous = computed(() => {
@@ -50,15 +51,13 @@ const channel = useDuplexChannel()
 const justReplayed = ref(false)
 const mutationCountBeforeReplay = ref(0)
 
-function replayMutation(key: UseMutationEntryPayload['key']) {
-  if (!key) return
-
+function replayMutation(id: UseMutationEntryPayload['id']) {
   // Track state before replay
   mutationCountBeforeReplay.value = mutations.value.length
   justReplayed.value = true
 
   // Emit the replay event
-  channel.emit('mutations:replay', key)
+  channel.emit('mutations:replay', id)
 }
 
 // Watch for new mutations and auto-navigate after replay
@@ -67,9 +66,7 @@ watch(
   (newCount) => {
     if (justReplayed.value && newCount > mutationCountBeforeReplay.value) {
       // Find the most recently updated mutation (the replayed one)
-      const newest = mutations.value.toSorted(
-        (a, b) => Number(b.id.slice(1)) - Number(a.id.slice(1)),
-      )[0]
+      const newest = mutations.value.toSorted((a, b) => b.id - a.id)[0]
 
       if (newest) {
         router.push({
@@ -173,7 +170,7 @@ watch(
             class="theme-purple"
             size="sm"
             title="Simulate a loading state"
-            @click="channel.emit('mutations:simulate:loading', selectedMutation.key)"
+            @click="channel.emit('mutations:simulate:loading', selectedMutation.id)"
           >
             <i-lucide-loader />
             Simulate loading
@@ -183,7 +180,7 @@ watch(
             class="theme-purple"
             size="sm"
             title="Stop simulating loading state"
-            @click="channel.emit('mutations:simulate:loading:stop', selectedMutation.key)"
+            @click="channel.emit('mutations:simulate:loading:stop', selectedMutation.id)"
           >
             <i-lucide-loader class="animate-spin" />
             Stop loading
@@ -194,7 +191,7 @@ watch(
             class="theme-error"
             size="sm"
             title="Simulate an Error state"
-            @click="channel.emit('mutations:simulate:error', selectedMutation.key)"
+            @click="channel.emit('mutations:simulate:error', selectedMutation.id)"
           >
             <i-lucide-x-octagon /> Simulate error
           </UButton>
@@ -203,7 +200,7 @@ watch(
             class="theme-error"
             size="sm"
             title="Restore the previous state"
-            @click="channel.emit('mutations:simulate:error:stop', selectedMutation.key)"
+            @click="channel.emit('mutations:simulate:error:stop', selectedMutation.id)"
           >
             <i-lucide-rotate-ccw /> Remove error
           </UButton>
@@ -213,7 +210,7 @@ watch(
             class="theme-success"
             size="sm"
             title="Re-trigger this mutation with the same variables"
-            @click="replayMutation(selectedMutation.key)"
+            @click="replayMutation(selectedMutation.id)"
           >
             <i-lucide-repeat-2 />
             Replay
@@ -224,7 +221,7 @@ watch(
             class="theme-warning"
             size="sm"
             title="Remove this mutation from the cache"
-            @click="channel.emit('mutations:remove', selectedMutation.key)"
+            @click="channel.emit('mutations:remove', selectedMutation.id)"
           >
             <i-lucide-trash /> Remove
           </UButton>

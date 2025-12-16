@@ -3,19 +3,14 @@ import type { DEVTOOLS_INFO_KEY } from './plugins/devtools-info'
 
 export interface UseMutationEntryPayload {
   /**
-   * Unique identifier for this mutation execution.
+   * Unique numeric identifier for this mutation execution.
    */
-  id: string
+  id: number
 
   /**
-   * The full key including the ID (e.g., ['createTodo', '$0']).
+   * Optional user-defined key for grouping related mutations (e.g., ['createTodo']).
    */
   key: UseMutationEntry['key']
-
-  /**
-   * Serialized key for cache lookup.
-   */
-  keyHash: string | undefined
 
   /**
    * Current state (pending, success, error).

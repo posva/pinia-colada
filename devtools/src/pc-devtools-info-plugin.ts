@@ -227,7 +227,6 @@ export function createMutationEntryPayload(entry: UseMutationEntry): UseMutation
   return {
     id: entry.id,
     key: entry.key,
-    keyHash: entry.keyHash,
     state: entry.state.value,
     asyncStatus: entry.asyncStatus.value,
     when: entry.when,

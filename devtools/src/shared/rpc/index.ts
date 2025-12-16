@@ -106,14 +106,14 @@ export interface DevtoolsEmits {
   'queries:set:state': [entryKey: EntryKey, state: DataState<unknown, unknown, unknown>]
 
   'mutations:clear': [] | [filters: UseMutationEntryFilter]
-  'mutations:remove': [entryKey: EntryKey]
+  'mutations:remove': [id: number]
 
-  'mutations:simulate:error': [entryKey: EntryKey]
-  'mutations:simulate:error:stop': [entryKey: EntryKey]
-  'mutations:simulate:loading': [entryKey: EntryKey]
-  'mutations:simulate:loading:stop': [entryKey: EntryKey]
+  'mutations:simulate:error': [id: number]
+  'mutations:simulate:error:stop': [id: number]
+  'mutations:simulate:loading': [id: number]
+  'mutations:simulate:loading:stop': [id: number]
 
-  'mutations:replay': [entryKey: EntryKey]
+  'mutations:replay': [id: number]
 }
 
 export function _testTypes() {
