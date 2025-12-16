@@ -154,8 +154,12 @@ export function useMutation<
   const optionDefaults = useMutationOptions()
 
   const mergedOptions = {
-    // NOTE: overriding the hooks, makes the types too complex to infer properly
-    ...(optionDefaults as typeof USE_MUTATION_DEFAULTS),
+    ...optionDefaults,
+    // global hooks are directly handled in the mutation cache
+    onMutate: undefined,
+    onSuccess: undefined,
+    onError: undefined,
+    onSettled: undefined,
     ...options,
   }
 
