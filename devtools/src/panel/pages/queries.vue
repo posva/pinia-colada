@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef } from 'vue'
-import type { ComponentPublicInstance } from 'vue'
 import { Pane, Splitpanes } from '@posva/splitpanes'
 import { useQueryEntries } from '../composables/duplex-channel'
 import { getQueryStatus, STATUS_COLOR_CLASSES } from '../utils/query-state'
@@ -8,7 +7,6 @@ import type { UseQueryEntryPayloadStatus } from '../utils/query-state'
 import type { UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
 import { useContainerMediaQuery } from '../composables/use-container-media-query'
 import { useLocalStorage } from '@vueuse/core'
-import { useRoute } from 'vue-router'
 
 const searchQuery = ref('')
 
@@ -26,7 +24,7 @@ const filteredItems = computed(() => {
   }
 
   // sort by last updatedAt
-  return items.sort((a, b) => {
+  return items.toSorted((a, b) => {
     return b.devtools.updatedAt - a.devtools.updatedAt
   })
 })

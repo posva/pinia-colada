@@ -24,7 +24,7 @@ const filteredItems = computed(() => {
   }
 
   // Sort by most recent first
-  return items.sort((a, b) => {
+  return items.toSorted((a, b) => {
     return b.devtools.updatedAt - a.devtools.updatedAt
   })
 })
