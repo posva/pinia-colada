@@ -19,14 +19,7 @@ function unselect(event: MouseEvent) {
 }
 
 const formattedKey = useFormattedKey(() => entry.key)
-const isAnonymous = computed(() => {
-  // No key means anonymous
-  if (!entry.key) return true
-
-  // If the key only contains the ID (e.g., ["$0"]), it's effectively anonymous
-  return entry.key.length === 1 && entry.key[0] === entry.id
-})
-
+const isAnonymous = computed(() => !entry.key)
 const status = computed(() => getMutationStatus(entry))
 </script>
 
@@ -81,22 +74,21 @@ const status = computed(() => getMutationStatus(entry))
         @click="isActive ? unselect($event) : navigate($event)"
       >
         <div class="flex items-center gap-1.5">
-          <i-lucide-file-question
-            v-if="isAnonymous"
-            class="text-(--ui-text-muted)"
-            title="Anonymous mutation"
-          />
+          <i-lucide-file-question v-if="isAnonymous" class="text-(--ui-text-muted)" />
           <ol class="flex font-mono grow gap-0.5 overflow-auto items-center" v-if="formattedKey">
             <template v-for="(key, i) in formattedKey" :key="i">
-              <li
-                class="text-wrap wrap-break-word rounded px-0.5"
-                :class="isAnonymous ? 'bg-(--ui-text)/10 italic' : 'bg-(--ui-text)/5'"
-              >
+              <li class="text-wrap wrap-break-word rounded px-0.5 bg-(--ui-text)/5">
                 {{ key }}
               </li>
               <li v-if="i < formattedKey.length - 1" aria-hidden="true">/</li>
             </template>
           </ol>
+          <template v-else>
+            <span class="text-xs italic">{{ entry.id }}</span>
+            <span class="font-mono rounded px-0.5 bg-(--ui-text)/8">{{
+              new Date(entry.when).toISOString()
+            }}</span>
+          </template>
         </div>
       </a>
 
