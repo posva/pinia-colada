@@ -51,11 +51,11 @@ const {
 All queries require two properties:
 
 - A unique `key` that defines the query in the cache
-- A `query` function with no arguments that retrieves (e.g. fetches) the data
+- A `query` function that retrieves (e.g. fetches) the data
 
 `useQuery` accepts other options to configure its behavior. You can find more about the options in the docs or explore them by using auto-completion in your editor!
 
-What's great about queries is that they are automatically triggered **when needed**, **enabling a declarative approach that just works!**. That's why they don't take any parameters.
+What's great about queries is that they are automatically triggered **when needed**, **enabling a declarative approach that just works!**.
 
 Most of the time you will find yourself using just `state` and `asyncStatus` to render the UI based on the query's status (e.g. is it still fetching, is it refreshing, did it throw?, ...). Let's cover the basics of these properties:
 
@@ -87,7 +87,7 @@ Most of the time you will find yourself using just `state` and `asyncStatus` to 
 
 ## Using External Properties in Queries
 
-Since queries are automatically triggered by Pinia Colada, the `query` function cannot accept parameters. However, you can directly use external properties like route params or search queries within the `query` function. To ensure proper caching, add these properties to the `key` as a function. A common example is using the `route` within the `query` function:
+Since queries are automatically triggered by Pinia Colada, the `query` function cannot accept custom parameters. However, you can directly use external properties like route params or search queries within the `query` function. To ensure proper caching, add these properties to the `key` as a function. A common example is using the `route` within the `query` function:
 
 ```vue{7-9} twoslash
 <script setup lang="ts">
