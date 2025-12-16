@@ -98,9 +98,7 @@ mutationCache.$onAction(({ name, args, after, onError }) => {
   } else if (name === 'ensure') {
     const [entry] = args
     after(() => {
-      if (entry.id) {
-        transmitter.emit('mutations:update', createMutationEntryPayload(entry))
-      }
+      transmitter.emit('mutations:update', createMutationEntryPayload(entry))
     })
   }
 })

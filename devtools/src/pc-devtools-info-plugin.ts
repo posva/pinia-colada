@@ -219,6 +219,8 @@ export function addDevtoolsInfoForMutations(mutationCache: MutationCache): void 
     } else if (name === 'untrack') {
       const [entry] = args
       after(() => {
+        // differently from queries, mutations are inactive if untracked
+        // because they can only be tracked once
         entry[DEVTOOLS_INFO_KEY].inactiveAt = now()
       })
     }
