@@ -1,3 +1,24 @@
+# [0.2.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.1.9...@pinia/colada-devtools@0.2.0) (2025-12-16)
+
+### Bug Fixes
+
+- add hydrated data to queries ([6b59dd1](https://github.com/posva/pinia-colada/commit/6b59dd1713ad15a61f79ae30fa35ff1f72a36167))
+- set updatedAt based on entry.when ([b8d4753](https://github.com/posva/pinia-colada/commit/b8d475359ba55aaff91e69dbe10cef631dba766e))
+- use global options for mutations ([0f3a56c](https://github.com/posva/pinia-colada/commit/0f3a56ce94fd5a49e17cd3883e074f2e04098d9b))
+
+### Features
+
+- inactive mutations ([721d86e](https://github.com/posva/pinia-colada/commit/721d86e9ab4ef98b87c151645c6d804c018a1480))
+- mutations ([aad21bb](https://github.com/posva/pinia-colada/commit/aad21bb46e4153d40d68b1d2126618168585367c))
+- mutations ([13af68b](https://github.com/posva/pinia-colada/commit/13af68bf1f37227ccc97862ac1531942bbb7b4de))
+- replay mutation ([ef54785](https://github.com/posva/pinia-colada/commit/ef547855b3e3649d17b89946118bad5313121ab2))
+- display date ([675c569](https://github.com/posva/pinia-colada/commit/675c56960c9dd40db5e6fbb18796da9498d05c51))
+- display date for anonymous mutations ([315c029](https://github.com/posva/pinia-colada/commit/315c0296565ec1e3f618bc32f0c8ef9b7ed4bf14))
+- display empty list placeholder ([208adb9](https://github.com/posva/pinia-colada/commit/208adb9f6cc686cfe97b6d457a785e3b892e0ca6))
+- display more minutes ([b8aadb6](https://github.com/posva/pinia-colada/commit/b8aadb6529267710dae7d407831086b6da06c1be))
+- fix replay ([fb97d9e](https://github.com/posva/pinia-colada/commit/fb97d9e2fad0bf63df9295fd77e8980bcc05962e))
+- message of missing query key ([b03e727](https://github.com/posva/pinia-colada/commit/b03e7270962d62623ffefc13df064b89deccebae))
+
 ## [0.1.9](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.1.8...@pinia/colada-devtools@0.1.9) (2025-11-24)
 
 Dependencies updates.

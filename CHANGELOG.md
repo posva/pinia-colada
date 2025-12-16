@@ -1,3 +1,19 @@
+# [0.19.0](https://github.com/posva/pinia-colada/compare/v0.18.1...v0.19.0) (2025-12-16)
+
+- refactor(mutations)!: keep mutations key as passed (#440) ([4879189](https://github.com/posva/pinia-colada/commit/4879189f66fa2d1162a8739ac1c5f3f14d22183d)), closes [#440](https://github.com/posva/pinia-colada/issues/440)
+
+### Bug Fixes
+
+- use global options for mutations ([0f3a56c](https://github.com/posva/pinia-colada/commit/0f3a56ce94fd5a49e17cd3883e074f2e04098d9b))
+
+### Features
+
+- **types:** usemutationoptionswithdefaults ([67ea7a6](https://github.com/posva/pinia-colada/commit/67ea7a6ad5481ad95326bcd7c65d227d3097de28))
+
+### BREAKING CHANGES
+
+- Mutations id are now just an incremented number that starts at 1. There is no longer a `$n` appended to keys for mutations and mutations without a key do not have an artificial key anymore. This is because initially the cache map was a more complex type but with it being a simple Map, there is no point in complexifying the keys. As a result the `mutationCache.get()` now takes the id of the mutation while `getEntries()` work the same. The `exact` filter has also been removed as mutations are, by nature, meant to be called multiple times.
+
 ## [0.18.1](https://github.com/posva/pinia-colada/compare/v0.18.0...v0.18.1) (2025-12-11)
 
 ### Bug Fixes

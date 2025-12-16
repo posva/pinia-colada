@@ -1,3 +1,7 @@
+## [0.0.7](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-debug@0.0.6...@pinia/colada-plugin-debug@0.0.7) (2025-12-16)
+
+No changes in this release.
+
 ## [0.0.6](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-debug@0.0.5...@pinia/colada-plugin-debug@0.0.6) (2025-10-30)
 
 No changes in this release.
