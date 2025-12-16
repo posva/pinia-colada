@@ -109,11 +109,11 @@ watch(
             </span>
           </p>
 
-          <p v-if="selectedMutation.key" class="grid grid-cols-[auto_1fr] gap-1">
+          <p class="grid grid-cols-[auto_1fr] gap-1">
             <span>key:</span>
             <span class="flex items-center gap-1.5">
               <code class="rounded p-0.5 bg-neutral-500/20">
-                {{ selectedMutation.key }}
+                {{ selectedMutation.key ?? 'undefined' }}
               </code>
               <span
                 v-if="!selectedMutation.key"
@@ -199,7 +199,6 @@ watch(
           </UButton>
 
           <UButton
-            v-if="selectedMutation.vars !== undefined && selectedMutation.key"
             class="theme-success"
             size="sm"
             title="Re-trigger this mutation with the same variables"
@@ -210,7 +209,6 @@ watch(
           </UButton>
 
           <UButton
-            v-if="selectedMutation.key"
             class="theme-warning"
             size="sm"
             title="Remove this mutation from the cache"
