@@ -14,7 +14,7 @@ import { useMutationCache } from './mutation-store'
 import type { UseMutationEntry } from './mutation-store'
 import { noop } from './utils'
 import type { _EmptyObject } from './utils'
-import type { UseMutationOptions } from './mutation-options'
+import { useMutationOptions, type UseMutationOptions } from './mutation-options'
 
 /**
  * Valid keys for a mutation. Similar to query keys.
@@ -147,6 +147,9 @@ export function useMutation<
   const mutationCache = useMutationCache()
   const hasCurrentInstance = getCurrentInstance()
   const currentEffect = getCurrentScope()
+
+  // FIXME: take into account global options
+  // const optionDefaults = useMutationOptions()
 
   // always create an initial entry with no key (cannot be computed without vars)
   const entry = shallowRef<UseMutationEntry<TData, TVars, TError, TContext>>(

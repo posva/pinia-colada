@@ -3,12 +3,7 @@ import { onBeforeUnmount, shallowRef, useTemplateRef, watch } from 'vue'
 import { useQueryCache, useMutationCache } from '@pinia/colada'
 import { DuplexChannel, DEVTOOLS_INFO_KEY } from '@pinia/colada-devtools/shared'
 import type { AppEmits, DevtoolsEmits } from '@pinia/colada-devtools/shared'
-import {
-  addDevtoolsInfo,
-  createQueryEntryPayload,
-  addDevtoolsInfoForMutations,
-  createMutationEntryPayload,
-} from './pc-devtools-info-plugin'
+import { createQueryEntryPayload, createMutationEntryPayload } from './pc-devtools-info-plugin'
 // use dependency free simple useEventListener because this component is used directly in the app
 import { useEventListener } from './use-event-listener'
 
@@ -18,8 +13,6 @@ const emit = defineEmits<{
 
 const queryCache = useQueryCache()
 const mutationCache = useMutationCache()
-
-addDevtoolsInfoForMutations(mutationCache)
 
 queryCache.$onAction(({ name, after, onError, args }) => {
   if (name === 'remove') {
@@ -245,11 +238,17 @@ transmitter.on('mutations:simulate:error', (id) => {
 transmitter.on('mutations:simulate:error:stop', (id) => {
   const entry = mutationCache.get(id)
   if (entry && entry[DEVTOOLS_INFO_KEY].simulate === 'error') {
-    mutationCache.setEntryState(entry, {
-      ...entry.state.value,
-      status: entry.state.value.data !== undefined ? 'success' : 'pending',
-      error: null,
-    })
+    const state = entry.state.value
+    mutationCache.setEntryState(
+      entry,
+      state.data === undefined
+        ? {
+            data: undefined,
+            status: 'pending',
+            error: null,
+          }
+        : { data: state.data, status: 'success', error: null },
+    )
     entry[DEVTOOLS_INFO_KEY].simulate = null
     transmitter.emit('mutations:update', createMutationEntryPayload(entry))
   }

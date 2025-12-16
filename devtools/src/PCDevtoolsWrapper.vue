@@ -6,7 +6,7 @@ import { useLocalStorage } from '@vueuse/core'
 import logoURL from './logo.svg?inline'
 // to inject them manually and keep the lib as a js
 import buttonStyles from './button-style.css?inline'
-import { useQueryCache } from '@pinia/colada'
+import { useMutationCache, useQueryCache } from '@pinia/colada'
 import { addDevtoolsInfo } from './pc-devtools-info-plugin'
 
 const isCEDefined = ref(false)
@@ -22,7 +22,8 @@ async function ensureCEDefined() {
 
 // add the info here so it is available right away
 const queryCache = useQueryCache()
-addDevtoolsInfo(queryCache)
+const mutationCache = useMutationCache()
+addDevtoolsInfo(queryCache, mutationCache)
 
 async function openDevtools() {
   await ensureCEDefined()

@@ -13,12 +13,19 @@ import type {
 
 const now = () => performance.timeOrigin + performance.now()
 
-export function addDevtoolsInfo(queryCache: QueryCache): void {
+const installationMap = new WeakMap<object, boolean>()
+
+export function addDevtoolsInfo(queryCache: QueryCache, mutationCache: MutationCache): void {
   if (installationMap.has(queryCache)) {
     return
   }
   installationMap.set(queryCache, true)
 
+  addDevtoolsQueryInfo(queryCache)
+  addDevtoolsInfoForMutations(mutationCache)
+}
+
+function addDevtoolsQueryInfo(queryCache: QueryCache): void {
   // apply initialization to any existing entries
   for (const entry of queryCache.getEntries()) {
     entry[DEVTOOLS_INFO_KEY] ??= {
@@ -183,11 +190,6 @@ export function createQueryEntryPayload(entry: UseQueryEntry): UseQueryEntryPayl
 }
 
 export function addDevtoolsInfoForMutations(mutationCache: MutationCache): void {
-  if (mutationInstallationMap.has(mutationCache)) {
-    return
-  }
-  mutationInstallationMap.set(mutationCache, true)
-
   // apply initialization to any existing entries
   for (const entry of mutationCache.getEntries()) {
     entry[DEVTOOLS_INFO_KEY] ??= {
@@ -239,6 +241,3 @@ export function createMutationEntryPayload(entry: UseMutationEntry): UseMutation
     devtools: entry[DEVTOOLS_INFO_KEY],
   }
 }
-
-const installationMap = new WeakMap<object, boolean>()
-const mutationInstallationMap = new WeakMap<object, boolean>()

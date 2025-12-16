@@ -45,7 +45,7 @@ const { mutate: complexMutation, asyncStatus: complexStatus } = useMutation({
     metadata: Record<string, unknown>
   }) => {
     await delay(600)
-    return { updated: true, timestamp: Date.now() }
+    return { updated: true, userId: data.user.id, timestamp: Date.now() }
   },
 })
 
