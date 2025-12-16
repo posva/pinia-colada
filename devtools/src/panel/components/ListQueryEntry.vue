@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { miniJsonParse } from '@pinia/colada-devtools/shared'
 import type { UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
 import { computed } from 'vue'
 import { getQueryStatus, STATUS_COLOR_CLASSES } from '../utils/query-state'
 import { useRouter } from 'vue-router'
 import { usePerformanceNow } from '../composables/performance-now'
+import { useFormattedKey } from '../composables/entries'
 
 const { entry } = defineProps<{
   entry: UseQueryEntryPayload
@@ -20,19 +20,7 @@ function unselect(event: MouseEvent) {
   router.push('/queries')
 }
 
-// TODO: colorize the output based on the type of value
-const formattedKey = computed(() => {
-  return entry.key.map((rawValue) => {
-    let value: unknown = rawValue
-    try {
-      value = typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue
-    } catch {
-      // If parsing fails, keep the original value
-    }
-    return value && typeof value === 'object' ? miniJsonParse(value) : String(value)
-  })
-})
-
+const formattedKey = useFormattedKey(() => entry.key)
 const status = computed(() => getQueryStatus(entry))
 </script>
 

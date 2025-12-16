@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { miniJsonParse } from '@pinia/colada-devtools/shared'
 import type { UseMutationEntryPayload } from '@pinia/colada-devtools/shared'
 import { computed } from 'vue'
 import { getMutationStatus, STATUS_COLOR_CLASSES } from '../utils/mutation-state'
 import { useRouter } from 'vue-router'
 import { usePerformanceNow } from '../composables/performance-now'
+import { useFormattedKey } from '../composables/entries'
 
 const { entry } = defineProps<{
   entry: UseMutationEntryPayload
@@ -18,20 +18,7 @@ function unselect(event: MouseEvent) {
   router.push('/mutations')
 }
 
-const formattedKey = computed(() => {
-  if (!entry.key) return ['<anonymous>']
-
-  return entry.key.map((rawValue) => {
-    let value: unknown = rawValue
-    try {
-      value = typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue
-    } catch {
-      // Keep original value if parsing fails
-    }
-    return value && typeof value === 'object' ? miniJsonParse(value) : String(value)
-  })
-})
-
+const formattedKey = useFormattedKey(() => entry.key)
 const isAnonymous = computed(() => {
   // No key means anonymous
   if (!entry.key) return true
@@ -99,7 +86,7 @@ const status = computed(() => getMutationStatus(entry))
             class="text-(--ui-text-muted)"
             title="Anonymous mutation"
           />
-          <ol class="flex font-mono grow gap-0.5 overflow-auto items-center">
+          <ol class="flex font-mono grow gap-0.5 overflow-auto items-center" v-if="formattedKey">
             <template v-for="(key, i) in formattedKey" :key="i">
               <li
                 class="text-wrap wrap-break-word rounded px-0.5"
