@@ -23,17 +23,6 @@ const selectedMutation = computed<UseMutationEntryPayload | null>(() => {
   return mutations.value.find((entry) => entry.id === Number(mutationId)) ?? null
 })
 
-const isAnonymous = computed(() => {
-  if (!selectedMutation.value) return false
-  const mutation = selectedMutation.value
-
-  // No key means anonymous
-  if (!mutation.key) return true
-
-  // If the key only contains the ID (e.g., ["$0"]), it's effectively anonymous
-  return mutation.key.length === 1 && mutation.key[0] === mutation.id
-})
-
 const TIME_AGO_OPTIONS: FormatTimeAgoOptions = {
   showSecond: true,
   rounding: 'floor',
@@ -123,7 +112,7 @@ watch(
                 {{ selectedMutation.key }}
               </code>
               <span
-                v-if="isAnonymous"
+                v-if="!selectedMutation.key"
                 class="text-xs text-(--ui-text-muted) italic cursor-help"
                 title="This mutation was created without a custom key"
               >
