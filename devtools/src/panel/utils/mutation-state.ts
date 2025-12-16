@@ -12,15 +12,12 @@ export function getMutationStatus(entry: UseMutationEntryPayload): UseMutationEn
   if (entry.asyncStatus === 'loading') {
     return 'loading'
   }
-
   if (entry.state.status === 'error') {
     return 'error'
   }
-
   if (entry.state.status === 'success') {
     return 'success'
   }
-
   if (entry.state.status === 'pending') {
     return 'pending'
   }
