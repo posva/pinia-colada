@@ -45,7 +45,7 @@ Let's see a quick example and cover the basics of [queries](./guide/queries.md),
 
 ### Querying
 
-Queries **are the most important feature of Pinia Colada**. They are used to declaratively fetch data from an API. Create them with `useQuery()` in any component. They expect a `key` to save the data in the cache and a _param-less_ `query` function that returns the data:
+Queries **are the most important feature of Pinia Colada**. They are used to declaratively fetch data from an API. Create them with `useQuery()` in any component. They expect a `key` to save the data in the cache and a `query` function that returns the data:
 
 ```vue twoslash
 <script setup lang="ts">
@@ -65,7 +65,7 @@ const {
 ```
 
 - The `key` is a serializable array that **uniquely** identifies the query. The array allows to establish [a hierarchy](./guide/query-keys.md#keys-are-hierarchical) of keys that can be invalidated at once.
-- The `query` function **takes no arguments** because that allows Pinia Colada to automatically run it when needed ✨.
+- The `query` function is automatically run by Pinia Colada when needed ✨.
 
 `useQuery()` returns an object with quite a few properties. In the example above we use:
 
