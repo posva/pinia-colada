@@ -12,8 +12,10 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    EntryListKey: typeof import('./src/panel/components/entry-list/EntryListKey.vue')['default']
     ILucideCheck: typeof import('~icons/lucide/check')['default']
     ILucideCheckCheck: typeof import('~icons/lucide/check-check')['default']
+    ILucideCheckLine: typeof import('~icons/lucide/check-line')['default']
     ILucideChevronRight: typeof import('~icons/lucide/chevron-right')['default']
     ILucideCircle: typeof import('~icons/lucide/circle')['default']
     ILucideCircleSlash: typeof import('~icons/lucide/circle-slash')['default']
@@ -49,8 +51,10 @@ declare module 'vue' {
 
 // For TSX support
 declare global {
+  const EntryListKey: typeof import('./src/panel/components/entry-list/EntryListKey.vue')['default']
   const ILucideCheck: typeof import('~icons/lucide/check')['default']
   const ILucideCheckCheck: typeof import('~icons/lucide/check-check')['default']
+  const ILucideCheckLine: typeof import('~icons/lucide/check-line')['default']
   const ILucideChevronRight: typeof import('~icons/lucide/chevron-right')['default']
   const ILucideCircle: typeof import('~icons/lucide/circle')['default']
   const ILucideCircleSlash: typeof import('~icons/lucide/circle-slash')['default']
