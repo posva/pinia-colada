@@ -49,6 +49,7 @@ export type {
   UseMutationOptions,
   UseMutationOptionsGlobal,
   UseMutationOptionsGlobalDefaults,
+  UseMutationOptionsWithDefaults,
 } from './mutation-options'
 
 export {

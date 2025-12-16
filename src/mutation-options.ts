@@ -105,6 +105,12 @@ export const USE_MUTATION_DEFAULTS = {
   gcTime: (1000 * 60) as NonNullable<UseMutationOptions['gcTime']>, // 1 minute
 } satisfies UseMutationOptionsGlobal
 
+export type UseMutationOptionsWithDefaults<
+  TData = unknown,
+  TError = ErrorDefault,
+  TDataInitial extends TData | undefined = undefined,
+> = UseMutationOptions<TData, TError, TDataInitial> & typeof USE_MUTATION_DEFAULTS
+
 /**
  * Options to create a mutation.
  */
