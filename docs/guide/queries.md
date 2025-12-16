@@ -87,7 +87,7 @@ Most of the time you will find yourself using just `state` and `asyncStatus` to 
 
 ## Using External Properties in Queries
 
-Since queries are automatically triggered by Pinia Colada, you can directly use external properties like route params or search queries within the `query` function. To ensure proper caching, add these properties to the `key` as a function. A common example is using the `route` within the `query` function:
+Since queries are automatically triggered by Pinia Colada, the `query` function cannot accept custom parameters. However, you can directly use external properties like route params or search queries within the `query` function. To ensure proper caching, add these properties to the `key` as a function. A common example is using the `route` within the `query` function:
 
 ```vue{7-9} twoslash
 <script setup lang="ts">
