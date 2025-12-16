@@ -74,7 +74,6 @@ const status = computed(() => getMutationStatus(entry))
         @click="isActive ? unselect($event) : navigate($event)"
       >
         <div class="flex items-center gap-1.5">
-          <i-lucide-file-question v-if="isAnonymous" class="text-(--ui-text-muted)" />
           <ol class="flex font-mono grow gap-0.5 overflow-auto items-center" v-if="formattedKey">
             <template v-for="(key, i) in formattedKey" :key="i">
               <li class="text-wrap wrap-break-word rounded px-0.5 bg-(--ui-text)/5">
@@ -82,13 +81,20 @@ const status = computed(() => getMutationStatus(entry))
               </li>
               <li v-if="i < formattedKey.length - 1" aria-hidden="true">/</li>
             </template>
+            <li class="text-xs text-(--ui-text-muted)">({{ entry.id }})</li>
           </ol>
-          <template v-else>
-            <span class="text-xs italic">{{ entry.id }}</span>
-            <span class="font-mono rounded px-0.5 bg-(--ui-text)/8">{{
-              new Date(entry.when).toISOString()
-            }}</span>
-          </template>
+          <div
+            v-if="isAnonymous"
+            class="grid grid-cols-[auto_auto_1fr] gap-1.5 items-center w-full"
+          >
+            <i-lucide-file-question class="text-(--ui-text-muted) grow" />
+            <span class="text-xs">{{ entry.id }}</span>
+            <span>
+              <span class="font-mono rounded px-0.5 bg-(--ui-text)/8">{{
+                new Date(entry.when).toISOString()
+              }}</span>
+            </span>
+          </div>
         </div>
       </a>
 
