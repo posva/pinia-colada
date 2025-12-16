@@ -19,7 +19,7 @@ const router = useRouter()
 const mutations = useMutationEntries()
 
 const selectedMutation = computed<UseMutationEntryPayload | null>(() => {
-  const mutationId = route.params.mutationId as string | undefined
+  const mutationId = route.params.mutationId
   return mutations.value.find((entry) => entry.id === Number(mutationId)) ?? null
 })
 
@@ -37,24 +37,26 @@ const lastUpdate = useTimeAgo(() => selectedMutation.value?.devtools.updatedAt ?
 const channel = useDuplexChannel()
 
 // Track when we're replaying to auto-navigate to new mutation
-const justReplayed = ref(false)
+let justReplayed = false
 const mutationCountBeforeReplay = ref(0)
 
 function replayMutation(id: UseMutationEntryPayload['id']) {
   // Track state before replay
   mutationCountBeforeReplay.value = mutations.value.length
-  justReplayed.value = true
+  justReplayed = true
 
   // Emit the replay event
   channel.emit('mutations:replay', id)
 }
 
-// Watch for new mutations and auto-navigate after replay
+// FIXME: we should move this logic up and auto detect replays maybe with some linking
+// isReplayOf: mutationId
+// and we can display this in the interface too
 watch(
-  () => mutations.value.length,
-  (newCount) => {
-    if (justReplayed.value && newCount > mutationCountBeforeReplay.value) {
-      // Find the most recently updated mutation (the replayed one)
+  () => mutations.value,
+  () => {
+    if (justReplayed) {
+      // Find the latest id
       const newest = mutations.value.toSorted((a, b) => b.id - a.id)[0]
 
       if (newest) {
@@ -64,9 +66,11 @@ watch(
         })
       }
 
-      // Reset flag
-      justReplayed.value = false
+      justReplayed = false
     }
+  },
+  {
+    deep: true,
   },
 )
 
