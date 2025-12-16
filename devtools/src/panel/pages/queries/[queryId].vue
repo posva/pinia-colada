@@ -40,13 +40,6 @@ const serializedHistoryEntries = computed(() => {
   )
 })
 
-const noQueryMessage = computed(() => {
-  if (!route.params.queryId) {
-    return 'No query selected'
-  }
-  return 'Query ID does not match any existing query'
-})
-
 const TIME_AGO_OPTIONS: FormatTimeAgoOptions = {
   showSecond: true,
   rounding: 'floor',
