@@ -43,7 +43,7 @@ const status = computed(() => getMutationStatus(entry))
           :title="status"
         >
           <i-lucide-loader v-if="status === 'loading'" title="Loading" aria-label="Loading icon" />
-          <i-lucide-check-line
+          <i-lucide-check
             v-else-if="status === 'success'"
             title="Success"
             aria-label="Success icon"
