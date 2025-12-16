@@ -40,6 +40,13 @@ const serializedHistoryEntries = computed(() => {
   )
 })
 
+const noQueryMessage = computed(() => {
+  if (!route.params.queryId) {
+    return 'No query selected'
+  }
+  return 'Query ID does not match any existing query'
+})
+
 const TIME_AGO_OPTIONS: FormatTimeAgoOptions = {
   showSecond: true,
   rounding: 'floor',
@@ -332,6 +339,9 @@ watch(
         <p class="flex flex-col text-center items-center gap-2 text-lg px-2">
           Select a Query to inspect
           <i-lucide-mouse-pointer-click />
+        </p>
+        <p class="text-center text-sm text-neutral-500 mt-4">
+          No query with key {{ route.params.queryId }} was found in the cache
         </p>
       </div>
     </template>
