@@ -234,7 +234,7 @@ export function createMutationEntryPayload(entry: UseMutationEntry): UseMutation
     when: entry.when,
     vars: entry.vars,
     options: entry.options && {
-      gcTime: entry.options.gcTime === false ? undefined : entry.options.gcTime,
+      gcTime: entry.options.gcTime,
     },
     gcTimeout: typeof entry.gcTimeout === 'number' ? (entry.gcTimeout as number) : null,
     active: entry[DEVTOOLS_INFO_KEY].inactiveAt === 0,

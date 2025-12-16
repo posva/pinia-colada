@@ -14,7 +14,11 @@ import { useMutationCache } from './mutation-store'
 import type { UseMutationEntry } from './mutation-store'
 import { noop } from './utils'
 import type { _EmptyObject } from './utils'
-import { useMutationOptions, type UseMutationOptions } from './mutation-options'
+import {
+  USE_MUTATION_DEFAULTS,
+  useMutationOptions,
+  type UseMutationOptions,
+} from './mutation-options'
 
 /**
  * Valid keys for a mutation. Similar to query keys.
@@ -147,13 +151,17 @@ export function useMutation<
   const mutationCache = useMutationCache()
   const hasCurrentInstance = getCurrentInstance()
   const currentEffect = getCurrentScope()
+  const optionDefaults = useMutationOptions()
 
-  // FIXME: take into account global options
-  // const optionDefaults = useMutationOptions()
+  const mergedOptions = {
+    // NOTE: overriding the hooks, makes the types too complex to infer properly
+    ...(optionDefaults as typeof USE_MUTATION_DEFAULTS),
+    ...options,
+  }
 
   // always create an initial entry with no key (cannot be computed without vars)
   const entry = shallowRef<UseMutationEntry<TData, TVars, TError, TContext>>(
-    mutationCache.create(options),
+    mutationCache.create(mergedOptions),
   )
 
   // Untrack the mutation entry when component or effect scope is disposed
@@ -187,7 +195,7 @@ export function useMutation<
   }
 
   function reset() {
-    entry.value = mutationCache.create(options)
+    entry.value = mutationCache.create(mergedOptions)
   }
 
   return {

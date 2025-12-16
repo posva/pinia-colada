@@ -107,9 +107,10 @@ export const USE_MUTATION_DEFAULTS = {
 
 export type UseMutationOptionsWithDefaults<
   TData = unknown,
+  TVars = void,
   TError = ErrorDefault,
-  TDataInitial extends TData | undefined = undefined,
-> = UseMutationOptions<TData, TError, TDataInitial> & typeof USE_MUTATION_DEFAULTS
+  TContext extends Record<any, any> = _EmptyObject,
+> = UseMutationOptions<TData, TVars, TError, TContext> & typeof USE_MUTATION_DEFAULTS
 
 /**
  * Options to create a mutation.
@@ -249,5 +250,5 @@ export const USE_MUTATION_OPTIONS_KEY: InjectionKey<UseMutationOptionsGlobalDefa
  *
  * @internal
  */
-export const useMutationOptions = (): UseMutationOptionsGlobal =>
+export const useMutationOptions = (): UseMutationOptionsGlobalDefaults =>
   inject(USE_MUTATION_OPTIONS_KEY, USE_MUTATION_DEFAULTS)

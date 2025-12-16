@@ -2,9 +2,13 @@ import { createPinia, getActivePinia, setActivePinia } from 'pinia'
 import { describe, beforeEach, it, expect, vi } from 'vitest'
 import { createApp } from 'vue'
 import { useMutationCache, isMutationCache } from './mutation-store'
-import type { UseMutationEntry, MutationCache } from './mutation-store'
+import type { UseMutationEntry } from './mutation-store'
 import { flushPromises } from '@vue/test-utils'
-import type { UseMutationOptions } from './mutation-options'
+import {
+  USE_MUTATION_DEFAULTS,
+  type UseMutationOptions,
+  type UseMutationOptionsWithDefaults,
+} from './mutation-options'
 import { mockConsoleError, mockWarn } from '../test-utils/mock-warn'
 import { useMutation } from './use-mutation'
 
@@ -21,9 +25,10 @@ describe('Mutation Cache store', () => {
     const mutationCache = useMutationCache()
     for (const key of keys) {
       const options = {
+        ...USE_MUTATION_DEFAULTS,
         key,
         mutation: async () => 'ok',
-      } satisfies UseMutationOptions
+      } satisfies UseMutationOptionsWithDefaults
       const entry = mutationCache.create(options)
       mutationCache.ensure(entry, undefined)
     }
@@ -116,8 +121,9 @@ describe('Mutation Cache store', () => {
       const mutationCache = useMutationCache()
 
       const options = {
+        ...USE_MUTATION_DEFAULTS,
         mutation: async () => 'test',
-      } satisfies UseMutationOptions
+      } satisfies UseMutationOptionsWithDefaults
 
       const entry = mutationCache.create(options)
 
@@ -133,6 +139,7 @@ describe('Mutation Cache store', () => {
     const mutationCache = useMutationCache()
     const e1 = mutationCache.ensure(
       mutationCache.create({
+        ...USE_MUTATION_DEFAULTS,
         key: ['a', 'b', 'c'],
         mutation: async () => 'abc',
       }),
@@ -142,6 +149,7 @@ describe('Mutation Cache store', () => {
 
     const e2 = mutationCache.ensure(
       mutationCache.create({
+        ...USE_MUTATION_DEFAULTS,
         key: ['a', 'b', 'd'],
         mutation: async () => 'abd',
       }),
@@ -151,6 +159,7 @@ describe('Mutation Cache store', () => {
 
     const e3 = mutationCache.ensure(
       mutationCache.create({
+        ...USE_MUTATION_DEFAULTS,
         key: ['a', 'b'],
         mutation: async () => 'ab',
       }),
@@ -168,6 +177,7 @@ describe('Mutation Cache store', () => {
     const mutationCache = useMutationCache()
     const entry = mutationCache.ensure(
       mutationCache.create({
+        ...USE_MUTATION_DEFAULTS,
         key: ['a', 'b', 'c'],
         mutation: async () => 'abc',
       }),
@@ -208,7 +218,10 @@ describe('Mutation Cache store', () => {
   describe('extensibility', () => {
     it('has an ext property that starts empty', () => {
       const mutationCache = useMutationCache()
-      const entry = mutationCache.create({ mutation: async () => 'ok' })
+      const entry = mutationCache.create({
+        ...USE_MUTATION_DEFAULTS,
+        mutation: async () => 'ok',
+      })
       expect(entry.ext).toBeDefined()
     })
 
@@ -223,7 +236,10 @@ describe('Mutation Cache store', () => {
         }
       })
 
-      const entry = mutationCache.create({ mutation: async () => 'ok' })
+      const entry = mutationCache.create({
+        ...USE_MUTATION_DEFAULTS,
+        mutation: async () => 'ok',
+      })
       mutationCache.ensure(entry, undefined)
 
       expect(extendSpy).toHaveBeenCalledTimes(1)
@@ -240,10 +256,16 @@ describe('Mutation Cache store', () => {
         }
       })
 
-      const entry = mutationCache.create({ mutation: async () => 'ok' })
+      const entry = mutationCache.create({
+        ...USE_MUTATION_DEFAULTS,
+        mutation: async () => 'ok',
+      })
       mutationCache.ensure(entry, undefined)
       // Ensure the same entry again
-      const entry2 = mutationCache.create({ mutation: async () => 'ok' })
+      const entry2 = mutationCache.create({
+        ...USE_MUTATION_DEFAULTS,
+        mutation: async () => 'ok',
+      })
       mutationCache.ensure(entry2, undefined)
 
       // extend should be called twice (once per unique entry)
@@ -262,7 +284,10 @@ describe('Mutation Cache store', () => {
         }
       })
 
-      const entry = mutationCache.create({ mutation: async () => 'ok' })
+      const entry = mutationCache.create({
+        ...USE_MUTATION_DEFAULTS,
+        mutation: async () => 'ok',
+      })
       mutationCache.ensure(entry, undefined)
 
       expect(entry.ext).toHaveProperty('customProperty', 'test-value')
@@ -300,6 +325,7 @@ describe('Mutation Cache store', () => {
     const mutationCache = useMutationCache()
     const entry = mutationCache.ensure(
       mutationCache.create({
+        ...USE_MUTATION_DEFAULTS,
         key: ['a', 'b', 'c'],
         mutation: async () => 'abc',
       }),
@@ -313,9 +339,10 @@ describe('Mutation Cache store', () => {
   it('can store and retrieve multiple entries with the same user key', () => {
     const mutationCache = useMutationCache()
     const options = {
+      ...USE_MUTATION_DEFAULTS,
       key: ['same', 'key'],
       mutation: async () => 'ok',
-    } satisfies UseMutationOptions
+    } satisfies UseMutationOptionsWithDefaults
 
     const entry1 = mutationCache.ensure(mutationCache.create(options), undefined)
     const entry2 = mutationCache.ensure(mutationCache.create(options), undefined)
@@ -342,11 +369,17 @@ describe('Mutation Cache store', () => {
     const mutationCache = useMutationCache()
 
     const entry1 = mutationCache.ensure(
-      mutationCache.create({ mutation: async () => 'ok' }),
+      mutationCache.create({
+        ...USE_MUTATION_DEFAULTS,
+        mutation: async () => 'ok',
+      }),
       undefined,
     )
     const entry2 = mutationCache.ensure(
-      mutationCache.create({ mutation: async () => 'ok' }),
+      mutationCache.create({
+        ...USE_MUTATION_DEFAULTS,
+        mutation: async () => 'ok',
+      }),
       undefined,
     )
 

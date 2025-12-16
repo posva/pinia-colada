@@ -161,12 +161,12 @@ export function useQuery<
         (params: unknown) => DefineQueryOptions<TData, TError, TDataInitial>,
         paramsGetter?: MaybeRefOrGetter<unknown>,
       ]
-  // _options:
-  //   | UseQueryOptions<TData, TError, TDataInitial>
-  //   | (() => DefineQueryOptions<TData, TError, TDataInitial>)
-  //   | ((params: unknown) => DefineQueryOptions<TData, TError, TDataInitial>),
-  // paramsGetter?: MaybeRefOrGetter<unknown>,
-): UseQueryReturn<TData, TError, TDataInitial> {
+) // _options:
+//   | UseQueryOptions<TData, TError, TDataInitial>
+//   | (() => DefineQueryOptions<TData, TError, TDataInitial>)
+//   | ((params: unknown) => DefineQueryOptions<TData, TError, TDataInitial>),
+// paramsGetter?: MaybeRefOrGetter<unknown>,
+: UseQueryReturn<TData, TError, TDataInitial> {
   if (paramsGetter != null) {
     return useQuery(() =>
       // NOTE: we manually type cast here because TS cannot infer correctly in overloads

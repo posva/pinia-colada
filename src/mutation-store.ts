@@ -2,13 +2,13 @@ import type { ShallowRef } from 'vue'
 import type { AsyncStatus, DataState } from './data-state'
 import { defineStore, skipHydrate } from 'pinia'
 import { customRef, getCurrentScope, hasInjectionContext, shallowRef } from 'vue'
-import { find, START_EXT, toCacheKey } from './entry-keys'
+import { find, START_EXT } from './entry-keys'
 import type { EntryFilter } from './entry-filter'
 import type { _EmptyObject } from './utils'
 import { noop, toValueWithArgs, warnOnce } from './utils'
 import type { _ReduceContext } from './use-mutation'
 import { useMutationOptions } from './mutation-options'
-import type { UseMutationOptions } from './mutation-options'
+import type { UseMutationOptions, UseMutationOptionsWithDefaults } from './mutation-options'
 import type { EntryKey } from './entry-keys'
 
 /**
@@ -68,7 +68,7 @@ export interface UseMutationEntry<
   /**
    * Options used to create the mutation.
    */
-  options: UseMutationOptions<TData, TVars, TError, TContext>
+  options: UseMutationOptionsWithDefaults<TData, TVars, TError, TContext>
 
   /**
    * Timeout id that scheduled a garbage collection. It is set here to clear it when the entry is used by a different component.
@@ -154,7 +154,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
       TError = unknown,
       TContext extends Record<any, any> = _EmptyObject,
     >(
-      options: UseMutationOptions<TData, TVars, TError, TContext>,
+      options: UseMutationOptionsWithDefaults<TData, TVars, TError, TContext>,
       key?: EntryKey | undefined,
       vars?: TVars,
     ): UseMutationEntry<TData, TVars, TError, TContext> =>
