@@ -37,7 +37,7 @@ const isAnonymous = computed(() => {
 const TIME_AGO_OPTIONS: FormatTimeAgoOptions = {
   showSecond: true,
   rounding: 'floor',
-  max: 1000 * 60 * 60 * 24, // 1 hour
+  max: 1000 * 60 * 60 * 24, // 1 day
 }
 
 const lastUpdate = useTimeAgo(() => selectedMutation.value?.devtools.updatedAt ?? 0, {
