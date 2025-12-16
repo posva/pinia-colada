@@ -29,7 +29,7 @@ const { mutate: failableMutation, asyncStatus: failableStatus } = useMutation({
 
 // Mutation 3: Long-running mutation
 const { mutate: longMutation, asyncStatus: longStatus } = useMutation({
-  key: () => ['long-running-mutation'],
+  key: ({ duration }) => ['long-running-mutation', { duration }],
   mutation: async (data: { duration: number }) => {
     await delay(data.duration)
     return { completed: true, duration: data.duration }
