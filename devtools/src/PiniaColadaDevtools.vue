@@ -255,24 +255,26 @@ transmitter.on('mutations:simulate:error:stop', (id) => {
 })
 
 transmitter.on('mutations:replay', (id) => {
-  const originalEntry = mutationCache.get(id)
+  const entry = mutationCache.get(id)
 
-  if (!originalEntry) {
+  if (!entry) {
     console.warn('[@pinia/colada] Cannot replay: mutation entry not found')
     return
   }
 
-  if (originalEntry.vars === undefined) {
-    console.warn('[@pinia/colada] Cannot replay: mutation has no stored variables')
+  if (entry.gcTimeout) {
+    console.warn(
+      "[@pinia/colada] Cannot replay: mutation is in the process of being garbage collected. It isn't used anywhere and replaying it will have no effect.",
+    )
     return
   }
 
-  // Create new entry to avoid reuse warnings and maintain history
-  const newEntry = mutationCache.create(originalEntry.options)
-  const ensuredEntry = mutationCache.ensure(newEntry, originalEntry.vars)
-
-  // Trigger the mutation - errors will be handled by existing cache listeners
-  mutationCache.mutate(ensuredEntry).catch(() => {
+  mutationCache.setEntryState(entry, {
+    data: undefined,
+    status: 'pending',
+    error: null,
+  })
+  mutationCache.mutate(entry).catch(() => {
     // Errors are automatically emitted via mutations:update
   })
 })
