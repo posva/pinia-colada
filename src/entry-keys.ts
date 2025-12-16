@@ -132,7 +132,7 @@ export type EntryKeyTagged<
  * @internal
  */
 export function* find<T extends { key: EntryKey | undefined }>(
-  map: Map<string, T>,
+  map: Map<string | number, T>,
   partialKey?: EntryKey,
 ) {
   for (const entry of map.values()) {

@@ -39,34 +39,13 @@ describe('Mutation Cache store', () => {
       expect(mutationCache.getEntries({ key: ['a', 'a'] })).toHaveLength(1)
       expect(mutationCache.getEntries({ key: ['a', 'b'] })).toHaveLength(0)
       expect(mutationCache.getEntries({ key: ['a', 'a', 'a'] })).toHaveLength(0)
-      expect(mutationCache.getEntries({ key: ['a', 'a'] })).toMatchObject([
-        { key: ['a', 'a', '$2'] },
-      ])
+      expect(mutationCache.getEntries({ key: ['a', 'a'] })).toMatchObject([{ key: ['a', 'a'] }])
     })
 
     it('can filter unkeyed entries', () => {
       const mutationCache = useMutationCache()
       createEntries([[], undefined])
       expect(mutationCache.getEntries()).toHaveLength(2)
-      expect(mutationCache.getEntries({ key: ['$0'] })).toHaveLength(1)
-      expect(mutationCache.getEntries({ key: ['$1'] })).toHaveLength(1)
-    })
-
-    it('filters based on exact key', () => {
-      const mutationCache = useMutationCache()
-      createEntries([['a'], ['b'], ['a', 'a']])
-      // we need to pass the id to make them work
-      expect(mutationCache.getEntries({ exact: true, key: ['a', '$0'] })).toHaveLength(1)
-      expect(mutationCache.getEntries({ exact: true, key: ['a', 'a', '$2'] })).toMatchObject([
-        { key: ['a', 'a', '$2'] },
-      ])
-    })
-
-    it('filters all entries if exact with no key', () => {
-      const mutationCache = useMutationCache()
-      createEntries([['a'], ['b'], ['a', 'a']])
-      // @ts-expect-error: exact must have a key
-      expect(mutationCache.getEntries({ exact: true })).toHaveLength(0)
     })
 
     it('filters based on predicate', () => {
@@ -133,50 +112,6 @@ describe('Mutation Cache store', () => {
       expect('mutation cache instance cannot be set directly').toHaveBeenErroredTimes(1)
     })
 
-    it('warns when a mutation entry is created with a reserved key part at the start', () => {
-      const mutationCache = useMutationCache()
-
-      const options = {
-        key: ['$1'], // Using a reserved key format at the start
-        mutation: async () => 'test',
-      } satisfies UseMutationOptions
-
-      const entry = mutationCache.create(options)
-      mutationCache.ensure(entry, undefined)
-
-      expect('A mutation entry was created with a reserved key part "$1"').toHaveBeenWarnedTimes(1)
-    })
-
-    it('warns when a mutation entry is created with a reserved key part in the middle', () => {
-      const mutationCache = useMutationCache()
-
-      const options = {
-        key: ['users', '$42', 'profile'], // Using a reserved key format in the middle
-        mutation: async () => 'test',
-      } satisfies UseMutationOptions
-
-      const entry = mutationCache.create(options)
-      mutationCache.ensure(entry, undefined)
-
-      expect('A mutation entry was created with a reserved key part "$42"').toHaveBeenWarnedTimes(1)
-    })
-
-    it('warns when a mutation entry is created with a reserved key part at the end', () => {
-      const mutationCache = useMutationCache()
-
-      const options = {
-        key: ['users', 'profile', '$123'], // Using a reserved key format at the end
-        mutation: async () => 'test',
-      } satisfies UseMutationOptions
-
-      const entry = mutationCache.create(options)
-      mutationCache.ensure(entry, undefined)
-
-      expect('A mutation entry was created with a reserved key part "$123"').toHaveBeenWarnedTimes(
-        1,
-      )
-    })
-
     it('errors when mutating an entry that was not ensured', () => {
       const mutationCache = useMutationCache()
 
@@ -223,7 +158,7 @@ describe('Mutation Cache store', () => {
     )
     await mutationCache.mutate(e3)
 
-    const [entry] = mutationCache.getEntries({ key: ['a', 'b', '$2'] })
+    const entry = mutationCache.get(e3.id)
     expect(entry).toBeDefined()
     mutationCache.remove(entry!)
     expect(mutationCache.getEntries({ key: ['a', 'b', 'c'] })).toHaveLength(1)
@@ -239,13 +174,13 @@ describe('Mutation Cache store', () => {
       undefined,
     )
     await mutationCache.mutate(entry)
-    expect(mutationCache.get(['a', 'b', 'c', entry.id])).toBeDefined()
-    expect(mutationCache.get(['a', 'b', 'c', entry.id])).toBe(entry)
+    expect(mutationCache.get(entry.id)).toBeDefined()
+    expect(mutationCache.get(entry.id)).toBe(entry)
   })
 
   it('returns undefined for non-existent entries', () => {
     const mutationCache = useMutationCache()
-    expect(mutationCache.get(['non', 'existent'])).toBeUndefined()
+    expect(mutationCache.get(999)).toBeUndefined()
   })
 
   describe('isMutationCache', () => {
@@ -359,5 +294,71 @@ describe('Mutation Cache store', () => {
       })
       expect(onActionCreate).toHaveBeenCalledTimes(2)
     })
+  })
+
+  it('can get an individual entry by mutation ID', () => {
+    const mutationCache = useMutationCache()
+    const entry = mutationCache.ensure(
+      mutationCache.create({
+        key: ['a', 'b', 'c'],
+        mutation: async () => 'abc',
+      }),
+      undefined,
+    )
+
+    expect(mutationCache.get(entry.id)).toBeDefined()
+    expect(mutationCache.get(entry.id)).toBe(entry)
+  })
+
+  it('can store and retrieve multiple entries with the same user key', () => {
+    const mutationCache = useMutationCache()
+    const options = {
+      key: ['same', 'key'],
+      mutation: async () => 'ok',
+    } satisfies UseMutationOptions
+
+    const entry1 = mutationCache.ensure(mutationCache.create(options), undefined)
+    const entry2 = mutationCache.ensure(mutationCache.create(options), undefined)
+    const entry3 = mutationCache.ensure(mutationCache.create(options), undefined)
+
+    // All three should be different entries with different IDs
+    expect(entry1.id).not.toBe(entry2.id)
+    expect(entry2.id).not.toBe(entry3.id)
+
+    // All should be retrievable by ID
+    expect(mutationCache.get(entry1.id)).toBe(entry1)
+    expect(mutationCache.get(entry2.id)).toBe(entry2)
+    expect(mutationCache.get(entry3.id)).toBe(entry3)
+
+    // All should be findable by user key
+    const entries = mutationCache.getEntries({ key: ['same', 'key'] })
+    expect(entries).toHaveLength(3)
+    expect(entries).toContain(entry1)
+    expect(entries).toContain(entry2)
+    expect(entries).toContain(entry3)
+  })
+
+  it('handles unkeyed mutations correctly', () => {
+    const mutationCache = useMutationCache()
+
+    const entry1 = mutationCache.ensure(
+      mutationCache.create({ mutation: async () => 'ok' }),
+      undefined,
+    )
+    const entry2 = mutationCache.ensure(
+      mutationCache.create({ mutation: async () => 'ok' }),
+      undefined,
+    )
+
+    expect(entry1.key).toBeUndefined()
+    expect(entry2.key).toBeUndefined()
+    expect(entry1.id).not.toBe(entry2.id)
+
+    // Should be retrievable by ID
+    expect(mutationCache.get(entry1.id)).toBe(entry1)
+    expect(mutationCache.get(entry2.id)).toBe(entry2)
+
+    // Both should appear in getEntries()
+    expect(mutationCache.getEntries()).toHaveLength(2)
   })
 })
