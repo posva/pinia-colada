@@ -1,4 +1,4 @@
-import type { UseMutationEntry } from '@pinia/colada'
+import type { UseMutationEntry, UseMutationOptionsWithDefaults } from '@pinia/colada'
 import type { DEVTOOLS_INFO_KEY } from './plugins/devtools-info'
 
 export interface UseMutationEntryPayload {
@@ -53,6 +53,7 @@ export interface UseMutationEntryPayload {
   devtools: UseMutationEntry[typeof DEVTOOLS_INFO_KEY]
 }
 
-export interface UseMutationEntryPayloadOptions {
-  gcTime: number | undefined
-}
+export interface UseMutationEntryPayloadOptions extends Pick<
+  UseMutationOptionsWithDefaults,
+  'gcTime'
+> {}
