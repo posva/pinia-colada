@@ -55,7 +55,7 @@ export interface UseMutationEntry<
   when: number
 
   /**
-   * The serialized key associated with this mutation entry.
+   * The key associated with this mutation entry.
    * Can be `undefined` if the entry has no key.
    */
   key: EntryKey | undefined
@@ -138,7 +138,6 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
   const defineMutationMap = new WeakMap<() => unknown, unknown>()
 
   let nextMutationId = 1
-  const generateMutationId = () => nextMutationId++
 
   /**
    * Creates a mutation entry and its state without adding it to the cache.
@@ -198,7 +197,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     vars: NoInfer<TVars>,
   ): UseMutationEntry<TData, TVars, TError, TContext> {
     const options = entry.options
-    const id = generateMutationId()
+    const id = nextMutationId++
     const key: EntryKey | undefined = options.key && toValueWithArgs(options.key, vars)
 
     // override the existing entry and untrack it if it was already created
@@ -302,10 +301,8 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     >(
       entry: UseMutationEntry<TData, TVars, TError, TContext>,
     ) => {
-      if (entry.id !== 0) {
-        cachesRaw.delete(entry.id)
-        triggerCache()
-      }
+      cachesRaw.delete(entry.id)
+      triggerCache()
     },
   )
 
