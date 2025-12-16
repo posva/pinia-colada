@@ -100,11 +100,19 @@ function updatePanesSize({ panes }: { panes: { size: number }[] }) {
     >
       <!-- List Panel -->
       <Pane min-size="15" :size="queryListPanelSize[0]" class="flex flex-col">
-        <ol role="list" class="divide-y divide-(--ui-border)">
+        <ol role="list" class="divide-y divide-(--ui-border)" v-if="filteredItems.length > 0">
           <li v-for="entry of filteredItems" :key="entry.keyHash">
             <ListQueryEntry :entry />
           </li>
         </ol>
+        <div
+          v-else
+          class="flex flex-col items-center p-4 text-(--ui-text-muted) text-sm text-center gap-2"
+        >
+          <i-lucide-inbox class="size-8" />
+          <h3 class="text-lg">No queries found</h3>
+          <p>Try adjusting your search or perform some mutations in your app.</p>
+        </div>
       </Pane>
 
       <!-- Details Panel -->
