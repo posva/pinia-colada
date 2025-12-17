@@ -147,4 +147,4 @@ export function* find<T extends { key: EntryKey | undefined }>(
  *
  * @internal
  */
-export const START_EXT = {}
+export const START_EXT = Object.freeze({})

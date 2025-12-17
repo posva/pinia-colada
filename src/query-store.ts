@@ -130,7 +130,8 @@ export interface UseQueryEntry<
   meta: QueryMeta
 
   /**
-   * Extensions to the query entry added by plugins.
+   * Extensions to the query entry added by plugins. Must be extended in the
+   * `extend` action.
    */
   ext: UseQueryEntryExtensions<TData, TError, TDataInitial>
 
