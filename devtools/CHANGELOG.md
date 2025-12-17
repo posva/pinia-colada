@@ -1,3 +1,10 @@
+## [0.2.1](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.2.0...@pinia/colada-devtools@0.2.1) (2025-12-17)
+
+### Features
+
+- **devtools:** editable data ([3db63a8](https://github.com/posva/pinia-colada/commit/3db63a865054bada72b06433bb9d309e3f15dec9))
+- thiner scrollbar ([53893e6](https://github.com/posva/pinia-colada/commit/53893e6cd672784391359edc2decba8a1c6359ed))
+
 # [0.2.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.1.9...@pinia/colada-devtools@0.2.0) (2025-12-16)
 
 ### Bug Fixes

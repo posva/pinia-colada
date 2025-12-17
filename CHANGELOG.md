@@ -1,3 +1,10 @@
+## [0.19.1](https://github.com/posva/pinia-colada/compare/v0.19.0...v0.19.1) (2025-12-17)
+
+### Features
+
+- initialDataUpdatedAt ([e16ff61](https://github.com/posva/pinia-colada/commit/e16ff6108c143d0d4d89766baf953240a1b67b7f)), closes [#298](https://github.com/posva/pinia-colada/issues/298)
+- warns if the user extends in create instead of ext ([d71a890](https://github.com/posva/pinia-colada/commit/d71a8904a4c8ee8ffc1e076da3748b80b22ab0a8)), closes [#442](https://github.com/posva/pinia-colada/issues/442)
+
 # [0.19.0](https://github.com/posva/pinia-colada/compare/v0.18.1...v0.19.0) (2025-12-16)
 
 - refactor(mutations)!: keep mutations key as passed (#440) ([4879189](https://github.com/posva/pinia-colada/commit/4879189f66fa2d1162a8739ac1c5f3f14d22183d)), closes [#440](https://github.com/posva/pinia-colada/issues/440)

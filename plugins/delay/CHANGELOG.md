@@ -1,3 +1,9 @@
+## [0.1.3](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-delay@0.1.2...@pinia/colada-plugin-delay@0.1.3) (2025-12-17)
+
+### Bug Fixes
+
+- use extend action to extend entry ([6843e22](https://github.com/posva/pinia-colada/commit/6843e22d00cff3e6318e833f4deb36751be2cc47)), closes [#442](https://github.com/posva/pinia-colada/issues/442)
+
 ## [0.1.2](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-delay@0.1.1...@pinia/colada-plugin-delay@0.1.2) (2025-12-16)
 
 No changes in this release.
