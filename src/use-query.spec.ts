@@ -230,6 +230,101 @@ describe('useQuery', () => {
       expect(query).toHaveBeenCalledTimes(2)
       expect(wrapper.vm.data).toBe('ok: 2')
     })
+
+    it('respects initialDataUpdatedAt as a number with initialData', async () => {
+      const { wrapper, query } = mountSimple({
+        initialData: () => 24,
+        staleTime: 1000,
+        initialDataUpdatedAt: Date.now() - 500, // 500ms ago
+      })
+
+      // Should not fetch - data is fresh (500ms < 1000ms staleTime)
+      expect(query).toHaveBeenCalledTimes(0)
+      expect(wrapper.vm.data).toBe(24)
+      expect(wrapper.vm.status).toBe('success')
+
+      // Advance 400ms (total 900ms, still fresh)
+      vi.advanceTimersByTime(400)
+      await wrapper.vm.refresh()
+      expect(query).toHaveBeenCalledTimes(0)
+
+      // Advance 200ms more (total 1100ms, now stale)
+      vi.advanceTimersByTime(200)
+      await wrapper.vm.refresh()
+      expect(query).toHaveBeenCalledTimes(1)
+      await flushPromises()
+      expect(wrapper.vm.data).toBe(42)
+    })
+
+    it('respects initialDataUpdatedAt as a function with initialData', async () => {
+      const initialDataUpdatedAt = vi.fn(() => Date.now() - 800)
+      const { wrapper, query } = mountSimple({
+        initialData: () => 24,
+        staleTime: 1000,
+        initialDataUpdatedAt,
+      })
+
+      expect(initialDataUpdatedAt).toHaveBeenCalledTimes(1)
+      expect(query).toHaveBeenCalledTimes(0)
+
+      vi.advanceTimersByTime(250)
+      await wrapper.vm.refresh()
+      expect(initialDataUpdatedAt).toHaveBeenCalledTimes(1)
+    })
+
+    it('fetches immediately if initialDataUpdatedAt makes data stale', async () => {
+      const { wrapper, query } = mountSimple({
+        initialData: () => 24,
+        staleTime: 1000,
+        initialDataUpdatedAt: Date.now() - 2000, // 2000ms ago (stale)
+      })
+
+      // Should fetch immediately since data is stale
+      expect(query).toHaveBeenCalledTimes(1)
+      expect(wrapper.vm.data).toBe(24) // Shows initial data while fetching
+
+      await flushPromises()
+      expect(wrapper.vm.data).toBe(42) // Updated with fresh data
+    })
+
+    it('defaults to Date.now() when initialDataUpdatedAt is not provided', async () => {
+      const { wrapper, query } = mountSimple({
+        initialData: () => 24,
+        staleTime: 1000,
+      })
+
+      expect(query).toHaveBeenCalledTimes(0)
+      expect(wrapper.vm.data).toBe(24)
+
+      vi.advanceTimersByTime(1000)
+      await wrapper.vm.refresh()
+      expect(query).toHaveBeenCalledTimes(1)
+    })
+
+    it('uses initialDataUpdatedAt for new entries when key changes', async () => {
+      const key = ref(1)
+      const initialDataUpdatedAt = vi.fn(() => Date.now() - 1500)
+      const { wrapper, query } = mountSimple({
+        key: () => [key.value],
+        query: async () => `ok: ${key.value}`,
+        initialData: () => 'init',
+        staleTime: 1000,
+        initialDataUpdatedAt,
+      })
+
+      // First entry should fetch immediately (old data)
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+      expect(initialDataUpdatedAt).toHaveBeenCalledTimes(1)
+      expect(wrapper.vm.data).toBe('ok: 1')
+
+      // Change key - new entry should also fetch
+      key.value = 2
+      await flushPromises()
+      expect(initialDataUpdatedAt).toHaveBeenCalledTimes(2)
+      expect(query).toHaveBeenCalledTimes(2)
+      expect(wrapper.vm.data).toBe('ok: 2')
+    })
   })
 
   describe('staleTime', () => {

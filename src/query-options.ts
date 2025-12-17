@@ -155,6 +155,34 @@ export interface UseQueryOptions<
   initialData?: () => TDataInitial
 
   /**
+   * The timestamp (in milliseconds) when the initial data was last updated.
+   * This determines the staleness of the {@link initialData}. If not provided,
+   * defaults to `Date.now()` when initial data is set.
+   *
+   * @default Date.now() when {@link initialData} is used
+   *
+   * @example
+   * ```ts
+   * // Using a static timestamp
+   * useQuery({
+   *   key: ['user'],
+   *   query: () => fetchUser(),
+   *   initialData: () => cachedUser,
+   *   initialDataUpdatedAt: 1234567890000
+   * })
+   *
+   * // Using a function
+   * useQuery({
+   *   key: ['user'],
+   *   query: () => fetchUser(),
+   *   initialData: () => cachedUser,
+   *   initialDataUpdatedAt: () => Number(localStorage.getItem('userTimestamp'))
+   * })
+   * ```
+   */
+  initialDataUpdatedAt?: number | (() => number)
+
+  /**
    * A placeholder data that is initially shown while the query is loading for
    * the first time. This will also show the `status` as `success` until the
    * query finishes loading (no matter the outcome of the query). Note: unlike

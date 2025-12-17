@@ -277,7 +277,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * @param [options] - options attached to the query
    * @param [initialData] - initial data of the query if any
    * @param [error] - initial error of the query if any
-   * @param [when] - relative when was the data or error fetched (will be added to Date.now())
+   * @param [when] - relative when was the data or error fetched (will be substracted to Date.now())
    * @param [meta] - resolved meta information for the query
    */
   const create = action(
@@ -538,9 +538,18 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       if (!entry) {
         // Resolve the meta from options.meta (could be function, ref, or raw object)
 
+        const initialDataUpdatedAt = toValue(options.initialDataUpdatedAt)
+
         cachesRaw.set(
           keyHash,
-          (entry = create(key, options, options.initialData?.(), null, 0, toValue(options.meta))),
+          (entry = create(
+            key,
+            options,
+            options.initialData?.(),
+            null,
+            initialDataUpdatedAt != null ? Date.now() - initialDataUpdatedAt : 0,
+            toValue(options.meta),
+          )),
         )
         // the placeholderData is only used if the entry is initially loading
         if (options.placeholderData && entry.state.value.status === 'pending') {
