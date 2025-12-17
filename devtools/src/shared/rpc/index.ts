@@ -10,6 +10,9 @@ import { toRaw } from 'vue'
 import { restoreClonedDeep, safeSerialize } from './custom-values'
 import { isPlainObject } from '../json'
 
+export { isNonSerializableValue } from './custom-values'
+export type { NonSerializableValue } from './custom-values'
+
 export class DuplexChannel<
   const Emits extends Record<EmitsKeys, any[]>,
   const Listens extends Record<ListensKeys, [...any[]]>,

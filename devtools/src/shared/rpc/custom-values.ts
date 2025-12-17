@@ -265,7 +265,7 @@ export function safeSerialize(value: unknown) {
   return value
 }
 
-function isNonSerializableValue(value: unknown): value is NonSerializableValue {
+export function isNonSerializableValue(value: unknown): value is NonSerializableValue {
   return (
     !!value &&
     typeof value === 'object' &&

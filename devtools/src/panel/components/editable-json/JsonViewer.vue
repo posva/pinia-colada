@@ -15,6 +15,11 @@ import JsonItem from './JsonItem.vue'
 
 defineProps<{
   data: unknown
+  readonly?: boolean
+}>()
+
+const emit = defineEmits<{
+  'update:value': [path: Array<string | number>, value: unknown]
 }>()
 </script>
 
@@ -27,6 +32,9 @@ defineProps<{
       :item-key="key"
       :value="value"
       :depth="0"
+      :path="[key]"
+      :readonly
+      @update:value="(...args) => emit('update:value', ...args)"
     />
   </template>
   <!-- Handle primitive root values -->

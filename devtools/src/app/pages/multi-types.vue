@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useQuery } from '@pinia/colada'
+import { useQuery, useQueryCache } from '@pinia/colada'
 
 const { data } = useQuery({
   key: ['types-test'],
@@ -40,6 +40,25 @@ const { data } = useQuery({
     })('Instance of MyClass'),
   }),
 })
+
+const queryCache = useQueryCache()
+function updateData(path: Array<string | number>, value: unknown) {
+  console.log('Update data at path', path, 'to value', value)
+
+  queryCache.setQueryData(['types-test'], (oldData: any) => {
+    while (path.length > 1) {
+      const key = path.shift()!
+      if (oldData && typeof oldData === 'object' && key in oldData) {
+        oldData = oldData[key]
+      } else {
+        return oldData
+      }
+    }
+    oldData[path[0]!] = value
+
+    return oldData
+  })
+}
 </script>
 
 <template>
@@ -47,5 +66,7 @@ const { data } = useQuery({
     <h1 class="mb-12">All types display test</h1>
 
     <p>Data requires custom serialization. Has data: {{ !!data }}</p>
+
+    <JsonViewer :data @update:value="updateData" />
   </main>
 </template>

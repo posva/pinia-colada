@@ -226,7 +226,7 @@ watch(
         class="font-mono"
         no-padding
       >
-        <JsonViewer :data="selectedMutation.vars" />
+        <JsonViewer :data="selectedMutation.vars" readonly />
       </UCollapse>
 
       <UCollapse

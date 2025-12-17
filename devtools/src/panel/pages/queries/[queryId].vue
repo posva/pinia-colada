@@ -91,6 +91,50 @@ watch(
     }
   },
 )
+
+// Helper function to set nested value
+function setNestedValue(obj: any, path: Array<string | number>, value: unknown): boolean {
+  if (path.length === 0) {
+    console.error('Cannot set value with empty path')
+    return false
+  }
+
+  let current = obj
+  // Navigate to parent of target value
+  for (let i = 0; i < path.length - 1; i++) {
+    if (current == null || typeof current !== 'object') {
+      console.error('Invalid path:', path, 'at index', i, 'Current value:', current)
+      return false
+    }
+    current = current[path[i]!]
+  }
+
+  // Validate the final parent exists
+  if (current == null || typeof current !== 'object') {
+    console.error('Invalid final parent in path:', path)
+    return false
+  }
+
+  // Set the final value
+  current[path.at(-1)!] = value
+  return true
+}
+
+// Handle value updates from JsonViewer
+const handleValueUpdate = (path: Array<string | number>, value: unknown) => {
+  if (!selectedQuery.value) return
+
+  // Update the value at the path
+  const success = setNestedValue(selectedQuery.value.state.data, path, value)
+
+  if (!success) {
+    console.error('Failed to update value at path:', path)
+    return
+  }
+
+  // Send to app via RPC
+  channel.emit('queries:set:state', selectedQuery.value.key, selectedQuery.value.state)
+}
 </script>
 
 <template>
@@ -255,7 +299,7 @@ watch(
         class="font-mono"
         no-padding
       >
-        <JsonViewer :data="selectedQuery.state.data" />
+        <JsonViewer :data="selectedQuery.state.data" @update:value="handleValueUpdate" />
       </UCollapse>
 
       <UCollapse
