@@ -27,9 +27,10 @@ interface PiniaColadaDelayOptions {
  */
 export function PiniaColadaDelay(options?: PiniaColadaDelayOptions): PiniaColadaPlugin {
   return ({ queryCache, scope }) => {
-    queryCache.$onAction(({ name, after }) => {
-      if (name === 'create') {
-        after((entry) => {
+    queryCache.$onAction(({ name, args, after }) => {
+      if (name === 'extend') {
+        const [entry] = args
+        after(() => {
           const delay = entry.options?.delay ?? options?.delay ?? 200
           scope.run(() => {
             const isDelaying = shallowRef(false)
