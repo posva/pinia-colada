@@ -1,3 +1,7 @@
+## [0.2.6](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.2.5...@pinia/colada-nuxt@0.2.6) (2025-12-17)
+
+Fix CI release
+
 ## [0.2.5](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.2.4...@pinia/colada-nuxt@0.2.5) (2025-12-16)
 
 No changes in this release.
