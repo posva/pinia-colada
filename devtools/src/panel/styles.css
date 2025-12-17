@@ -94,6 +94,11 @@
   background-color: var(--ui-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  & * {
+    /* scrollbar-color: var(--ui-text-toned) var(--ui-bg-muted); */
+    scrollbar-width: thin;
+  }
 }
 
 @theme static {
