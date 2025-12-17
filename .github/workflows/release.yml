@@ -129,7 +129,10 @@ jobs:
           cp README.md "${{ steps.resolve.outputs.PACKAGE_PATH }}/README.md"
 
       - name: Build
-        run: pnpm build
+        run: |
+          # for nuxt
+          pnpm run --if-present dev:prepare
+          pnpm build
         working-directory: ${{ steps.resolve.outputs.PACKAGE_PATH }}
 
       - name: Publish to NPM
