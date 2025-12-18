@@ -118,7 +118,7 @@
     "@vue/devtools-api": "^8.0.5"
   },
   "devDependencies": {
-    "@ast-grep/cli": "^0.40.0",
+    "@ast-grep/cli": "^0.40.3",
     "@pinia/colada": "workspace:*",
     "@posva/prompts": "^2.4.4",
     "@prettier/plugin-oxc": "^0.1.3",

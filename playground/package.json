@@ -34,7 +34,7 @@
     "@types/node": "^24.10.0",
     "@vitejs/plugin-vue": "^6.0.3",
     "@vue/tsconfig": "^0.8.1",
-    "autoprefixer": "^10.4.22",
+    "autoprefixer": "^10.4.23",
     "json-server": "0.17.4",
     "npm-run-all2": "^8.0.4",
     "tailwindcss": "^4.1.16",
