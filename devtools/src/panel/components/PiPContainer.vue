@@ -8,6 +8,7 @@ const { isPip } = defineProps<{
 }>()
 
 const colorMode = useColorMode({
+  storageKey: 'pc:color-scheme',
   selector: '#root',
 })
 const colorTheme = computed(() => {
