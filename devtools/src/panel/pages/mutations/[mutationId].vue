@@ -221,9 +221,9 @@ watch(
 
       <UCollapse
         v-model:open="isVarsOpen"
-        title="Variables"
+        :title="`Variables${selectedMutation.vars === undefined ? ' (empty)' : ''}`"
+        :class="[selectedMutation.vars === undefined && 'text-(--ui-text-muted)']"
         :icon="IVariable"
-        class="font-mono"
         no-padding
       >
         <JsonViewer :data="selectedMutation.vars" readonly />
@@ -231,9 +231,9 @@ watch(
 
       <UCollapse
         v-model:open="isDataOpen"
-        title="Data"
+        :title="`Data${selectedMutation.state.data === undefined ? ' (empty)' : ''}`"
         :icon="IFileText"
-        class="font-mono"
+        :class="[selectedMutation.state.data === undefined && 'text-(--ui-text-muted)']"
         no-padding
       >
         <JsonViewer :data="selectedMutation.state.data" />
@@ -254,15 +254,9 @@ watch(
         </div>
       </UCollapse>
 
-      <UCollapse title="Options" :open="false" :icon="IBraces">
-        <div class="py-1">
-          <pre
-            v-if="selectedMutation.options"
-            class="rounded bg-neutral-500/20 p-1 overflow-auto max-h-[1200px]"
-            >{{ selectedMutation.options }}</pre
-          >
-          <p v-else>No options configured for this mutation.</p>
-        </div>
+      <UCollapse title="Options" :open="false" :icon="IBraces" no-padding>
+        <JsonViewer v-if="selectedMutation.options" :data="selectedMutation.options" readonly />
+        <p v-else>No options configured for this mutation.</p>
       </UCollapse>
     </template>
 

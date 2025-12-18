@@ -23,23 +23,6 @@ const selectedQuery = computed<UseQueryEntryPayload | null>(() => {
   return queries.value.find((entry) => entry.keyHash === route.params.queryId) ?? null
 })
 
-const serializedHistoryEntries = computed(() => {
-  return (
-    selectedQuery.value?.devtools.history.map((entry) => {
-      let value: string
-      try {
-        value = JSON.stringify(entry, null, 2)
-      } catch (error) {
-        value = `Error serializing entry: ${String(error)}`
-      }
-      return {
-        ...entry,
-        data: value,
-      }
-    }) ?? []
-  )
-})
-
 const TIME_AGO_OPTIONS: FormatTimeAgoOptions = {
   showSecond: true,
   rounding: 'floor',
@@ -294,9 +277,9 @@ const handleValueUpdate = (path: Array<string | number>, value: unknown) => {
 
       <UCollapse
         v-model:open="isDataOpen"
-        title="Data"
+        :title="`Data${selectedQuery.state.data === undefined ? ' (empty)' : ''}`"
         :icon="IFileText"
-        class="font-mono"
+        :class="[selectedQuery.state.data === undefined && 'text-(--ui-text-muted)']"
         no-padding
       >
         <JsonViewer :data="selectedQuery.state.data" @update:value="handleValueUpdate" />
@@ -304,14 +287,16 @@ const handleValueUpdate = (path: Array<string | number>, value: unknown) => {
 
       <UCollapse
         v-model:open="isErrorOpen"
-        :title="`Error${selectedQuery.state.status === 'error' ? ' (!)' : ''}`"
+        :title="`Error${selectedQuery.state.status === 'error' ? ' (!)' : '(empty)'}`"
         :icon="ICircleX"
+        :class="[selectedQuery.state.status !== 'error' && 'text-(--ui-text-muted)']"
+        disabled
       >
         <div class="py-1">
           <pre v-if="selectedQuery.state.error" class="rounded p-1 overflow-auto max-h-[1200px]">{{
             selectedQuery.state.error
           }}</pre>
-          <p v-else class="text-neutral-500/50">No error</p>
+          <p v-else class="text-(--ui-text-muted)/50">No error</p>
         </div>
       </UCollapse>
 
@@ -345,29 +330,24 @@ const handleValueUpdate = (path: Array<string | number>, value: unknown) => {
       >
         <div class="py-1">
           <UCollapse
-            v-for="entry of serializedHistoryEntries"
+            v-for="entry of selectedQuery.devtools.history"
             :key="entry.updatedAt"
             :title="`Entry nº${entry.id} (${formatTimeAgo(new Date(entry.updatedAt), TIME_AGO_OPTIONS)})`"
             :open="false"
+            class="border border-neutral-200 dark:border-neutral-800"
           >
-            <pre class="rounded p-1 overflow-auto max-h-[1200px]">{{ entry.data }}</pre>
+            <JsonViewer :data="entry" readonly />
           </UCollapse>
         </div>
       </UCollapse>
 
-      <UCollapse title="Options" :open="false" :icon="IBraces">
-        <div class="py-1">
-          <pre
-            v-if="selectedQuery.options"
-            class="rounded bg-neutral-500/20 p-1 overflow-auto max-h-[1200px]"
-            >{{ selectedQuery.options }}</pre
-          >
-          <p v-else>
-            This Query entry has no options. It might have been created from the server or manually
-            set with
-            <code>queryCache.setQueryData()</code> for prefetching.
-          </p>
-        </div>
+      <UCollapse title="Options" :open="false" :icon="IBraces" no-padding>
+        <JsonViewer v-if="selectedQuery.options" :data="selectedQuery.options" readonly />
+        <p v-else>
+          This Query entry has no options. It might have been created from the server or manually
+          set with
+          <code>queryCache.setQueryData()</code> for prefetching.
+        </p>
       </UCollapse>
     </template>
 

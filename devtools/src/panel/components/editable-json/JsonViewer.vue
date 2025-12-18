@@ -27,6 +27,7 @@ const emit = defineEmits<{
   <!-- Handle expandable items -->
   <template v-if="isExpandable(data)">
     <JsonItem
+      class="font-mono"
       v-for="[key, value] in Object.entries(data)"
       :key="key"
       :item-key="key"
@@ -39,6 +40,6 @@ const emit = defineEmits<{
   </template>
   <!-- Handle primitive root values -->
   <template v-else>
-    <span :class="getValueTypeClass(data)">{{ formatValue(data) }}</span>
+    <span class="font-mono" :class="getValueTypeClass(data)">{{ formatValue(data) }}</span>
   </template>
 </template>
