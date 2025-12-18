@@ -48,6 +48,7 @@
     "dev:db": "pnpm run -C ../playground dev:db",
     "dev": "pnpm run --stream '/^dev:/'",
     "test:types": "vue-tsc --noEmit",
+    "prebuild": "pnpm -C .. run build",
     "build:main": "vite build --config vite.config.ts",
     "build:shared": "vite build --config vite.config.shared.ts",
     "build:panel": "vite build --config vite.config.panel.ts",
