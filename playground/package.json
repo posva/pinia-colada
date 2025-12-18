@@ -31,7 +31,7 @@
   "devDependencies": {
     "@pinia/colada-devtools": "workspace:^",
     "@tailwindcss/vite": "^4.1.16",
-    "@types/node": "^24.10.0",
+    "@types/node": "^24.10.4",
     "@vitejs/plugin-vue": "^6.0.3",
     "@vue/tsconfig": "^0.8.1",
     "autoprefixer": "^10.4.23",
