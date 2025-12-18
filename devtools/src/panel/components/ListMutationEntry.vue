@@ -32,7 +32,7 @@ const status = computed(() => getMutationStatus(entry))
     <div
       class="grid grid-cols-[minmax(0,auto)_1fr] grid-flow-col items-center gap-x-2 p-1 relative text-sm @container"
       :class="[
-        isActive ? 'bg-neutral-200 dark:bg-neutral-700' : 'hover:bg-(--ui-bg-elevated)',
+        isActive ? 'bg-(--ui-bg-accented)' : 'hover:bg-(--ui-bg-elevated)',
         entry.active ? '' : 'text-(--ui-text)/50',
       ]"
     >
@@ -110,7 +110,7 @@ const status = computed(() => getMutationStatus(entry))
         title="This mutation will be garbage collected"
       >
         <UCircleProgress
-          class="size-[1em] dark:text-neutral-500 text-neutral-400"
+          class="size-[1em] text-(--ui-text-muted)"
           :max="entry.options.gcTime"
           :value="entry.devtools.inactiveAt + entry.options.gcTime - now"
         />
