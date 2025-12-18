@@ -1,3 +1,19 @@
+# [0.3.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.2.1...@pinia/colada-devtools@0.3.0) (2025-12-18)
+
+- fix!: remove devtools from production builds ([a3b3bab](https://github.com/posva/pinia-colada/commit/a3b3bab22e8cb5e7d50d1cbe6c861fe2a2854cc8))
+
+### Bug Fixes
+
+- use own local storage key ([feeec6d](https://github.com/posva/pinia-colada/commit/feeec6d745acdc35b0374771ff97299c20595670)), closes [#444](https://github.com/posva/pinia-colada/issues/444) [#445](https://github.com/posva/pinia-colada/issues/445)
+
+### Features
+
+- json-viewer for data, options, vars ([82c1b09](https://github.com/posva/pinia-colada/commit/82c1b0953698ff75c310506c6ecd34d2a8411f19))
+
+### BREAKING CHANGES
+
+- this removes the `disabled` prop from the `<PiniaColadaDevtools>` component. If you want devtools in production use the `<PiniaColadaProdDevtools>`.
+
 ## [0.2.1](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.2.0...@pinia/colada-devtools@0.2.1) (2025-12-17)
 
 ### Features
