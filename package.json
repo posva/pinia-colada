@@ -143,7 +143,7 @@
     "semver": "^7.7.2",
     "simple-git-hooks": "^2.13.1",
     "size-limit": "^12.0.0",
-    "tsdown": "^0.17.1",
+    "tsdown": "^0.18.1",
     "typedoc": "^0.28.15",
     "typedoc-plugin-markdown": "^4.9.0",
     "typedoc-vitepress-theme": "^1.1.2",
