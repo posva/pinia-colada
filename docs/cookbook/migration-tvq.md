@@ -140,6 +140,10 @@ export function useIsMutating(filters?: UseMutationEntryFilter): ComputedRef<boo
 
 Given the agnostic nature of TanStack Query, these utilities [are not straightforward to implement](https://github.com/TanStack/query/blob/main/packages/vue-query/src/useIsFetching.ts#L10-L38) but Pinia Colada's tight integration with Vue makes them _just work™_
 
+For example, `useMutationState()` becomes `computed(() => mutationCache.getEntries(...).map(...))`. Differently from `useQueryState()`, `useMutationState()` always returns the state of multiple mutations so there are no helpers like `data`, `status`, etc
+
+If you are missing a helper utility, try to implement it using the query or mutation cache, in most cases, it's just calling `getEntries()` and then some `.map()`. These are not only easier to understand by humans without knowing the library but also easier to maintain and generate with AI tools.
+
 ### Reusable queries
 
 Pinia Colada sticks to Vue reactivity principles and encourages you to embrace them. Often, you will be able to pass a getter to options (often looks like `() => myOption.value`), this keeps reactivity working as expected.
