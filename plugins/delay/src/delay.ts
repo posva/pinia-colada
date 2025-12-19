@@ -27,42 +27,40 @@ interface PiniaColadaDelayOptions {
  */
 export function PiniaColadaDelay(options?: PiniaColadaDelayOptions): PiniaColadaPlugin {
   return ({ queryCache, scope }) => {
-    queryCache.$onAction(({ name, args, after }) => {
+    queryCache.$onAction(({ name, args }) => {
       if (name === 'extend') {
         const [entry] = args
-        after(() => {
-          const delay = entry.options?.delay ?? options?.delay ?? 200
-          scope.run(() => {
-            const isDelaying = shallowRef(false)
-            entry.ext.isDelaying = isDelaying
-            if (!delay) return
+        const delay = entry.options?.delay ?? options?.delay ?? 200
+        scope.run(() => {
+          const isDelaying = shallowRef(false)
+          entry.ext.isDelaying = isDelaying
+          if (!delay) return
 
-            const initialValue = entry.asyncStatus.value
-            entry.asyncStatus = customRef<AsyncStatus>((track, trigger) => {
-              let value = initialValue
-              let timeout: ReturnType<typeof setTimeout> | undefined
-              return {
-                get() {
-                  track()
-                  return value
-                },
-                set(newValue) {
-                  clearTimeout(timeout)
-                  if (newValue === 'loading') {
-                    isDelaying.value = true
-                    timeout = setTimeout(() => {
-                      isDelaying.value = false
-                      value = newValue
-                      trigger()
-                    }, delay)
-                  } else {
+          const initialValue = entry.asyncStatus.value
+          entry.asyncStatus = customRef<AsyncStatus>((track, trigger) => {
+            let value = initialValue
+            let timeout: ReturnType<typeof setTimeout> | undefined
+            return {
+              get() {
+                track()
+                return value
+              },
+              set(newValue) {
+                clearTimeout(timeout)
+                if (newValue === 'loading') {
+                  isDelaying.value = true
+                  timeout = setTimeout(() => {
                     isDelaying.value = false
                     value = newValue
                     trigger()
-                  }
-                },
-              }
-            })
+                  }, delay)
+                } else {
+                  isDelaying.value = false
+                  value = newValue
+                  trigger()
+                }
+              },
+            }
           })
         })
       }
@@ -76,8 +74,11 @@ declare module '@pinia/colada' {
 
   interface UseQueryOptionsGlobal extends PiniaColadaDelayOptions {}
 
-  // eslint-disable-next-line unused-imports/no-unused-vars
-  interface UseQueryEntryExtensions<TData, TError> {
+  interface UseQueryEntryExtensions<
+    TData,
+    // eslint-disable-next-line unused-imports/no-unused-vars
+    TError,
+  > {
     /**
      * Returns whether the query is currently delaying its `asyncStatus` from becoming `'loading'`. Requires the {@link PiniaColadaDelay} plugin.
      */

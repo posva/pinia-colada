@@ -107,15 +107,13 @@ import type { ShallowRef } from 'vue'
  */
 export function PiniaColadaDataUpdatedAtPlugin(): PiniaColadaPlugin {
   return ({ queryCache, scope }) => {
-    queryCache.$onAction(({ name, after, args }) => {
+    queryCache.$onAction(({ name, args, after }) => {
       // Use the `extend` action to add custom properties
       if (name === 'extend') {
-        after(() => {
-          const [entry] = args
-          // All effects must be created within the scope
-          scope.run(() => {
-            entry.ext.dataUpdatedAt = shallowRef<number>(entry.when)
-          })
+        const [entry] = args
+        // All effects must be created within the scope
+        scope.run(() => {
+          entry.ext.dataUpdatedAt = shallowRef<number>(entry.when)
         })
       } else if (name === 'setEntryState') {
         const [entry] = args
