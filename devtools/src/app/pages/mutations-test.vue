@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useMutation } from '@pinia/colada'
+import { useDefinedMutationWithState, useSimpleDefinedMutation } from '../mutations/playground'
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -56,6 +57,16 @@ const { mutate: anonymousMutation } = useMutation({
     return { message, processed: true }
   },
 })
+
+const { mutateAsync: simpleDefinedMutationAsync, asyncStatus: simpleDefinedStatus } =
+  useSimpleDefinedMutation()
+
+const {
+  messageInput,
+  callCount,
+  mutate: definedWithStateMutate,
+  asyncStatus: definedWithStateStatus,
+} = useDefinedMutationWithState()
 
 // Counter for demonstration
 const executionCount = ref(0)
@@ -120,6 +131,21 @@ function runMultipleParallel() {
   runSimpleMutation()
   runComplexMutation()
   runLongMutation(2000)
+}
+
+// Handler for defined simple mutation
+function runSimpleDefinedMutation() {
+  executionCount.value++
+  return simpleDefinedMutationAsync({
+    name: `Defined ${executionCount.value}`,
+    timestamp: Date.now(),
+  })
+}
+
+// Handler for defined mutation with state
+function runDefinedWithStateMutation() {
+  executionCount.value++
+  definedWithStateMutate()
 }
 </script>
 
@@ -195,9 +221,46 @@ function runMultipleParallel() {
         </button>
       </section>
 
+      <!-- defineMutation - Simple Pattern -->
+      <section class="mutation-test">
+        <h2>6. defineMutation - Simple Pattern</h2>
+        <p>
+          Reusable mutation defined with <code>defineMutation</code> using the options-based
+          approach. This can be imported and reused across components.
+        </p>
+        <div>
+          <button style="background: #14b8a6" @click="runSimpleDefinedMutation">
+            Run Defined Mutation
+          </button>
+          <span>Status: {{ simpleDefinedStatus }}</span>
+        </div>
+      </section>
+
+      <!-- defineMutation with Custom State -->
+      <section class="mutation-test">
+        <h2>7. defineMutation with Custom State</h2>
+        <p>
+          Function-based <code>defineMutation</code> that includes custom state (refs). The mutation
+          tracks its own call count and exposes an input field.
+        </p>
+        <div>
+          <label>
+            <span>Message Input:</span>
+            <input v-model="messageInput" type="text" style="margin-left: 8px; padding: 4px" />
+          </label>
+        </div>
+        <div>
+          <button style="background: #8b5cf6" @click="runDefinedWithStateMutation">
+            Run Mutation with State
+          </button>
+          <span>Status: {{ definedWithStateStatus }}</span>
+          <span>Internal Call Count: {{ callCount }}</span>
+        </div>
+      </section>
+
       <!-- Batch Operations -->
       <section class="mutation-test">
-        <h2>6. Batch Operations</h2>
+        <h2>8. Batch Operations</h2>
         <p>Run multiple mutations to see how DevTools handles them.</p>
         <div>
           <button style="background: #6366f1" @click="runMultipleSequential">
