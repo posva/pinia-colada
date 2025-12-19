@@ -79,26 +79,31 @@ mutationCache.$onAction(({ name, args, after, onError }) => {
     after(() => {
       transmitter.emit('mutations:delete', createMutationEntryPayload(entry))
     })
-  } else if (name === 'mutate' || name === 'setEntryState') {
+  } else if (name === 'mutate' || name === 'setEntryState' || name === 'untrack') {
     const [entry] = args
-
-    // on mutate we want to see it loading
+    // avoid displaying temporary entries
+    if (entry.id < 1) {
+      return
+    }
     if (name === 'mutate') {
       const payload = createMutationEntryPayload(entry)
+      // NOTE: pinia colada does not expose an action for this
       payload.asyncStatus = 'loading'
       transmitter.emit('mutations:update', payload)
     }
-
     after(() => {
+      console.log(entry)
       transmitter.emit('mutations:update', createMutationEntryPayload(entry))
     })
     onError(() => {
       transmitter.emit('mutations:update', createMutationEntryPayload(entry))
     })
-  } else if (name === 'ensure') {
-    const [entry] = args
-    after(() => {
-      transmitter.emit('mutations:update', createMutationEntryPayload(entry))
+  } else if (name === 'create') {
+    after((entry) => {
+      // avoid displaying temporary entries
+      if (entry.id > 0) {
+        transmitter.emit('mutations:update', createMutationEntryPayload(entry))
+      }
     })
   }
 })
