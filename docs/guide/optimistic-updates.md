@@ -206,7 +206,7 @@ When doing this, it's important to remember to invalidate the query after the mu
 
 ### When mutation is not collocated with the query
 
-When the mutation is not collocated with the query it updates, you can still use the mutation state next to the query. In this case, **you must specify a key for the mutation** so it can be referenced by `useMutationState()`:
+When the mutation is not collocated with the query it updates, you can still use the mutation state next to the query. In this case, **you must specify a key for the mutation** so it can be referenced by `mutationCache.getEntries()`:
 
 ```ts twoslash
 import { useMutation, useQueryCache } from '@pinia/colada'
@@ -224,10 +224,10 @@ const {
 })
 ```
 
-Then, you can use `useMutationState()` to access the mutation state in another component:
+Then, you can use `mutationCache.getEntries()` to access the mutation state in another component:
 
 ```ts
-import { useMutationState, useQuery } from '@pinia/colada'
+import { useMutationCache, useQuery } from '@pinia/colada'
 import { getTodoList } from './api/todos'
 
 const { data: todoList } = useQuery({
@@ -235,7 +235,12 @@ const { data: todoList } = useQuery({
   query: () => getTodoList(),
 })
 
-const { isLoading, variables: newTodo } = useMutationState({
-  key: ['createTodo'],
+const mutationCache = useMutationCache()
+const mutationState = computed(() => {
+  const mutation = mutationCache.getEntries({ key: ['createTodo'] })[0]
+  return {
+    isLoading: mutation?.asyncStatus.value === 'loading',
+    variables: mutation?.vars,
+  }
 })
 ```
