@@ -92,7 +92,6 @@ mutationCache.$onAction(({ name, args, after, onError }) => {
       transmitter.emit('mutations:update', payload)
     }
     after(() => {
-      console.log(entry)
       transmitter.emit('mutations:update', createMutationEntryPayload(entry))
     })
     onError(() => {
