@@ -58,7 +58,6 @@ export function defineMutation(
   const setupFn =
     typeof optionsOrSetup === 'function' ? optionsOrSetup : () => useMutation(optionsOrSetup)
   return () => {
-    // TODO: provide a way to clean them up `mutationCache.clear()`
     const mutationCache = useMutationCache()
     return mutationCache.ensureDefinedMutation(setupFn)
   }
