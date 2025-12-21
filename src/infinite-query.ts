@@ -1,4 +1,4 @@
-import { toValue } from 'vue'
+import { computed, ref, toValue, type Ref } from 'vue'
 import type { UseQueryFnContext, UseQueryOptions } from './query-options'
 import { useQuery } from './use-query'
 import type { UseQueryReturn } from './use-query'
@@ -57,6 +57,13 @@ export interface UseInfiniteQueryOptions<
   initialPageParam: TPageParam | (() => TPageParam)
 
   /**
+   * Maximum number of pages to keep in the cache. Old pages will be removed
+   * from the cache when new pages are added. If not set, all pages will
+   * be kept.
+   */
+  maxPages?: number
+
+  /**
    * Function to get the next page parameter based on the last page and all
    * pages fetched so far. If it returns `undefined` or `null`, it will
    * consider there are no more pages to fetch.
@@ -68,6 +75,11 @@ export interface UseInfiniteQueryOptions<
     allPageParams: TPageParam[],
   ) => TPageParam | undefined | null
 
+  /**
+   * Function to get the previous page parameter based on the first page and
+   * all pages fetched so far. If it returns `undefined` or `null`, it will
+   * consider there are no more pages to fetch.
+   */
   getPreviousPageParam?: (
     firstPage: TData,
     allPages: TData[],
@@ -84,10 +96,37 @@ export interface UseInfiniteQueryReturn<
   TError = ErrorDefault,
   TPageParam = unknown,
 > extends UseQueryReturn<UseInfiniteQueryData<TData, TPageParam>, TError> {
+  /**
+   * Whether there is a next page to load. Defined based on the result of
+   * {@link UseInfiniteQueryOptions.getNextPageParam}.
+   */
+  hasNextPage: Ref<boolean>
+
+  /**
+   * Load the next page of data.
+   */
   loadNextPage: () => Promise<unknown>
 
-  loadPreviousPage?: () => Promise<unknown>
+  /**
+   * Whether there is a previous page to load. Defined based on the result of
+   * {@link UseInfiniteQueryOptions.getPreviousPageParam}.
+   */
+  hasPreviousPage: Ref<boolean>
+
+  /**
+   * Load the previous page of data.
+   * Requires {@link UseInfiniteQueryOptions.getPreviousPageParam} to be defined.
+   */
+  loadPreviousPage: () => Promise<unknown>
 }
+
+/**
+ * Indicator for which page to load next. 0 means refetch all pages, 1 means
+ * next page, -1 means previous page.
+ *
+ * @internal
+ */
+type NextPageIndicator = 0 | 1 | -1
 
 /**
  * Store and merge paginated data into a single cache entry. Allows to handle
@@ -109,8 +148,18 @@ export function useInfiniteQuery<
   options: UseInfiniteQueryOptions<TData, TError, TPageParam, TDataInitial>,
 ): UseInfiniteQueryReturn<TData, TError, TPageParam> {
   const queryCache = useQueryCache()
+  // we start by assuming we want to load the next page
+  let nextPage: NextPageIndicator = 0
+  // initially, we don't know if there is a next or previous page
+  // this must be computed based on the entry
+  const nextPageParam = ref<TPageParam | null | undefined>()
+  const hasNextPage = computed(() => nextPageParam.value != null)
+  const previousPageParam = ref<TPageParam | null | undefined>()
+  const hasPreviousPage = computed(() => previousPageParam.value != null)
+
   const query = useQuery<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>(() => {
     const opts = toValue(options)
+    // TODO: compute initial values for hasNextPage and hasPreviousPage based on initialData
     return {
       ...opts,
       key: toValue(opts.key),
@@ -118,26 +167,62 @@ export function useInfiniteQuery<
         context: UseQueryFnContext<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>,
       ) => {
         const { entry } = context
+
         const allData = entry.state.value.data
         // we create copies to ensure the old versions are preserved
         // where they are needed (e.g. devtools)
         const pages = allData?.pages.slice() ?? []
         const pageParams = allData?.pageParams.slice() ?? []
+
+        const firstPage = pages.at(0)
+        const firstPageParam = pageParams.at(0)
         const lastPage = pages.at(-1)
         const lastPageParam = pageParams.at(-1)
+
+        nextPageParam.value =
+          lastPage && lastPageParam != null
+            ? opts.getNextPageParam(lastPage, pages, lastPageParam, pageParams)
+            : null
+
+        previousPageParam.value =
+          firstPage && firstPageParam != null
+            ? opts.getPreviousPageParam?.(firstPage, pages, firstPageParam, pageParams)
+            : null
+
+        // if we never loaded, consider we want to load the first page
+        if (entry.state.value.status === 'pending' && nextPage === 0) {
+          nextPage = 1
+        }
+
+        if (nextPage === 0) {
+          // TODO: refetch all pages
+          console.warn('not implemented: refetch all pages in infinite query')
+          throw new Error('not implemented: refetch all pages in infinite query')
+        }
+
+        const position = nextPage > 0 ? -1 : 0
+        nextPage = 0
+        if (process.env.NODE_ENV !== 'production') {
+          if (position === 0 && !opts.getPreviousPageParam) {
+            const msg =
+              '[useInfiniteQuery] Trying to load previous page but `getPreviousPageParam` is not defined in options. This will fail in production.'
+            console.warn(msg)
+            throw new Error(msg)
+          }
+        }
+
         const pageParam =
-          (lastPage && lastPageParam != null
-            ? opts.getNextPageParam(lastPage, pages!, lastPageParam, pageParams!)
-            : null) ?? toValue(opts.initialPageParam)
+          (position ? nextPageParam : previousPageParam).value ?? toValue(opts.initialPageParam)
 
         const data = await opts.query({
           ...context,
           pageParam,
         })
 
-        // TODO: depend on direction
-        pages.push(data)
-        pageParams.push(pageParam)
+        const arrayMethod = position ? 'push' : 'unshift'
+        pages[arrayMethod](data)
+        pageParams[arrayMethod](pageParam)
+
         return { pages, pageParams }
       },
 
@@ -151,7 +236,7 @@ export function useInfiniteQuery<
     } satisfies DefineQueryOptions<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>
   })
 
-  async function loadNextPage(): Promise<unknown> {
+  async function loadPage(page: NextPageIndicator): Promise<unknown> {
     const opts = toValue(options)
     const entry = queryCache.get(toValue(opts.key))
     if (!entry) {
@@ -160,13 +245,15 @@ export function useInfiniteQuery<
       }
       return null
     }
+    nextPage = page
     return queryCache.fetch(entry)
   }
 
   return {
     ...query,
-    loadNextPage,
-    // loadNextPage
-    // loadMore: () => refetch(),
+    hasNextPage,
+    loadNextPage: () => loadPage(1),
+    hasPreviousPage,
+    loadPreviousPage: () => loadPage(-1),
   }
 }
