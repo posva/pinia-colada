@@ -3,7 +3,7 @@ import type { UseQueryFnContext, UseQueryOptions } from './query-options'
 import { useQuery } from './use-query'
 import type { UseQueryReturn } from './use-query'
 import type { ErrorDefault } from './types-extension'
-import { useQueryCache } from './query-store'
+import { useQueryCache, type UseQueryEntry } from './query-store'
 import type { DefineQueryOptions } from './define-query'
 
 /**
@@ -102,6 +102,7 @@ export interface UseInfiniteQueryReturn<
    */
   hasNextPage: Ref<boolean>
 
+  // TODO: allow options for throwOnError and cancelRefetch like in useQuery
   /**
    * Load the next page of data.
    */
@@ -156,6 +157,9 @@ export function useInfiniteQuery<
   const hasNextPage = computed(() => nextPageParam.value != null)
   const previousPageParam = ref<TPageParam | null | undefined>()
   const hasPreviousPage = computed(() => previousPageParam.value != null)
+  let entry:
+    | UseQueryEntry<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>
+    | undefined
 
   const query = useQuery<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>(() => {
     const opts = toValue(options)
@@ -166,28 +170,8 @@ export function useInfiniteQuery<
       query: async (
         context: UseQueryFnContext<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>,
       ) => {
-        const { entry } = context
-
-        const allData = entry.state.value.data
-        // we create copies to ensure the old versions are preserved
-        // where they are needed (e.g. devtools)
-        const pages = allData?.pages.slice() ?? []
-        const pageParams = allData?.pageParams.slice() ?? []
-
-        const firstPage = pages.at(0)
-        const firstPageParam = pageParams.at(0)
-        const lastPage = pages.at(-1)
-        const lastPageParam = pageParams.at(-1)
-
-        nextPageParam.value =
-          lastPage && lastPageParam != null
-            ? opts.getNextPageParam(lastPage, pages, lastPageParam, pageParams)
-            : null
-
-        previousPageParam.value =
-          firstPage && firstPageParam != null
-            ? opts.getPreviousPageParam?.(firstPage, pages, firstPageParam, pageParams)
-            : null
+        entry = context.entry
+        const data = entry.state.value.data
 
         // if we never loaded, consider we want to load the first page
         if (entry.state.value.status === 'pending' && nextPage === 0) {
@@ -202,6 +186,7 @@ export function useInfiniteQuery<
 
         const position = nextPage > 0 ? -1 : 0
         nextPage = 0
+
         if (process.env.NODE_ENV !== 'production') {
           if (position === 0 && !opts.getPreviousPageParam) {
             const msg =
@@ -211,17 +196,32 @@ export function useInfiniteQuery<
           }
         }
 
-        const pageParam =
-          (position ? nextPageParam : previousPageParam).value ?? toValue(opts.initialPageParam)
+        computePageParams(data)
 
-        const data = await opts.query({
+        let pageParam = (position ? nextPageParam : previousPageParam).value
+
+        // there is nothing to load
+        if (pageParam == null && data) {
+          return data
+        }
+
+        pageParam ??= toValue(opts.initialPageParam)
+
+        const page = await opts.query({
           ...context,
           pageParam,
         })
 
+        // we create copies to ensure the old versions are preserved
+        // where they are needed (e.g. devtools)
+        const pages = data?.pages.slice() ?? []
+        const pageParams = data?.pageParams.slice() ?? []
+
         const arrayMethod = position ? 'push' : 'unshift'
-        pages[arrayMethod](data)
+        pages[arrayMethod](page)
         pageParams[arrayMethod](pageParam)
+
+        computePageParams({ pages, pageParams })
 
         return { pages, pageParams }
       },
@@ -235,6 +235,42 @@ export function useInfiniteQuery<
       // initialData,
     } satisfies DefineQueryOptions<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>
   })
+
+  function computePageParams(
+    data:
+      | UseInfiniteQueryData<TData, TPageParam>
+      | Exclude<TDataInitial, undefined>
+      | NonNullable<TDataInitial>
+      | undefined,
+  ) {
+    if (data) {
+      const lastPageParam = data.pageParams.at(-1)
+      const firstPageParam = data.pageParams.at(0)
+      nextPageParam.value =
+        lastPageParam != null
+          ? options.getNextPageParam(
+              // data is present if lastPageParam is not null
+              data.pages.at(-1)!,
+              data.pages,
+              lastPageParam,
+              data.pageParams,
+            )
+          : null
+      previousPageParam.value =
+        firstPageParam != null
+          ? options.getPreviousPageParam?.(
+              // same as above
+              data.pages.at(0)!,
+              data.pages,
+              firstPageParam,
+              data.pageParams,
+            )
+          : null
+    }
+  }
+
+  // if we have initial data, we need to set the next and previous page params
+  computePageParams(entry?.state.value.data)
 
   async function loadPage(page: NextPageIndicator): Promise<unknown> {
     const opts = toValue(options)
