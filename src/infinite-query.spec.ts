@@ -321,7 +321,7 @@ describe('useInfiniteQuery', () => {
     })
   })
 
-  it('loadNextPage throws by default if the query does', async () => {
+  it('loadNextPage throws if throwOnError is set to true', async () => {
     const error = new Error('Test error during loadNextPage')
     const { wrapper } = mountSimple({
       query: vi.fn(async ({ pageParam }) => {
@@ -337,11 +337,12 @@ describe('useInfiniteQuery', () => {
     await flushPromises()
     expect(wrapper.vm.data).toEqual({ pages: [[1, 2, 3]], pageParams: [0] })
 
-    // Should throw by default
-    await expect(wrapper.vm.loadNextPage()).rejects.toThrow('Test error during loadNextPage')
+    await expect(wrapper.vm.loadNextPage({ throwOnError: true })).rejects.toThrow(
+      'Test error during loadNextPage',
+    )
   })
 
-  it('loadNextPage catches errors if throwOnError is set to false', async () => {
+  it('loadNextPage catches errors by default', async () => {
     const error = new Error('Test error during loadNextPage')
     const { wrapper } = mountSimple({
       query: vi.fn(async ({ pageParam }) => {
@@ -352,13 +353,11 @@ describe('useInfiniteQuery', () => {
         // Subsequent pages throw
         throw error
       }),
-      throwOnError: false,
     })
 
     await flushPromises()
     expect(wrapper.vm.data).toEqual({ pages: [[1, 2, 3]], pageParams: [0] })
 
-    // Should not throw with throwOnError: false
     await expect(wrapper.vm.loadNextPage()).resolves.not.toThrow()
     expect(wrapper.vm.error).toBe(error)
   })
@@ -703,7 +702,7 @@ describe('useInfiniteQuery', () => {
     })
   })
 
-  it('loadPreviousPage throws by default if the query does', async () => {
+  it('loadPreviousPage throws if throwOnError is set to true', async () => {
     const error = new Error('Test error during loadPreviousPage')
     const { wrapper } = mountSimple({
       initialPageParam: 2,
@@ -723,13 +722,12 @@ describe('useInfiniteQuery', () => {
     await flushPromises()
     expect(wrapper.vm.data).toEqual({ pages: [[7, 8, 9]], pageParams: [2] })
 
-    // Should throw by default
-    await expect(wrapper.vm.loadPreviousPage()).rejects.toThrow(
+    await expect(wrapper.vm.loadPreviousPage({ throwOnError: true })).rejects.toThrow(
       'Test error during loadPreviousPage',
     )
   })
 
-  it('loadPreviousPage catches errors if throwOnError is set to false', async () => {
+  it('loadPreviousPage catches errors by default', async () => {
     const error = new Error('Test error during loadPreviousPage')
     const { wrapper } = mountSimple({
       initialPageParam: 2,
@@ -744,13 +742,11 @@ describe('useInfiniteQuery', () => {
       getPreviousPageParam: (firstPage, allPages, firstPageParam) => {
         return firstPageParam > 0 ? firstPageParam - 1 : null
       },
-      throwOnError: false,
     })
 
     await flushPromises()
     expect(wrapper.vm.data).toEqual({ pages: [[7, 8, 9]], pageParams: [2] })
 
-    // Should not throw with throwOnError: false
     await expect(wrapper.vm.loadPreviousPage()).resolves.not.toThrow()
     expect(wrapper.vm.error).toBe(error)
   })

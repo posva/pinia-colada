@@ -32,6 +32,9 @@ export {
   useInfiniteQuery,
   type UseInfiniteQueryOptions,
   type UseInfiniteQueryReturn,
+  type UseInfiniteQueryLoadMoreOptions,
+  type UseInfiniteQueryData,
+  type UseInfiniteQueryFnContext,
 } from './infinite-query'
 
 export {
