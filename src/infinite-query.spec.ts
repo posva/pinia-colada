@@ -4,7 +4,7 @@ import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import type { Pinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, isRef, nextTick } from 'vue'
+import { defineComponent, isRef } from 'vue'
 import { mockConsoleError, mockWarn } from '../test-utils/mock-warn'
 import { isSpy } from '../test-utils/utils'
 import { useInfiniteQuery } from './infinite-query'
@@ -360,6 +360,35 @@ describe('useInfiniteQuery', () => {
 
     await expect(wrapper.vm.loadNextPage()).resolves.not.toThrow()
     expect(wrapper.vm.error).toBe(error)
+  })
+
+  it('loadNextPage with cancelRefetch=false should not trigger a new fetch if one is pending', async () => {
+    const { wrapper, query } = mountSimple()
+
+    await flushPromises()
+
+    expect(query).toHaveBeenCalledTimes(1)
+    query.mockClear()
+
+    // Start loading the next page (pageParam 1)
+    const firstCall = wrapper.vm.loadNextPage()
+
+    // Query should be called for the first loadNextPage
+    expect(query).toHaveBeenCalledTimes(1)
+    expect(query).toHaveBeenCalledWith(expect.objectContaining({ pageParam: 1 }))
+
+    const secondCall = wrapper.vm.loadNextPage({ cancelRefetch: false })
+    expect(query).toHaveBeenCalledTimes(1)
+
+    await Promise.all([firstCall, secondCall])
+
+    expect(wrapper.vm.data).toEqual({
+      pages: [
+        [1, 2, 3],
+        [4, 5, 6],
+      ],
+      pageParams: [0, 1],
+    })
   })
 
   it('sets hasNextPage to false if getNextPageParam returns null', async () => {
@@ -749,5 +778,36 @@ describe('useInfiniteQuery', () => {
 
     await expect(wrapper.vm.loadPreviousPage()).resolves.not.toThrow()
     expect(wrapper.vm.error).toBe(error)
+  })
+
+  it('loadPreviousPage with cancelRefetch=false should not trigger a new fetch if one is pending', async () => {
+    const { wrapper, query } = mountSimple({
+      initialPageParam: 2,
+    })
+
+    await flushPromises()
+    expect(wrapper.vm.data).toEqual({ pages: [[7, 8, 9]], pageParams: [2] })
+
+    expect(query).toHaveBeenCalledTimes(1)
+    query.mockClear()
+
+    const firstCall = wrapper.vm.loadPreviousPage()
+
+    // Query should be called for the first loadPreviousPage
+    expect(query).toHaveBeenCalledTimes(1)
+    expect(query).toHaveBeenCalledWith(expect.objectContaining({ pageParam: 1 }))
+
+    const secondCall = wrapper.vm.loadPreviousPage({ cancelRefetch: false })
+    expect(query).toHaveBeenCalledTimes(1)
+
+    await Promise.all([firstCall, secondCall])
+
+    expect(wrapper.vm.data).toEqual({
+      pages: [
+        [4, 5, 6],
+        [7, 8, 9],
+      ],
+      pageParams: [1, 2],
+    })
   })
 })

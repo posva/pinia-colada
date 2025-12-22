@@ -103,6 +103,15 @@ export interface UseInfiniteQueryLoadMoreOptions {
    * @default false
    */
   throwOnError?: boolean
+
+  /**
+   * Whether to cancel an ongoing refetch when a new one is triggered.
+   * If set to `false`, a new load will be ignored if there's already one in
+   * progress.
+   *
+   * @default true
+   */
+  cancelRefetch?: boolean
 }
 
 export interface UseInfiniteQueryReturn<
@@ -287,7 +296,7 @@ export function useInfiniteQuery<
 
   async function loadPage(
     page: NextPageIndicator,
-    { throwOnError }: UseInfiniteQueryLoadMoreOptions = {},
+    { throwOnError, cancelRefetch = true }: UseInfiniteQueryLoadMoreOptions = {},
   ): Promise<unknown> {
     const opts = toValue(options)
     const entry = queryCache.get(toValue(opts.key))
@@ -297,6 +306,12 @@ export function useInfiniteQuery<
       }
       return null
     }
+
+    // cancel and reuse
+    if (!cancelRefetch && entry.pending) {
+      return entry.pending.refreshCall
+    }
+
     nextPage = page
 
     return queryCache.fetch(entry).catch(throwOnError ? undefined : noop)
