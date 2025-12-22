@@ -29,7 +29,7 @@
   width: 58px;
   height: 58px;
 
-  z-index: 99999;
+  z-index: 999999;
 
   transition:
     background-color 0.2s ease-in-out,
