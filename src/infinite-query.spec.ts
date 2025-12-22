@@ -141,6 +141,187 @@ describe('useInfiniteQuery', () => {
     expect(wrapper.vm.data?.pageParams).toEqual([2, 3])
   })
 
+  it('applies maxPages when loading previous pages', async () => {
+    const { wrapper } = mountSimple({
+      maxPages: 2,
+      initialPageParam: 3,
+      getPreviousPageParam: (firstPage, allPages, firstPageParam) => {
+        return firstPageParam > 0 ? firstPageParam - 1 : null
+      },
+    })
+
+    await flushPromises()
+
+    // Initial page
+    expect(wrapper.vm.data).toEqual({
+      pages: [[10, 11, 12]],
+      pageParams: [3],
+    })
+
+    // Load 3 previous pages
+    await wrapper.vm.loadPreviousPage()
+    await wrapper.vm.loadPreviousPage()
+    await wrapper.vm.loadPreviousPage()
+
+    // With maxPages: 2, should only have 2 pages (oldest from the end)
+    expect(wrapper.vm.data?.pages).toEqual([
+      [1, 2, 3],
+      [4, 5, 6],
+    ])
+    expect(wrapper.vm.data?.pageParams).toEqual([0, 1])
+  })
+
+  it('applies maxPages: 1 edge case', async () => {
+    const { wrapper } = mountSimple({
+      maxPages: 1,
+    })
+
+    await flushPromises()
+
+    expect(wrapper.vm.data).toEqual({
+      pages: [[1, 2, 3]],
+      pageParams: [0],
+    })
+
+    await wrapper.vm.loadNextPage()
+
+    // Should only keep the latest page
+    expect(wrapper.vm.data?.pages).toEqual([[4, 5, 6]])
+    expect(wrapper.vm.data?.pageParams).toEqual([1])
+
+    await wrapper.vm.loadNextPage()
+
+    expect(wrapper.vm.data?.pages).toEqual([[7, 8, 9]])
+    expect(wrapper.vm.data?.pageParams).toEqual([2])
+  })
+
+  it('hasNextPage and hasPreviousPage work correctly after maxPages trimming', async () => {
+    const { wrapper } = mountSimple({
+      maxPages: 2,
+      initialPageParam: 1,
+      getPreviousPageParam: (firstPage, allPages, firstPageParam) => {
+        return firstPageParam > 0 ? firstPageParam - 1 : null
+      },
+    })
+
+    await flushPromises()
+
+    expect(wrapper.vm.data).toEqual({
+      pages: [[4, 5, 6]],
+      pageParams: [1],
+    })
+    expect(wrapper.vm.hasNextPage).toBe(true)
+    expect(wrapper.vm.hasPreviousPage).toBe(true)
+
+    // Load next page
+    await wrapper.vm.loadNextPage()
+
+    expect(wrapper.vm.data?.pages).toEqual([
+      [4, 5, 6],
+      [7, 8, 9],
+    ])
+    expect(wrapper.vm.hasNextPage).toBe(true)
+    expect(wrapper.vm.hasPreviousPage).toBe(true)
+
+    // Load another next page - should trim first page (param 1)
+    await wrapper.vm.loadNextPage()
+
+    expect(wrapper.vm.data?.pages).toEqual([
+      [7, 8, 9],
+      [10, 11, 12],
+    ])
+    expect(wrapper.vm.data?.pageParams).toEqual([2, 3])
+
+    // Even though page param 1 was trimmed, hasPreviousPage should still be true
+    // because we can still go back from page 2
+    expect(wrapper.vm.hasPreviousPage).toBe(true)
+    expect(wrapper.vm.hasNextPage).toBe(false) // page 3 is the last page
+  })
+
+  it('applies maxPages when mixing loadNextPage and loadPreviousPage', async () => {
+    const { wrapper } = mountSimple({
+      maxPages: 3,
+      initialPageParam: 2,
+      getPreviousPageParam: (firstPage, allPages, firstPageParam) => {
+        return firstPageParam > 0 ? firstPageParam - 1 : null
+      },
+    })
+
+    await flushPromises()
+
+    expect(wrapper.vm.data).toEqual({
+      pages: [[7, 8, 9]],
+      pageParams: [2],
+    })
+
+    // Load previous page
+    await wrapper.vm.loadPreviousPage()
+    expect(wrapper.vm.data?.pages).toEqual([
+      [4, 5, 6],
+      [7, 8, 9],
+    ])
+
+    // Load next page
+    await wrapper.vm.loadNextPage()
+    expect(wrapper.vm.data?.pages).toEqual([
+      [4, 5, 6],
+      [7, 8, 9],
+      [10, 11, 12],
+    ])
+    expect(wrapper.vm.data?.pageParams).toEqual([1, 2, 3])
+
+    // Load another previous page - should trim from end
+    await wrapper.vm.loadPreviousPage()
+    expect(wrapper.vm.data?.pages).toEqual([
+      [1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9],
+    ])
+    expect(wrapper.vm.data?.pageParams).toEqual([0, 1, 2])
+
+    // Load another next page - should trim from beginning
+    await wrapper.vm.loadNextPage()
+    expect(wrapper.vm.data?.pages).toEqual([
+      [4, 5, 6],
+      [7, 8, 9],
+      [10, 11, 12],
+    ])
+    expect(wrapper.vm.data?.pageParams).toEqual([1, 2, 3])
+  })
+
+  it('applies maxPages to initial data when loading new pages', async () => {
+    const { wrapper } = mountSimple({
+      maxPages: 2,
+      initialData: () => ({
+        pages: [
+          [1, 2, 3],
+          [4, 5, 6],
+        ],
+        pageParams: [0, 1],
+      }),
+      getNextPageParam: (lastPage, allPages, lastPageParam) => {
+        // Allow loading more pages
+        return lastPageParam >= 3 ? null : lastPageParam + 1
+      },
+    })
+
+    await flushPromises()
+
+    // Initial data has 2 pages
+    expect(wrapper.vm.data?.pages).toHaveLength(2)
+
+    // Load next page - should trim the first page
+    await wrapper.vm.loadNextPage()
+
+    // Should have trimmed old pages and kept only 2
+    expect(wrapper.vm.data?.pages).toHaveLength(2)
+    expect(wrapper.vm.data?.pages).toEqual([
+      [4, 5, 6],
+      [7, 8, 9],
+    ])
+    expect(wrapper.vm.data?.pageParams).toEqual([1, 2])
+  })
+
   it('should refetch all pages sequentially when refreshing after being invalidated', async () => {
     const { wrapper, query, queryCache } = mountSimple()
 
