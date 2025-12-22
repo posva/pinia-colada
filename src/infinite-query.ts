@@ -243,6 +243,19 @@ export function useInfiniteQuery<
         pages[arrayMethod](page)
         pageParams[arrayMethod](pageParam)
 
+        // Apply maxPages limit
+        if (opts.maxPages && pages.length > opts.maxPages) {
+          if (position) {
+            // Loading next pages - trim from beginning (remove oldest pages)
+            pages.splice(0, pages.length - opts.maxPages)
+            pageParams.splice(0, pageParams.length - opts.maxPages)
+          } else {
+            // Loading previous pages - trim from end (remove newest pages)
+            pages.splice(opts.maxPages)
+            pageParams.splice(opts.maxPages)
+          }
+        }
+
         computePageParams({ pages, pageParams })
 
         return { pages, pageParams }
