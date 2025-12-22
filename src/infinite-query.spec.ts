@@ -291,10 +291,77 @@ describe('useInfiniteQuery', () => {
     await flushPromises()
   })
 
-  it.todo('only takes into account the latest call to loadNextPage', async () => {})
+  it('only takes into account the latest call to loadNextPage', async () => {
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce([1, 2, 3])
+      .mockResolvedValueOnce([4, 5, 6])
+      .mockResolvedValueOnce([7, 8, 9])
+      .mockResolvedValueOnce([10, 11, 12])
 
-  it.todo('loadNextPage throws by default if the query does')
-  it.todo('loadNextPage catches errors if throwOnError is set to false')
+    const { wrapper } = mountSimple({ query })
+
+    await flushPromises()
+    expect(wrapper.vm.data).toEqual({ pages: [[1, 2, 3]], pageParams: [0] })
+
+    await Promise.all([
+      wrapper.vm.loadNextPage(),
+      wrapper.vm.loadNextPage(),
+      wrapper.vm.loadNextPage(),
+    ])
+
+    // Only the last call (pageParam 3) should be in the data
+    expect(wrapper.vm.data).toEqual({
+      pages: [
+        [1, 2, 3],
+        [10, 11, 12],
+      ],
+      // the pageParam always gets computed based on the latest one which is always 0
+      pageParams: [0, 1],
+    })
+  })
+
+  it('loadNextPage throws by default if the query does', async () => {
+    const error = new Error('Test error during loadNextPage')
+    const { wrapper } = mountSimple({
+      query: vi.fn(async ({ pageParam }) => {
+        // First page succeeds
+        if (pageParam === 0) {
+          return [1, 2, 3]
+        }
+        // Subsequent pages throw
+        throw error
+      }),
+    })
+
+    await flushPromises()
+    expect(wrapper.vm.data).toEqual({ pages: [[1, 2, 3]], pageParams: [0] })
+
+    // Should throw by default
+    await expect(wrapper.vm.loadNextPage()).rejects.toThrow('Test error during loadNextPage')
+  })
+
+  it('loadNextPage catches errors if throwOnError is set to false', async () => {
+    const error = new Error('Test error during loadNextPage')
+    const { wrapper } = mountSimple({
+      query: vi.fn(async ({ pageParam }) => {
+        // First page succeeds
+        if (pageParam === 0) {
+          return [1, 2, 3]
+        }
+        // Subsequent pages throw
+        throw error
+      }),
+      throwOnError: false,
+    })
+
+    await flushPromises()
+    expect(wrapper.vm.data).toEqual({ pages: [[1, 2, 3]], pageParams: [0] })
+
+    // Should not throw with throwOnError: false
+    await expect(wrapper.vm.loadNextPage()).resolves.not.toThrow()
+    expect(wrapper.vm.error).toBe(error)
+  })
 
   it('sets hasNextPage to false if getNextPageParam returns null', async () => {
     const { wrapper } = mountSimple({
@@ -377,14 +444,98 @@ describe('useInfiniteQuery', () => {
     expect(wrapper.vm.hasNextPage).toBe(false)
   })
 
-  it.todo(
-    'does not call the query if getNextPageParam returns null on initial fetch',
-    async () => {},
-  )
+  it('does not call the query if getNextPageParam returns null on initial fetch', async () => {
+    const { wrapper, query } = mountSimple({
+      getNextPageParam: () => {
+        // Always return null, meaning no next page
+        return null
+      },
+    })
 
-  it.todo('does not calll the query if getNextPageParam returns null', async () => {})
+    await flushPromises()
 
-  it.todo('calls getPreviousPageParam with correct parameters', async () => {})
+    // Query should only be called once for the initial page
+    expect(query).toHaveBeenCalledTimes(1)
+    expect(query).toHaveBeenCalledWith(expect.objectContaining({ pageParam: 0 }))
+
+    // Should have no next page available
+    expect(wrapper.vm.hasNextPage).toBe(false)
+
+    // Data should only contain the initial page
+    expect(wrapper.vm.data).toEqual({
+      pages: [[1, 2, 3]],
+      pageParams: [0],
+    })
+  })
+
+  it('does not call the query if getNextPageParam returns null', async () => {
+    const { wrapper, query } = mountSimple({
+      getNextPageParam: (lastPage, allPages, lastPageParam) => {
+        // Only allow one page
+        return null
+      },
+    })
+
+    await flushPromises()
+
+    // Query should be called once for the initial page
+    expect(query).toHaveBeenCalledTimes(1)
+    expect(wrapper.vm.hasNextPage).toBe(false)
+
+    query.mockClear()
+
+    // Try to load next page when hasNextPage is false
+    await wrapper.vm.loadNextPage()
+
+    // Query should not be called again
+    expect(query).not.toHaveBeenCalled()
+
+    // Data should remain unchanged
+    expect(wrapper.vm.data).toEqual({
+      pages: [[1, 2, 3]],
+      pageParams: [0],
+    })
+  })
+
+  it('calls getPreviousPageParam with correct parameters', async () => {
+    const getPreviousPageParam = vi.fn((firstPage, allPages, firstPageParam, allPageParams) => {
+      return firstPageParam > 0 ? firstPageParam - 1 : null
+    })
+
+    const { wrapper } = mountSimple({
+      initialPageParam: 2,
+      getPreviousPageParam,
+    })
+
+    await flushPromises()
+
+    // we don't check for how many times this function is called because it
+    // might be computed multiple times before and after fetching, just to
+    // ensure that we're fetching the correct page.
+    // expect(getPreviousPageParam).toHaveBeenCalledTimes(1)
+    expect(getPreviousPageParam).toHaveBeenCalledWith(
+      [7, 8, 9], // firstPage
+      [[7, 8, 9]], // allPages
+      2, // firstPageParam
+      [2], // allPageParams
+    )
+
+    getPreviousPageParam.mockClear()
+    await wrapper.vm.loadPreviousPage()
+
+    // same as above
+    // expect(getPreviousPageParam).toHaveBeenCalledTimes(1)
+    expect(getPreviousPageParam).toHaveBeenCalledWith(
+      [4, 5, 6], // firstPage
+      [
+        [4, 5, 6],
+        [7, 8, 9],
+      ], // allPages
+      1, // firstPageParam
+      [1, 2], // allPageParams
+    )
+    await flushPromises()
+  })
 
   it('prepends data when fetching previous pages', async () => {
     const { wrapper } = mountSimple({
@@ -450,10 +601,157 @@ describe('useInfiniteQuery', () => {
     expect(wrapper.vm.hasPreviousPage).toBe(false)
   })
 
-  it.todo('stops fetching previous pages if hasPreviousPage is false', async () => {})
-  it.todo('updates hasPreviousPage when loading pages', async () => {})
+  it('stops fetching previous pages if hasPreviousPage is false', async () => {
+    const { wrapper } = mountSimple({
+      initialPageParam: 2,
+      getPreviousPageParam: (firstPage, allPages, firstPageParam) => {
+        return firstPageParam > 0 ? firstPageParam - 1 : null
+      },
+    })
+    await flushPromises()
+    expect(wrapper.vm.data).toEqual({ pages: [[7, 8, 9]], pageParams: [2] })
+    await wrapper.vm.loadPreviousPage()
+    expect(wrapper.vm.data).toEqual({
+      pages: [
+        [4, 5, 6],
+        [7, 8, 9],
+      ],
+      pageParams: [1, 2],
+    })
+    await wrapper.vm.loadPreviousPage()
+    expect(wrapper.vm.data).toEqual({
+      pages: [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
+      ],
+      pageParams: [0, 1, 2],
+    })
+    // should do nothing
+    await wrapper.vm.loadPreviousPage()
+    expect(wrapper.vm.data).toEqual({
+      pages: [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
+      ],
+      pageParams: [0, 1, 2],
+    })
+  })
+  it('updates hasPreviousPage when loading pages', async () => {
+    const { wrapper } = mountSimple({
+      initialPageParam: 2,
+      getPreviousPageParam: (firstPage, allPages, firstPageParam) => {
+        return firstPageParam > 0 ? firstPageParam - 1 : null
+      },
+    })
+    await flushPromises()
+    expect(wrapper.vm.data).toEqual({ pages: [[7, 8, 9]], pageParams: [2] })
+    expect(wrapper.vm.hasPreviousPage).toBe(true)
+    await wrapper.vm.loadPreviousPage()
+    expect(wrapper.vm.data).toEqual({
+      pages: [
+        [4, 5, 6],
+        [7, 8, 9],
+      ],
+      pageParams: [1, 2],
+    })
+    await wrapper.vm.loadPreviousPage()
+    expect(wrapper.vm.data).toEqual({
+      pages: [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
+      ],
+      pageParams: [0, 1, 2],
+    })
+    expect(wrapper.vm.hasPreviousPage).toBe(false)
+  })
 
-  it.todo('only takes into account the latest call to loadPreviousPage', async () => {})
-  it.todo('loadPreviousPage throws by default if the query does')
-  it.todo('loadPreviousPage catches errors if throwOnError is set to false')
+  it('only takes into account the latest call to loadPreviousPage', async () => {
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce([10, 11, 12])
+      .mockResolvedValueOnce([7, 8, 9])
+      .mockResolvedValueOnce([4, 5, 6])
+      .mockResolvedValueOnce([1, 2, 3])
+
+    const { wrapper } = mountSimple({
+      initialPageParam: 3,
+      query,
+      getPreviousPageParam: (firstPage, allPages, firstPageParam) => {
+        return firstPageParam > 0 ? firstPageParam - 1 : null
+      },
+    })
+
+    await flushPromises()
+    expect(wrapper.vm.data).toEqual({ pages: [[10, 11, 12]], pageParams: [3] })
+
+    await Promise.all([
+      wrapper.vm.loadPreviousPage(),
+      wrapper.vm.loadPreviousPage(),
+      wrapper.vm.loadPreviousPage(),
+    ])
+
+    // Only the last call (pageParam 0) should be in the data
+    expect(wrapper.vm.data).toEqual({
+      pages: [
+        [1, 2, 3],
+        [10, 11, 12],
+      ],
+      pageParams: [2, 3],
+    })
+  })
+
+  it('loadPreviousPage throws by default if the query does', async () => {
+    const error = new Error('Test error during loadPreviousPage')
+    const { wrapper } = mountSimple({
+      initialPageParam: 2,
+      query: vi.fn(async ({ pageParam }) => {
+        // First page succeeds
+        if (pageParam === 2) {
+          return [7, 8, 9]
+        }
+        // Subsequent pages throw
+        throw error
+      }),
+      getPreviousPageParam: (firstPage, allPages, firstPageParam) => {
+        return firstPageParam > 0 ? firstPageParam - 1 : null
+      },
+    })
+
+    await flushPromises()
+    expect(wrapper.vm.data).toEqual({ pages: [[7, 8, 9]], pageParams: [2] })
+
+    // Should throw by default
+    await expect(wrapper.vm.loadPreviousPage()).rejects.toThrow(
+      'Test error during loadPreviousPage',
+    )
+  })
+
+  it('loadPreviousPage catches errors if throwOnError is set to false', async () => {
+    const error = new Error('Test error during loadPreviousPage')
+    const { wrapper } = mountSimple({
+      initialPageParam: 2,
+      query: vi.fn(async ({ pageParam }) => {
+        // First page succeeds
+        if (pageParam === 2) {
+          return [7, 8, 9]
+        }
+        // Subsequent pages throw
+        throw error
+      }),
+      getPreviousPageParam: (firstPage, allPages, firstPageParam) => {
+        return firstPageParam > 0 ? firstPageParam - 1 : null
+      },
+      throwOnError: false,
+    })
+
+    await flushPromises()
+    expect(wrapper.vm.data).toEqual({ pages: [[7, 8, 9]], pageParams: [2] })
+
+    // Should not throw with throwOnError: false
+    await expect(wrapper.vm.loadPreviousPage()).resolves.not.toThrow()
+    expect(wrapper.vm.error).toBe(error)
+  })
 })
