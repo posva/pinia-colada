@@ -5,6 +5,7 @@ import type { UseQueryReturn } from './use-query'
 import type { ErrorDefault } from './types-extension'
 import { useQueryCache, type UseQueryEntry } from './query-store'
 import type { DefineQueryOptions } from './define-query'
+import { noop } from './utils'
 
 /**
  * Structure of data stored for infinite queries.
@@ -91,6 +92,19 @@ export interface UseInfiniteQueryOptions<
   // TODO: initialData should be adapted to infinite queries
 }
 
+/**
+ * Options for {@link UseInfiniteQueryReturn.loadNextPage} and
+ * {@link UseInfiniteQueryReturn.loadPreviousPage}.
+ */
+export interface UseInfiniteQueryLoadMoreOptions {
+  /**
+   * Whether to throw an error if the fetch fails.
+   *
+   * @default false
+   */
+  throwOnError?: boolean
+}
+
 export interface UseInfiniteQueryReturn<
   TData = unknown,
   TError = ErrorDefault,
@@ -102,11 +116,10 @@ export interface UseInfiniteQueryReturn<
    */
   hasNextPage: Ref<boolean>
 
-  // TODO: allow options for throwOnError and cancelRefetch like in useQuery
   /**
    * Load the next page of data.
    */
-  loadNextPage: () => Promise<unknown>
+  loadNextPage: (options?: UseInfiniteQueryLoadMoreOptions) => Promise<unknown>
 
   /**
    * Whether there is a previous page to load. Defined based on the result of
@@ -118,7 +131,7 @@ export interface UseInfiniteQueryReturn<
    * Load the previous page of data.
    * Requires {@link UseInfiniteQueryOptions.getPreviousPageParam} to be defined.
    */
-  loadPreviousPage: () => Promise<unknown>
+  loadPreviousPage: (options?: UseInfiniteQueryLoadMoreOptions) => Promise<unknown>
 }
 
 /**
@@ -272,7 +285,10 @@ export function useInfiniteQuery<
   // if we have initial data, we need to set the next and previous page params
   computePageParams(entry?.state.value.data)
 
-  async function loadPage(page: NextPageIndicator): Promise<unknown> {
+  async function loadPage(
+    page: NextPageIndicator,
+    { throwOnError }: UseInfiniteQueryLoadMoreOptions = {},
+  ): Promise<unknown> {
     const opts = toValue(options)
     const entry = queryCache.get(toValue(opts.key))
     if (!entry) {
@@ -282,14 +298,15 @@ export function useInfiniteQuery<
       return null
     }
     nextPage = page
-    return queryCache.fetch(entry)
+
+    return queryCache.fetch(entry).catch(throwOnError ? undefined : noop)
   }
 
   return {
     ...query,
     hasNextPage,
-    loadNextPage: () => loadPage(1),
+    loadNextPage: (options?: UseInfiniteQueryLoadMoreOptions) => loadPage(1, options),
     hasPreviousPage,
-    loadPreviousPage: () => loadPage(-1),
+    loadPreviousPage: (options?: UseInfiniteQueryLoadMoreOptions) => loadPage(-1, options),
   }
 }
