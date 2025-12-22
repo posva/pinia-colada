@@ -78,6 +78,7 @@ export interface UseQueryReturn<
 
   /**
    * Ensures the current data is fresh. If the data is stale, refetch, if not return as is.
+   *
    * @param throwOnError - whether to throw an error if the refresh fails. Defaults to `false`
    * @returns a promise that resolves when the refresh is done
    */
@@ -85,6 +86,7 @@ export interface UseQueryReturn<
 
   /**
    * Ignores fresh data and triggers a new fetch
+   *
    * @param throwOnError - whether to throw an error if the fetch fails. Defaults to `false`
    * @returns a promise that resolves when the fetch is done
    */
