@@ -193,55 +193,96 @@ export function useInfiniteQuery<
         context: UseQueryFnContext<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>,
       ) => {
         entry = context.entry
-        const data = entry.state.value.data
+        const state = entry.state.value
+        const { data } = state
+
+        // result of pages and params
+        let pages: TData[]
+        let pageParams: TPageParam[]
+        let pageParam: TPageParam | null | undefined
 
         // if we never loaded, consider we want to load the first page
-        if (entry.state.value.status === 'pending' && nextPage === 0) {
+        if (
+          (state.status === 'pending' ||
+            // edge case: data is empty, we want to fetch normally
+            !data?.pages.length) &&
+          !nextPage
+        ) {
           nextPage = 1
         }
 
-        if (nextPage === 0) {
-          // TODO: refetch all pages
-          console.warn('not implemented: refetch all pages in infinite query')
-          throw new Error('not implemented: refetch all pages in infinite query')
-        }
-
         const position = nextPage > 0 ? -1 : 0
-        nextPage = 0
 
-        if (process.env.NODE_ENV !== 'production') {
-          if (position === 0 && !opts.getPreviousPageParam) {
-            const msg =
-              '[useInfiniteQuery] Trying to load previous page but `getPreviousPageParam` is not defined in options. This will fail in production.'
-            console.warn(msg)
-            throw new Error(msg)
+        // the status was not pending so this is a manual refetch
+        if (
+          !nextPage &&
+          // NOTE: at this point data cannot be undefined but this makes TS happy
+          data
+        ) {
+          const pagesToRefetch = data.pages.length
+          pages = []
+          pageParams = []
+
+          // there is at least one page because we check for data.pages.length
+          // above, so there is at least 1 pageParam
+          pageParam = data.pageParams[0]!
+
+          for (let i = 0; i < pagesToRefetch; i++) {
+            // oxlint-disable-next-line: no-await-in-loop
+            const page = await opts.query({
+              ...context,
+              pageParam,
+            })
+
+            pages.push(page)
+            pageParams.push(pageParam)
+
+            if (i < pagesToRefetch - 1) {
+              const nextParam = opts.getNextPageParam(page, pages, pageParam, pageParams)
+
+              if (nextParam == null) {
+                break
+              }
+              pageParam = nextParam
+            }
           }
+        } else {
+          nextPage = 0
+
+          if (process.env.NODE_ENV !== 'production') {
+            if (position === 0 && !opts.getPreviousPageParam) {
+              const msg =
+                '[useInfiniteQuery] Trying to load previous page but `getPreviousPageParam` is not defined in options. This will fail in production.'
+              console.warn(msg)
+              throw new Error(msg)
+            }
+          }
+
+          computePageParams(data)
+
+          pageParam = (position ? nextPageParam : previousPageParam).value
+
+          // there is nothing to load
+          if (pageParam == null && data) {
+            return data
+          }
+
+          pageParam ??= toValue(opts.initialPageParam)
+
+          const page = await opts.query({
+            ...context,
+            pageParam,
+          })
+
+          // we create copies to ensure the old versions are preserved
+          // where they are needed (e.g. devtools)
+          pages = data?.pages.slice() ?? []
+          pageParams = data?.pageParams.slice() ?? []
+
+          const arrayMethod = position ? 'push' : 'unshift'
+          pages[arrayMethod](page)
+          pageParams[arrayMethod](pageParam)
         }
-
-        computePageParams(data)
-
-        let pageParam = (position ? nextPageParam : previousPageParam).value
-
-        // there is nothing to load
-        if (pageParam == null && data) {
-          return data
-        }
-
-        pageParam ??= toValue(opts.initialPageParam)
-
-        const page = await opts.query({
-          ...context,
-          pageParam,
-        })
-
-        // we create copies to ensure the old versions are preserved
-        // where they are needed (e.g. devtools)
-        const pages = data?.pages.slice() ?? []
-        const pageParams = data?.pageParams.slice() ?? []
-
-        const arrayMethod = position ? 'push' : 'unshift'
-        pages[arrayMethod](page)
-        pageParams[arrayMethod](pageParam)
 
         // Apply maxPages limit
         if (opts.maxPages && pages.length > opts.maxPages) {

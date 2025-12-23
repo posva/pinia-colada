@@ -341,10 +341,7 @@ describe('useInfiniteQuery', () => {
     // Reset the mock to track calls
     query.mockClear()
 
-    // Invalidate the query
-    const entry = queryCache.get(['key'])!
-    expect(entry).toBeDefined()
-    queryCache.invalidate(entry)
+    queryCache.invalidateQueries({ key: ['key'] })
 
     await flushPromises()
 
@@ -382,6 +379,33 @@ describe('useInfiniteQuery', () => {
     expect(query).toHaveBeenNthCalledWith(1, expect.objectContaining({ pageParam: 0 }))
     expect(query).toHaveBeenNthCalledWith(2, expect.objectContaining({ pageParam: 1 }))
     expect(query).toHaveBeenNthCalledWith(3, expect.objectContaining({ pageParam: 2 }))
+  })
+
+  it('should refetch using existing page params, not initial page param', async () => {
+    const { wrapper, query } = mountSimple({
+      maxPages: 2,
+    })
+
+    await flushPromises()
+    await wrapper.vm.loadNextPage()
+    await wrapper.vm.loadNextPage()
+    await wrapper.vm.loadNextPage()
+
+    expect(wrapper.vm.data).toEqual({
+      pages: [
+        [7, 8, 9],
+        [10, 11, 12],
+      ],
+      pageParams: [2, 3],
+    })
+
+    query.mockClear()
+
+    await wrapper.vm.refetch()
+
+    expect(query).toHaveBeenCalledTimes(2)
+    expect(query).toHaveBeenNthCalledWith(1, expect.objectContaining({ pageParam: 2 }))
+    expect(query).toHaveBeenNthCalledWith(2, expect.objectContaining({ pageParam: 3 }))
   })
 
   it('should propagate errors', async () => {
