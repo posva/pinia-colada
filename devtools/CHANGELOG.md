@@ -1,3 +1,13 @@
+# [0.4.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.3.0...@pinia/colada-devtools@0.4.0) (2025-12-23)
+
+
+### Bug Fixes
+
+* higher z-index for button ([2b8e5a6](https://github.com/posva/pinia-colada/commit/2b8e5a653cf7225da6d918af36413e8e4f7b9a08))
+* update mutations more often ([d2aecb4](https://github.com/posva/pinia-colada/commit/d2aecb45b4db53e3d9337a32c69131a62617c04a))
+
+
+
 # [0.3.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.2.1...@pinia/colada-devtools@0.3.0) (2025-12-18)
 
 - fix!: remove devtools from production builds ([a3b3bab](https://github.com/posva/pinia-colada/commit/a3b3bab22e8cb5e7d50d1cbe6c861fe2a2854cc8))

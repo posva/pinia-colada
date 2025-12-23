@@ -1,3 +1,100 @@
+# [0.20.0](https://github.com/posva/pinia-colada/compare/v0.19.1...v0.20.0) (2025-12-23)
+
+This release completely changed how `useInfiniteQuery()` works, the parameters and returned values:
+
+- The `merge` option has been removed and `data` contains an object with `pages` and `pageParams` arrays that can be flattened.
+- `initialPage` has now been replaced with `initialPageParam`
+- `loadMore` has been renamed `loadNextPage`
+- `getNextPageParam` is now a required option
+- Invalidating now works just as with regular queries, which means that you probably want to set `stale` value higher (or disable it) to avoid refetching multiple pages when an infinite query is invalidated. Also, you might want to set `refetchOn*` options to `false`.
+- It's now possible to have bi-directional navigation
+- There is now `hasNextPage` and `hasPreviousPage`
+
+Any feedback on the feature and improvements is welcome!
+
+Here is a complete example of what it looks in action:
+
+```ts
+<script setup lang="ts">
+import { useInfiniteQuery } from '@pinia/colada'
+import { onWatcherCleanup, useTemplateRef, watch } from 'vue'
+
+const {
+  state: factsPages,
+  loadNextPage,
+  asyncStatus,
+  isDelaying,
+  hasNextPage,
+} = useInfiniteQuery({
+  key: ['feed'],
+  query: async ({ pageParam }) => factsApi.get<CatFacts>({ query: { page: pageParam, limit: 10 } }),
+  initialPageParam: 1,
+  getNextPageParam(lastPage) {
+    return lastPage.next_page_url
+  }
+  // plugins
+  retry: 0,
+  delay: 0,
+})
+
+// we only need an array
+const facts = computed(() => factPages.value.data?.pages.flat())
+const loadMoreEl = useTemplateRef('load-more')
+
+watch(loadMoreEl, (el) => {
+  if (el) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          loadNextPage()
+        }
+      },
+      {
+        rootMargin: '300px',
+        threshold: [0],
+      },
+    )
+    observer.observe(el)
+    onWatcherCleanup(() => {
+      observer.disconnect()
+    })
+  }
+})
+</script>
+
+<template>
+  <div>
+    <button :disabled="asyncStatus === 'loading' || isDelaying" @click="loadMore()">
+      Load more (or scroll down)
+    </button>
+    <template v-if="facts?.length">
+      <p>We have loaded {{ facts.length }} facts</p>
+      <details>
+        <summary>Show raw</summary>
+        <pre>{{ facts }}</pre>
+      </details>
+
+      <blockquote v-for="fact in facts">
+        {{ fact }}
+      </blockquote>
+
+      <p v-if="hasNextPage" ref="load-more">Loading more...</p>
+    </template>
+  </div>
+</template>
+```
+
+### Bug Fixes
+
+- **infinite:** invalidation should refetch ([bc9c261](https://github.com/posva/pinia-colada/commit/bc9c261a8b294049fa87ee9c2e52049c3e0a78fe)), closes [#372](https://github.com/posva/pinia-colada/issues/372)
+
+### Features
+
+- **infinite:** add cancelRefetch ([16de801](https://github.com/posva/pinia-colada/commit/16de801849c54273d6842583ecd3c2b21d67f185))
+- **infinite:** maxPages ([7639145](https://github.com/posva/pinia-colada/commit/763914564a91584ebd4fc931289e1e242c489806))
+- nextPage works ([d011030](https://github.com/posva/pinia-colada/commit/d011030a1eacc95501715980243d6a4a582e2832))
+- throwOnError in infiniteQuery ([5010b11](https://github.com/posva/pinia-colada/commit/5010b11ef2a34690b8aa59659bb9c1b9e8cce409))
+
 ## [0.19.1](https://github.com/posva/pinia-colada/compare/v0.19.0...v0.19.1) (2025-12-17)
 
 ### Features
