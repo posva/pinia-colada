@@ -31,7 +31,7 @@ describe('useQuery', () => {
   mockConsoleError()
 
   function mountSimple<
-    TData = number,
+    TData = number | string,
     TError = Error,
     TDataInitial extends TData | undefined = undefined,
   >(

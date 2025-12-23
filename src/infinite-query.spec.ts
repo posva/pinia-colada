@@ -1,5 +1,9 @@
 import type { GlobalMountOptions } from '../test-utils/utils'
-import type { UseInfiniteQueryFnContext, UseInfiniteQueryOptions } from './infinite-query'
+import type {
+  UseInfiniteQueryData,
+  UseInfiniteQueryFnContext,
+  UseInfiniteQueryOptions,
+} from './infinite-query'
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import type { Pinia } from 'pinia'
@@ -27,8 +31,15 @@ describe('useInfiniteQuery', () => {
   mockWarn()
   mockConsoleError()
 
-  function mountSimple<TData = number, TError = Error, TPageParam = unknown>(
-    options: Partial<UseInfiniteQueryOptions<TData, TError, TPageParam>> = {},
+  function mountSimple<
+    TData = Array<number | string>,
+    TError = Error,
+    TPageParam = number,
+    TDataInitial extends UseInfiniteQueryData<TData, TPageParam> | undefined =
+      | UseInfiniteQueryData<TData, TPageParam>
+      | undefined,
+  >(
+    options: Partial<UseInfiniteQueryOptions<TData, TError, TPageParam, TDataInitial>> = {},
     mountOptions?: GlobalMountOptions,
   ) {
     const query = options.query
@@ -36,7 +47,14 @@ describe('useInfiniteQuery', () => {
         ? options.query
         : vi.fn(options.query)
       : vi.fn(
-          async ({ pageParam }: UseInfiniteQueryFnContext<NoInfer<TPageParam>>): Promise<TData> => {
+          async ({
+            pageParam,
+          }: UseInfiniteQueryFnContext<
+            UseInfiniteQueryData<TData, TPageParam>,
+            TError,
+            TDataInitial,
+            TPageParam
+          >): Promise<TData> => {
             if (typeof pageParam === 'number') {
               return [pageParam * 3 + 1, pageParam * 3 + 2, pageParam * 3 + 3] as unknown as TData
             }
@@ -83,6 +101,7 @@ describe('useInfiniteQuery', () => {
               )
             },
             ...options,
+            // @ts-expect-error: it's fine
             query,
           })
           return {

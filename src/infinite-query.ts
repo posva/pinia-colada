@@ -22,7 +22,12 @@ export interface UseInfiniteQueryData<TData, TPageParam> {
   pageParams: TPageParam[]
 }
 
-export interface UseInfiniteQueryFnContext<TPageParam> extends UseQueryFnContext {
+export interface UseInfiniteQueryFnContext<
+  TData,
+  TError,
+  TDataInitial extends TData | undefined,
+  TPageParam,
+> extends UseQueryFnContext<TData, TError, TDataInitial> {
   /**
    * The page parameter for the current fetch.
    */
@@ -50,7 +55,14 @@ export interface UseInfiniteQueryOptions<
   /**
    * The function that will be called to fetch the data. It **must** be async.
    */
-  query: (context: UseInfiniteQueryFnContext<NoInfer<TPageParam>>) => Promise<TData>
+  query: (
+    context: UseInfiniteQueryFnContext<
+      UseInfiniteQueryData<TData, TPageParam>,
+      TError,
+      TDataInitial,
+      TPageParam
+    >,
+  ) => Promise<TData>
 
   /**
    * Initial page parameter or function returning it. It's passed to the query
@@ -70,11 +82,11 @@ export interface UseInfiniteQueryOptions<
    * consider there are no more pages to fetch.
    */
   getNextPageParam: (
-    lastPage: TData,
-    allPages: TData[],
-    lastPageParam: TPageParam,
-    allPageParams: TPageParam[],
-  ) => TPageParam | undefined | null
+    lastPage: NoInfer<TData>,
+    allPages: NoInfer<TData>[],
+    lastPageParam: NoInfer<TPageParam>,
+    allPageParams: NoInfer<TPageParam>[],
+  ) => NoInfer<TPageParam> | undefined | null
 
   /**
    * Function to get the previous page parameter based on the first page and
@@ -118,7 +130,10 @@ export interface UseInfiniteQueryReturn<
   TData = unknown,
   TError = ErrorDefault,
   TPageParam = unknown,
-> extends UseQueryReturn<UseInfiniteQueryData<TData, TPageParam>, TError> {
+  TDataInitial extends UseInfiniteQueryData<TData, TPageParam> | undefined =
+    | UseInfiniteQueryData<TData, TPageParam>
+    | undefined,
+> extends UseQueryReturn<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial> {
   /**
    * Whether there is a next page to load. Defined based on the result of
    * {@link UseInfiniteQueryOptions.getNextPageParam}.
@@ -169,7 +184,7 @@ export function useInfiniteQuery<
     | undefined,
 >(
   options: UseInfiniteQueryOptions<TData, TError, TPageParam, TDataInitial>,
-): UseInfiniteQueryReturn<TData, TError, TPageParam> {
+): UseInfiniteQueryReturn<TData, TError, TPageParam, TDataInitial> {
   const queryCache = useQueryCache()
   // we start by assuming we want to load the next page
   let nextPage: NextPageIndicator = 0
@@ -183,134 +198,138 @@ export function useInfiniteQuery<
     | UseQueryEntry<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>
     | undefined
 
-  const query = useQuery<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>(() => {
-    const opts = toValue(options)
-    // TODO: compute initial values for hasNextPage and hasPreviousPage based on initialData
-    return {
-      ...opts,
-      key: toValue(opts.key),
-      query: async (
-        context: UseQueryFnContext<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>,
-      ) => {
-        entry = context.entry
-        const state = entry.state.value
-        const { data } = state
+  const query = useQuery<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>(
+    // @ts-expect-error: FIXME: mismatch with TDataInitial and undefined somewhere
+    () => {
+      const opts = toValue(options)
+      // TODO: compute initial values for hasNextPage and hasPreviousPage based on initialData
+      return {
+        ...opts,
+        key: toValue(opts.key),
+        query: async (
+          context: UseQueryFnContext<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>,
+        ) => {
+          entry = context.entry
+          const state = entry.state.value
+          const { data } = state
 
-        // result of pages and params
-        let pages: TData[]
-        let pageParams: TPageParam[]
-        let pageParam: TPageParam | null | undefined
+          // result of pages and params
+          let pages: TData[]
+          let pageParams: TPageParam[]
+          let pageParam: TPageParam | null | undefined
 
-        // if we never loaded, consider we want to load the first page
-        if (
-          (state.status === 'pending' ||
-            // edge case: data is empty, we want to fetch normally
-            !data?.pages.length) &&
-          !nextPage
-        ) {
-          nextPage = 1
-        }
+          // if we never loaded, consider we want to load the first page
+          if (
+            (state.status === 'pending' ||
+              // edge case: data is empty, we want to fetch normally
+              !data?.pages.length) &&
+            !nextPage
+          ) {
+            nextPage = 1
+          }
 
-        const position = nextPage > 0 ? -1 : 0
+          const position = nextPage > 0 ? -1 : 0
 
-        // the status was not pending so this is a manual refetch
-        if (
-          !nextPage &&
-          // NOTE: at this point data cannot be undefined but this makes TS happy
-          data
-        ) {
-          const pagesToRefetch = data.pages.length
-          pages = []
-          pageParams = []
+          // the status was not pending so this is a manual refetch
+          if (
+            !nextPage &&
+            // NOTE: at this point data cannot be undefined but this makes TS happy
+            data
+          ) {
+            const pagesToRefetch = data.pages.length
+            pages = []
+            pageParams = []
 
-          // there is at least one page because we check for data.pages.length
-          // above, so there is at least 1 pageParam
-          pageParam = data.pageParams[0]!
+            // there is at least one page because we check for data.pages.length
+            // above, so there is at least 1 pageParam
+            pageParam = data.pageParams[0]!
 
-          for (let i = 0; i < pagesToRefetch; i++) {
-            // oxlint-disable-next-line: no-await-in-loop
+            for (let i = 0; i < pagesToRefetch; i++) {
+              // oxlint-disable-next-line: no-await-in-loop
+              const page = await opts.query({
+                ...context,
+                pageParam,
+              })
+
+              pages.push(page)
+              pageParams.push(pageParam)
+
+              if (i < pagesToRefetch - 1) {
+                const nextParam = opts.getNextPageParam(page, pages, pageParam, pageParams)
+
+                if (nextParam == null) {
+                  break
+                }
+                pageParam = nextParam
+              }
+            }
+          } else {
+            nextPage = 0
+
+            if (process.env.NODE_ENV !== 'production') {
+              if (position === 0 && !opts.getPreviousPageParam) {
+                const msg =
+                  '[useInfiniteQuery] Trying to load previous page but `getPreviousPageParam` is not defined in options. This will fail in production.'
+                console.warn(msg)
+                throw new Error(msg)
+              }
+            }
+
+            computePageParams(data)
+
+            pageParam = (position ? nextPageParam : previousPageParam).value
+
+            // there is nothing to load
+            if (pageParam == null && data) {
+              return data
+            }
+
+            pageParam ??= toValue(opts.initialPageParam)
+
             const page = await opts.query({
               ...context,
               pageParam,
             })
 
-            pages.push(page)
-            pageParams.push(pageParam)
+            // we create copies to ensure the old versions are preserved
+            // where they are needed (e.g. devtools)
+            pages = data?.pages.slice() ?? []
+            pageParams = data?.pageParams.slice() ?? []
 
-            if (i < pagesToRefetch - 1) {
-              const nextParam = opts.getNextPageParam(page, pages, pageParam, pageParams)
+            const arrayMethod = position ? 'push' : 'unshift'
+            pages[arrayMethod](page)
+            pageParams[arrayMethod](pageParam)
+          }
 
-              if (nextParam == null) {
-                break
-              }
-              pageParam = nextParam
+          // Apply maxPages limit
+          if (opts.maxPages && pages.length > opts.maxPages) {
+            if (position) {
+              // Loading next pages - trim from beginning (remove oldest pages)
+              pages.splice(0, pages.length - opts.maxPages)
+              pageParams.splice(0, pageParams.length - opts.maxPages)
+            } else {
+              // Loading previous pages - trim from end (remove newest pages)
+              pages.splice(opts.maxPages)
+              pageParams.splice(opts.maxPages)
             }
           }
-        } else {
-          nextPage = 0
 
-          if (process.env.NODE_ENV !== 'production') {
-            if (position === 0 && !opts.getPreviousPageParam) {
-              const msg =
-                '[useInfiniteQuery] Trying to load previous page but `getPreviousPageParam` is not defined in options. This will fail in production.'
-              console.warn(msg)
-              throw new Error(msg)
-            }
-          }
+          computePageParams({ pages, pageParams })
 
-          computePageParams(data)
+          return { pages, pageParams }
+        },
 
-          pageParam = (position ? nextPageParam : previousPageParam).value
-
-          // there is nothing to load
-          if (pageParam == null && data) {
-            return data
-          }
-
-          pageParam ??= toValue(opts.initialPageParam)
-
-          const page = await opts.query({
-            ...context,
-            pageParam,
-          })
-
-          // we create copies to ensure the old versions are preserved
-          // where they are needed (e.g. devtools)
-          pages = data?.pages.slice() ?? []
-          pageParams = data?.pageParams.slice() ?? []
-
-          const arrayMethod = position ? 'push' : 'unshift'
-          pages[arrayMethod](page)
-          pageParams[arrayMethod](pageParam)
-        }
-
-        // Apply maxPages limit
-        if (opts.maxPages && pages.length > opts.maxPages) {
-          if (position) {
-            // Loading next pages - trim from beginning (remove oldest pages)
-            pages.splice(0, pages.length - opts.maxPages)
-            pageParams.splice(0, pageParams.length - opts.maxPages)
-          } else {
-            // Loading previous pages - trim from end (remove newest pages)
-            pages.splice(opts.maxPages)
-            pageParams.splice(opts.maxPages)
-          }
-        }
-
-        computePageParams({ pages, pageParams })
-
-        return { pages, pageParams }
-      },
-
-      // other options that need to be normalized
-      meta: toValue(opts.meta),
-      // enabled: toValue(opts.enabled),
-      refetchOnMount: toValue(opts.refetchOnMount),
-      refetchOnReconnect: toValue(opts.refetchOnReconnect),
-      refetchOnWindowFocus: toValue(opts.refetchOnWindowFocus),
-      // initialData,
-    } satisfies DefineQueryOptions<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>
-  })
+        // other options that need to be normalized
+        meta: toValue(opts.meta),
+        // enabled: toValue(opts.enabled),
+        refetchOnMount: toValue(opts.refetchOnMount),
+        refetchOnReconnect: toValue(opts.refetchOnReconnect),
+        refetchOnWindowFocus: toValue(opts.refetchOnWindowFocus),
+        // initialData: toValue(opts.initialData),
+        // @ts-expect-error: FIXME: mismatch with TDataInitial and undefined somewhere
+      } satisfies DefineQueryOptions<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>
+    },
+  )
 
   function computePageParams(
     data:
