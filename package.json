@@ -2,7 +2,7 @@
   "name": "@pinia/colada",
   "type": "module",
   "version": "0.20.0",
-  "packageManager": "pnpm@10.25.0",
+  "packageManager": "pnpm@10.26.2",
   "description": "The smart data fetching layer for Vue.js",
   "publishConfig": {
     "access": "public"
@@ -136,22 +136,22 @@
     "execa": "^9.6.1",
     "happy-dom": "^20.0.11",
     "lint-staged": "^16.2.7",
-    "oxfmt": "^0.18.0",
-    "oxlint": "^1.33.0",
+    "oxfmt": "^0.20.0",
+    "oxlint": "^1.35.0",
     "pinia": "^3.0.4",
     "prettier": "^3.7.4",
-    "semver": "^7.7.2",
+    "semver": "^7.7.3",
     "simple-git-hooks": "^2.13.1",
     "size-limit": "^12.0.0",
-    "tsdown": "^0.18.1",
+    "tsdown": "^0.18.2",
     "typedoc": "^0.28.15",
     "typedoc-plugin-markdown": "^4.9.0",
     "typedoc-vitepress-theme": "^1.1.2",
-    "typescript": "~5.9.2",
+    "typescript": "~5.9.3",
     "vitepress": "1.6.4",
     "vitepress-plugin-llms": "^1.9.3",
     "vitest": "^4.0.16",
-    "vue": "^3.5.25"
+    "vue": "^3.5.26"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
