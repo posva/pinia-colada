@@ -4,7 +4,7 @@ import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import type { Pinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, isRef } from 'vue'
+import { defineComponent, isRef, ref } from 'vue'
 import { mockConsoleError, mockWarn } from '../test-utils/mock-warn'
 import { isSpy } from '../test-utils/utils'
 import { useInfiniteQuery } from './infinite-query'
@@ -1014,5 +1014,31 @@ describe('useInfiniteQuery', () => {
       ],
       pageParams: [1, 2],
     })
+  })
+
+  it('creates a new entry when key changes and marks previous entry as inactive', async () => {
+    const keyRef = ref(0)
+    const { wrapper, queryCache } = mountSimple({
+      key: () => ['key', keyRef.value],
+    })
+
+    await flushPromises()
+
+    const entry0 = queryCache.get(['key', 0])!
+    expect(entry0).toBeDefined()
+    expect(entry0.active).toBe(true)
+
+    keyRef.value = 1
+    await flushPromises()
+
+    const entry1 = queryCache.get(['key', 1])!
+    expect(entry1).toBeDefined()
+    expect(entry1.active).toBe(true)
+
+    // old entry should not be active anymore
+    const oldEntry = queryCache.get(['key', 0])!
+    expect(oldEntry).toBeDefined()
+    expect(entry0).toBe(oldEntry)
+    expect(oldEntry.active).toBe(false)
   })
 })
