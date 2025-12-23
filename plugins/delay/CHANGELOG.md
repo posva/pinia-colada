@@ -1,3 +1,7 @@
+## [0.1.4](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-delay@0.1.3...@pinia/colada-plugin-delay@0.1.4) (2025-12-23)
+
+Fix in build
+
 ## [0.1.3](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-delay@0.1.2...@pinia/colada-plugin-delay@0.1.3) (2025-12-17)
 
 ### Bug Fixes
