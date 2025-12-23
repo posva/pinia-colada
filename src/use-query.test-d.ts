@@ -4,6 +4,7 @@ import { useQuery } from './use-query'
 import type { UseQueryOptions } from './query-options'
 import type { DefineQueryOptions } from './define-query'
 import type { DefineQueryOptionsTagged } from './define-query-options'
+import type { DataStateStatus } from './data-state'
 
 describe('useQuery type inference', () => {
   it('infers the data type', () => {
@@ -315,6 +316,43 @@ describe('useQuery type inference', () => {
     const { state, error } = useQuery(() => options)
     expectTypeOf<MyCustomError | null>(error.value)
     expectTypeOf<MyCustomError | null>(state.value.error)
+  })
+
+  it('can infer the type of entry in the context', () => {
+    const { data, state } = useQuery({
+      key: ['id'],
+      async query({ entry }) {
+        expectTypeOf<{
+          status: DataStateStatus
+          // data can't be inferred in return and arguments
+          // https://github.com/microsoft/TypeScript/issues/49618
+          // https://github.com/microsoft/TypeScript/issues/47599
+          data: unknown | null
+          error: { custom: Error } | null
+        }>(entry.state.value)
+
+        return {
+          status: 'ok' as 'ok' | 'error',
+          message: 'hello',
+        }
+      },
+    })
+
+    expectTypeOf<
+      | {
+          status: 'ok' | 'error'
+          message: string
+        }
+      | undefined
+    >(data.value)
+
+    expectTypeOf<
+      | {
+          status: 'ok' | 'error'
+          message: string
+        }
+      | undefined
+    >(state.value.data)
   })
 })
 

@@ -154,7 +154,12 @@ export interface UseQueryOptions<
   /**
    * The function that will be called to fetch the data. It **must** be async.
    */
-  query: (context: UseQueryFnContext<TData, TError, TDataInitial>) => Promise<TData>
+  query: (
+    // NOTE: we can't use TData in the argument because it's used from the return type
+    // https://github.com/microsoft/TypeScript/issues/49618
+    // https://github.com/microsoft/TypeScript/issues/47599
+    context: UseQueryFnContext<unknown, TError, TDataInitial>,
+  ) => Promise<TData>
 
   /**
    * The data which is initially set to the query while the query is loading

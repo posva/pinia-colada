@@ -25,8 +25,8 @@ export interface UseInfiniteQueryData<TData, TPageParam> {
 export interface UseInfiniteQueryFnContext<
   TData,
   TError,
-  TDataInitial extends TData | undefined,
-  TPageParam,
+  TDataInitial extends TData | undefined = undefined,
+  TPageParam = unknown,
 > extends UseQueryFnContext<TData, TError, TDataInitial> {
   /**
    * The page parameter for the current fetch.
@@ -43,9 +43,7 @@ export interface UseInfiniteQueryOptions<
   TData,
   TError,
   TPageParam,
-  TDataInitial extends UseInfiniteQueryData<TData, TPageParam> | undefined =
-    | UseInfiniteQueryData<TData, TPageParam>
-    | undefined,
+  TDataInitial extends UseInfiniteQueryData<TData, TPageParam> | undefined,
 > extends Omit<
   UseQueryOptions<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>,
   'query' | 'key'
@@ -56,8 +54,11 @@ export interface UseInfiniteQueryOptions<
    * The function that will be called to fetch the data. It **must** be async.
    */
   query: (
+    // NOTE: we can't use TData in the argument because it's used from the return type
+    // https://github.com/microsoft/TypeScript/issues/49618
+    // https://github.com/microsoft/TypeScript/issues/47599
     context: UseInfiniteQueryFnContext<
-      UseInfiniteQueryData<TData, TPageParam>,
+      UseInfiniteQueryData<unknown, TPageParam>,
       TError,
       TDataInitial,
       TPageParam
@@ -130,9 +131,7 @@ export interface UseInfiniteQueryReturn<
   TData = unknown,
   TError = ErrorDefault,
   TPageParam = unknown,
-  TDataInitial extends UseInfiniteQueryData<TData, TPageParam> | undefined =
-    | UseInfiniteQueryData<TData, TPageParam>
-    | undefined,
+  TDataInitial extends UseInfiniteQueryData<TData, TPageParam> | undefined = undefined,
 > extends UseQueryReturn<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial> {
   /**
    * Whether there is a next page to load. Defined based on the result of
@@ -179,9 +178,7 @@ export function useInfiniteQuery<
   TData,
   TError = ErrorDefault,
   TPageParam = unknown,
-  TDataInitial extends UseInfiniteQueryData<TData, TPageParam> | undefined =
-    | UseInfiniteQueryData<TData, TPageParam>
-    | undefined,
+  TDataInitial extends UseInfiniteQueryData<TData, TPageParam> | undefined = undefined,
 >(
   options: UseInfiniteQueryOptions<TData, TError, TPageParam, TDataInitial>,
 ): UseInfiniteQueryReturn<TData, TError, TPageParam, TDataInitial> {
@@ -326,8 +323,8 @@ export function useInfiniteQuery<
         refetchOnReconnect: toValue(opts.refetchOnReconnect),
         refetchOnWindowFocus: toValue(opts.refetchOnWindowFocus),
         // initialData: toValue(opts.initialData),
-        // @ts-expect-error: FIXME: mismatch with TDataInitial and undefined somewhere
-      } satisfies DefineQueryOptions<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>
+      }
+      // satisfies DefineQueryOptions<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>
     },
   )
 
