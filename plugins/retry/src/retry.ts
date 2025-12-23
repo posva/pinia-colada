@@ -6,6 +6,7 @@
  * @module @pinia/colada-plugin-retry
  */
 import type { PiniaColadaPluginContext } from '@pinia/colada'
+import { toValue } from 'vue'
 
 /**
  * Options for the Pinia Colada Retry plugin.
@@ -121,7 +122,7 @@ export function PiniaColadaRetry(
           if (shouldRetry) {
             const delayTime = typeof delay === 'function' ? delay(entry.retryCount) : delay
             entry.timeoutId = setTimeout(() => {
-              if (!queryEntry.active) {
+              if (!queryEntry.active || toValue(queryEntry.options?.enabled) === false) {
                 retryMap.delete(key)
                 return
               }
