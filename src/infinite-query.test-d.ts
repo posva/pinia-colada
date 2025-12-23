@@ -5,26 +5,23 @@ describe('useInfiniteQuery', () => {
   it('works', () => {
     const query = useInfiniteQuery({
       key: ['hey'],
-      async query({ next }, { signal }) {
+      async query({ pageParam, signal }) {
         expectTypeOf(signal).toEqualTypeOf<AbortSignal>()
-        return [{ next }]
+        expectTypeOf(pageParam).toEqualTypeOf<number>()
+        return { id: pageParam, next: pageParam + 1 }
       },
-      initialPage: () => ({
-        // cast needed to avoid infering it as never[]
-        pages: [] as Array<{ next: number }>,
-        next: 1,
-      }),
-      merge(res, current) {
-        return {
-          pages: [...res.pages, ...current],
-          next: res.next + 1,
-        }
+      initialPageParam: 1,
+      getNextPageParam(lastPage) {
+        return lastPage.next
       },
     })
 
-    expectTypeOf(query.data.value).toEqualTypeOf({
-      pages: [{ next: 1 }],
-      next: 2,
-    })
+    expectTypeOf(query.data.value).toEqualTypeOf<
+      | undefined
+      | {
+          pages: Array<{ id: number; next: number }>
+          pageParams: number[]
+        }
+    >()
   })
 })

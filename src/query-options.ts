@@ -80,8 +80,7 @@ export interface UseQueryFnContext<
   TError = unknown,
   // allows for UseQueryEntry to have unknown everywhere (generic version)
   TDataInitial extends TData | undefined = unknown extends TData ? unknown : undefined,
-  >
-  {
+> {
   /**
    * `AbortSignal` instance attached to the query call. If the call becomes
    * outdated (e.g. due to a new call with the same key), the signal will be
@@ -155,7 +154,7 @@ export interface UseQueryOptions<
   /**
    * The function that will be called to fetch the data. It **must** be async.
    */
-  query: (context: UseQueryFnContext) => Promise<TData>
+  query: (context: UseQueryFnContext<TData, TError, TDataInitial>) => Promise<TData>
 
   /**
    * The data which is initially set to the query while the query is loading
