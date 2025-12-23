@@ -129,8 +129,8 @@ jobs:
           cp README.md "${{ steps.resolve.outputs.PACKAGE_PATH }}/README.md"
 
       - name: Build
+        # handle nuxt prebuild
         run: |
-          # for nuxt
           pnpm run --if-present dev:prepare
           pnpm build
         working-directory: ${{ steps.resolve.outputs.PACKAGE_PATH }}
@@ -145,4 +145,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.resolve.outputs.TAG }}
-          FROM_TAG: ${{ steps.resolve.FROM_TAG }}
+          FROM_TAG: ${{ steps.resolve.PREVIOUS_TAG }}
