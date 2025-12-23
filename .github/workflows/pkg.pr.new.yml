@@ -55,11 +55,11 @@ jobs:
       - name: Prepare Nuxt
         run: pnpm -C ./nuxt dev:prepare
 
-      - name: Build
+      - name: Build @pinia/colada
         run: pnpm build
 
-      - name: Build plugins
-        run: pnpm build:plugins
+      - name: Build plugins, devtools and Nuxt module
+        run: pnpm build:all
 
       - name: Release
         run: pnpm dlx pkg-pr-new publish --compact --pnpm . './plugins/*' ./nuxt ./devtools
