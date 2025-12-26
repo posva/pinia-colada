@@ -105,11 +105,18 @@ channel.on('mutations:delete', (m) => {
             class="px-4 py-2 font-medium transition-colors hover:bg-theme-400 relative theme-primary border-b-2 hover:border-theme-300"
             @click="navigate"
           >
-            {{ link.slice(1, 2).toUpperCase() + link.slice(2) }}
+            {{ link.slice(1, 2).toUpperCase() + link.slice(2)
+            }}{{
+              link === '/queries' && queries.length > 0
+                ? ` (${queries.length})`
+                : link === '/mutations' && mutations.length > 0
+                  ? ` (${mutations.length})`
+                  : ''
+            }}
           </a>
         </RouterLink>
 
-        <div class="flex-grow" />
+        <div class="grow" />
 
         <!-- PiP toggle button -->
         <div class="flex items-center py-1 gap-1 pr-1">
