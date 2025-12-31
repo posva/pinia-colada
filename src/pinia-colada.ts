@@ -4,7 +4,6 @@ import type { UseQueryOptionsGlobal } from './query-options'
 import { USE_QUERY_DEFAULTS, USE_QUERY_OPTIONS_KEY } from './query-options'
 import { useQueryCache } from './query-store'
 import type { PiniaColadaPlugin } from './plugins'
-import { addDevtools } from './devtools/plugin'
 import { USE_MUTATION_DEFAULTS, USE_MUTATION_OPTIONS_KEY } from './mutation-options'
 import type { UseMutationOptionsGlobal } from './mutation-options'
 
@@ -66,10 +65,6 @@ export const PiniaColada: Plugin<[options?: PiniaColadaOptions]> = (
     throw new Error(
       '[@pinia/colada] root pinia plugin not detected. Make sure you install pinia before installing the "PiniaColada" plugin or to manually pass the pinia instance.',
     )
-  }
-
-  if (typeof document !== 'undefined' && process.env.NODE_ENV === 'development') {
-    addDevtools(app, pinia)
   }
 
   // install plugins

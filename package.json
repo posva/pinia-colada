@@ -114,9 +114,6 @@
     "pinia": "^2.2.6 || ^3.0.0",
     "vue": "^3.5.17"
   },
-  "dependencies": {
-    "@vue/devtools-api": "^8.0.5"
-  },
   "devDependencies": {
     "@ast-grep/cli": "^0.40.3",
     "@pinia/colada": "workspace:*",
