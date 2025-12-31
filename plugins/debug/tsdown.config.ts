@@ -3,7 +3,7 @@ import type { UserConfig } from 'tsdown'
 
 const commonOptions = {
   sourcemap: true,
-  format: ['cjs', 'esm'],
+  format: ['esm'],
   external: ['vue', 'pinia', '@pinia/colada'],
   dts: {
     build: true,
