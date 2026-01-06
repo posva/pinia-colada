@@ -39,9 +39,9 @@
     "npm-run-all2": "^8.0.4",
     "tailwindcss": "^4.1.18",
     "typescript": "~5.9.3",
-    "unplugin-vue-router": "^0.19.1",
+    "unplugin-vue-router": "^0.19.2",
     "vite": "^7.3.0",
     "vite-plugin-vue-devtools": "^8.0.5",
-    "vue-tsc": "^3.2.1"
+    "vue-tsc": "^3.2.2"
   }
 }
