@@ -1,3 +1,16 @@
+# [0.1.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-cache-persister@0.0.5...@pinia/colada-plugin-cache-persister@0.1.0) (2026-01-06)
+
+- refactor!: remove CJS support ([458071a](https://github.com/posva/pinia-colada/commit/458071a3a16f7f93ecde6b0816ae61239769526f))
+
+### Features
+
+- implement cache persister plugin ([bd65c16](https://github.com/posva/pinia-colada/commit/bd65c1632e6478dafe68694cd1ceed9e64836518)), closes [#455](https://github.com/posva/pinia-colada/issues/455)
+
+### BREAKING CHANGES
+
+- ESM have been natively supported in node since 18 and
+  is now required.
+
 ## [0.0.5](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-cache-persister@0.0.4...@pinia/colada-plugin-cache-persister@0.0.5) (2025-12-16)
 
 No changes in this release.

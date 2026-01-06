@@ -1,3 +1,17 @@
+# [0.21.0](https://github.com/posva/pinia-colada/compare/v0.20.0...v0.21.0) (2026-01-06)
+
+- refactor!: remove @vue/devtools-api dependencies ([9bfd035](https://github.com/posva/pinia-colada/commit/9bfd03577d622b4dc5636e65b6efef3f39aa82d9))
+
+### Features
+
+- expose internal utility types ([bb3a7d0](https://github.com/posva/pinia-colada/commit/bb3a7d048e45d2f2f88c175222a2ff9e7f22f53f))
+
+### BREAKING CHANGES
+
+- use the native @pinia/colada-devtools. See
+  <https://pinia-colada.esm.dev/guide/installation.html#Pinia-Colada-Devtools>
+  for instructions
+
 # [0.20.0](https://github.com/posva/pinia-colada/compare/v0.19.1...v0.20.0) (2025-12-23)
 
 This release completely changed how `useInfiniteQuery()` works, the parameters and returned values:

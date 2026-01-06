@@ -1,12 +1,15 @@
-# [0.4.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.3.0...@pinia/colada-devtools@0.4.0) (2025-12-23)
+## [0.4.1](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.4.0...@pinia/colada-devtools@0.4.1) (2026-01-06)
 
+### Features
+
+- add number of queries/mutations to tabs ([58515f9](https://github.com/posva/pinia-colada/commit/58515f90117507bfb0f6b483ed779e9f3795a831))
+
+# [0.4.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.3.0...@pinia/colada-devtools@0.4.0) (2025-12-23)
 
 ### Bug Fixes
 
-* higher z-index for button ([2b8e5a6](https://github.com/posva/pinia-colada/commit/2b8e5a653cf7225da6d918af36413e8e4f7b9a08))
-* update mutations more often ([d2aecb4](https://github.com/posva/pinia-colada/commit/d2aecb45b4db53e3d9337a32c69131a62617c04a))
-
-
+- higher z-index for button ([2b8e5a6](https://github.com/posva/pinia-colada/commit/2b8e5a653cf7225da6d918af36413e8e4f7b9a08))
+- update mutations more often ([d2aecb4](https://github.com/posva/pinia-colada/commit/d2aecb45b4db53e3d9337a32c69131a62617c04a))
 
 # [0.3.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.2.1...@pinia/colada-devtools@0.3.0) (2025-12-18)
 
