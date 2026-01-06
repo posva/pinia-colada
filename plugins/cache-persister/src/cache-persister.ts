@@ -130,13 +130,15 @@ export function PiniaColadaCachePersister(
     let throttleTimeout: ReturnType<typeof setTimeout> | undefined
     let pendingPersist = false
 
-    // Serialize filtered entries
-    function serializeCache(): Record<string, _UseQueryEntryNodeValueSerialized> {
-      const entries = filter ? queryCache.getEntries(filter) : [...queryCache.caches.values()]
-
-      return Object.fromEntries(
-        entries.map((entry: UseQueryEntry) => [entry.keyHash, _queryEntry_toJSON(entry)]),
-      )
+    // Serialize filtered entries (excluding error entries)
+    function serializeCache(): _UseQueryEntryNodeValueSerialized[] {
+      return queryCache
+        .getEntries({
+          ...filter,
+          // we only care about entries with data
+          status: 'success',
+        })
+        .map(_queryEntry_toJSON)
     }
 
     // Persist to storage (throttled with trailing)

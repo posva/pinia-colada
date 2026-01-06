@@ -7,6 +7,11 @@ import type { UseQueryOptions } from '@pinia/colada'
 import { PiniaColadaCachePersister, resetCacheReady, isCacheReady } from './cache-persister'
 import type { PiniaColadaStorage } from './cache-persister'
 
+// Helper to find entry by data value in array format
+function findEntryByData(stored: Array<unknown[]>, data: unknown) {
+  return stored.find((entry) => entry[0] === data)
+}
+
 describe('PiniaColadaCachePersister', () => {
   beforeEach(() => {
     vi.clearAllTimers()
@@ -106,8 +111,8 @@ describe('PiniaColadaCachePersister', () => {
 
       expect(storage.setItem).toHaveBeenCalled()
       const stored = JSON.parse(storage.data['pinia-colada-cache']!)
-      expect(stored['["test"]']).toBeDefined()
-      expect(stored['["test"]'][0]).toBe('test-data')
+      expect(stored).toHaveLength(1)
+      expect(stored[0][0]).toBe('test-data')
     })
 
     it('uses custom storage key', async () => {
@@ -148,7 +153,7 @@ describe('PiniaColadaCachePersister', () => {
 
       expect(storage.setItem).toHaveBeenCalledTimes(1)
       let stored = JSON.parse(storage.data['pinia-colada-cache']!)
-      expect(stored['["test"]'][0]).toBe('update-3')
+      expect(stored[0][0]).toBe('update-3')
 
       // Trailing call was scheduled, advance to complete it
       vi.advanceTimersByTime(100)
@@ -210,7 +215,7 @@ describe('PiniaColadaCachePersister', () => {
       await flushPromises()
 
       const stored = JSON.parse(storage.data['pinia-colada-cache']!)
-      expect(stored['["test"]'][0]).toBe('updated')
+      expect(stored[0][0]).toBe('updated')
     })
   })
 
@@ -332,8 +337,8 @@ describe('PiniaColadaCachePersister', () => {
       await flushPromises()
 
       const stored = JSON.parse(storage.data['pinia-colada-cache']!)
-      expect(stored['["users",1]']).toBeDefined()
-      expect(stored['["posts",1]']).toBeUndefined()
+      expect(findEntryByData(stored, 'user-1')).toBeDefined()
+      expect(findEntryByData(stored, 'post-1')).toBeUndefined()
 
       wrapper.unmount()
     })
@@ -378,8 +383,8 @@ describe('PiniaColadaCachePersister', () => {
       await flushPromises()
 
       const stored = JSON.parse(storage.data['pinia-colada-cache']!)
-      expect(stored['["a"]']).toBeDefined()
-      expect(stored['["b"]']).toBeUndefined()
+      expect(findEntryByData(stored, 'a-data')).toBeDefined()
+      expect(findEntryByData(stored, 'b-data')).toBeUndefined()
 
       wrapper.unmount()
     })
@@ -459,6 +464,66 @@ describe('PiniaColadaCachePersister', () => {
     })
   })
 
+  describe('error handling', () => {
+    it('does not persist entries with errors', async () => {
+      const storage = createMockStorage()
+      const query = vi.fn(async () => {
+        throw new Error('Query failed')
+      })
+
+      factory({ key: ['failing'], query }, { storage, debounce: 0 })
+
+      await flushPromises()
+      vi.advanceTimersByTime(0)
+      await flushPromises()
+
+      // Should not persist error entries - array should be empty
+      const storedRaw = storage.data['pinia-colada-cache']
+      if (storedRaw) {
+        const stored = JSON.parse(storedRaw)
+        expect(stored).toHaveLength(0)
+      }
+    })
+
+    it('persists successful entries but not error entries', async () => {
+      const storage = createMockStorage()
+
+      const wrapper = mount(
+        defineComponent({
+          template: '<div></div>',
+          setup() {
+            useQuery({ key: ['success'], query: async () => 'success-data' })
+            useQuery({
+              key: ['error'],
+              query: async () => {
+                throw new Error('Failed')
+              },
+            })
+            return {}
+          },
+        }),
+        {
+          global: {
+            plugins: [
+              createPinia(),
+              [PiniaColada, { plugins: [PiniaColadaCachePersister({ storage, debounce: 0 })] }],
+            ],
+          },
+        },
+      )
+
+      await flushPromises()
+      vi.advanceTimersByTime(0)
+      await flushPromises()
+
+      const stored = JSON.parse(storage.data['pinia-colada-cache']!)
+      expect(stored).toHaveLength(1)
+      expect(findEntryByData(stored, 'success-data')).toBeDefined()
+
+      wrapper.unmount()
+    })
+  })
+
   describe('removal', () => {
     it('updates storage when entry is removed', async () => {
       const storage = createMockStorage()
@@ -488,7 +553,8 @@ describe('PiniaColadaCachePersister', () => {
 
       // Verify initial persistence
       let stored = JSON.parse(storage.data['pinia-colada-cache']!)
-      expect(stored['["to-remove"]']).toBeDefined()
+      expect(stored).toHaveLength(1)
+      expect(findEntryByData(stored, 'data')).toBeDefined()
 
       // Unmount to trigger GC after gcTime
       wrapper.unmount()
@@ -500,7 +566,7 @@ describe('PiniaColadaCachePersister', () => {
       await flushPromises()
 
       stored = JSON.parse(storage.data['pinia-colada-cache']!)
-      expect(stored['["to-remove"]']).toBeUndefined()
+      expect(stored).toHaveLength(0)
     })
   })
 })
