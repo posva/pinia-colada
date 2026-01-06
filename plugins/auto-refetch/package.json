@@ -7,10 +7,11 @@
   "version": "0.2.5",
   "description": "Automatically refetch queries when they become stale in Pinia Colada",
   "author": {
-    "name": "Yusuf Mansur Ozer",
-    "email": "ymansurozer@gmail.com"
+    "name": "Eduardo San Martin Morote",
+    "email": "posva13@gmail.com"
   },
   "license": "MIT",
+  "funding": "https://github.com/sponsors/posva",
   "homepage": "https://github.com/posva/pinia-colada/plugins/auto-refetch#readme",
   "repository": "posva/pinia-colada",
   "bugs": {
