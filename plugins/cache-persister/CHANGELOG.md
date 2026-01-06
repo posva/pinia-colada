@@ -1,3 +1,13 @@
+## [0.1.1](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-cache-persister@0.1.0...@pinia/colada-plugin-cache-persister@0.1.1) (2026-01-06)
+
+
+### Bug Fixes
+
+* avoid extra tick ([0f536f5](https://github.com/posva/pinia-colada/commit/0f536f53a96653baf83fa9f6cab92cfb39dd979b))
+* only persist success ([11b3577](https://github.com/posva/pinia-colada/commit/11b357797c19d40e81ef9a4df0786479ddae9f50))
+
+
+
 # [0.1.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-cache-persister@0.0.5...@pinia/colada-plugin-cache-persister@0.1.0) (2026-01-06)
 
 - refactor!: remove CJS support ([458071a](https://github.com/posva/pinia-colada/commit/458071a3a16f7f93ecde6b0816ae61239769526f))
