@@ -4,6 +4,5 @@
   "printWidth": 100,
   "trailingComma": "all",
   "singleQuote": true,
-  "plugins": ["@prettier/plugin-oxc"],
   "ignorePatterns": ["typed-router.d.ts", "./codemods/rule-tests/__snapshots__/", "pnpm-lock.yaml"],
 }
