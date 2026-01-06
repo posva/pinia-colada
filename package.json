@@ -1,35 +1,36 @@
 {
   "name": "@pinia/colada",
-  "type": "module",
   "version": "0.21.0",
-  "packageManager": "pnpm@10.27.0",
   "description": "The smart data fetching layer for Vue.js",
-  "publishConfig": {
-    "access": "public"
+  "keywords": [
+    "cache",
+    "data",
+    "fetching",
+    "layer",
+    "mutation",
+    "pinia",
+    "plugin",
+    "query"
+  ],
+  "homepage": "https://pinia-colada.esm.dev",
+  "bugs": {
+    "url": "https://github.com/posva/pinia-colada/issues"
   },
+  "license": "MIT",
   "author": {
     "name": "Eduardo San Martin Morote",
     "email": "posva13@gmail.com"
   },
-  "license": "MIT",
-  "funding": "https://github.com/sponsors/posva",
-  "homepage": "https://pinia-colada.esm.dev",
   "repository": "posva/pinia-colada",
-  "bugs": {
-    "url": "https://github.com/posva/pinia-colada/issues"
-  },
-  "keywords": [
-    "pinia",
-    "plugin",
-    "data",
-    "fetching",
-    "query",
-    "mutation",
-    "cache",
-    "layer"
+  "funding": "https://github.com/sponsors/posva",
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md",
+    "codemods/rules"
   ],
+  "type": "module",
   "sideEffects": false,
-  "exports": "./dist/index.mjs",
   "main": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
   "typesVersions": {
@@ -40,12 +41,10 @@
       ]
     }
   },
-  "files": [
-    "LICENSE",
-    "README.md",
-    "codemods/rules",
-    "dist"
-  ],
+  "exports": "./dist/index.mjs",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "nuxt:prepare": "pnpm run --filter './nuxt' dev:prepare",
     "dev": "vitest --ui",
@@ -65,42 +64,6 @@
     "size": "size-limit",
     "codemods:test": "ast-grep test",
     "prepare": "simple-git-hooks"
-  },
-  "size-limit": [
-    {
-      "name": "useQuery only from source",
-      "path": "src/index.ts",
-      "import": "{ useQuery, PiniaColada }",
-      "ignore": [
-        "vue",
-        "pinia",
-        "@vue/devtools-api"
-      ]
-    },
-    {
-      "name": "useQuery only",
-      "path": "dist/index.mjs",
-      "import": "{ useQuery, PiniaColada }",
-      "ignore": [
-        "vue",
-        "pinia",
-        "@vue/devtools-api"
-      ]
-    },
-    {
-      "name": "useQuery + useMutation",
-      "path": "dist/index.mjs",
-      "import": "{ useQuery, PiniaColada, useMutation }",
-      "ignore": [
-        "vue",
-        "pinia",
-        "@vue/devtools-api"
-      ]
-    }
-  ],
-  "peerDependencies": {
-    "pinia": "^2.2.6 || ^3.0.0",
-    "vue": "^3.5.17"
   },
   "devDependencies": {
     "@ast-grep/cli": "^0.40.4",
@@ -138,6 +101,22 @@
     "vitest": "^4.0.16",
     "vue": "^3.5.26"
   },
+  "peerDependencies": {
+    "pinia": "^2.2.6 || ^3.0.0",
+    "vue": "^3.5.17"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm lint-staged",
+    "commit-msg": "node scripts/verifyCommit.js"
+  },
+  "lint-staged": {
+    "*.{js,mjs,json,cjs,md,ts}": [
+      "oxfmt",
+      "oxlint --fix"
+    ]
+  },
+  "size-limit": [],
+  "packageManager": "pnpm@10.27.0",
   "pnpm": {
     "overrides": {
       "twoslash-vue": "0.3.6"
@@ -150,15 +129,6 @@
     ],
     "ignoredBuiltDependencies": [
       "unrs-resolver"
-    ]
-  },
-  "simple-git-hooks": {
-    "pre-commit": "pnpm lint-staged",
-    "commit-msg": "node scripts/verifyCommit.js"
-  },
-  "lint-staged": {
-    "*.{js,mjs,json,cjs,md,ts}": [
-      "oxlint --fix"
     ]
   }
 }
