@@ -3,6 +3,11 @@
   "semi": false,
   "printWidth": 100,
   "trailingComma": "all",
+  "experimentalSortPackageJson": false,
   "singleQuote": true,
-  "ignorePatterns": ["typed-router.d.ts", "./codemods/rule-tests/__snapshots__/", "pnpm-lock.yaml"],
+  "ignorePatterns": [
+    "typed-router.d.ts",
+    "./codemods/rule-tests/__snapshots__/",
+    "pnpm-lock.yaml",
+  ],
 }

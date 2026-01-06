@@ -113,7 +113,38 @@
       "oxlint --fix"
     ]
   },
-  "size-limit": [],
+  "size-limit": [
+    {
+      "name": "useQuery only from source",
+      "path": "src/index.ts",
+      "import": "{ useQuery, PiniaColada }",
+      "ignore": [
+        "vue",
+        "pinia",
+        "@vue/devtools-api"
+      ]
+    },
+    {
+      "name": "useQuery only",
+      "path": "dist/index.mjs",
+      "import": "{ useQuery, PiniaColada }",
+      "ignore": [
+        "vue",
+        "pinia",
+        "@vue/devtools-api"
+      ]
+    },
+    {
+      "name": "useQuery + useMutation",
+      "path": "dist/index.mjs",
+      "import": "{ useQuery, PiniaColada, useMutation }",
+      "ignore": [
+        "vue",
+        "pinia",
+        "@vue/devtools-api"
+      ]
+    }
+  ],
   "packageManager": "pnpm@10.27.0",
   "pnpm": {
     "overrides": {
