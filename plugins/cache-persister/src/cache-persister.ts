@@ -172,7 +172,9 @@ export function PiniaColadaCachePersister(
       }
 
       try {
-        const stored = await storage.getItem(key)
+        const storedPromise = storage.getItem(key)
+        // avoid one extra await if storage is sync
+        const stored = storedPromise instanceof Promise ? await storage.getItem(key) : storedPromise
         if (stored) {
           const parsed = JSON.parse(stored) as Record<string, _UseQueryEntryNodeValueSerialized>
           hydrateQueryCache(queryCache, parsed)
