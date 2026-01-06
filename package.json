@@ -55,7 +55,7 @@
     "play": "pnpm -C playground dev",
     "prepublishOnly": "pnpm run build",
     "release": "node scripts/release.ts",
-    "test": "pnpm run build && pnpm run test:cov && pnpm run build:all && pnpm run test:types && pnpm run codemods:test",
+    "test": "pnpm run build && pnpm run test:cov && pnpm run build:all && pnpm run test:types && pnpm run codemods:test && pnpm run docs:build",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
     "test:types": "tsc --build ./tsconfig.json",
@@ -121,7 +121,7 @@
     "execa": "^9.6.1",
     "happy-dom": "^20.0.11",
     "lint-staged": "^16.2.7",
-    "oxfmt": "^0.20.0",
+    "oxfmt": "^0.22.0",
     "oxlint": "^1.35.0",
     "pinia": "^3.0.4",
     "prettier": "^3.7.4",
@@ -139,6 +139,9 @@
     "vue": "^3.5.26"
   },
   "pnpm": {
+    "overrides": {
+      "twoslash-vue": "0.3.6"
+    },
     "onlyBuiltDependencies": [
       "@ast-grep/cli",
       "@tailwindcss/oxide",
