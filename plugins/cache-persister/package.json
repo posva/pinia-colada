@@ -22,6 +22,9 @@
     "colada",
     "plugin",
     "cache",
+    "unstorage",
+    "persistence",
+    "persisted",
     "persist"
   ],
   "sideEffects": false,
