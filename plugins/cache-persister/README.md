@@ -37,6 +37,18 @@ await isCacheReady()
 app.mount('#app')
 ```
 
+## GC Time
+
+Queries are removed from storage when they are garbage collected. Increase `gcTime` to keep data longer:
+
+```ts
+useQuery({
+  key: ['users'],
+  query: fetchUsers,
+  gcTime: 1000 * 60 * 60 * 24, // 24 hours
+})
+```
+
 ## Options
 
 | Option     | Type                            | Default                | Description                     |

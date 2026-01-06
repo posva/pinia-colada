@@ -2,6 +2,19 @@
 
 Persist your query cache to storage so users don't start with empty state on page reload.
 
+::: tip GC Time
+Queries are removed from storage when they are garbage collected. Increase `gcTime` to keep data longer:
+
+```ts
+useQuery({
+  key: ['users'],
+  query: fetchUsers,
+  gcTime: 1000 * 60 * 60 * 24, // 24 hours
+})
+```
+
+:::
+
 ## Setup
 
 Install the plugin:
