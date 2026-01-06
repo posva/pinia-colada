@@ -11,7 +11,7 @@ import { mockConsoleError, mockWarn } from '../test-utils/mock-warn'
 import { delay, isSpy, promiseWithResolvers } from '../test-utils/utils'
 import { PiniaColada } from './pinia-colada'
 import { hydrateQueryCache, QUERY_STORE_ID, useQueryCache } from './query-store'
-import type { _UseQueryEntryNodeValueSerialized } from './query-store'
+import type { UseQueryEntryNodeValueSerializd } from './query-store'
 import { useQuery } from './use-query'
 
 describe('useQuery', () => {
@@ -1981,9 +1981,7 @@ describe('useQuery', () => {
   })
 
   describe('hydration', () => {
-    function createPiniawithHydratedCache(
-      caches: Record<string, _UseQueryEntryNodeValueSerialized>,
-    ) {
+    function createPiniawithHydratedCache(caches: Record<string, UseQueryEntryNodeValueSerializd>) {
       const pinia = createPinia()
       const app = createApp({})
       app.use(pinia)
@@ -2116,36 +2114,33 @@ describe('useQuery', () => {
   })
 
   describe('warns', () => {
-    it.todo(
-      'warns if the key uses a reactive property that does not belong to the query',
-      async () => {
-        const querySpy = vi.fn().mockResolvedValue(42)
-        mount(
-          {
-            setup() {
-              const id = ref(0)
-              return {
-                ...useQuery({
-                  key: () => ['key', id.value],
-                  query: querySpy,
-                }),
-              }
-            },
-            template: `<div></div>`,
+    it.todo('warns if the key uses a reactive property that does not belong to the query', async () => {
+      const querySpy = vi.fn().mockResolvedValue(42)
+      mount(
+        {
+          setup() {
+            const id = ref(0)
+            return {
+              ...useQuery({
+                key: () => ['key', id.value],
+                query: querySpy,
+              }),
+            }
           },
-          {
-            global: {
-              plugins: [createPinia(), PiniaColada],
-            },
+          template: `<div></div>`,
+        },
+        {
+          global: {
+            plugins: [createPinia(), PiniaColada],
           },
-        )
+        },
+      )
 
-        await flushPromises()
-        // first time, it saves the component instance
-        expect(`computed a key of "key,0"`).not.toHaveBeenWarned()
-        // if a new component instance is mounted while the previous one is still active, we warn
-      },
-    )
+      await flushPromises()
+      // first time, it saves the component instance
+      expect(`computed a key of "key,0"`).not.toHaveBeenWarned()
+      // if a new component instance is mounted while the previous one is still active, we warn
+    })
 
     it.todo('does not warn if the route is used in the key')
 
@@ -2153,30 +2148,25 @@ describe('useQuery', () => {
 
     it.todo('can safelist other global properties not to warn')
 
-    it.todo(
-      'warns if the same key is used with different options while mounting different components',
-      async () => {
-        const pinia = createPinia()
-        mountSimple(
-          { key: ['id'], query: async () => 24 },
-          {
-            plugins: [pinia],
-          },
-        )
-        mountSimple(
-          { key: ['id'], query: async () => 42 },
-          {
-            plugins: [pinia],
-          },
-        )
+    it.todo('warns if the same key is used with different options while mounting different components', async () => {
+      const pinia = createPinia()
+      mountSimple(
+        { key: ['id'], query: async () => 24 },
+        {
+          plugins: [pinia],
+        },
+      )
+      mountSimple(
+        { key: ['id'], query: async () => 42 },
+        {
+          plugins: [pinia],
+        },
+      )
 
-        await flushPromises()
+      await flushPromises()
 
-        expect(
-          /The same query key \[id\] was used with different query functions/,
-        ).toHaveBeenWarned()
-      },
-    )
+      expect(/The same query key \[id\] was used with different query functions/).toHaveBeenWarned()
+    })
 
     // https://github.com/posva/pinia-colada/issues/192
     it('does not warn when repeating the query in composables', async () => {

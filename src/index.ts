@@ -98,7 +98,10 @@ export type {
   EntryFilter_Key as _EntryFilter_Key,
   EntryFilter_NoKey as _EntryFilter_NoKey,
 } from './entry-filter'
-export type { _UseQueryEntryNodeValueSerialized } from './query-store'
+export {
+  queryEntry_toJSON as _queryEntry_toJSON,
+  type UseQueryEntryNodeValueSerializd as _UseQueryEntryNodeValueSerialized,
+} from './query-store'
 
 export type {
   _Awaitable,
