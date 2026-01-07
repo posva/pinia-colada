@@ -18,6 +18,7 @@
     "@pinia/colada": "workspace:*",
     "@pinia/colada-plugin-debug": "workspace:^",
     "@pinia/colada-plugin-retry": "workspace:^",
+    "@pinia/colada-plugin-cache-persister": "workspace:^",
     "@vueuse/core": "^14.1.0",
     "@vueuse/integrations": "^14.1.0",
     "@vueuse/router": "^14.1.0",

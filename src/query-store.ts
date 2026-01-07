@@ -989,6 +989,7 @@ export type UseQueryEntryNodeValueSerializd<TData = unknown, TError = unknown> =
 
 /**
  * Hydrates the query cache with the serialized cache. Used during SSR.
+ *
  * @param queryCache - query cache
  * @param serializedCache - serialized cache
  */
