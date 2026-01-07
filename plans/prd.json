@@ -1,0 +1,48 @@
+[
+  {
+    "category": "type-fix",
+    "description": "Make UseQueryEntryExtensions augmented properties optional",
+    "steps": [
+      "Read plugins/tanstack-compat/memory.md for context",
+      "Open plugins/tanstack-compat/src/tanstack-compat.ts",
+      "In UseQueryEntryExtensions interface, add ? to all 12 properties",
+      "Verify syntax: isSuccess?: ComputedRef<boolean>"
+    ],
+    "passes": true
+  },
+  {
+    "category": "type-fix",
+    "description": "Make UseMutationEntryExtensions augmented properties optional",
+    "steps": [
+      "In same file, find UseMutationEntryExtensions interface",
+      "Add ? to all 7 properties",
+      "Verify syntax: isIdle?: ComputedRef<boolean>"
+    ],
+    "passes": true
+  },
+  {
+    "category": "verification",
+    "description": "Run type check to verify core library compiles",
+    "steps": [
+      "Run: pnpm run test:types",
+      "Verify no errors in src/mutation-store.ts",
+      "Verify no errors in src/mutation-store.spec.ts"
+    ],
+    "passes": true
+  },
+  {
+    "category": "verification",
+    "description": "Run plugin tests to verify functionality",
+    "steps": [
+      "Run: pnpm exec vitest run plugins/tanstack-compat/src/tanstack-compat.spec.ts",
+      "Verify all 15 tests pass"
+    ],
+    "passes": false
+  },
+  {
+    "category": "build",
+    "description": "Verify plugin builds successfully",
+    "steps": ["Run: pnpm run build or check if plugin has own build", "Verify no build errors"],
+    "passes": false
+  }
+]
