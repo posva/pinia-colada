@@ -1,3 +1,9 @@
+## [0.1.2](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-cache-persister@0.1.1...@pinia/colada-plugin-cache-persister@0.1.2) (2026-01-07)
+
+### Bug Fixes
+
+- serialize the key hash too ([54a142b](https://github.com/posva/pinia-colada/commit/54a142b49cd0650d9cda467b96ec75e8d701658e))
+
 ## [0.1.1](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-cache-persister@0.1.0...@pinia/colada-plugin-cache-persister@0.1.1) (2026-01-06)
 
 ### Bug Fixes
