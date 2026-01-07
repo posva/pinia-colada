@@ -37,12 +37,12 @@
       "Run: pnpm exec vitest run plugins/tanstack-compat/src/tanstack-compat.spec.ts",
       "Verify all 15 tests pass"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "build",
     "description": "Verify plugin builds successfully",
     "steps": ["Run: pnpm run build or check if plugin has own build", "Verify no build errors"],
-    "passes": false
+    "passes": true
   }
 ]
