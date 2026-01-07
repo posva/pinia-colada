@@ -131,14 +131,17 @@ export function PiniaColadaCachePersister(
     let pendingPersist = false
 
     // Serialize filtered entries (excluding error entries)
-    function serializeCache(): _UseQueryEntryNodeValueSerialized[] {
-      return queryCache
-        .getEntries({
-          ...filter,
-          // we only care about entries with data
-          status: 'success',
-        })
-        .map(_queryEntry_toJSON)
+    function serializeCache(): Record<string, _UseQueryEntryNodeValueSerialized> {
+      return Object.fromEntries(
+        // TODO: 2028: directly use .map on the iterator
+        queryCache
+          .getEntries({
+            ...filter,
+            // we only care about entries with data
+            status: 'success',
+          })
+          .map((entry) => [entry.keyHash, _queryEntry_toJSON(entry)]),
+      )
     }
 
     // Persist to storage (throttled with trailing)
