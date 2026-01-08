@@ -1,8 +1,12 @@
 {
   "extends": "./tsconfig.common.json",
   "compilerOptions": {
-    // "baseUrl": ".",
     "rootDir": ".",
+    "composite": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "declarationDir": "./.tsc-types/src",
+    "noEmit": false,
     "paths": {
       "@pinia/colada": ["./src/index.ts"]
     }
