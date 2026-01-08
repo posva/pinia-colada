@@ -7,7 +7,6 @@
  */
 import type {
   PiniaColadaPluginContext,
-  UseQueryEntry,
   UseQueryEntryFilter,
   _UseQueryEntryNodeValueSerialized,
 } from '@pinia/colada'
