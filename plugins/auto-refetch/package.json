@@ -54,6 +54,7 @@
     "@pinia/colada": "workspace:>="
   },
   "devDependencies": {
-    "@pinia/colada": "workspace:^"
+    "@pinia/colada": "workspace:^",
+    "@posva/test-utils": "workspace:^"
   }
 }

@@ -20,6 +20,9 @@ importers:
       '@posva/prompts':
         specifier: ^2.4.4
         version: 2.4.4
+      '@posva/test-utils':
+        specifier: workspace:*
+        version: link:test-utils
       '@shikijs/vitepress-twoslash':
         specifier: ^3.20.0
         version: 3.20.0(@nuxt/kit@3.20.2(magicast@0.5.1))(typescript@5.9.3)
@@ -295,6 +298,9 @@ importers:
       '@pinia/colada':
         specifier: workspace:^
         version: link:../..
+      '@posva/test-utils':
+        specifier: workspace:^
+        version: link:../../test-utils
 
   plugins/cache-persister:
     devDependencies:
@@ -319,6 +325,8 @@ importers:
       '@pinia/colada':
         specifier: workspace:^
         version: link:../..
+
+  test-utils: {}
 
 packages:
 

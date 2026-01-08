@@ -68,6 +68,7 @@
   "devDependencies": {
     "@ast-grep/cli": "^0.40.4",
     "@pinia/colada": "workspace:*",
+    "@posva/test-utils": "workspace:*",
     "@posva/prompts": "^2.4.4",
     "@shikijs/vitepress-twoslash": "^3.20.0",
     "@size-limit/esbuild-why": "^12.0.0",
