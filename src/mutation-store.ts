@@ -76,9 +76,10 @@ export interface UseMutationEntry<
   gcTimeout: ReturnType<typeof setTimeout> | undefined
 
   /**
-   * Extensions to the mutation entry added by plugins.
+   * Extensions to the mutation entry added by plugins. You should only add
+   * properties to the object, not replace it.
    */
-  ext: UseMutationEntryExtensions<TData, TVars, TError, TContext>
+  readonly ext: UseMutationEntryExtensions<TData, TVars, TError, TContext>
 }
 
 /**
@@ -212,7 +213,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
 
     // extend the entry with plugins the first time only
     if (entry.ext === START_EXT) {
-      entry.ext = {} as UseMutationEntryExtensions<TData, TVars, TError, TContext>
+      ;(entry as { ext: object }).ext = {}
       extend(entry)
     }
 

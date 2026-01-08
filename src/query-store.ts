@@ -130,10 +130,10 @@ export interface UseQueryEntry<
   meta: QueryMeta
 
   /**
-   * Extensions to the query entry added by plugins. Must be extended in the
-   * `extend` action.
+   * Extensions to the query entry added by plugins. You should only add
+   * properties to the object, not replace it.
    */
-  ext: UseQueryEntryExtensions<TData, TError, TDataInitial>
+  readonly ext: UseQueryEntryExtensions<TData, TError, TDataInitial>
 
   /**
    * Internal property to store the HMR ids of the components that are using
@@ -595,7 +595,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
 
       // extend the entry with plugins the first time only
       if (entry.ext === START_EXT) {
-        entry.ext = {} as UseQueryEntryExtensions<TData, TError>
+        ;(entry as { ext: object }).ext = {}
         extend(entry)
       }
 
