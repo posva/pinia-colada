@@ -7,7 +7,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { computed, createApp, nextTick, watch } from 'vue'
 import { useQuery } from './use-query'
 import { PiniaColada } from './pinia-colada'
-import { mockConsoleError, mockWarn } from '../test-utils'
+import { mockConsoleError, mockWarn } from '@posva/test-utils'
 
 describe('Query Cache store', () => {
   let app!: ReturnType<typeof createApp>

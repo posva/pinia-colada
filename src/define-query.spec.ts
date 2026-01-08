@@ -8,8 +8,8 @@ import { useQuery } from './use-query'
 import type { UseQueryOptions } from './query-options'
 import { useQueryCache } from './query-store'
 import { PiniaColada } from './pinia-colada'
-import { delay, isSpy, mockWarn } from '../test-utils'
-import type { GlobalMountOptions } from '../test-utils'
+import { delay, isSpy, mockWarn } from '@posva/test-utils'
+import type { GlobalMountOptions } from '@posva/test-utils'
 
 describe('defineQuery', () => {
   beforeEach(() => {

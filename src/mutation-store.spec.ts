@@ -9,7 +9,7 @@ import {
   type UseMutationOptions,
   type UseMutationOptionsWithDefaults,
 } from './mutation-options'
-import { mockConsoleError, mockWarn } from '../test-utils/mock-warn'
+import { mockConsoleError, mockWarn } from '@posva/test-utils'
 import { useMutation } from './use-mutation'
 
 describe('Mutation Cache store', () => {

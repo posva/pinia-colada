@@ -9,7 +9,7 @@ import { useQuery, PiniaColada } from '@pinia/colada'
 import type { UseQueryOptions } from '@pinia/colada'
 import type { PiniaColadaAutoRefetchOptions } from './auto-refetch'
 import { PiniaColadaAutoRefetch } from './auto-refetch'
-import { isSpy, mockConsoleError, mockWarn } from '../../../test-utils'
+import { isSpy, mockConsoleError, mockWarn } from '@posva/test-utils'
 
 describe('Auto Refetch plugin', () => {
   beforeEach(() => {

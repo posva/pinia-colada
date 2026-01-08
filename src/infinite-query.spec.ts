@@ -1,4 +1,4 @@
-import type { GlobalMountOptions } from '../test-utils/utils'
+import type { GlobalMountOptions } from '@posva/test-utils'
 import type {
   UseInfiniteQueryData,
   UseInfiniteQueryFnContext,
@@ -9,8 +9,7 @@ import { createPinia } from 'pinia'
 import type { Pinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, isRef, ref } from 'vue'
-import { mockConsoleError, mockWarn } from '../test-utils/mock-warn'
-import { isSpy } from '../test-utils/utils'
+import { isSpy, mockConsoleError, mockWarn } from '@posva/test-utils'
 import { useInfiniteQuery } from './infinite-query'
 import { PiniaColada } from './pinia-colada'
 import { useQueryCache } from './query-store'

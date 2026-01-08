@@ -6,7 +6,7 @@ import { createPinia } from 'pinia'
 import { PiniaColada } from './pinia-colada'
 import { useQuery } from './use-query'
 import { useQueryCache } from './query-store'
-import { delay } from '../test-utils'
+import { delay } from '@posva/test-utils'
 
 describe('defineQueryOptions', () => {
   beforeEach(() => {
