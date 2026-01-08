@@ -68,10 +68,10 @@ import { PiniaColadaDevtools } from '@pinia/colada-devtools'
 
 ### Keeping devtools in production
 
-By default, the devtools are stripped off in production builds. You can override this with `:disabled="false"`:
+By default, the devtools are stripped off in production builds. Use the `<PiniaColadaProdDevtools>` component instead if you want to keep them in production:
 
 ```vue-html
-<PiniaColadaDevtools :disabled="false" />
+<PiniaColadaProdDevtools />
 ```
 
 ## Plugins
