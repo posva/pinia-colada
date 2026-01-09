@@ -1,14 +1,9 @@
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, nextTick, ref } from 'vue'
+import { defineComponent, nextTick } from 'vue'
 import { createPinia } from 'pinia'
 import { useQuery, useMutation, PiniaColada, useMutationCache } from '@pinia/colada'
-import type {
-  PiniaColadaOptions,
-  UseQueryOptions,
-  UseMutationOptions,
-  UseMutationEntry,
-} from '@pinia/colada'
+import type { PiniaColadaOptions, UseQueryOptions, UseMutationOptions } from '@pinia/colada'
 import { PiniaColadaTanStackCompat } from './tanstack-compat'
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -56,7 +51,6 @@ describe('TanStack Compat plugin', () => {
   ) {
     const pinia = createPinia()
     // Store the entry ref so tests can access ext properties
-    const entryRef = ref<UseMutationEntry | null>(null)
     const wrapper = mount(
       defineComponent({
         template: '<div></div>',
