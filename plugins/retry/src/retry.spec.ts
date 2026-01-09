@@ -278,4 +278,28 @@ describe('Pinia Colada Retry Plugin', () => {
     await flushPromises()
     expect(query).toHaveBeenCalledTimes(4)
   })
+
+  it('no retries if enabled becomes false while waiting', async () => {
+    const query = vi.fn(async () => {
+      throw new Error('ko')
+    })
+    const enabled = vi.fn(() => true)
+
+    factory({
+      key: ['key'],
+      query,
+      retry: 1,
+      enabled,
+    })
+    // initial fetch fails
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(1)
+
+    // disable while waiting
+    enabled.mockReturnValue(false)
+
+    vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(1)
+  })
 })
