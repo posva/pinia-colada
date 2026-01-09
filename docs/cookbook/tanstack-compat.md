@@ -6,6 +6,32 @@ This plugin provides a compatibility layer for developers migrating from TanStac
 
 The plugin adds TanStack Query Vue v5 compatible properties to both `useQuery` and `useMutation` composables via TypeScript module augmentation. This means you get full type safety and IntelliSense support.
 
+## Installation
+
+```bash
+# or pnpm, or yarn, etc
+npm i @pinia/colada-plugin-tanstack-compat
+```
+
+## Setup
+
+Register the plugin when installing Pinia Colada:
+
+```ts
+import { createApp } from 'vue'
+import { createPinia } from 'pinia'
+import { PiniaColada } from '@pinia/colada'
+import { PiniaColadaTanStackCompat } from '@pinia/colada-plugin-tanstack-compat'
+
+const app = createApp(App)
+const pinia = createPinia()
+
+app.use(pinia)
+app.use(PiniaColada, {
+  plugins: [PiniaColadaTanStackCompat()],
+})
+```
+
 ## Features
 
 ### useQuery Extensions
@@ -245,15 +271,15 @@ The following TanStack Query properties are NOT implemented:
 
 When migrating from TanStack Query:
 
-- [ ] Install the plugin and register it
-- [ ] Replace `queryKey` with `key`
-- [ ] Replace `queryFn` with `query`
-- [ ] Replace `isLoading` checks with `isPending` for initial load
-- [ ] Update `status === 'loading'` to `status === 'pending'`
-- [ ] For mutations, access `isPending` via mutation cache if needed
-- [ ] Remove any `networkMode` options (not supported)
-- [ ] Replace `select` with Vue `computed` properties
-- [ ] If using retry features, install `@pinia/colada-plugin-retry`
+- Install the plugin and register it
+- Replace `queryKey` with `key`
+- Replace `queryFn` with `query`
+- Replace `isLoading` checks with `isPending` for initial load
+- Update `status === 'loading'` to `status === 'pending'`
+- For mutations, access `isPending` via mutation cache if needed
+- Remove any `networkMode` options (not supported)
+- Replace `select` with Vue `computed` properties
+- If using retry features, install `@pinia/colada-plugin-retry`
 
 ## TypeScript Support
 
