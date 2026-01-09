@@ -335,34 +335,29 @@ export function useInfiniteQuery<
       | NonNullable<TDataInitial>
       | undefined,
   ) {
-    if (data) {
-      const lastPageParam = data.pageParams.at(-1)
-      const firstPageParam = data.pageParams.at(0)
-      nextPageParam.value =
-        lastPageParam != null
-          ? options.getNextPageParam(
-              // data is present if lastPageParam is not null
-              data.pages.at(-1)!,
-              data.pages,
-              lastPageParam,
-              data.pageParams,
-            )
-          : null
-      previousPageParam.value =
-        firstPageParam != null
-          ? options.getPreviousPageParam?.(
-              // same as above
-              data.pages.at(0)!,
-              data.pages,
-              firstPageParam,
-              data.pageParams,
-            )
-          : null
-    } else {
-      // Reset pageParams when data is undefined (e.g., key change)
-      nextPageParam.value = null
-      previousPageParam.value = null
-    }
+    const lastPageParam = data?.pageParams.at(-1)
+    nextPageParam.value =
+      lastPageParam != null
+        ? options.getNextPageParam(
+            // data is present if lastPageParam is not null
+            data!.pages.at(-1)!,
+            data!.pages,
+            lastPageParam,
+            data!.pageParams,
+          )
+        : null
+
+    const firstPageParam = data?.pageParams.at(0)
+    previousPageParam.value =
+      firstPageParam != null
+        ? options.getPreviousPageParam?.(
+            // same as above
+            data!.pages.at(0)!,
+            data!.pages,
+            firstPageParam,
+            data!.pageParams,
+          )
+        : null
   }
 
   // if we have initial data, we need to set the next and previous page params
