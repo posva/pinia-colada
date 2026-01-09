@@ -1059,4 +1059,36 @@ describe('useInfiniteQuery', () => {
     expect(entry0).toBe(oldEntry)
     expect(oldEntry.active).toBe(false)
   })
+
+  // https://github.com/posva/pinia-colada/issues/458
+  it('resets pageParam when key changes', async () => {
+    const keyRef = ref(0)
+    const query = vi.fn(async ({ pageParam }: { pageParam: number }) => {
+      return [pageParam * 3 + 1, pageParam * 3 + 2, pageParam * 3 + 3]
+    })
+
+    const { wrapper } = mountSimple({
+      key: () => ['key', keyRef.value],
+      query,
+    })
+
+    await flushPromises()
+
+    // initial load with pageParam 0
+    expect(query).toHaveBeenCalledTimes(1)
+    expect(query).toHaveBeenLastCalledWith(expect.objectContaining({ pageParam: 0 }))
+
+    // load next page (pageParam becomes 1)
+    await wrapper.vm.loadNextPage()
+    await flushPromises()
+
+    expect(query).toHaveBeenCalledTimes(2)
+    expect(query).toHaveBeenLastCalledWith(expect.objectContaining({ pageParam: 1 }))
+
+    keyRef.value = 1
+    await flushPromises()
+
+    expect(query).toHaveBeenCalledTimes(3)
+    expect(query).toHaveBeenLastCalledWith(expect.objectContaining({ pageParam: 0 }))
+  })
 })

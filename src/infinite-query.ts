@@ -358,6 +358,10 @@ export function useInfiniteQuery<
               data.pageParams,
             )
           : null
+    } else {
+      // Reset pageParams when data is undefined (e.g., key change)
+      nextPageParam.value = null
+      previousPageParam.value = null
     }
   }
 
