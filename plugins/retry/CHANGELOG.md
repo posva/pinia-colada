@@ -1,7 +1,5 @@
 # [0.2.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-retry@0.1.3...@pinia/colada-plugin-retry@0.2.0) (2025-12-23)
 
-
-
 ## [0.1.3](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-retry@0.1.2...@pinia/colada-plugin-retry@0.1.3) (2025-12-16)
 
 No changes in this release.

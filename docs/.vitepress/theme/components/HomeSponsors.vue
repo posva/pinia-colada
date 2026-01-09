@@ -5,7 +5,7 @@ import sponsors from './sponsors.json'
 
 const { site } = useData()
 const translations = {
-  'en': 'Become a sponsor',
+  en: 'Become a sponsor',
   'en-US': 'Become a Sponsor!',
   'zh-CN': '成为赞助者！',
 }
@@ -14,19 +14,11 @@ const translations = {
 <template>
   <div class="sponsors_outer">
     <div>
-      <HomeSponsorsGroup
-        v-if="sponsors.platinum.length"
-        name="Platinum"
-        size="96"
-      />
+      <HomeSponsorsGroup v-if="sponsors.platinum.length" name="Platinum" size="96" />
 
       <HomeSponsorsGroup v-if="sponsors.gold.length" name="Gold" size="38" />
 
-      <HomeSponsorsGroup
-        v-if="sponsors.silver.length"
-        name="Silver"
-        size="24"
-      />
+      <HomeSponsorsGroup v-if="sponsors.silver.length" name="Silver" size="24" />
 
       <div class="cta">
         <a class="become-sponsor" href="https://github.com/sponsors/posva">{{

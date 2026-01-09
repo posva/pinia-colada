@@ -7,7 +7,10 @@
   "singleQuote": true,
   "ignorePatterns": [
     "typed-router.d.ts",
-    "./codemods/rule-tests/__snapshots__/",
+    "components.d.ts",
+    "codemods/rule-tests/__snapshots__/",
+    // it breaks vitepress features
+    "docs/**/*.md",
     "pnpm-lock.yaml",
   ],
 }

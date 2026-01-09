@@ -11,7 +11,7 @@ export const DOCUMENT_QUERY_KEYS = {
 } as const
 
 export const documentByIdQuery = defineQueryOptions(
-  ({ id, withComments = false }: { id: string, withComments?: boolean }) => ({
+  ({ id, withComments = false }: { id: string; withComments?: boolean }) => ({
     key: DOCUMENT_QUERY_KEYS.byIdWithComments(id, withComments),
     query: () => getDocumentById(id, { withComments }),
   }),

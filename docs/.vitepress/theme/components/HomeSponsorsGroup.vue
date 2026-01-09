@@ -35,20 +35,14 @@ const list = computed(() =>
       target="_blank"
       rel="sponsored noopener"
       class="sponsor_wrapper"
-      :class="
-        isDark && sponsor.imgSrcLight === sponsor.imgSrcDark && 'apply-bg'
-      "
+      :class="isDark && sponsor.imgSrcLight === sponsor.imgSrcDark && 'apply-bg'"
     >
       <img
         :src="sponsor.imgSrc"
-        :class="
-          isDark
-            && sponsor.imgSrcLight === sponsor.imgSrcDark
-            && 'invert-colors'
-        "
+        :class="isDark && sponsor.imgSrcLight === sponsor.imgSrcDark && 'invert-colors'"
         :alt="sponsor.alt"
         :style="{ height: `${size}px` }"
-      >
+      />
     </a>
   </p>
 </template>
