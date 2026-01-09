@@ -1,3 +1,13 @@
+## [0.21.1](https://github.com/posva/pinia-colada/compare/v0.21.0...v0.21.1) (2026-01-09)
+
+### Bug Fixes
+
+- **infinite:** regen pageParam on key change ([9c0706c](https://github.com/posva/pinia-colada/commit/9c0706c844642053e9a9c737267e5cc8ae1f4a1a)), closes [#458](https://github.com/posva/pinia-colada/issues/458)
+
+### Features
+
+- make ext readonly ([8dd595a](https://github.com/posva/pinia-colada/commit/8dd595accf8cbcda8c398aa3b8a849b694548601))
+
 # [0.21.0](https://github.com/posva/pinia-colada/compare/v0.20.0...v0.21.0) (2026-01-06)
 
 - refactor!: remove @vue/devtools-api dependencies ([9bfd035](https://github.com/posva/pinia-colada/commit/9bfd03577d622b4dc5636e65b6efef3f39aa82d9))
