@@ -2,7 +2,7 @@
   "name": "@pinia/colada-devtools",
   "type": "module",
   "version": "0.4.1",
-  "packageManager": "pnpm@10.27.0",
+  "packageManager": "pnpm@10.28.0",
   "description": "Devtools for Pinia Colada",
   "publishConfig": {
     "access": "public"
@@ -55,7 +55,7 @@
     "build": "pnpm run --stream '/^build:/'"
   },
   "devDependencies": {
-    "@iconify-json/lucide": "^1.2.82",
+    "@iconify-json/lucide": "^1.2.84",
     "@pinia/colada": "workspace:^*",
     "@posva/splitpanes": "^4.0.6",
     "@tailwindcss/vite": "^4.1.18",

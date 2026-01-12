@@ -66,14 +66,14 @@
     "prepare": "simple-git-hooks"
   },
   "devDependencies": {
-    "@ast-grep/cli": "^0.40.4",
+    "@ast-grep/cli": "^0.40.5",
     "@pinia/colada": "workspace:*",
     "@posva/prompts": "^2.4.4",
     "@posva/test-utils": "workspace:*",
-    "@shikijs/vitepress-twoslash": "^3.20.0",
+    "@shikijs/vitepress-twoslash": "^3.21.0",
     "@size-limit/esbuild-why": "^12.0.0",
     "@size-limit/preset-small-lib": "^12.0.0",
-    "@types/node": "^24.10.4",
+    "@types/node": "^24.10.7",
     "@types/semver": "^7.7.1",
     "@vitejs/plugin-vue": "^6.0.3",
     "@vitest/coverage-v8": "^4.0.16",
@@ -83,7 +83,7 @@
     "conventional-changelog": "^7.1.1",
     "conventional-changelog-angular": "^8.1.0",
     "execa": "^9.6.1",
-    "happy-dom": "^20.0.11",
+    "happy-dom": "^20.1.0",
     "lint-staged": "^16.2.7",
     "oxfmt": "^0.23.0",
     "oxlint": "^1.38.0",
@@ -91,8 +91,8 @@
     "semver": "^7.7.3",
     "simple-git-hooks": "^2.13.1",
     "size-limit": "^12.0.0",
-    "tsdown": "^0.18.4",
-    "typedoc": "^0.28.15",
+    "tsdown": "^0.19.0",
+    "typedoc": "^0.28.16",
     "typedoc-plugin-markdown": "^4.9.0",
     "typedoc-vitepress-theme": "^1.1.2",
     "typescript": "~5.9.3",
@@ -147,7 +147,7 @@
       ]
     }
   ],
-  "packageManager": "pnpm@10.27.0",
+  "packageManager": "pnpm@10.28.0",
   "pnpm": {
     "overrides": {
       "twoslash-vue": "0.3.6"
