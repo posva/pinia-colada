@@ -1,3 +1,16 @@
+## [0.2.1](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-retry@0.2.0...@pinia/colada-plugin-retry@0.2.1) (2026-01-12)
+
+- refactor!: remove CJS support ([458071a](https://github.com/posva/pinia-colada/commit/458071a3a16f7f93ecde6b0816ae61239769526f))
+
+### Bug Fixes
+
+- respect enabled option during retry delays ([#450](https://github.com/posva/pinia-colada/issues/450)) ([77faf11](https://github.com/posva/pinia-colada/commit/77faf11077d8db2f8fa0c790a2f9cd5cbee58fb3))
+
+### BREAKING CHANGES
+
+- ESM have been natively supported in node since 18 and
+  is now required.
+
 # [0.2.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-retry@0.1.3...@pinia/colada-plugin-retry@0.2.0) (2025-12-23)
 
 ## [0.1.3](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-retry@0.1.2...@pinia/colada-plugin-retry@0.1.3) (2025-12-16)
