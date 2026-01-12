@@ -6,6 +6,7 @@
  * @module @pinia/colada-plugin-retry
  */
 import type { PiniaColadaPluginContext } from '@pinia/colada'
+import { toValue } from 'vue'
 
 /**
  * Options for the Pinia Colada Retry plugin.
@@ -42,13 +43,17 @@ const RETRY_OPTIONS_DEFAULTS = {
       // never more than 30 seconds
       30_000,
     )
-    // oxlint-disable-next-line no-console
-    console.log(`⏲️ delaying attempt #${attempt + 1} by ${time}ms`)
+    if (process.env.NODE_ENV === 'development') {
+      // oxlint-disable-next-line no-console
+      console.log(`⏲️ delaying attempt #${attempt + 1} by ${time}ms`)
+    }
     return time
   },
   retry: (count) => {
-    // oxlint-disable-next-line no-console
-    console.log(`🔄 Retrying ${'🟨'.repeat(count + 1)}${'⬜️'.repeat(2 - count)}`)
+    if (process.env.NODE_ENV === 'development') {
+      // oxlint-disable-next-line no-console
+      console.log(`🔄 Retrying ${'🟨'.repeat(count + 1)}${'⬜️'.repeat(2 - count)}`)
+    }
     return count < 2
   },
 } satisfies Required<RetryOptions>
@@ -121,7 +126,7 @@ export function PiniaColadaRetry(
           if (shouldRetry) {
             const delayTime = typeof delay === 'function' ? delay(entry.retryCount) : delay
             entry.timeoutId = setTimeout(() => {
-              if (!queryEntry.active) {
+              if (!queryEntry.active || toValue(queryEntry.options?.enabled) === false) {
                 retryMap.delete(key)
                 return
               }
