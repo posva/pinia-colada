@@ -1394,6 +1394,32 @@ describe('useQuery', () => {
       await flushPromises()
       expect(queryCache.getQueryData(['key'])).toBe('ok')
     })
+
+    it('does not abort the signal if the query already succeeded when key changes', async () => {
+      const key = ref(1)
+      const abortListener = vi.fn()
+
+      const { wrapper } = mountSimple({
+        key: () => ['key', key.value],
+        async query({ signal }) {
+          signal.addEventListener('abort', abortListener)
+          return 'ok'
+        },
+      })
+
+      // Wait for first query to complete
+      await flushPromises()
+      expect(wrapper.vm.data).toBe('ok')
+      expect(wrapper.vm.status).toBe('success')
+
+      // Change the key - triggers new entry
+      key.value = 2
+      await flushPromises()
+
+      // The abort listener from the first (already succeeded) query
+      // should NOT have been called
+      expect(abortListener).not.toHaveBeenCalled()
+    })
   })
 
   describe('refetchOnWindowFocus', () => {

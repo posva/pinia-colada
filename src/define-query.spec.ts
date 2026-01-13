@@ -327,6 +327,50 @@ describe('defineQuery', () => {
       await flushPromises()
       expect(wrapper.text()).toBe('2=')
     })
+
+    it('does not abort the signal if the query already succeeded when key changes', async () => {
+      const abortListener = vi.fn()
+
+      const useData = defineQuery(() => {
+        const id = ref(1)
+        const query = useQuery({
+          key: () => ['key', id.value],
+          async query({ signal }) {
+            signal.addEventListener('abort', abortListener)
+            return 'ok'
+          },
+        })
+        return { id, ...query }
+      })
+
+      const wrapper = mount(
+        {
+          setup() {
+            return { ...useData() }
+          },
+          template: `<div></div>`,
+        },
+        {
+          global: {
+            plugins: [createPinia(), PiniaColada],
+          },
+        },
+      )
+
+      // Wait for first query to complete
+      await flushPromises()
+      expect(wrapper.vm.data).toBe('ok')
+      expect(wrapper.vm.status).toBe('success')
+
+      // Change the key via the exposed id ref
+      const { id } = useData()
+      id.value = 2
+      await flushPromises()
+
+      // The abort listener from the first (already succeeded) query
+      // should NOT have been called
+      expect(abortListener).not.toHaveBeenCalled()
+    })
   })
 
   describe('refetchOnMount', () => {
