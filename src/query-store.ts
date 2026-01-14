@@ -730,8 +730,6 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
                 // reset the placeholder data to free up memory
                 entry.placeholderData = null
               }
-              // schedule GC for prefetched queries with no observers
-              scheduleGarbageCollection(entry)
             }
           }),
         when: Date.now(),
@@ -786,8 +784,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     ) => {
       entry.state.value = state
       entry.when = Date.now()
-      // if we need to, we could schedule a garbage collection here but I don't
-      // see why would one create entries that are not used (not tracked immediately after)
+      // re-evaluate GC needs when the state is updated. One such scenario is
+      // prefetched queries that bypass track/untrack and would never be garbage collected otherwise
+      scheduleGarbageCollection(entry)
     },
   )
 
@@ -842,7 +841,6 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
         status: 'success',
         data: toValueWithArgs(data, entry.state.value.data),
       })
-      scheduleGarbageCollection(entry)
       triggerRef(caches)
     },
   )
@@ -877,7 +875,6 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
         status: 'success',
         data: updater(entry.state.value.data as TData | undefined),
       })
-      scheduleGarbageCollection(entry)
     }
     triggerRef(caches)
   }
