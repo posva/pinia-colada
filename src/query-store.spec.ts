@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, getActivePinia, setActivePinia } from 'pinia'
 import type { UseQueryEntry, UseQueryEntryNodeValueSerializd } from './query-store'
 import { useQueryCache } from './query-store'
@@ -12,10 +12,17 @@ import { mockConsoleError, mockWarn } from '@posva/test-utils'
 describe('Query Cache store', () => {
   let app!: ReturnType<typeof createApp>
   beforeEach(() => {
+    vi.clearAllTimers()
+    vi.useFakeTimers()
     const pinia = createPinia()
     app = createApp({})
     app.use(pinia)
     setActivePinia(pinia)
+  })
+  afterEach(async () => {
+    // clear all gc timers to avoid log polluting across tests
+    await vi.runAllTimersAsync()
+    vi.restoreAllMocks()
   })
 
   mockConsoleError()
@@ -274,5 +281,25 @@ describe('Query Cache store', () => {
     // let the watcher trigger then check for the warning
     await nextTick()
     expect('The query cache cannot be directly set').toHaveBeenErrored()
+  })
+
+  // https://github.com/posva/pinia-colada/issues/460#issuecomment-3748693544
+  it('garbage collects prefetched queries with no observers', async () => {
+    const queryCache = useQueryCache()
+
+    const entry = queryCache.ensure({
+      key: ['prefetch-gc'],
+      query: async () => 'prefetched',
+      gcTime: 1000,
+    })
+
+    // prefetch the query
+    await queryCache.refresh(entry)
+
+    expect(queryCache.getEntries({ key: ['prefetch-gc'] })).toHaveLength(1)
+
+    // advance time past gcTime
+    vi.advanceTimersByTime(1000)
+    expect(queryCache.getEntries({ key: ['prefetch-gc'] })).toHaveLength(0)
   })
 })

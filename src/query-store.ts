@@ -730,6 +730,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
                 // reset the placeholder data to free up memory
                 entry.placeholderData = null
               }
+              // schedule GC for prefetched queries with no observers
+              scheduleGarbageCollection(entry)
             }
           }),
         when: Date.now(),
