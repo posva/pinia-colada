@@ -131,20 +131,16 @@ function addDevtoolsQueryInfo(queryCache: QueryCache): void {
           lastHistoryEntry.state = entry.state.value
           lastHistoryEntry.updatedAt = now()
         }
+        // set inactiveAt for prefetched queries to start GC timing
+        // both prefetch methods (setQueryData and refresh) call setEntryState when they complete
+        if (!entry.active) {
+          entry[DEVTOOLS_INFO_KEY].inactiveAt = now()
+        }
       })
     } else if (name === 'untrack') {
       const [entry] = args
       after(() => {
         if (!entry.active) {
-          entry[DEVTOOLS_INFO_KEY].inactiveAt = now()
-        }
-      })
-    } else if (name === 'setQueryData') {
-      // setQueryData can also trigger gc
-      const [key] = args
-      after(() => {
-        const entry = queryCache.getEntries({ key, exact: true })[0]
-        if (entry && !entry.active) {
           entry[DEVTOOLS_INFO_KEY].inactiveAt = now()
         }
       })
