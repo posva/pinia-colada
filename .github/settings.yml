@@ -61,3 +61,9 @@ labels:
   - name: 🏔️ nuxt
     color: 00dc82
     description: related to Nuxt
+  - name: 🔥 hmr
+    color: fd2c12
+    description: related to hot module replacement
+  - name: 🧑‍💻 dev-only
+    color: 2dfc12
+    description: related to a dev-only feature
