@@ -1,26 +1,20 @@
 <script lang="ts" setup>
-import {
-  useRoute,
-  type RouteLocationNormalizedLoadedGeneric,
-} from "vue-router";
-import { useMutation, useQuery, useQueryCache } from "@pinia/colada";
-import ContactCard from "../../components/ContactCard.vue";
-import {
-  updateContact as _updateContact,
-  getContactById,
-} from "../../api/contacts";
-import type { Contact } from "../../api/contacts";
+import { useRoute, type RouteLocationNormalizedLoadedGeneric } from 'vue-router'
+import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
+import ContactCard from '../../components/ContactCard.vue'
+import { updateContact as _updateContact, getContactById } from '../../api/contacts'
+import type { Contact } from '../../api/contacts'
 
 // TODO: the router should allow a generic useRoute()?
-const route = useRoute() as RouteLocationNormalizedLoadedGeneric;
-const queryCache = useQueryCache();
+const route = useRoute() as RouteLocationNormalizedLoadedGeneric
+const queryCache = useQueryCache()
 
 const {
   data: contact,
   error,
   asyncStatus,
 } = useQuery({
-  key: () => ["contacts", Number(route.params.id as string)],
+  key: () => ['contacts', Number(route.params.id as string)],
   query: ({ signal }) =>
     getContactById(
       // @ts-expect-error: not the same route
@@ -29,31 +23,30 @@ const {
     ),
 
   gcTime: 15_000,
-});
+})
 
 const { mutate: updateContact } = useMutation({
-  key: (contact) => ["contacts", contact.id],
-  mutation: (contact: Partial<Contact> & { id: number }) =>
-    _updateContact(contact),
+  key: (contact) => ['contacts', contact.id],
+  mutation: (contact: Partial<Contact> & { id: number }) => _updateContact(contact),
 
   onMutate() {
-    return { a: 2, b: 5 };
+    return { a: 2, b: 5 }
   },
 
   onError(_e, { id }, { a, b }) {
-    queryCache.invalidateQueries({ key: ["contacts-search"] });
-    queryCache.invalidateQueries({ key: ["contacts", id] });
-    if (a == null) return;
-    console.log(a.toFixed(2));
-    console.log(b.toFixed(2));
+    queryCache.invalidateQueries({ key: ['contacts-search'] })
+    queryCache.invalidateQueries({ key: ['contacts', id] })
+    if (a == null) return
+    console.log(a.toFixed(2))
+    console.log(b.toFixed(2))
   },
 
   onSettled(_d, _e, { id }, { a }) {
-    console.log(a?.toFixed(2));
-    queryCache.invalidateQueries({ key: ["contacts-search"] });
-    queryCache.invalidateQueries({ key: ["contacts", id] });
+    console.log(a?.toFixed(2))
+    queryCache.invalidateQueries({ key: ['contacts-search'] })
+    queryCache.invalidateQueries({ key: ['contacts', id] })
   },
-});
+})
 </script>
 
 <template>
