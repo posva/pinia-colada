@@ -120,7 +120,7 @@ watch(
 )
 
 transmitter.on('queries:refetch', (key) => {
-  queryCache.invalidateQueries({ key, exact: true, active: null, stale: null })
+  queryCache.invalidateQueries({ key, exact: true }, 'all')
 })
 
 transmitter.on('queries:invalidate', (key) => {
