@@ -26,7 +26,7 @@ const status = computed(() => getMutationStatus(entry))
 <template>
   <RouterLink
     v-slot="{ isActive, navigate, href }"
-    :to="{ name: '/mutations/[mutationId]', params: { mutationId: entry.id } }"
+    :to="{ name: '/mutations/[mutationId=int]', params: { mutationId: entry.id } }"
     custom
   >
     <div

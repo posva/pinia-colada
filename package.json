@@ -150,7 +150,8 @@
   "packageManager": "pnpm@10.28.0",
   "pnpm": {
     "overrides": {
-      "twoslash-vue": "0.3.6"
+      "twoslash-vue": "0.3.6",
+      "vue-router": "https://pkg.pr.new/vue-router@2603"
     },
     "onlyBuiltDependencies": [
       "@ast-grep/cli",

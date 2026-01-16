@@ -20,7 +20,7 @@ const mutations = useMutationEntries()
 
 const selectedMutation = computed<UseMutationEntryPayload | null>(() => {
   const mutationId = route.params.mutationId
-  return mutations.value.find((entry) => entry.id === Number(mutationId)) ?? null
+  return mutations.value.find((entry) => entry.id === mutationId) ?? null
 })
 
 const TIME_AGO_OPTIONS: FormatTimeAgoOptions = {
@@ -61,7 +61,7 @@ watch(
 
       if (newest) {
         router.push({
-          name: '/mutations/[mutationId]',
+          name: '/mutations/[mutationId=int]',
           params: { mutationId: newest.id },
         })
       }

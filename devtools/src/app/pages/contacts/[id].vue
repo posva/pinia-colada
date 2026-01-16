@@ -1,11 +1,12 @@
 <script lang="ts" setup>
-import { useRoute } from 'vue-router'
+import { useRoute, type RouteLocationNormalizedLoadedGeneric } from 'vue-router'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import ContactCard from '../../components/ContactCard.vue'
 import { updateContact as _updateContact, getContactById } from '../../api/contacts'
 import type { Contact } from '../../api/contacts'
 
-const route = useRoute()
+// TODO: the router should allow a generic useRoute()?
+const route = useRoute() as RouteLocationNormalizedLoadedGeneric
 const queryCache = useQueryCache()
 
 const {
@@ -13,11 +14,7 @@ const {
   error,
   asyncStatus,
 } = useQuery({
-  key: () => [
-    'contacts',
-    // @ts-expect-error: not the same route
-    Number(route.params.id),
-  ],
+  key: () => ['contacts', Number(route.params.id as string)],
   query: ({ signal }) =>
     getContactById(
       // @ts-expect-error: not the same route
