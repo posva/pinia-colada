@@ -55,7 +55,7 @@
     "build": "pnpm run --stream '/^build:/'"
   },
   "devDependencies": {
-    "@iconify-json/lucide": "^1.2.84",
+    "@iconify-json/lucide": "^1.2.86",
     "@pinia/colada": "workspace:^*",
     "@posva/splitpanes": "^4.0.6",
     "@tailwindcss/vite": "^4.1.18",
