@@ -64,7 +64,7 @@
     "match-container": "^0.1.0",
     "pinia": "^3.0.4",
     "tailwindcss": "^4.1.18",
-    "unplugin-icons": "^22.5.0",
+    "unplugin-icons": "^23.0.1",
     "unplugin-vue-components": "^30.0.0",
     "unplugin-vue-router": "^0.19.2",
     "vite-plugin-dts": "^4.5.4",
