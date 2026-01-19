@@ -4,7 +4,7 @@ import { defineConfig } from 'vite'
 import Vue from '@vitejs/plugin-vue'
 import VueDevtools from 'vite-plugin-vue-devtools'
 import Dts from 'vite-plugin-dts'
-import VueRouter from 'unplugin-vue-router/vite'
+import VueRouter from 'vue-router/vite'
 import TailwindCSS from '@tailwindcss/vite'
 import IconsResolver from 'unplugin-icons/resolver'
 import Icons from 'unplugin-icons/vite'
@@ -80,6 +80,11 @@ export default defineConfig({
           src: resolve(__dirname, './src/panel/pages'),
         },
       ],
+      experimental: {
+        paramParsers: {
+          dir: 'src/params',
+        },
+      },
     }),
     Vue({
       template: {
