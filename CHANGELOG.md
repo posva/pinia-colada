@@ -1,3 +1,10 @@
+## [0.21.2](https://github.com/posva/pinia-colada/compare/v0.21.1...v0.21.2) (2026-01-20)
+
+### Bug Fixes
+
+- correct GC time display for prefetched queries ([#464](https://github.com/posva/pinia-colada/issues/464)) ([80e2c5a](https://github.com/posva/pinia-colada/commit/80e2c5a59eb22b3a5bdadd5b8c21ceecc1b164ff))
+- **query:** gc prefetched queries ([ba1e90c](https://github.com/posva/pinia-colada/commit/ba1e90cc05a7807959fb272f800032a94dd4effa))
+
 ## [0.21.1](https://github.com/posva/pinia-colada/compare/v0.21.0...v0.21.1) (2026-01-09)
 
 ### Bug Fixes

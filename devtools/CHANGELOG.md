@@ -1,3 +1,11 @@
+## [0.4.2](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.4.1...@pinia/colada-devtools@0.4.2) (2026-01-20)
+
+### Bug Fixes
+
+- correct GC time display for prefetched queries ([#464](https://github.com/posva/pinia-colada/issues/464)) ([80e2c5a](https://github.com/posva/pinia-colada/commit/80e2c5a59eb22b3a5bdadd5b8c21ceecc1b164ff))
+- distinguish refetch and invalidate behavior in devtools ([#465](https://github.com/posva/pinia-colada/issues/465)) ([eeab2e4](https://github.com/posva/pinia-colada/commit/eeab2e428427fce37561bada64a9aff2a6322bb1))
+- handle mutations created before devtools ([9305f79](https://github.com/posva/pinia-colada/commit/9305f79129dada0f712e3664b522e8ae9acc9ca0)), closes [#469](https://github.com/posva/pinia-colada/issues/469)
+
 ## [0.4.1](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.4.0...@pinia/colada-devtools@0.4.1) (2026-01-06)
 
 ### Features
