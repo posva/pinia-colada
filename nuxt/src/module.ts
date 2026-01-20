@@ -46,18 +46,24 @@ export default defineNuxtModule<never>({
       },
     })
 
+    type Import = Exclude<Parameters<typeof addImports>[0], unknown[]>
     addImports([
       // queries
       { from: '@pinia/colada', name: 'useQuery' },
+      { from: '@pinia/colada', name: 'useInfiniteQuery' },
+      { from: '@pinia/colada', name: 'useQueryState' },
       { from: '@pinia/colada', name: 'defineQueryOptions' },
       { from: '@pinia/colada', name: 'defineQuery' },
       { from: '@pinia/colada', name: 'useQueryCache' },
       // mutations
       { from: '@pinia/colada', name: 'useMutation' },
+      { from: '@pinia/colada', name: 'useMutationCache' },
       { from: '@pinia/colada', name: 'defineMutation' },
-    ] satisfies Array<{
-      from: '@pinia/colada'
-      name: keyof typeof import('@pinia/colada')
-    }>)
+    ] satisfies Array<
+      Import & {
+        from: '@pinia/colada'
+        name: keyof typeof import('@pinia/colada')
+      }
+    >)
   },
 })
