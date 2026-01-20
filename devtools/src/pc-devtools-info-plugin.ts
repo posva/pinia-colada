@@ -204,6 +204,16 @@ export function addDevtoolsInfoForMutations(mutationCache: MutationCache): void 
           simulate: null,
         }
       })
+    } else if (name === 'ensure') {
+      // mutations can create entries before the devtools
+      // and then get an id assigned later
+      // https://github.com/posva/pinia-colada/issues/469
+      const [entry] = args
+      entry[DEVTOOLS_INFO_KEY] ??= {
+        updatedAt: now(),
+        inactiveAt: 0,
+        simulate: null,
+      }
     } else if (name === 'mutate') {
       const [entry] = args
       entry[DEVTOOLS_INFO_KEY].updatedAt = now()
