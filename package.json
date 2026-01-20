@@ -110,10 +110,8 @@
     "commit-msg": "node scripts/verifyCommit.js"
   },
   "lint-staged": {
-    "*.{js,mjs,json,cjs,md,ts}": [
-      "oxfmt",
-      "oxlint --fix"
-    ]
+    "*": "oxfmt --no-error-on-unmatched-pattern",
+    "*.{js,jsx,ts,tsx,mjs,cjs}": "oxlint --fix"
   },
   "size-limit": [
     {
