@@ -252,7 +252,7 @@ const { data: products } = useQuery({
 </script>
 ```
 
-Check the [Query Organization Guide](/docs/guide/queries.md#Organizing-Queries) for best practices on organizing shared queries.
+Check the [Query Organization Guide](/guide/queries.md#Organizing-Queries) for best practices on organizing shared queries.
 
 ## Error Handling with SSR
 
