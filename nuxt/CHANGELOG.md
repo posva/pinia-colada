@@ -1,3 +1,9 @@
+## [0.3.1](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.3.0...@pinia/colada-nuxt@0.3.1) (2026-01-20)
+
+### Features
+
+- add more auto imports ([4280c17](https://github.com/posva/pinia-colada/commit/4280c1793781cca44dc96f94b2d3a6faf5d739fe))
+
 # [0.3.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.2.6...@pinia/colada-nuxt@0.3.0) (2025-12-23)
 
 ## [0.2.6](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.2.5...@pinia/colada-nuxt@0.2.6) (2025-12-17)
