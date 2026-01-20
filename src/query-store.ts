@@ -183,9 +183,6 @@ export type UseQueryEntryFilter = EntryFilter<UseQueryEntry>
  * UseQueryEntry method to serialize the entry to JSON.
  *
  * @param entry - entry to serialize
- * @param entry.when - when the data was fetched the last time
- * @param entry.state - data state of the entry
- * @param entry.state.value - value of the data state
  * @returns Serialized version of the entry
  */
 export const queryEntry_toJSON: <TData, TError>(
