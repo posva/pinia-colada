@@ -16,9 +16,9 @@
     "@headlessui/vue": "^1.7.23",
     "@heroicons/vue": "^2.2.0",
     "@pinia/colada": "workspace:*",
+    "@pinia/colada-plugin-cache-persister": "workspace:^",
     "@pinia/colada-plugin-debug": "workspace:^",
     "@pinia/colada-plugin-retry": "workspace:^",
-    "@pinia/colada-plugin-cache-persister": "workspace:^",
     "@vueuse/core": "^14.1.0",
     "@vueuse/integrations": "^14.1.0",
     "@vueuse/router": "^14.1.0",
@@ -26,7 +26,7 @@
     "mande": "^2.0.9",
     "pinia": "^3.0.4",
     "vue": "^3.5.26",
-    "vue-router": "^4.6.4",
+    "vue-router": "https://pkg.pr.new/vue-router@2603",
     "water.css": "^2.1.1"
   },
   "devDependencies": {

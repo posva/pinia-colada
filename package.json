@@ -55,6 +55,7 @@
     "prepublishOnly": "pnpm run build",
     "release": "node scripts/release.ts",
     "test": "pnpm run build && pnpm run test:cov && pnpm run build:all && pnpm run test:types && pnpm run codemods:test && pnpm run docs:build",
+    "fmt": "oxfmt",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
     "test:types": "tsc --build ./tsconfig.json",
@@ -85,7 +86,7 @@
     "execa": "^9.6.1",
     "happy-dom": "^20.3.3",
     "lint-staged": "^16.2.7",
-    "oxfmt": "^0.24.0",
+    "oxfmt": "^0.26.0",
     "oxlint": "^1.39.0",
     "pinia": "^3.0.4",
     "semver": "^7.7.3",
@@ -145,7 +146,7 @@
       ]
     }
   ],
-  "packageManager": "pnpm@10.28.0",
+  "packageManager": "pnpm@10.28.1",
   "pnpm": {
     "overrides": {
       "twoslash-vue": "0.3.6",
