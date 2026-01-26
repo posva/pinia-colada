@@ -2,7 +2,7 @@
   "name": "@pinia/colada-devtools",
   "type": "module",
   "version": "0.4.2",
-  "packageManager": "pnpm@10.28.0",
+  "packageManager": "pnpm@10.28.2",
   "description": "Devtools for Pinia Colada",
   "publishConfig": {
     "access": "public"
@@ -69,6 +69,6 @@
     "vite-plugin-dts": "^4.5.4",
     "vue": "^3.5.27",
     "vue-router": "https://pkg.pr.new/vue-router@2603",
-    "vue-tsc": "^3.2.2"
+    "vue-tsc": "^3.2.4"
   }
 }
