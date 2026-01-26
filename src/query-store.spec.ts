@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 import { createPinia, getActivePinia, setActivePinia } from 'pinia'
 import type { UseQueryEntry, UseQueryEntryNodeValueSerializd } from './query-store'
 import { useQueryCache } from './query-store'

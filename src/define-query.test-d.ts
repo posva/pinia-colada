@@ -1,4 +1,4 @@
-import { describe, expectTypeOf, it } from 'vitest'
+import { describe, expectTypeOf, it } from 'vite-plus/test'
 import { defineQuery } from './define-query'
 import type { DefineQueryOptions } from './define-query'
 import { useQuery } from './use-query'

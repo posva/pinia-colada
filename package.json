@@ -46,22 +46,22 @@
     "access": "public"
   },
   "scripts": {
-    "nuxt:prepare": "pnpm run --filter './nuxt' dev:prepare",
-    "dev": "vitest --ui",
+    "nuxt:prepare": "vite run --filter './nuxt' dev:prepare",
+    "dev": "vite test --ui",
     "docs": "vitepress dev docs",
-    "docs:build": "pnpm run docs:api:build && vitepress build docs",
+    "docs:build": "vite run docs:api:build && vitepress build docs",
     "docs:api:build": "node ./scripts/run-typedoc.js",
     "play": "pnpm -C playground dev",
-    "prepublishOnly": "pnpm run build",
+    "prepublishOnly": "vite run build",
     "release": "node scripts/release.ts",
-    "test": "pnpm run build && pnpm run test:cov && pnpm run build:all && pnpm run test:types && pnpm run codemods:test && pnpm run docs:build",
-    "fmt": "oxfmt",
-    "lint": "oxlint .",
-    "lint:fix": "oxlint --fix .",
+    "test": "vite run build && vite run test:cov && vite run build:all && vite run test:types && vite run codemods:test && vite run docs:build",
+    "fmt": "vite fmt",
+    "lint": "vite lint .",
+    "lint:fix": "vite lint --fix .",
     "test:types": "tsc --build ./tsconfig.json",
-    "test:cov": "vitest run --coverage",
-    "build": "tsdown",
-    "build:all": "pnpm run --stream --parallel --filter './plugins/*' --filter './nuxt' --filter './devtools' build",
+    "test:cov": "vite test --coverage",
+    "build": "vite lib",
+    "build:all": "vite run --stream --parallel --filter './plugins/*' --filter './nuxt' --filter './devtools' build",
     "size": "size-limit",
     "codemods:test": "ast-grep test",
     "prepare": "simple-git-hooks"
@@ -86,20 +86,18 @@
     "execa": "^9.6.1",
     "happy-dom": "^20.3.3",
     "lint-staged": "^16.2.7",
-    "oxfmt": "^0.26.0",
-    "oxlint": "^1.39.0",
     "pinia": "^3.0.4",
     "semver": "^7.7.3",
     "simple-git-hooks": "^2.13.1",
     "size-limit": "^12.0.0",
-    "tsdown": "^0.19.0",
     "typedoc": "^0.28.16",
     "typedoc-plugin-markdown": "^4.9.0",
     "typedoc-vitepress-theme": "^1.1.2",
     "typescript": "~5.9.3",
+    "vite-plus": "catalog:",
     "vitepress": "1.6.4",
     "vitepress-plugin-llms": "^1.10.0",
-    "vitest": "^4.0.17",
+    "vitest": "catalog:",
     "vue": "^3.5.26"
   },
   "peerDependencies": {
@@ -111,8 +109,8 @@
     "commit-msg": "node scripts/verifyCommit.js"
   },
   "lint-staged": {
-    "*": "oxfmt --no-error-on-unmatched-pattern",
-    "*.{js,jsx,ts,tsx,mjs,cjs}": "oxlint --fix"
+    "*": "vite fmt --no-error-on-unmatched-pattern",
+    "*.{js,jsx,ts,tsx,mjs,cjs}": "vite lint --fix"
   },
   "size-limit": [
     {

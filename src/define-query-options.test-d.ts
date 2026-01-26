@@ -1,4 +1,4 @@
-import { describe, expectTypeOf, it } from 'vitest'
+import { describe, expectTypeOf, it } from 'vite-plus/test'
 import { useQuery } from './use-query'
 import { useQueryCache, defineQueryOptions } from '@pinia/colada'
 import type { EntryKeyTagged } from '@pinia/colada'

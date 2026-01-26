@@ -1,4 +1,4 @@
-import { defineConfig, type TestProjectInlineConfiguration } from 'vitest/config'
+import { defineConfig, type TestProjectInlineConfiguration } from 'vite-plus'
 import Vue from '@vitejs/plugin-vue'
 import { fileURLToPath } from 'node:url'
 import fs from 'node:fs'

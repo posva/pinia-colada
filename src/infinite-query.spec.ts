@@ -7,7 +7,7 @@ import type {
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import type { Pinia } from 'pinia'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 import { defineComponent, isRef, ref } from 'vue'
 import { isSpy, mockConsoleError, mockWarn } from '@posva/test-utils'
 import { useInfiniteQuery } from './infinite-query'

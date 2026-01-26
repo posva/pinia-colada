@@ -1,5 +1,5 @@
 import type { mount } from '@vue/test-utils'
-import type { Mock } from 'vitest'
+import type { Mock } from 'vite-plus/test'
 
 export const delay = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 

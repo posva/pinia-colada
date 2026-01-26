@@ -44,7 +44,7 @@
     "dist-shared"
   ],
   "scripts": {
-    "dev:app": "vite",
+    "dev:app": "vite dev",
     "dev:db": "pnpm run -C ../playground dev:db",
     "dev": "pnpm run --stream '/^dev:/'",
     "test:types": "vue-tsc --noEmit",

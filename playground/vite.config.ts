@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url'
 import { resolve, dirname } from 'node:path'
 
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vite-plus'
 import Vue from '@vitejs/plugin-vue'
 import VueRouter from 'unplugin-vue-router/vite'
 import VueDevTools from 'vite-plugin-vue-devtools'
@@ -11,6 +11,14 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  lint: {
+    $schema: '../node_modules/oxlint/configuration_schema.json',
+    categories: {},
+    rules: {
+      curly: ['error', 'multi-line'],
+    },
+    globals: {},
+  },
   plugins: [
     //
     VueRouter(),

@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "pnpm run --stream '/^dev:/'",
-    "dev:client": "vite",
+    "dev:client": "vite dev",
     "dev:db": "json-server --port 7777 db.json",
     "dev_devtools": "pnpm run -C ../devtools build:panel -w",
     "preview": "vite preview",
@@ -41,8 +41,9 @@
     "tailwindcss": "^4.1.18",
     "typescript": "~5.9.3",
     "unplugin-vue-router": "^0.19.2",
-    "vite": "^7.3.1",
+    "vite": "catalog:",
     "vite-plugin-vue-devtools": "^8.0.5",
-    "vue-tsc": "^3.2.2"
+    "vue-tsc": "^3.2.2",
+    "vite-plus": "catalog:"
   }
 }

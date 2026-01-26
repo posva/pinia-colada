@@ -1,4 +1,4 @@
-import { describe, expectTypeOf, it } from 'vitest'
+import { describe, expectTypeOf, it } from 'vite-plus/test'
 import { computed, shallowReactive, shallowRef } from 'vue'
 import type { DataState } from './data-state'
 

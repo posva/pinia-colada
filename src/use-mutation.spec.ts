@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 import { flushPromises, mount, enableAutoUnmount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { defineComponent, effectScope, createApp, ref, nextTick } from 'vue'

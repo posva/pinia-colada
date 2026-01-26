@@ -6,7 +6,7 @@ interface CustomMatchers<R = unknown> {
   toHaveBeenErroredLast: () => R
   toHaveBeenErroredTimes: (n: number) => R
 }
-declare module 'vitest' {
+declare module 'vite-plus/test' {
   interface Assertion<T = any> extends CustomMatchers<T> {}
   interface AsymmetricMatchersContaining extends CustomMatchers {}
 }

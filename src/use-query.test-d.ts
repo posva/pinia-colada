@@ -1,4 +1,4 @@
-import { assertType, describe, expectTypeOf, it } from 'vitest'
+import { assertType, describe, expectTypeOf, it } from 'vite-plus/test'
 import type { Ref } from 'vue'
 import { useQuery } from './use-query'
 import type { UseQueryOptions } from './query-options'

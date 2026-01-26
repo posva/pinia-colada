@@ -1,5 +1,5 @@
-import { defineConfig } from 'tsdown'
-import type { UserConfig } from 'tsdown'
+import { defineConfig } from 'vite-plus/lib'
+import type { UserConfig } from 'vite-plus/lib'
 
 const commonOptions = {
   sourcemap: true,

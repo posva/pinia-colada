@@ -1,7 +1,7 @@
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { defineConfig } from 'vite'
-import type { Plugin } from 'vite'
+import { defineConfig } from 'vite-plus'
+import type { Plugin } from 'vite-plus'
 import Vue from '@vitejs/plugin-vue'
 import Dts from 'vite-plugin-dts'
 

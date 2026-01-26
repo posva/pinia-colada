@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vite-plus/test'
 import { find, toCacheKey } from './entry-keys'
 import type { EntryKey } from './entry-keys'
 

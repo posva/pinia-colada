@@ -1,5 +1,5 @@
 import { createPinia, getActivePinia, setActivePinia } from 'pinia'
-import { describe, beforeEach, it, expect, vi } from 'vitest'
+import { describe, beforeEach, it, expect, vi } from 'vite-plus/test'
 import { createApp } from 'vue'
 import { useMutationCache, isMutationCache } from './mutation-store'
 import type { UseMutationEntry } from './mutation-store'

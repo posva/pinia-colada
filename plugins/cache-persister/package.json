@@ -45,9 +45,9 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsdown",
+    "build": "vite lib",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s --commit-path . -l @pinia/colada-plugin-cache-persister -r 1",
-    "test": "vitest --ui"
+    "test": "vite test --ui"
   },
   "peerDependencies": {
     "@pinia/colada": "workspace:>="

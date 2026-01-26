@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 import { serializeQueryCache, useQueryCache, hydrateQueryCache } from './query-store'
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'

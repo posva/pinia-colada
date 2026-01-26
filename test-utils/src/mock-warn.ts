@@ -1,6 +1,6 @@
 // https://github.com/posva/jest-mock-warn/blob/master/src/index.js
-import type { MockInstance } from 'vitest'
-import { afterEach, beforeEach, expect, vi } from 'vitest'
+import type { MockInstance } from 'vite-plus/test'
+import { afterEach, beforeEach, expect, vi } from 'vite-plus/test'
 
 interface CustomMatchers<R = unknown> {
   toHaveBeenWarned: () => R
@@ -11,7 +11,7 @@ interface CustomMatchers<R = unknown> {
   toHaveBeenErroredTimes: (n: number) => R
 }
 
-declare module 'vitest' {
+declare module 'vite-plus/test' {
   interface Assertion<T = any> extends CustomMatchers<T> {}
   interface AsymmetricMatchersContaining extends CustomMatchers {}
 }

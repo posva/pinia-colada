@@ -23,8 +23,8 @@
     "dev:build": "nuxi build playground",
     "dev:prepare": "nuxt-module-build build --stub && nuxt-module-build prepare && nuxi prepare playground",
     "lint": "eslint .",
-    "test": "vitest run",
-    "test:watch": "vitest watch",
+    "test": "vite test run",
+    "test:watch": "vite test watch",
     "test:types": "vue-tsc --noEmit && cd playground && vue-tsc --noEmit"
   },
   "dependencies": {

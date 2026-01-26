@@ -1,7 +1,7 @@
 /**
  * @vitest-environment node
  */
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi } from 'vite-plus/test'
 import { createSSRApp, defineComponent, onErrorCaptured } from 'vue'
 import { renderToString, ssrRenderComponent, ssrRenderSuspense } from '@vue/server-renderer'
 import type { UseQueryOptions } from './query-options'
