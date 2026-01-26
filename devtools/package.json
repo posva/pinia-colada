@@ -1,58 +1,54 @@
 {
   "name": "@pinia/colada-devtools",
-  "type": "module",
   "version": "0.4.2",
-  "packageManager": "pnpm@10.28.0",
   "description": "Devtools for Pinia Colada",
-  "publishConfig": {
-    "access": "public"
+  "keywords": [
+    "cache",
+    "data",
+    "fetching",
+    "layer",
+    "mutation",
+    "pinia",
+    "plugin",
+    "query"
+  ],
+  "homepage": "https://github.com/posva/pinia-colada#readme",
+  "bugs": {
+    "url": "https://github.com/posva/pinia-colada/issues"
   },
+  "license": "MIT",
   "author": {
     "name": "Eduardo San Martin Morote",
     "email": "posva13@gmail.com"
   },
-  "license": "MIT",
-  "funding": "https://github.com/sponsors/posva",
-  "homepage": "https://github.com/posva/pinia-colada#readme",
   "repository": "posva/pinia-colada",
-  "bugs": {
-    "url": "https://github.com/posva/pinia-colada/issues"
-  },
-  "keywords": [
-    "pinia",
-    "plugin",
-    "data",
-    "fetching",
-    "query",
-    "mutation",
-    "cache",
-    "layer"
+  "funding": "https://github.com/sponsors/posva",
+  "files": [
+    "dist",
+    "dist-panel",
+    "dist-shared",
+    "LICENSE",
+    "README.md"
   ],
+  "type": "module",
   "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
   "exports": {
     ".": "./dist/index.js",
     "./panel": "./dist-panel/index.js",
     "./shared": "./dist-shared/index.js"
   },
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "files": [
-    "LICENSE",
-    "README.md",
-    "dist",
-    "dist-panel",
-    "dist-shared"
-  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "dev:app": "vite dev",
     "dev:db": "pnpm run -C ../playground dev:db",
     "dev": "pnpm run --stream '/^dev:/'",
     "test:types": "vue-tsc --noEmit",
     "prebuild": "pnpm -C .. run build",
-    "build:main": "vite build --config vite.config.ts",
-    "build:shared": "vite build --config vite.config.shared.ts",
-    "build:panel": "vite build --config vite.config.panel.ts",
-    "build": "pnpm run --stream '/^build:/'"
+    "build": "vite build --app"
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.86",
@@ -70,5 +66,6 @@
     "vue": "^3.5.26",
     "vue-router": "https://pkg.pr.new/vue-router@2603",
     "vue-tsc": "^3.2.2"
-  }
+  },
+  "packageManager": "pnpm@10.28.0"
 }
