@@ -77,30 +77,30 @@
     "@types/node": "^24.10.9",
     "@types/semver": "^7.7.1",
     "@vitejs/plugin-vue": "^6.0.3",
-    "@vitest/coverage-v8": "^4.0.17",
-    "@vitest/ui": "^4.0.17",
+    "@vitest/coverage-v8": "^4.0.18",
+    "@vitest/ui": "^4.0.18",
     "@vue/test-utils": "^2.4.6",
     "chalk": "^5.6.2",
     "conventional-changelog": "^7.1.1",
     "conventional-changelog-angular": "^8.1.0",
     "execa": "^9.6.1",
-    "happy-dom": "^20.3.3",
+    "happy-dom": "^20.3.9",
     "lint-staged": "^16.2.7",
-    "oxfmt": "^0.26.0",
-    "oxlint": "^1.39.0",
+    "oxfmt": "^0.27.0",
+    "oxlint": "^1.42.0",
     "pinia": "^3.0.4",
     "semver": "^7.7.3",
     "simple-git-hooks": "^2.13.1",
     "size-limit": "^12.0.0",
-    "tsdown": "^0.19.0",
+    "tsdown": "^0.20.1",
     "typedoc": "^0.28.16",
     "typedoc-plugin-markdown": "^4.9.0",
     "typedoc-vitepress-theme": "^1.1.2",
     "typescript": "~5.9.3",
     "vitepress": "1.6.4",
     "vitepress-plugin-llms": "^1.10.0",
-    "vitest": "^4.0.17",
-    "vue": "^3.5.26"
+    "vitest": "^4.0.18",
+    "vue": "^3.5.27"
   },
   "peerDependencies": {
     "pinia": "^2.2.6 || ^3.0.0",
@@ -146,7 +146,7 @@
       ]
     }
   ],
-  "packageManager": "pnpm@10.28.1",
+  "packageManager": "pnpm@10.28.2",
   "pnpm": {
     "overrides": {
       "twoslash-vue": "0.3.6",
