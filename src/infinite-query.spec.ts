@@ -1060,6 +1060,74 @@ describe('useInfiniteQuery', () => {
     expect(oldEntry.active).toBe(false)
   })
 
+  it('computes hasNextPage correctly when using cached data', async () => {
+    const query = vi.fn(async ({ pageParam }: { pageParam: number }) => {
+      return [pageParam * 3 + 1, pageParam * 3 + 2, pageParam * 3 + 3]
+    })
+
+    // First mount - fetch data
+    const { wrapper: wrapper1, pinia } = mountSimple({
+      query,
+      getNextPageParam: (lastPage, allPages, lastPageParam) => {
+        return lastPageParam >= 2 ? null : lastPageParam + 1
+      },
+    })
+
+    await flushPromises()
+
+    expect(wrapper1.vm.data).toEqual({
+      pages: [[1, 2, 3]],
+      pageParams: [0],
+    })
+    expect(wrapper1.vm.hasNextPage).toBe(true)
+
+    // Load next page
+    await wrapper1.vm.loadNextPage()
+    expect(wrapper1.vm.hasNextPage).toBe(true)
+
+    // Unmount first component
+    wrapper1.unmount()
+
+    query.mockClear()
+
+    // Second mount with same pinia - should use cached data
+    const wrapper2 = mount(
+      defineComponent({
+        render: () => null,
+        setup() {
+          const result = useInfiniteQuery({
+            key: ['key'],
+            initialPageParam: 0,
+            query,
+            getNextPageParam: (lastPage, allPages, lastPageParam) => {
+              return lastPageParam >= 2 ? null : lastPageParam + 1
+            },
+          })
+          return { ...result }
+        },
+      }),
+      {
+        global: {
+          plugins: [pinia],
+        },
+      },
+    )
+
+    await flushPromises()
+
+    // Should have cached data
+    expect(wrapper2.vm.data).toEqual({
+      pages: [
+        [1, 2, 3],
+        [4, 5, 6],
+      ],
+      pageParams: [0, 1],
+    })
+
+    // hasNextPage should be correctly computed from cached data
+    expect(wrapper2.vm.hasNextPage).toBe(true)
+  })
+
   // https://github.com/posva/pinia-colada/issues/458
   it('resets pageParam when key changes', async () => {
     const keyRef = ref(0)
