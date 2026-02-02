@@ -4,7 +4,6 @@ import { useQuery } from './use-query'
 import type { UseQueryReturn } from './use-query'
 import type { ErrorDefault } from './types-extension'
 import { useQueryCache, type UseQueryEntry } from './query-store'
-import type { DefineQueryOptions } from './define-query'
 import { noop } from './utils'
 
 /**
@@ -199,10 +198,12 @@ export function useInfiniteQuery<
     // @ts-expect-error: FIXME: mismatch with TDataInitial and undefined somewhere
     () => {
       const opts = toValue(options)
+      const key = toValue(opts.key)
+      entry = queryCache.get(key)
       // TODO: compute initial values for hasNextPage and hasPreviousPage based on initialData
       return {
         ...opts,
-        key: toValue(opts.key),
+        key,
         query: async (
           context: UseQueryFnContext<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>,
         ) => {

@@ -8,7 +8,7 @@ import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import type { Pinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, isRef, ref } from 'vue'
+import { defineComponent, h, isRef, nextTick, ref } from 'vue'
 import { isSpy, mockConsoleError, mockWarn } from '@posva/test-utils'
 import { useInfiniteQuery } from './infinite-query'
 import { PiniaColada } from './pinia-colada'
@@ -1058,6 +1058,75 @@ describe('useInfiniteQuery', () => {
     expect(oldEntry).toBeDefined()
     expect(entry0).toBe(oldEntry)
     expect(oldEntry.active).toBe(false)
+  })
+
+  it('computes hasNextPage correctly when using cached data', async () => {
+    const query = vi.fn(async ({ pageParam }: { pageParam: number }) => {
+      return [pageParam * 3 + 1, pageParam * 3 + 2, pageParam * 3 + 3]
+    })
+
+    const showComponent = ref(true)
+    let queryResult!: ReturnType<typeof useInfiniteQuery>
+
+    const InfiniteQueryComponent = defineComponent({
+      name: 'InfiniteQueryComponent',
+      render: () => null,
+      setup() {
+        queryResult = useInfiniteQuery({
+          key: ['key'],
+          initialPageParam: 0,
+          query,
+          getNextPageParam: (lastPage, allPages, lastPageParam) => {
+            return lastPageParam >= 2 ? null : lastPageParam + 1
+          },
+        })
+        return { ...queryResult }
+      },
+    })
+
+    mount(
+      defineComponent({
+        components: { InfiniteQueryComponent },
+        setup() {
+          return { showComponent }
+        },
+        render() {
+          return showComponent.value ? h(InfiniteQueryComponent) : null
+        },
+      }),
+      {
+        global: {
+          plugins: [createPinia(), PiniaColada],
+        },
+      },
+    )
+
+    await flushPromises()
+
+    expect(queryResult.data.value).toEqual({
+      pages: [[1, 2, 3]],
+      pageParams: [0],
+    })
+    expect(queryResult.hasNextPage.value).toBe(true)
+
+    // Load next page
+    await queryResult.loadNextPage()
+    expect(queryResult.hasNextPage.value).toBe(true)
+
+    // Toggle off to unmount inner component
+    showComponent.value = false
+    await nextTick()
+    query.mockClear()
+
+    // Toggle back on to remount - should use cached data
+    showComponent.value = true
+    await nextTick()
+    await flushPromises()
+
+    // Should have cached data
+    expect(query).not.toHaveBeenCalled()
+    // hasNextPage should be correctly computed from cached data
+    expect(queryResult.hasNextPage.value).toBe(true)
   })
 
   // https://github.com/posva/pinia-colada/issues/458
