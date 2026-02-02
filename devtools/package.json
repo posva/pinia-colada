@@ -59,7 +59,7 @@
     "@pinia/colada": "workspace:^*",
     "@posva/splitpanes": "^4.0.6",
     "@tailwindcss/vite": "^4.1.18",
-    "@vueuse/core": "^14.1.0",
+    "@vueuse/core": "^14.2.0",
     "mande": "^2.0.9",
     "match-container": "^0.1.0",
     "pinia": "^3.0.4",
