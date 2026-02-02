@@ -5,32 +5,15 @@ import { useInfiniteQuery } from '@pinia/colada'
 import { onWatcherCleanup, useTemplateRef, watch } from 'vue'
 
 const {
-  state: facts,
-  loadMore,
+  data: facts,
+  loadNextPage,
   asyncStatus,
-  isDelaying,
+  hasNextPage,
 } = useInfiniteQuery({
   key: ['feed'],
-  query: async ({ nextPage }) =>
-    nextPage != null ? factsApi.get<CatFacts>({ query: { page: nextPage, limit: 10 } }) : null,
-  initialPage: {
-    data: new Set<string>(),
-    // null for no more pages
-    nextPage: 1 as number | null,
-  },
-  merge(pages, newFacts) {
-    // no more pages
-    if (!newFacts) return pages
-    // ensure we have unique entries even during HMR
-    const data = new Set([...pages.data, ...newFacts.data.map((d) => d.fact)])
-    return {
-      data,
-      nextPage: newFacts.next_page_url ? newFacts.current_page + 1 : null,
-    }
-  },
-  // plugins
-  retry: 0,
-  delay: 0,
+  query: async ({ pageParam }) => factsApi.get<CatFacts>({ query: { page: pageParam, limit: 10 } }),
+  initialPageParam: 1,
+  getNextPageParam: (lastPage) => (lastPage.next_page_url ? lastPage.current_page + 1 : null),
 })
 
 const loadMoreEl = useTemplateRef('load-more')
@@ -40,7 +23,7 @@ watch(loadMoreEl, (el) => {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
-          loadMore()
+          loadNextPage()
         }
       },
       {
@@ -58,21 +41,23 @@ watch(loadMoreEl, (el) => {
 
 <template>
   <div>
-    <button :disabled="asyncStatus === 'loading' || isDelaying" @click="loadMore()">
+    <button :disabled="asyncStatus === 'loading'" @click="loadNextPage()">
       Load more (or scroll down)
     </button>
-    <template v-if="facts?.data">
-      <p>We have loaded {{ facts.data.data.size }} facts</p>
+    <template v-if="facts?.pages">
+      <p>We have loaded {{ facts.pages.length }} pages</p>
       <details>
         <summary>Show raw</summary>
         <pre>{{ facts }}</pre>
       </details>
 
-      <blockquote v-for="fact in facts.data.data">
-        {{ fact }}
-      </blockquote>
+      <template v-for="page in facts.pages" :key="page.current_page">
+        <blockquote v-for="item in page.data" :key="item.fact">
+          {{ item.fact }}
+        </blockquote>
+      </template>
 
-      <p v-if="facts.data.nextPage" ref="load-more">Loading more...</p>
+      <p v-if="hasNextPage" ref="load-more">Loading more...</p>
     </template>
   </div>
 </template>
