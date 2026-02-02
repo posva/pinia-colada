@@ -8,7 +8,6 @@ const {
   data: facts,
   loadNextPage,
   asyncStatus,
-  isDelaying,
   hasNextPage,
 } = useInfiniteQuery({
   key: ['feed'],
@@ -42,7 +41,7 @@ watch(loadMoreEl, (el) => {
 
 <template>
   <div>
-    <button :disabled="asyncStatus === 'loading' || isDelaying" @click="loadNextPage()">
+    <button :disabled="asyncStatus === 'loading'" @click="loadNextPage()">
       Load more (or scroll down)
     </button>
     <template v-if="facts?.pages">
