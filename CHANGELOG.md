@@ -1,3 +1,10 @@
+## [0.21.3](https://github.com/posva/pinia-colada/compare/v0.21.2...v0.21.3) (2026-02-06)
+
+### Bug Fixes
+
+- **infinite-query:** compute hasNextPage correctly on cache hit ([#480](https://github.com/posva/pinia-colada/issues/480)) ([895914a](https://github.com/posva/pinia-colada/commit/895914aad634c6eddaec6816538a68479f756587))
+- skip refetchOnWindowFocus and refetchOnReconnect for inactive defined queries ([1d7f9d2](https://github.com/posva/pinia-colada/commit/1d7f9d283b2576e9abd6d2e293b70045ea4db856)), closes [#485](https://github.com/posva/pinia-colada/issues/485)
+
 ## [0.21.2](https://github.com/posva/pinia-colada/compare/v0.21.1...v0.21.2) (2026-01-20)
 
 ### Bug Fixes
