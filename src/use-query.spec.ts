@@ -1468,6 +1468,78 @@ describe('useQuery', () => {
 
       expect(query).toHaveBeenCalledTimes(1)
     })
+
+    // https://github.com/posva/pinia-colada/discussions/485
+    it('does not refetch inactive queries from unmounted components', async () => {
+      const pinia = createPinia()
+      const postsQuery = vi.fn(async () => 'posts-data')
+      const usersQuery = vi.fn(async () => 'users-data')
+
+      // Mount component A with a "posts" query
+      const wrapperA = mount(
+        defineComponent({
+          render: () => null,
+          setup() {
+            return {
+              ...useQuery({
+                key: ['posts'],
+                query: postsQuery,
+                staleTime: 1000,
+              }),
+            }
+          },
+        }),
+        {
+          global: {
+            plugins: [pinia, PiniaColada],
+          },
+        },
+      )
+
+      await flushPromises()
+      expect(postsQuery).toHaveBeenCalledTimes(1)
+
+      // Unmount component A (simulates navigating away from the Posts page)
+      wrapperA.unmount()
+
+      // Mount component B with a "users" query
+      const wrapperB = mount(
+        defineComponent({
+          render: () => null,
+          setup() {
+            return {
+              ...useQuery({
+                key: ['users'],
+                query: usersQuery,
+                staleTime: 1000,
+              }),
+            }
+          },
+        }),
+        {
+          global: {
+            plugins: [pinia, PiniaColada],
+          },
+        },
+      )
+
+      await flushPromises()
+      expect(usersQuery).toHaveBeenCalledTimes(1)
+
+      // Advance time past staleTime so both entries become stale
+      vi.advanceTimersByTime(1001)
+
+      // Simulate tab refocus
+      document.dispatchEvent(new Event('visibilitychange'))
+      await flushPromises()
+
+      // The active "users" query should be refetched
+      expect(usersQuery).toHaveBeenCalledTimes(2)
+      // The inactive "posts" query should NOT be refetched
+      expect(postsQuery).toHaveBeenCalledTimes(1)
+
+      wrapperB.unmount()
+    })
   })
 
   describe('refetchOnReconnect', () => {
@@ -1515,6 +1587,78 @@ describe('useQuery', () => {
       await flushPromises()
 
       expect(query).toHaveBeenCalledTimes(1)
+    })
+
+    // https://github.com/posva/pinia-colada/discussions/485
+    it('does not refetch inactive queries from unmounted components', async () => {
+      const pinia = createPinia()
+      const postsQuery = vi.fn(async () => 'posts-data')
+      const usersQuery = vi.fn(async () => 'users-data')
+
+      // Mount component A with a "posts" query
+      const wrapperA = mount(
+        defineComponent({
+          render: () => null,
+          setup() {
+            return {
+              ...useQuery({
+                key: ['posts'],
+                query: postsQuery,
+                staleTime: 1000,
+              }),
+            }
+          },
+        }),
+        {
+          global: {
+            plugins: [pinia, PiniaColada],
+          },
+        },
+      )
+
+      await flushPromises()
+      expect(postsQuery).toHaveBeenCalledTimes(1)
+
+      // Unmount component A (simulates navigating away from the Posts page)
+      wrapperA.unmount()
+
+      // Mount component B with a "users" query
+      const wrapperB = mount(
+        defineComponent({
+          render: () => null,
+          setup() {
+            return {
+              ...useQuery({
+                key: ['users'],
+                query: usersQuery,
+                staleTime: 1000,
+              }),
+            }
+          },
+        }),
+        {
+          global: {
+            plugins: [pinia, PiniaColada],
+          },
+        },
+      )
+
+      await flushPromises()
+      expect(usersQuery).toHaveBeenCalledTimes(1)
+
+      // Advance time past staleTime so both entries become stale
+      vi.advanceTimersByTime(1001)
+
+      // Simulate reconnect
+      window.dispatchEvent(new Event('online'))
+      await flushPromises()
+
+      // The active "users" query should be refetched
+      expect(usersQuery).toHaveBeenCalledTimes(2)
+      // The inactive "posts" query should NOT be refetched
+      expect(postsQuery).toHaveBeenCalledTimes(1)
+
+      wrapperB.unmount()
     })
   })
 

@@ -604,6 +604,166 @@ describe('defineQuery', () => {
     })
   })
 
+  // https://github.com/posva/pinia-colada/discussions/485
+  describe('refetchOnWindowFocus', () => {
+    it('does not refetch inactive queries from unmounted components', async () => {
+      const pinia = createPinia()
+      const postsQuery = vi.fn(async () => 'posts-data')
+      const usersQuery = vi.fn(async () => 'users-data')
+
+      const usePosts = defineQuery(() => {
+        const { state, asyncStatus, ...rest } = useQuery({
+          key: ['posts'],
+          query: postsQuery,
+          staleTime: 1000,
+        })
+        return { ...rest, state, asyncStatus }
+      })
+
+      const useUsers = defineQuery(() => {
+        const { state, asyncStatus, ...rest } = useQuery({
+          key: ['users'],
+          query: usersQuery,
+          staleTime: 1000,
+        })
+        return { ...rest, state, asyncStatus }
+      })
+
+      // Mount component A with a "posts" query (simulates navigating to the Posts page)
+      const wrapperA = mount(
+        defineComponent({
+          render: () => null,
+          setup() {
+            return { ...usePosts() }
+          },
+        }),
+        {
+          global: {
+            plugins: [pinia, PiniaColada],
+          },
+        },
+      )
+
+      await flushPromises()
+      expect(postsQuery).toHaveBeenCalledTimes(1)
+
+      // Unmount component A (simulates navigating away from the Posts page)
+      wrapperA.unmount()
+
+      // Mount component B with a "users" query (simulates navigating to the Users page)
+      const wrapperB = mount(
+        defineComponent({
+          render: () => null,
+          setup() {
+            return { ...useUsers() }
+          },
+        }),
+        {
+          global: {
+            plugins: [pinia, PiniaColada],
+          },
+        },
+      )
+
+      await flushPromises()
+      expect(usersQuery).toHaveBeenCalledTimes(1)
+
+      // Advance time past staleTime so both entries become stale
+      vi.advanceTimersByTime(1001)
+
+      // Simulate tab refocus
+      document.dispatchEvent(new Event('visibilitychange'))
+      await flushPromises()
+
+      // The active "users" query should be refetched
+      expect(usersQuery).toHaveBeenCalledTimes(2)
+      // The inactive "posts" query should NOT be refetched
+      expect(postsQuery).toHaveBeenCalledTimes(1)
+
+      wrapperB.unmount()
+    })
+  })
+
+  // https://github.com/posva/pinia-colada/discussions/485
+  describe('refetchOnReconnect', () => {
+    it('does not refetch inactive queries from unmounted components', async () => {
+      const pinia = createPinia()
+      const postsQuery = vi.fn(async () => 'posts-data')
+      const usersQuery = vi.fn(async () => 'users-data')
+
+      const usePosts = defineQuery(() => {
+        const { state, asyncStatus, ...rest } = useQuery({
+          key: ['posts'],
+          query: postsQuery,
+          staleTime: 1000,
+        })
+        return { ...rest, state, asyncStatus }
+      })
+
+      const useUsers = defineQuery(() => {
+        const { state, asyncStatus, ...rest } = useQuery({
+          key: ['users'],
+          query: usersQuery,
+          staleTime: 1000,
+        })
+        return { ...rest, state, asyncStatus }
+      })
+
+      // Mount component A with a "posts" query (simulates navigating to the Posts page)
+      const wrapperA = mount(
+        defineComponent({
+          render: () => null,
+          setup() {
+            return { ...usePosts() }
+          },
+        }),
+        {
+          global: {
+            plugins: [pinia, PiniaColada],
+          },
+        },
+      )
+
+      await flushPromises()
+      expect(postsQuery).toHaveBeenCalledTimes(1)
+
+      // Unmount component A (simulates navigating away from the Posts page)
+      wrapperA.unmount()
+
+      // Mount component B with a "users" query (simulates navigating to the Users page)
+      const wrapperB = mount(
+        defineComponent({
+          render: () => null,
+          setup() {
+            return { ...useUsers() }
+          },
+        }),
+        {
+          global: {
+            plugins: [pinia, PiniaColada],
+          },
+        },
+      )
+
+      await flushPromises()
+      expect(usersQuery).toHaveBeenCalledTimes(1)
+
+      // Advance time past staleTime so both entries become stale
+      vi.advanceTimersByTime(1001)
+
+      // Simulate reconnect
+      window.dispatchEvent(new Event('online'))
+      await flushPromises()
+
+      // The active "users" query should be refetched
+      expect(usersQuery).toHaveBeenCalledTimes(2)
+      // The inactive "posts" query should NOT be refetched
+      expect(postsQuery).toHaveBeenCalledTimes(1)
+
+      wrapperB.unmount()
+    })
+  })
+
   describe('abort signal', () => {
     it('aborts the signal if the query is not active anymore (key changes)', async () => {
       const key = ref(1)

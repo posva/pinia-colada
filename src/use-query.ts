@@ -367,7 +367,7 @@ export function useQuery<
   if (IS_CLIENT) {
     useEventListener(document, 'visibilitychange', () => {
       const refetchControl = toValue(options.value.refetchOnWindowFocus)
-      if (document.visibilityState === 'visible' && enabled()) {
+      if (document.visibilityState === 'visible' && enabled() && entry.value.active) {
         if (refetchControl === 'always') {
           refetch()
         } else if (refetchControl) {
@@ -377,7 +377,7 @@ export function useQuery<
     })
 
     useEventListener(window, 'online', () => {
-      if (enabled()) {
+      if (enabled() && entry.value.active) {
         const refetchControl = toValue(options.value.refetchOnReconnect)
         if (refetchControl === 'always') {
           refetch()
