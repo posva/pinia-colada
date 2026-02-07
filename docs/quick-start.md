@@ -28,6 +28,8 @@ app.use(PiniaColada, {
     // change the stale time for all queries to 0ms
     staleTime: 0,
   },
+  // duration for the mutation recentlySuccessful flag (ms)
+  recentlySuccessfulDuration: 2000,
   mutationOptions: {
     // add global mutation options here
   },

@@ -121,6 +121,110 @@ describe('useMutation', () => {
     expect(wrapper.vm.status).toBe('success')
   })
 
+  describe('recentlySuccessful', () => {
+    it('becomes true on success and resets after the default duration', async () => {
+      const { wrapper } = mountSimple()
+
+      wrapper.vm.mutate()
+      await flushPromises()
+
+      expect(wrapper.vm.recentlySuccessful).toBe(true)
+      vi.advanceTimersByTime(1999)
+      expect(wrapper.vm.recentlySuccessful).toBe(true)
+      vi.advanceTimersByTime(1)
+      expect(wrapper.vm.recentlySuccessful).toBe(false)
+    })
+
+    it('uses the top-level plugin duration', async () => {
+      const { wrapper } = mountSimple(
+        {},
+        {
+          plugins: [createPinia(), [PiniaColada, { recentlySuccessfulDuration: 500 }]],
+        },
+      )
+
+      wrapper.vm.mutate()
+      await flushPromises()
+
+      expect(wrapper.vm.recentlySuccessful).toBe(true)
+      vi.advanceTimersByTime(499)
+      expect(wrapper.vm.recentlySuccessful).toBe(true)
+      vi.advanceTimersByTime(1)
+      expect(wrapper.vm.recentlySuccessful).toBe(false)
+    })
+
+    it('local recentlySuccessfulDuration overrides the global duration', async () => {
+      const { wrapper } = mountSimple(
+        { recentlySuccessfulDuration: 300 },
+        {
+          plugins: [createPinia(), [PiniaColada, { recentlySuccessfulDuration: 1000 }]],
+        },
+      )
+
+      wrapper.vm.mutate()
+      await flushPromises()
+
+      expect(wrapper.vm.recentlySuccessful).toBe(true)
+      vi.advanceTimersByTime(299)
+      expect(wrapper.vm.recentlySuccessful).toBe(true)
+      vi.advanceTimersByTime(1)
+      expect(wrapper.vm.recentlySuccessful).toBe(false)
+    })
+
+    it('falls back to the default duration for invalid local values', async () => {
+      const { wrapper } = mountSimple(
+        { recentlySuccessfulDuration: 0 },
+        {
+          plugins: [createPinia(), [PiniaColada, { recentlySuccessfulDuration: 500 }]],
+        },
+      )
+
+      wrapper.vm.mutate()
+      await flushPromises()
+
+      expect(wrapper.vm.recentlySuccessful).toBe(true)
+      vi.advanceTimersByTime(500)
+      expect(wrapper.vm.recentlySuccessful).toBe(true)
+      vi.advanceTimersByTime(1500)
+      expect(wrapper.vm.recentlySuccessful).toBe(false)
+    })
+
+    it('ignores out-of-order successes', async () => {
+      const deferred = <T>() => {
+        let resolve!: (value: T) => void
+        const promise = new Promise<T>((res, rej) => {
+          resolve = res
+          void rej
+        })
+        return { promise, resolve }
+      }
+
+      const d1 = deferred<number>()
+      const d2 = deferred<number>()
+
+      const { wrapper } = mountSimple<number, number>({
+        mutation: (value: number) => (value === 1 ? d1.promise : d2.promise),
+      })
+
+      wrapper.vm.mutate(1)
+      wrapper.vm.mutate(2)
+
+      d2.resolve(42)
+      await flushPromises()
+
+      expect(wrapper.vm.recentlySuccessful).toBe(true)
+
+      vi.advanceTimersByTime(1500)
+      d1.resolve(21)
+      await flushPromises()
+
+      expect(wrapper.vm.recentlySuccessful).toBe(true)
+
+      vi.advanceTimersByTime(500)
+      expect(wrapper.vm.recentlySuccessful).toBe(false)
+    })
+  })
+
   describe('hooks', () => {
     it('invokes the "onMutate" hook before mutating', async () => {
       const onMutate = vi.fn()

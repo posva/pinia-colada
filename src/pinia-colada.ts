@@ -30,6 +30,14 @@ export interface PiniaColadaOptions {
    * Global options for mutations. These will apply to all `useMutation()`, `defineMutation()`, etc.
    */
   mutationOptions?: UseMutationOptionsGlobal
+
+  /**
+   * Time in ms to keep `recentlySuccessful` as `true` after a successful mutation.
+   * Can be overridden per-mutation in `useMutation()`.
+   *
+   * @default 2000
+   */
+  recentlySuccessfulDuration?: number
 }
 
 /**
@@ -49,6 +57,7 @@ export const PiniaColada: Plugin<[options?: PiniaColadaOptions]> = (
     plugins,
     queryOptions,
     mutationOptions,
+    recentlySuccessfulDuration,
   } = options
 
   app.provide(USE_QUERY_OPTIONS_KEY, {
@@ -59,6 +68,7 @@ export const PiniaColada: Plugin<[options?: PiniaColadaOptions]> = (
   app.provide(USE_MUTATION_OPTIONS_KEY, {
     ...USE_MUTATION_DEFAULTS,
     ...mutationOptions,
+    ...(recentlySuccessfulDuration != null ? { recentlySuccessfulDuration } : null),
   })
 
   if (process.env.NODE_ENV !== 'production' && !pinia) {

@@ -165,6 +165,48 @@ Most of the time, using `mutate` should be easier to use as it catches any error
 
 The mutation returns similar properties to queries, like `state`, `data`, `error`, `status`, `asyncStatus`, etc. However, mutations are, by default, not global.
 
+In addition, mutations expose a `recentlySuccessful` flag that becomes `true` right after a successful mutation and automatically flips back to `false` after a short delay. This is useful for temporary success messages (similar to Inertia’s `recentlySuccessful`).
+
+```vue
+<script setup lang="ts">
+import { useMutation } from '@pinia/colada'
+
+const { mutate, recentlySuccessful } = useMutation({
+  mutation: async () => {
+    // ...
+  },
+})
+</script>
+
+<template>
+  <button @click="mutate">Save</button>
+  <span v-if="recentlySuccessful">Saved!</span>
+</template>
+```
+
+You can configure the duration globally via the `PiniaColada` plugin, and override it per mutation. Per-mutation values take precedence.
+
+```ts
+import { createApp } from 'vue'
+import { createPinia } from 'pinia'
+import { PiniaColada } from '@pinia/colada'
+
+const app = createApp({})
+app.use(createPinia())
+app.use(PiniaColada, {
+  recentlySuccessfulDuration: 3000,
+})
+```
+
+```ts
+useMutation({
+  recentlySuccessfulDuration: 500,
+  mutation: async () => {
+    // ...
+  },
+})
+```
+
 ## Hooks
 
 ### Global hooks

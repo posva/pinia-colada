@@ -40,6 +40,14 @@ describe('useMutation type inference', () => {
     })
   })
 
+  it('exposes recentlySuccessful', () => {
+    const { recentlySuccessful } = useMutation({
+      mutation: () => Promise.resolve(42),
+    })
+
+    expectTypeOf(recentlySuccessful.value).toEqualTypeOf<boolean>()
+  })
+
   it('can infer the context from sync onMutate', () => {
     useMutation({
       onMutate() {
