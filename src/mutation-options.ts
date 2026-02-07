@@ -96,6 +96,13 @@ export interface UseMutationOptionsGlobal {
    * @default 60_000 (1 minute)
    */
   gcTime?: number | false
+
+  /**
+   * Time in ms to keep `recentlySuccessful` as `true` after a successful mutation.
+   *
+   * @default 2000
+   */
+  recentlySuccessfulDuration?: number
 }
 
 /**
@@ -103,6 +110,7 @@ export interface UseMutationOptionsGlobal {
  */
 export const USE_MUTATION_DEFAULTS = {
   gcTime: (1000 * 60) as NonNullable<UseMutationOptions['gcTime']>, // 1 minute
+  recentlySuccessfulDuration: 2000,
 } satisfies UseMutationOptionsGlobal
 
 export type UseMutationOptionsWithDefaults<
@@ -120,7 +128,7 @@ export interface UseMutationOptions<
   TVars = void,
   TError = ErrorDefault,
   TContext extends Record<any, any> = _EmptyObject,
-> extends Pick<UseMutationOptionsGlobal, 'gcTime'> {
+> extends Pick<UseMutationOptionsGlobal, 'gcTime' | 'recentlySuccessfulDuration'> {
   /**
    * The key of the mutation. If the mutation is successful, it will invalidate the mutation with the same key and refetch it
    */

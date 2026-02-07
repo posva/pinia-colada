@@ -1,4 +1,4 @@
-import type { ComputedRef, ShallowRef } from 'vue'
+import type { ComputedRef, Ref, ShallowRef } from 'vue'
 import type { AsyncStatus, DataState, DataStateStatus } from './data-state'
 import type { EntryKey } from './entry-keys'
 import type { ErrorDefault } from './types-extension'
@@ -9,6 +9,7 @@ import {
   getCurrentScope,
   onUnmounted,
   onScopeDispose,
+  ref,
 } from 'vue'
 import { useMutationCache } from './mutation-store'
 import type { UseMutationEntry } from './mutation-store'
@@ -100,6 +101,11 @@ export interface UseMutationReturn<TData, TVars, TError> {
   isLoading: ComputedRef<boolean>
 
   /**
+   * Whether the mutation was successful recently.
+   */
+  recentlySuccessful: Ref<boolean>
+
+  /**
    * The variables passed to the mutation. They are initially `undefined` and change every time the mutation is called.
    */
   variables: ShallowRef<TVars | undefined>
@@ -163,6 +169,43 @@ export function useMutation<
     ...options,
   }
 
+  const recentlySuccessful = ref<boolean>(false)
+  let recentSuccessTimeout: ReturnType<typeof setTimeout> | undefined
+  let mutationRunId = 0
+
+  function clearRecentSuccessTimeout() {
+    if (recentSuccessTimeout != null) {
+      clearTimeout(recentSuccessTimeout)
+      recentSuccessTimeout = undefined
+    }
+  }
+
+  function resolveRecentlySuccessfulDuration() {
+    const duration = mergedOptions.recentlySuccessfulDuration
+    if (!Number.isFinite(duration) || duration <= 0) {
+      return USE_MUTATION_DEFAULTS.recentlySuccessfulDuration
+    }
+    return duration
+  }
+
+  function startMutationRun() {
+    mutationRunId += 1
+    recentlySuccessful.value = false
+    clearRecentSuccessTimeout()
+    return mutationRunId
+  }
+
+  function markRecentlySuccessful(runId: number) {
+    if (runId !== mutationRunId) return
+    recentlySuccessful.value = true
+    clearRecentSuccessTimeout()
+    recentSuccessTimeout = setTimeout(() => {
+      if (runId === mutationRunId) {
+        recentlySuccessful.value = false
+      }
+    }, resolveRecentlySuccessfulDuration())
+  }
+
   // always create an initial entry with no key (cannot be computed without vars)
   const entry = shallowRef<UseMutationEntry<TData, TVars, TError, TContext>>(
     mutationCache.create(mergedOptions),
@@ -172,11 +215,13 @@ export function useMutation<
   if (hasCurrentInstance) {
     onUnmounted(() => {
       mutationCache.untrack(entry.value)
+      clearRecentSuccessTimeout()
     })
   }
   if (currentEffect) {
     onScopeDispose(() => {
       mutationCache.untrack(entry.value)
+      clearRecentSuccessTimeout()
     })
   }
 
@@ -188,10 +233,22 @@ export function useMutation<
   const variables = computed(() => entry.value.vars)
 
   async function mutateAsync(vars: TVars): Promise<TData> {
-    return mutationCache.mutate(
-      // ensures we reuse the initial empty entry and adapt it or create a new one
-      (entry.value = mutationCache.ensure(entry.value, vars)),
-    )
+    const runId = startMutationRun()
+    return mutationCache
+      .mutate(
+        // ensures we reuse the initial empty entry and adapt it or create a new one
+        (entry.value = mutationCache.ensure(entry.value, vars)),
+      )
+      .then((result: TData) => {
+        markRecentlySuccessful(runId)
+        return result
+      })
+      .catch((error: unknown) => {
+        if (runId === mutationRunId) {
+          recentlySuccessful.value = false
+        }
+        throw error
+      })
   }
 
   function mutate(vars: NoInfer<TVars>) {
@@ -199,6 +256,9 @@ export function useMutation<
   }
 
   function reset() {
+    mutationRunId += 1
+    recentlySuccessful.value = false
+    clearRecentSuccessTimeout()
     entry.value = mutationCache.create(mergedOptions)
   }
 
@@ -210,6 +270,7 @@ export function useMutation<
     variables,
     asyncStatus,
     error,
+    recentlySuccessful,
     // @ts-expect-error: because of the conditional type in UseMutationReturn
     // it would be nice to find a type-only refactor that works
     mutate,
