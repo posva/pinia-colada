@@ -3,6 +3,7 @@ import type { Pinia } from 'pinia'
 import type { UseQueryOptionsGlobal } from './query-options'
 import { USE_QUERY_DEFAULTS, USE_QUERY_OPTIONS_KEY } from './query-options'
 import { useQueryCache } from './query-store'
+import { useMutationCache } from './mutation-store'
 import type { PiniaColadaPlugin } from './plugins'
 import { USE_MUTATION_DEFAULTS, USE_MUTATION_OPTIONS_KEY } from './mutation-options'
 import type { UseMutationOptionsGlobal } from './mutation-options'
@@ -69,10 +70,12 @@ export const PiniaColada: Plugin<[options?: PiniaColadaOptions]> = (
 
   // install plugins
   const queryCache = useQueryCache(pinia)
+  const mutationCache = useMutationCache(pinia)
   plugins?.forEach((plugin) =>
     plugin({
       scope: queryCache._s,
       queryCache,
+      mutationCache,
       pinia,
     }),
   )
