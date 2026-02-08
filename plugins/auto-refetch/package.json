@@ -12,7 +12,7 @@
   },
   "license": "MIT",
   "funding": "https://github.com/sponsors/posva",
-  "homepage": "https://github.com/posva/pinia-colada/plugins/auto-refetch#readme",
+  "homepage": "https://github.com/posva/pinia-colada/blob/main/plugins/auto-refetch/README.md",
   "repository": "posva/pinia-colada",
   "bugs": {
     "url": "https://github.com/posva/pinia-colada/issues"
