@@ -169,24 +169,4 @@ The mutation returns similar properties to queries, like `state`, `data`, `error
 
 ### Global hooks
 
-You can define global hooks for mutations when installing Pinia Colada. These hooks apply to every mutation.
-
-```ts twoslash
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
-import { PiniaColada } from '@pinia/colada'
-
-const app = createApp({})
-app.use(createPinia())
-app.use(PiniaColada, {
-  mutationOptions: {
-    onError(error, vars) {
-      console.error('Mutation failed', error, vars)
-    },
-  },
-})
-```
-
-Plugins can also extend mutations. If a plugin adds properties to mutation entries via the mutation cache `extend` hook, these properties become available directly on the object returned by `useMutation()`.
-
 ## Best Practices
