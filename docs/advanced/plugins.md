@@ -15,13 +15,14 @@ It is recommended to create plugins as functions to accept any options and retur
 
 ```ts twoslash
 import type { PiniaColadaPlugin } from '@pinia/colada'
+import { useMutationCache } from '@pinia/colada'
 
 interface MyOptions {
   foo?: string
 }
 
 export function PiniaColadaDebugPlugin(options: MyOptions = {}): PiniaColadaPlugin {
-  return ({ queryCache, mutationCache, pinia }) => {
+  return ({ queryCache, pinia }) => {
     queryCache.$onAction(({ name, args }) => {
       if (name === 'setQueryData') {
         // args type gets narrowed down to the correct type
@@ -32,6 +33,7 @@ export function PiniaColadaDebugPlugin(options: MyOptions = {}): PiniaColadaPlug
     })
 
     // You can also listen to mutation events.
+    const mutationCache = useMutationCache(pinia)
     mutationCache.$onAction(({ name, args }) => {
       if (name === 'mutate') {
         const [entry] = args
@@ -174,12 +176,13 @@ declare module '@pinia/colada' {
 You can extend mutation entries the same way, using the mutation cache `extend` hook. Unlike queries, mutations typically run with variables, so extensions are often updated when the mutation settles.
 
 ```ts twoslash
-import type { PiniaColadaPlugin } from '@pinia/colada'
+import { type PiniaColadaPlugin, useMutationCache } from '@pinia/colada'
 import { shallowRef } from 'vue'
 import type { ShallowRef } from 'vue'
 
 export function PiniaColadaMutatedAtPlugin(): PiniaColadaPlugin {
-  return ({ mutationCache, scope }) => {
+  return ({ pinia, scope }) => {
+    const mutationCache = useMutationCache(pinia)
     mutationCache.$onAction(({ name, args, after }) => {
       if (name === 'extend') {
         const [entry] = args

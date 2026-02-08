@@ -10,13 +10,14 @@
 
 import type { ShallowRef } from 'vue'
 import { shallowRef } from 'vue'
-import type { PiniaColadaPlugin } from '@pinia/colada'
+import { useMutationCache, type PiniaColadaPlugin } from '@pinia/colada'
 
 /**
  * Adds `mutatedAt` and `errorCount` to mutation entries.
  */
 export function PiniaColadaMutationMetrics(): PiniaColadaPlugin {
-  return ({ mutationCache, scope }) => {
+  return ({ scope, pinia }) => {
+    const mutationCache = useMutationCache(pinia)
     mutationCache.$onAction(({ name, args, after }) => {
       if (name === 'extend') {
         const [entry] = args

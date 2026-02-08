@@ -1,6 +1,5 @@
 import type { Pinia } from 'pinia'
 import type { QueryCache } from '../query-store'
-import type { MutationCache } from '../mutation-store'
 import type { EffectScope } from 'vue'
 
 /**
@@ -11,11 +10,6 @@ export interface PiniaColadaPluginContext {
    * The query cache used by the application.
    */
   queryCache: QueryCache
-
-  /**
-   * The mutation cache used by the application.
-   */
-  mutationCache: MutationCache
 
   /**
    * The Pinia instance used by the application.
