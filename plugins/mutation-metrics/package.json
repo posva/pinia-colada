@@ -12,7 +12,7 @@
   },
   "license": "MIT",
   "funding": "https://github.com/sponsors/posva",
-  "homepage": "https://github.com/posva/pinia-colada/plugins/mutation-metrics#readme",
+  "homepage": "https://github.com/posva/pinia-colada/blob/main/plugins/mutation-metrics/README.md",
   "repository": "posva/pinia-colada",
   "bugs": {
     "url": "https://github.com/posva/pinia-colada/issues"
