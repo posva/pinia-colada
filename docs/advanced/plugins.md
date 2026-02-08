@@ -167,6 +167,7 @@ declare module '@pinia/colada' {
     dataUpdatedAt: ShallowRef<number>
   }
 }
+```
 
 ### Adding a `mutatedAt` property to mutations
 
@@ -205,5 +206,4 @@ declare module '@pinia/colada' {
     mutatedAt: ShallowRef<number>
   }
 }
-```
 ```
