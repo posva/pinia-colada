@@ -2,6 +2,7 @@ import { describe, expectTypeOf, it } from 'vitest'
 import type { ShallowRef } from 'vue'
 import { useMutation } from './use-mutation'
 import type { _EmptyObject } from './utils'
+import type { UseMutationEntry } from '@pinia/colada'
 
 describe('useMutation type inference', () => {
   it('types the parameters for the key', () => {
@@ -215,8 +216,8 @@ describe('useMutation type inference', () => {
 
 describe('extendMutationEntry type inference', () => {
   it('errors when setting ext directly', () => {
-    const entry = {} as ShallowRef<{ mutatedAt: number }>
+    const entry = {} as UseMutationEntry
     // @ts-expect-error: ext is readonly
-    entry.ext = { mutatedAt: 0 }
+    entry.ext = { }
   })
 })
