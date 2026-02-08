@@ -12,6 +12,7 @@ import { PiniaColadaDebugPlugin } from '@pinia/colada-plugin-debug'
 import { PiniaColadaDelay } from '@pinia/colada-plugin-delay'
 import type { PiniaColadaOptions } from '@pinia/colada'
 import { PiniaColadaCachePersister } from '@pinia/colada-plugin-cache-persister'
+import { PiniaColadaMutationMetrics } from '@pinia/colada-plugin-mutation-metrics'
 
 const app = createApp(App)
 const router = createRouter({
@@ -39,6 +40,7 @@ app.use(PiniaColada, {
     PiniaColadaCachePersister({
       key: 'pc:cache-persisted',
     }),
+    PiniaColadaMutationMetrics(),
   ],
 } satisfies PiniaColadaOptions)
 app.use(router)

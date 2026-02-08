@@ -225,7 +225,7 @@ describe('Mutation Cache store', () => {
       expect(entry.ext).toBeDefined()
     })
 
-    it('calls extend hook when entry is ensured', () => {
+    it('calls extend hook when entry is created', () => {
       const pinia = getActivePinia()!
       const mutationCache = useMutationCache(pinia)
       const extendSpy = vi.fn()
@@ -240,7 +240,8 @@ describe('Mutation Cache store', () => {
         ...USE_MUTATION_DEFAULTS,
         mutation: async () => 'ok',
       })
-      mutationCache.ensure(entry, undefined)
+      // NOTE: ensure is not required anymore to trigger extension
+      void entry
 
       expect(extendSpy).toHaveBeenCalledTimes(1)
     })
@@ -280,7 +281,7 @@ describe('Mutation Cache store', () => {
         if (action.name === 'extend') {
           const entry = action.args[0] as UseMutationEntry
           // Plugin extends the entry
-          ;(entry.ext as Record<string, unknown>).customProperty = 'test-value'
+          ;((entry.ext as unknown) as Record<string, unknown>).customProperty = 'test-value'
         }
       })
 
@@ -318,6 +319,31 @@ describe('Mutation Cache store', () => {
         useMutation(options)
       })
       expect(onActionCreate).toHaveBeenCalledTimes(2)
+    })
+
+    it('triggers the mutate hook when mutating', async () => {
+      const pinia = getActivePinia()!
+      const mutationCache = useMutationCache(pinia)
+      const onActionMutate = vi.fn()
+
+      mutationCache.$onAction((action) => {
+        if (action.name === 'mutate') {
+          onActionMutate(action)
+        }
+      })
+
+      const entry = mutationCache.ensure(
+        mutationCache.create({
+          ...USE_MUTATION_DEFAULTS,
+          mutation: async () => 42,
+        }),
+        undefined,
+      )
+
+      expect(onActionMutate).toHaveBeenCalledTimes(0)
+      void mutationCache.mutate(entry)
+      expect(onActionMutate).toHaveBeenCalledTimes(1)
+      await flushPromises()
     })
   })
 

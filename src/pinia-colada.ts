@@ -6,6 +6,7 @@ import { useQueryCache } from './query-store'
 import type { PiniaColadaPlugin } from './plugins'
 import { USE_MUTATION_DEFAULTS, USE_MUTATION_OPTIONS_KEY } from './mutation-options'
 import type { UseMutationOptionsGlobal } from './mutation-options'
+import { useMutationCache } from './mutation-store'
 
 /**
  * Options for the Pinia Colada plugin.
@@ -69,10 +70,12 @@ export const PiniaColada: Plugin<[options?: PiniaColadaOptions]> = (
 
   // install plugins
   const queryCache = useQueryCache(pinia)
+  const mutationCache = useMutationCache(pinia)
   plugins?.forEach((plugin) =>
     plugin({
       scope: queryCache._s,
       queryCache,
+      mutationCache,
       pinia,
     }),
   )

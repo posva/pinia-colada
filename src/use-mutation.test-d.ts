@@ -1,6 +1,23 @@
 import { describe, expectTypeOf, it } from 'vitest'
+import type { ShallowRef } from 'vue'
 import { useMutation } from './use-mutation'
 import type { _EmptyObject } from './utils'
+
+declare module './mutation-store' {
+  interface UseMutationEntryExtensions<TData, TVars, TError, TContext> {
+    mutatedAt: ShallowRef<number>
+  }
+}
+
+declare module './mutation-options' {
+  interface UseMutationOptions<TData, TVars, TError, TContext> {
+    pluginOption?: boolean
+  }
+
+  interface UseMutationOptionsGlobal {
+    pluginOption?: boolean
+  }
+}
 
 describe('useMutation type inference', () => {
   it('types the parameters for the key', () => {
@@ -209,5 +226,14 @@ describe('useMutation type inference', () => {
         ) {},
       })
     })
+  })
+
+  it('includes mutation entry extensions on the return type', () => {
+    const mutation = useMutation({
+      mutation: async () => 42,
+      pluginOption: true,
+    })
+
+    expectTypeOf(mutation.mutatedAt).toEqualTypeOf<ShallowRef<number>>()
   })
 })

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount, enableAutoUnmount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
-import { defineComponent, effectScope, createApp, ref, nextTick } from 'vue'
+import { defineComponent, effectScope, createApp, ref, nextTick, shallowRef } from 'vue'
 import type { GlobalMountOptions } from '@posva/test-utils'
 import { delay } from '@posva/test-utils'
 import type { UseMutationOptions } from './mutation-options'
@@ -9,6 +9,7 @@ import { useMutation } from './use-mutation'
 import { PiniaColada } from './pinia-colada'
 import { mockConsoleError, mockWarn } from '@posva/test-utils'
 import { useMutationCache } from './mutation-store'
+import type { PiniaColadaPlugin } from './plugins'
 
 describe('useMutation', () => {
   beforeEach(() => {
@@ -119,6 +120,88 @@ describe('useMutation', () => {
     await flushPromises()
     expect(wrapper.vm.data).toBe(42)
     expect(wrapper.vm.status).toBe('success')
+  })
+
+  describe('plugins (extensions)', () => {
+    function PiniaColadaMutationMetricsTestPlugin(): PiniaColadaPlugin {
+      return ({ mutationCache, scope }) => {
+        mutationCache.$onAction(({ name, args, after }) => {
+          if (name === 'extend') {
+            const [entry] = args
+            scope.run(() => {
+              // eslint-disable-next-line ts/ban-ts-comment
+              // @ts-ignore: test plugin adds custom properties
+              entry.ext.mutatedAt = shallowRef(0)
+              // eslint-disable-next-line ts/ban-ts-comment
+              // @ts-ignore: test plugin adds custom properties
+              entry.ext.errorCount = shallowRef(0)
+            })
+          } else if (name === 'setEntryState') {
+            const [entry, state] = args
+            after(() => {
+              if (state.status === 'success') {
+                // eslint-disable-next-line ts/ban-ts-comment
+                // @ts-ignore: test plugin adds custom properties
+                entry.ext.mutatedAt.value = entry.when
+              } else if (state.status === 'error') {
+                // eslint-disable-next-line ts/ban-ts-comment
+                // @ts-ignore: test plugin adds custom properties
+                entry.ext.errorCount.value++
+              }
+            })
+          }
+        })
+      }
+    }
+
+    it('exposes mutation entry extensions on the returned object', async () => {
+      const { wrapper } = mountSimple(
+        {},
+        {
+          plugins: [
+            createPinia(),
+            [PiniaColada, { plugins: [PiniaColadaMutationMetricsTestPlugin()] }],
+          ],
+        },
+      )
+
+      // extensions should be available immediately (before first mutate)
+      expect(wrapper.vm.mutatedAt).toBe(0)
+      expect(wrapper.vm.errorCount).toBe(0)
+
+      vi.setSystemTime(1234)
+      wrapper.vm.mutate()
+      await flushPromises()
+
+      expect(wrapper.vm.data).toBe(42)
+      expect(wrapper.vm.mutatedAt).toBe(1234)
+
+      wrapper.vm.reset()
+      expect(wrapper.vm.mutatedAt).toBe(0)
+      expect(wrapper.vm.errorCount).toBe(0)
+    })
+
+    it('updates extensions when a mutation errors', async () => {
+      const { wrapper } = mountSimple(
+        {
+          mutation: async () => {
+            throw new Error('nope')
+          },
+        },
+        {
+          plugins: [
+            createPinia(),
+            [PiniaColada, { plugins: [PiniaColadaMutationMetricsTestPlugin()] }],
+          ],
+        },
+      )
+
+      expect(wrapper.vm.errorCount).toBe(0)
+      wrapper.vm.mutate()
+      await flushPromises()
+      expect(wrapper.vm.error).toEqual(new Error('nope'))
+      expect(wrapper.vm.errorCount).toBe(1)
+    })
   })
 
   describe('hooks', () => {

@@ -28,7 +28,7 @@ export function defineMutation<
   TContext extends Record<any, any> = _EmptyObject,
 >(
   options: UseMutationOptions<TData, TVars, TError, TContext>,
-): () => UseMutationReturn<TData, TVars, TError>
+): () => UseMutationReturn<TData, TVars, TError, TContext>
 
 /**
  * Define a mutation with a function setup. Allows to return arbitrary values from the mutation function, create

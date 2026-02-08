@@ -6,7 +6,10 @@ The plugin system is still under development and the API is subject to change. I
 
 :::
 
-Plugins will likely have to interact with the [Query Cache](query-cache.md), more specifically, listen to actions with `$onAction()`:
+Plugins will likely have to interact with the caches, more specifically, listen to actions with `$onAction()`:
+
+- the [Query Cache](query-cache.md) (`queryCache`)
+- the Mutation Cache (`mutationCache`)
 
 It is recommended to create plugins as functions to accept any options and return the plugin itself. This way, you can pass options to the plugin when creating it.
 
@@ -18,12 +21,20 @@ interface MyOptions {
 }
 
 export function PiniaColadaDebugPlugin(options: MyOptions = {}): PiniaColadaPlugin {
-  return ({ queryCache, pinia }) => {
+  return ({ queryCache, mutationCache, pinia }) => {
     queryCache.$onAction(({ name, args }) => {
       if (name === 'setQueryData') {
         // args type gets narrowed down to the correct type
         const [queryKey, data] = args
       } else {
+        // ...
+      }
+    })
+
+    // You can also listen to mutation events.
+    mutationCache.$onAction(({ name, args }) => {
+      if (name === 'mutate') {
+        const [entry] = args
         // ...
       }
     })
@@ -70,6 +81,26 @@ declare module '@pinia/colada' {
 ```
 
 To avoid repetition, define the options in a separate interface and augment both `UseQueryOptions` and `UseQueryOptionsGlobal` in a module augmentation. Note you need to write the three type params, `TData`, `TError`, and `TDataInitial`, even if you don't use them and they must be named exactly like that.
+
+### Adding Options to Mutations
+
+When adding options to mutations, you can augment the `UseMutationOptions` and `UseMutationOptionsGlobal` interfaces.
+
+```ts
+export interface PiniaColadaMyMutationPluginOptions {
+  /**
+   * Whether to enable the feature.
+   */
+  myOption?: boolean
+}
+
+declare module '@pinia/colada' {
+  interface UseMutationOptions<TData, TVars, TError, TContext>
+    extends PiniaColadaMyMutationPluginOptions {}
+
+  interface UseMutationOptionsGlobal extends PiniaColadaMyMutationPluginOptions {}
+}
+```
 
 ## Examples
 
@@ -136,4 +167,43 @@ declare module '@pinia/colada' {
     dataUpdatedAt: ShallowRef<number>
   }
 }
+
+### Adding a `mutatedAt` property to mutations
+
+You can extend mutation entries the same way, using the mutation cache `extend` hook. Unlike queries, mutations typically run with variables, so extensions are often updated when the mutation settles.
+
+```ts twoslash
+import type { PiniaColadaPlugin } from '@pinia/colada'
+import { shallowRef } from 'vue'
+import type { ShallowRef } from 'vue'
+
+export function PiniaColadaMutatedAtPlugin(): PiniaColadaPlugin {
+  return ({ mutationCache, scope }) => {
+    mutationCache.$onAction(({ name, args, after }) => {
+      if (name === 'extend') {
+        const [entry] = args
+        scope.run(() => {
+          entry.ext.mutatedAt = shallowRef(0)
+        })
+      } else if (name === 'setEntryState') {
+        const [entry, state] = args
+        after(() => {
+          if (state.status === 'success') {
+            entry.ext.mutatedAt.value = entry.when
+          }
+        })
+      }
+    })
+  }
+}
+
+declare module '@pinia/colada' {
+  interface UseMutationEntryExtensions<TData, TVars, TError, TContext> {
+    /**
+     * Timestamp of the last successful mutation.
+     */
+    mutatedAt: ShallowRef<number>
+  }
+}
+```
 ```
