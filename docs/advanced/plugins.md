@@ -8,7 +8,7 @@ The plugin system is still under development and the API is subject to change. I
 
 Plugins are install-time functions that subscribe to **Pinia Colada cache actions** allowing you to observe and modify query/mutation lifecycles globally without needing to change your components or the core library.
 
-This behavior is based on [Pinia's `$onAction()` subscriptions](https://pinia.vuejs.org/core-concepts/actions.html#Subscribing-to-actions) and possible because Pinia Colada is built on top of Pinia stores. Under the hood, `useQuery()` and `useMutation()` are composables that trigger actions on their respective caches (`queryCache` and `mutationCache`) to perform their work.
+This behavior is based on [Pinia's `$onAction()` subscriptions](https://pinia.vuejs.org/core-concepts/actions.html#Subscribing-to-actions) and is possible because Pinia Colada is built on top of Pinia stores. Under the hood, `useQuery()` and `useMutation()` are composables that trigger actions on their respective caches (`queryCache` and `mutationCache`) to perform their work.
 
 Most plugin work falls into one of these categories:
 
@@ -30,7 +30,7 @@ Pinia Colada plugins:
 - should have a clear name with `pinia-colada-plugin-` prefix.
 - include `pinia-colada-plugin` keyword in package.json.
 
-## Plugins Options
+## Plugin Options
 
 Users will install plugins to the project `dependencies` and configure them using the `plugins` array option when registering Pinia Colada:
 
@@ -47,7 +47,7 @@ app.use(PiniaColada, {
 
 Plugins are installed in array order. If multiple plugins hook the same cache action, they will run in installation order.
 
-## Plugins Structure
+## Plugin Structure
 
 Plugins should be factory functions that accept options and return a function that receives the [plugin context](#plugins-context).
 
@@ -100,7 +100,7 @@ export function PiniaColadaFeaturePlugin(options: FeaturePluginOptions = {}): Pi
 ```
 
 
-## Plugins Context
+## Plugin Context
 
 The plugin context is automatically passed to the plugin function and includes:
 
@@ -137,7 +137,7 @@ export function PiniaColadaFeaturePlugin(): PiniaColadaPlugin {
 
 :::
 
-## Plugins Subscriptions
+## Plugin Subscriptions
 
 Pinia Colada plugins rely on [Pinia's action subscriptions](https://pinia.vuejs.org/core-concepts/actions.html#Subscribing-to-actions).
 
@@ -171,7 +171,7 @@ queryCache.$onAction(({ name, args, after, onError }) => {
 })
 ```
 
-**Observing cache actions** is the core mechanism for plugins. You subscribe to the relevant cache (`queryCache` or `mutationCache`) and you react to the actions that are relevant for your plugin's behavior (e.g. `fetch` for query hooks, `mutate` for mutation hooks, `setEntryState` for any state change, etc).
+**Observing cache actions** is the core mechanism for plugins. You subscribe to the relevant cache (`queryCache` or `mutationCache`) and you react to the actions that are relevant for your plugin's behavior (e.g. `fetch` for query hooks, `mutate` for mutation hooks, `setEntryState` for any state change, etc.).
 
 This works because `useQuery()` and `useMutation()` are composables that **only trigger cache actions** to perform their work.
 
@@ -189,7 +189,7 @@ Before writing a plugin to augment or modify `useQuery()`'s behavior, it's impor
 4. `queryCache.setEntryState(entry, state)` is the canonical state-update choke point.
 5. `queryCache.remove(entry)` removes an entry (manual or GC).
 
-All these steps happens when using `useQuery()` and are observable via the query cache actions.
+All these steps happen when using `useQuery()` and are observable via the query cache actions.
 
 ::: note
 
@@ -240,7 +240,7 @@ This plugin observes **fetches**. If you need "any data change" semantics, hook 
 
 ::: note
 
-you need to opt in to the mutation cache by calling `useMutationCache(pinia)` in your plugin. This is intentional to keep the core bundle smaller for users who only need query plugins.
+You need to opt in to the mutation cache by calling `useMutationCache(pinia)` in your plugin. This is intentional to keep the core bundle smaller for users who only need query plugins.
 
 ```ts
 import { useMutationCache, type PiniaColadaPlugin } from '@pinia/colada'
@@ -268,7 +268,7 @@ Most mutation plugins hook into:
 - `setEntryState(entry, state)` to react to success/error transitions
 - `remove(entry)` for cleanup
 
-## Plugins Patterns
+## Plugin Patterns
 
 ### Adding options
 
@@ -390,7 +390,9 @@ You should only add new keys to `entry.ext` during the `extend` action as it is 
 Also, you can't add new keys to `entry.ext` later (e.g. in `fetch` or `setEntryState`). You must define all the needed keys in `extend` so they are available on the return value from the start.
 
 ::: note
+
 The `extend` action is only triggered once per entry.
+
 :::
 
 
@@ -515,7 +517,9 @@ declare module '@pinia/colada' {
 ```
 
 ::: note
+
 You must keep all the generic parameters (`TData`, `TError`, `TDataInitial`) even if you don't use them, otherwise you'll get type errors.
+
 :::
 
 Global options are set when creating Pinia Colada:
@@ -543,7 +547,9 @@ declare module '@pinia/colada' {
 ```
 
 ::: note
+
 You must keep all the generic parameters (`TData`, `TError`) even if you don't use them, otherwise you'll get type errors.
+
 :::
 
 Then you can set `entry.ext.myField` in the plugin and it will be available on the query return value.
@@ -573,7 +579,9 @@ declare module '@pinia/colada' {
 ```
 
 ::: note
+
 You must keep all the generic parameters (`TData`, `TVars`, `TError`, `TContext`) even if you don't use them, otherwise you'll get type errors.
+
 :::
 
 Global options are set when creating Pinia Colada:
@@ -601,7 +609,9 @@ declare module '@pinia/colada' {
 ```
 
 ::: note
+
 You must keep all the generic parameters (`TData`, `TVars`, `TError`, `TContext`) even if you don't use them, otherwise you'll get type errors.
+
 :::
 
 Then you can set `entry.ext.myField` in the plugin and it will be available on the mutation return value.
