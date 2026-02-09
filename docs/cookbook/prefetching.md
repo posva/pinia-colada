@@ -37,7 +37,7 @@ queryCache.setQueryData(
 )
 ```
 
-Differently from using `ensure()` or `useQuery()`, this does not attach any query options to the cache entry, so it won't be able to refetch or know when the data is stale. In most cases this is fine, but if you want to have a fully functional query, it's better to use `ensure()` first to attach options to the _query entry_. We can combine this with [`defineQueryOptions`](./queries.md#Organizing-Queries) to have type safety and a consistent way to reference queries:
+Differently from using `ensure()` or `useQuery()`, this does not attach any query options to the cache entry, so it won't be able to refetch or know when the data is stale. In most cases this is fine, but if you want to have a fully functional query, it's better to use `ensure()` first to attach options to the _query entry_. We can combine this with [`defineQueryOptions`](/guide/queries.md#Organizing-Queries) to have type safety and a consistent way to reference queries:
 
 ```ts
 import { defineQueryOptions } from '@pinia/colada'
