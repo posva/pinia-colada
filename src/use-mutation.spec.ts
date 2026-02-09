@@ -124,7 +124,8 @@ describe('useMutation', () => {
 
   describe('plugins (extensions)', () => {
     function PiniaColadaMutationMetricsTestPlugin(): PiniaColadaPlugin {
-      return ({ mutationCache, scope }) => {
+      return ({ pinia, scope }) => {
+        const mutationCache = useMutationCache(pinia)
         mutationCache.$onAction(({ name, args, after }) => {
           if (name === 'extend') {
             const [entry] = args
