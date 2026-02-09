@@ -279,7 +279,7 @@ describe('Mutation Cache store', () => {
         if (action.name === 'extend') {
           const entry = action.args[0] as UseMutationEntry
           // Plugin extends the entry
-          ;(entry.ext as unknown as Record<string, unknown>).customProperty = 'test-value'
+          ;(entry.ext as Record<string, unknown>).customProperty = 'test-value'
         }
       })
 
