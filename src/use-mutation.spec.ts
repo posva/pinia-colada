@@ -122,39 +122,7 @@ describe('useMutation', () => {
     expect(wrapper.vm.status).toBe('success')
   })
 
-  describe('plugins (extensions)', () => {
-    function PiniaColadaMutationMetricsTestPlugin(): PiniaColadaPlugin {
-      return ({ pinia, scope }) => {
-        const mutationCache = useMutationCache(pinia)
-        mutationCache.$onAction(({ name, args, after }) => {
-          if (name === 'extend') {
-            const [entry] = args
-            scope.run(() => {
-              // eslint-disable-next-line ts/ban-ts-comment
-              // @ts-ignore: test plugin adds custom properties
-              entry.ext.mutatedAt = shallowRef(0)
-              // eslint-disable-next-line ts/ban-ts-comment
-              // @ts-ignore: test plugin adds custom properties
-              entry.ext.errorCount = shallowRef(0)
-            })
-          } else if (name === 'setEntryState') {
-            const [entry, state] = args
-            after(() => {
-              if (state.status === 'success') {
-                // eslint-disable-next-line ts/ban-ts-comment
-                // @ts-ignore: test plugin adds custom properties
-                entry.ext.mutatedAt.value = entry.when
-              } else if (state.status === 'error') {
-                // eslint-disable-next-line ts/ban-ts-comment
-                // @ts-ignore: test plugin adds custom properties
-                entry.ext.errorCount.value++
-              }
-            })
-          }
-        })
-      }
-    }
-
+  describe('hooks', () => {
     it('invokes the "onMutate" hook before mutating', async () => {
       const onMutate = vi.fn()
       const { wrapper } = mountSimple({
