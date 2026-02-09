@@ -155,57 +155,6 @@ describe('useMutation', () => {
       }
     }
 
-    it('exposes mutation entry extensions on the returned object', async () => {
-      const { wrapper } = mountSimple(
-        {},
-        {
-          plugins: [
-            createPinia(),
-            [PiniaColada, { plugins: [PiniaColadaMutationMetricsTestPlugin()] }],
-          ],
-        },
-      )
-
-      // extensions should be available immediately (before first mutate)
-      expect(wrapper.vm.mutatedAt).toBe(0)
-      expect(wrapper.vm.errorCount).toBe(0)
-
-      vi.setSystemTime(1234)
-      wrapper.vm.mutate()
-      await flushPromises()
-
-      expect(wrapper.vm.data).toBe(42)
-      expect(wrapper.vm.mutatedAt).toBe(1234)
-
-      wrapper.vm.reset()
-      expect(wrapper.vm.mutatedAt).toBe(0)
-      expect(wrapper.vm.errorCount).toBe(0)
-    })
-
-    it('updates extensions when a mutation errors', async () => {
-      const { wrapper } = mountSimple(
-        {
-          mutation: async () => {
-            throw new Error('nope')
-          },
-        },
-        {
-          plugins: [
-            createPinia(),
-            [PiniaColada, { plugins: [PiniaColadaMutationMetricsTestPlugin()] }],
-          ],
-        },
-      )
-
-      expect(wrapper.vm.errorCount).toBe(0)
-      wrapper.vm.mutate()
-      await flushPromises()
-      expect(wrapper.vm.error).toEqual(new Error('nope'))
-      expect(wrapper.vm.errorCount).toBe(1)
-    })
-  })
-
-  describe('hooks', () => {
     it('invokes the "onMutate" hook before mutating', async () => {
       const onMutate = vi.fn()
       const { wrapper } = mountSimple({

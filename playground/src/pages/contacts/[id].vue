@@ -22,7 +22,7 @@ const queryCache = useQueryCache()
 
 const { data: contact, error, asyncStatus } = useQuery(contactByIdQuery, () => route.params.id)
 
-const { mutate: updateContact, mutatedAt, errorCount } = useMutation({
+const { mutate: updateContact } = useMutation({
   mutation: (contact: Partial<Contact> & { id: number }) => _updateContact(contact),
 
   onMutate() {
@@ -55,9 +55,6 @@ const { mutate: updateContact, mutatedAt, errorCount } = useMutation({
     <template v-if="asyncStatus === 'loading'">
       <p>Loading...</p>
     </template>
-
-    <div>Mutated at: {{ mutatedAt }}</div>
-    <div>Error count: {{ errorCount }}</div>
 
     <ContactCard
       v-if="contact"

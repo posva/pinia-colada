@@ -6,7 +6,6 @@ import { useQuery } from './use-query'
 import type { PiniaColadaOptions } from './pinia-colada'
 import { PiniaColada } from './pinia-colada'
 import { useQueryCache } from './query-store'
-import { useMutationCache } from './mutation-store'
 
 describe('PiniaColada', () => {
   const MyComponent = defineComponent({
@@ -48,7 +47,6 @@ describe('PiniaColada', () => {
     expect(plugin).toHaveBeenCalledTimes(1)
     expect(plugin).toHaveBeenCalledWith({
       queryCache: useQueryCache(pinia),
-      mutationCache: useMutationCache(pinia),
       scope: useQueryCache(pinia)._s,
       pinia,
     })

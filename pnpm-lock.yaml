@@ -220,9 +220,6 @@ importers:
       '@pinia/colada-plugin-debug':
         specifier: workspace:^
         version: link:../plugins/debug
-      '@pinia/colada-plugin-mutation-metrics':
-        specifier: workspace:^
-        version: link:../plugins/mutation-metrics
       '@pinia/colada-plugin-retry':
         specifier: workspace:^
         version: link:../plugins/retry
@@ -319,12 +316,6 @@ importers:
         version: link:../..
 
   plugins/delay:
-    devDependencies:
-      '@pinia/colada':
-        specifier: workspace:^
-        version: link:../..
-
-  plugins/mutation-metrics:
     devDependencies:
       '@pinia/colada':
         specifier: workspace:^

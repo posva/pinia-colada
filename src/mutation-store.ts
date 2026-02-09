@@ -362,14 +362,14 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
    *
    * @param entry - the entry to mutate
    */
-  const mutate = action(async <
+  async function mutate<
     TData = unknown,
     TVars = unknown,
     TError = unknown,
     TContext extends Record<any, any> = _EmptyObject,
   >(
     entry: UseMutationEntry<TData, TVars, TError, TContext>,
-  ): Promise<TData> => {
+  ): Promise<TData> {
     // the vars is set when the entry is ensured, we warn against it below
     const { vars, options } = entry as typeof entry & { vars: TVars }
 
@@ -465,7 +465,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     }
 
     return currentData
-  })
+  }
 
   return {
     caches,
