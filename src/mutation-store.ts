@@ -1,7 +1,7 @@
 import type { ShallowRef } from 'vue'
 import type { AsyncStatus, DataState } from './data-state'
 import { defineStore, skipHydrate } from 'pinia'
-import { customRef, getCurrentScope, hasInjectionContext, shallowRef } from 'vue'
+import { customRef, getCurrentScope, hasInjectionContext, markRaw, shallowRef } from 'vue'
 import { find, START_EXT } from './entry-keys'
 import type { EntryFilter } from './entry-filter'
 import type { _EmptyObject } from './utils'
@@ -141,6 +141,22 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
   let nextMutationId = 1
 
   /**
+   * Action called when an entry is created for the first time to allow plugins to extend it.
+   *
+   * @param _entry - the entry of the mutation to extend
+   */
+  const extend = action(
+    <
+      TData = unknown,
+      TVars = unknown,
+      TError = unknown,
+      TContext extends Record<any, any> = _EmptyObject,
+    >(
+      _entry: UseMutationEntry<TData, TVars, TError, TContext>,
+    ) => _entry,
+  )
+
+  /**
    * Creates a mutation entry and its state without adding it to the cache.
    * This allows for the state to exist in `useMutation()` before the mutation
    * is actually called. The mutation must be _ensured_ with {@link ensure}
@@ -159,9 +175,9 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
       key?: EntryKey | undefined,
       vars?: TVars,
     ): UseMutationEntry<TData, TVars, TError, TContext> =>
-      scope.run(
-        () =>
-          ({
+      extend(
+        scope.run(() =>
+          markRaw<UseMutationEntry<TData, TVars, TError, TContext>>({
             // only ids > 0 are real ids
             id: 0,
             state: shallowRef<DataState<TData, TError>>({
@@ -175,11 +191,10 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
             vars,
             key,
             options,
-            // eslint-disable-next-line ts/ban-ts-comment
-            // @ts-ignore: some plugins are adding properties to the entry type
-            ext: START_EXT,
-          }) satisfies UseMutationEntry<TData, TVars, TError, TContext>,
-      )!,
+            ext: {},
+          } satisfies UseMutationEntry<TData, TVars, TError, TContext>),
+        )!,
+      ),
   )
 
   /**
@@ -232,22 +247,6 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
 
     return defineMutationResult
   })
-
-  /**
-   * Action called when an entry is ensured for the first time to allow plugins to extend it.
-   *
-   * @param _entry - the entry of the mutation to extend
-   */
-  const extend = action(
-    <
-      TData = unknown,
-      TVars = unknown,
-      TError = unknown,
-      TContext extends Record<any, any> = _EmptyObject,
-    >(
-      _entry: UseMutationEntry<TData, TVars, TError, TContext>,
-    ) => {},
-  )
 
   /**
    * Gets a single mutation entry from the cache based on the ID of the mutation.

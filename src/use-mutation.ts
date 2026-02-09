@@ -7,11 +7,13 @@ import {
   shallowRef,
   getCurrentInstance,
   getCurrentScope,
+  isRef,
   onUnmounted,
   onScopeDispose,
+  toValue,
 } from 'vue'
 import { useMutationCache } from './mutation-store'
-import type { UseMutationEntry } from './mutation-store'
+import type { UseMutationEntry, UseMutationEntryExtensions } from './mutation-store'
 import { noop } from './utils'
 import type { _EmptyObject } from './utils'
 import {
@@ -63,7 +65,12 @@ export interface UseMutationGlobalContext {}
 
 // export const USE_MUTATIONS_DEFAULTS = {} satisfies Partial<UseMutationsOptions>
 
-export interface UseMutationReturn<TData, TVars, TError> {
+export interface UseMutationReturn<
+  TData,
+  TVars,
+  TError,
+  TContext extends Record<any, any> = _EmptyObject,
+> extends UseMutationEntryExtensions<TData, TVars, TError, TContext> {
   key?: EntryKey | ((vars: NoInfer<TVars>) => EntryKey)
 
   /**
@@ -147,7 +154,7 @@ export function useMutation<
   TContext extends Record<any, any> = _EmptyObject,
 >(
   options: UseMutationOptions<TData, TVars, TError, TContext>,
-): UseMutationReturn<TData, TVars, TError> {
+): UseMutationReturn<TData, TVars, TError, TContext> {
   const mutationCache = useMutationCache()
   const hasCurrentInstance = getCurrentInstance()
   const currentEffect = getCurrentScope()
@@ -167,6 +174,30 @@ export function useMutation<
   const entry = shallowRef<UseMutationEntry<TData, TVars, TError, TContext>>(
     mutationCache.create(mergedOptions),
   )
+
+  // expose entry extensions (added by plugins) on the returned object.
+  // NOTE: the keys are enumerated once (same as `useQuery()`), so plugins
+  // should register all extension properties during the `extend` action.
+  const extensions = {} as Record<string, any>
+  for (const key in entry.value.ext) {
+    extensions[key] = computed<unknown>({
+      get: () =>
+        toValue<unknown>(
+          entry.value.ext[key as keyof UseMutationEntryExtensions<TData, TVars, TError, TContext>],
+        ),
+      set(value) {
+        const target =
+          entry.value.ext[key as keyof UseMutationEntryExtensions<TData, TVars, TError, TContext>]
+        if (isRef(target)) {
+          ;(target as ShallowRef<unknown>).value = value
+        } else {
+          ;(entry.value.ext[
+            key as keyof UseMutationEntryExtensions<TData, TVars, TError, TContext>
+          ] as unknown) = value
+        }
+      },
+    })
+  }
 
   // Untrack the mutation entry when component or effect scope is disposed
   if (hasCurrentInstance) {
@@ -202,7 +233,8 @@ export function useMutation<
     entry.value = mutationCache.create(mergedOptions)
   }
 
-  return {
+  const mutationReturn = {
+    ...(extensions as UseMutationEntryExtensions<TData, TVars, TError, TContext>),
     state,
     data,
     isLoading: computed(() => asyncStatus.value === 'loading'),
@@ -210,11 +242,12 @@ export function useMutation<
     variables,
     asyncStatus,
     error,
-    // @ts-expect-error: because of the conditional type in UseMutationReturn
-    // it would be nice to find a type-only refactor that works
-    mutate,
-    // @ts-expect-error: same as above
-    mutateAsync,
+    // NOTE: the implementation is always the same but the public types change
+    // based on whether TVars is `void`.
+    mutate: mutate as any,
+    mutateAsync: mutateAsync as any,
     reset,
-  }
+  } as UseMutationReturn<TData, TVars, TError, TContext>
+
+  return mutationReturn
 }
