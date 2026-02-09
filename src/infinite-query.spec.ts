@@ -8,11 +8,17 @@ import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import type { Pinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, h, isRef, nextTick, ref } from 'vue'
+import { createApp, defineComponent, h, isRef, nextTick, ref } from 'vue'
 import { isSpy, mockConsoleError, mockWarn } from '@posva/test-utils'
 import { useInfiniteQuery } from './infinite-query'
 import { PiniaColada } from './pinia-colada'
-import { useQueryCache } from './query-store'
+import {
+  hydrateQueryCache,
+  QUERY_STORE_ID,
+  serializeQueryCache,
+  useQueryCache,
+} from './query-store'
+import type { UseQueryEntryNodeValueSerializd } from './query-store'
 
 describe('useInfiniteQuery', () => {
   beforeEach(() => {
@@ -1127,6 +1133,301 @@ describe('useInfiniteQuery', () => {
     expect(query).not.toHaveBeenCalled()
     // hasNextPage should be correctly computed from cached data
     expect(queryResult.hasNextPage.value).toBe(true)
+  })
+
+  // https://github.com/posva/pinia-colada/issues/486
+  describe('hydration', () => {
+    function createPiniawithHydratedCache(caches: Record<string, UseQueryEntryNodeValueSerializd>) {
+      const pinia = createPinia()
+      const app = createApp({})
+      app.use(pinia)
+      // it doesn't matter because the value is skipped
+      pinia.state.value[QUERY_STORE_ID] = { caches: 1 }
+      hydrateQueryCache(useQueryCache(pinia), caches)
+
+      return pinia
+    }
+
+    /**
+     * Simulates the server-side rendering followed by client-side hydration, as
+     * would happen in Nuxt SSR:
+     * 1. Create a server pinia, set query data, serialize the cache
+     * 2. Create a client pinia, hydrate from serialized cache
+     */
+    function simulateSSRHydration(
+      data: { pages: unknown[]; pageParams: unknown[] },
+      key: string[] = ['key'],
+    ) {
+      // Server side: create cache and set data
+      const serverPinia = createPinia()
+      const serverApp = createApp({})
+      serverApp.use(serverPinia)
+      const serverQC = useQueryCache(serverPinia)
+      serverQC.setQueryData(key, data)
+
+      // Serialize (as Nuxt does in app:rendered hook)
+      const serialized = serializeQueryCache(serverQC)
+
+      // Client side: hydrate
+      return createPiniawithHydratedCache(serialized)
+    }
+
+    it('hasNextPage is true after hydration when more pages are available', async () => {
+      const pinia = createPiniawithHydratedCache({
+        '["key"]': [
+          // The data stored by the infinite query during SSR
+          { pages: [[1, 2, 3]], pageParams: [0] },
+          null,
+          0,
+        ],
+      })
+
+      const { wrapper } = mountSimple(
+        {
+          staleTime: 1000,
+          getNextPageParam: (lastPage, allPages, lastPageParam) => {
+            return lastPageParam >= 3 ? null : lastPageParam + 1
+          },
+        },
+        { plugins: [pinia] },
+      )
+
+      // Data should be immediately available from hydration
+      expect(wrapper.vm.data).toEqual({
+        pages: [[1, 2, 3]],
+        pageParams: [0],
+      })
+
+      // hasNextPage should be true since getNextPageParam returns a non-null value
+      expect(wrapper.vm.hasNextPage).toBe(true)
+    })
+
+    it('hasNextPage is false after hydration when no more pages are available', async () => {
+      const pinia = createPiniawithHydratedCache({
+        '["key"]': [{ pages: [[10, 11, 12]], pageParams: [3] }, null, 0],
+      })
+
+      const { wrapper } = mountSimple(
+        {
+          staleTime: 1000,
+          getNextPageParam: (lastPage, allPages, lastPageParam) => {
+            // pageParam 3 is the last page
+            return lastPageParam >= 3 ? null : lastPageParam + 1
+          },
+        },
+        { plugins: [pinia] },
+      )
+
+      expect(wrapper.vm.data).toEqual({
+        pages: [[10, 11, 12]],
+        pageParams: [3],
+      })
+
+      // hasNextPage should be false since we're at the last page
+      expect(wrapper.vm.hasNextPage).toBe(false)
+    })
+
+    it('hasPreviousPage is true after hydration when previous pages are available', async () => {
+      const pinia = createPiniawithHydratedCache({
+        '["key"]': [{ pages: [[4, 5, 6]], pageParams: [1] }, null, 0],
+      })
+
+      const { wrapper } = mountSimple(
+        {
+          staleTime: 1000,
+          initialPageParam: 1,
+          getPreviousPageParam: (firstPage, allPages, firstPageParam) => {
+            return firstPageParam > 0 ? firstPageParam - 1 : null
+          },
+        },
+        { plugins: [pinia] },
+      )
+
+      expect(wrapper.vm.data).toEqual({
+        pages: [[4, 5, 6]],
+        pageParams: [1],
+      })
+
+      // hasPreviousPage should be true since pageParam 1 > 0
+      expect(wrapper.vm.hasPreviousPage).toBe(true)
+    })
+
+    it('can loadNextPage after hydration', async () => {
+      const pinia = createPiniawithHydratedCache({
+        '["key"]': [{ pages: [[1, 2, 3]], pageParams: [0] }, null, 0],
+      })
+
+      const { wrapper } = mountSimple(
+        {
+          staleTime: 1000,
+          getNextPageParam: (lastPage, allPages, lastPageParam) => {
+            return lastPageParam >= 3 ? null : lastPageParam + 1
+          },
+        },
+        { plugins: [pinia] },
+      )
+
+      expect(wrapper.vm.hasNextPage).toBe(true)
+
+      await wrapper.vm.loadNextPage()
+
+      expect(wrapper.vm.data).toEqual({
+        pages: [
+          [1, 2, 3],
+          [4, 5, 6],
+        ],
+        pageParams: [0, 1],
+      })
+    })
+
+    it('avoids refetching if hydrated data is fresh', async () => {
+      const pinia = createPiniawithHydratedCache({
+        '["key"]': [{ pages: [[1, 2, 3]], pageParams: [0] }, null, 0],
+      })
+
+      const { wrapper, query } = mountSimple(
+        {
+          staleTime: 1000,
+          getNextPageParam: (lastPage, allPages, lastPageParam) => {
+            return lastPageParam >= 3 ? null : lastPageParam + 1
+          },
+        },
+        { plugins: [pinia] },
+      )
+
+      await flushPromises()
+
+      // Should not refetch since data is fresh (staleTime: 1000)
+      expect(query).toHaveBeenCalledTimes(0)
+      expect(wrapper.vm.data).toEqual({
+        pages: [[1, 2, 3]],
+        pageParams: [0],
+      })
+    })
+
+    it('hasNextPage is correctly computed with multiple hydrated pages', async () => {
+      const pinia = createPiniawithHydratedCache({
+        '["key"]': [
+          {
+            pages: [
+              [1, 2, 3],
+              [4, 5, 6],
+            ],
+            pageParams: [0, 1],
+          },
+          null,
+          0,
+        ],
+      })
+
+      const { wrapper } = mountSimple(
+        {
+          staleTime: 1000,
+          getNextPageParam: (lastPage, allPages, lastPageParam) => {
+            return lastPageParam >= 3 ? null : lastPageParam + 1
+          },
+        },
+        { plugins: [pinia] },
+      )
+
+      expect(wrapper.vm.data).toEqual({
+        pages: [
+          [1, 2, 3],
+          [4, 5, 6],
+        ],
+        pageParams: [0, 1],
+      })
+
+      // getNextPageParam(lastPage=[4,5,6], ..., lastPageParam=1) returns 2 (not null)
+      expect(wrapper.vm.hasNextPage).toBe(true)
+    })
+
+    it('hasNextPage is true after full SSR round-trip serialization and hydration', async () => {
+      // Simulate the full SSR -> serialize -> hydrate flow (as in Nuxt)
+      const pinia = simulateSSRHydration({
+        pages: [[1, 2, 3]],
+        pageParams: [0],
+      })
+
+      const { wrapper } = mountSimple(
+        {
+          staleTime: 1000,
+          getNextPageParam: (lastPage, allPages, lastPageParam) => {
+            return lastPageParam >= 3 ? null : lastPageParam + 1
+          },
+        },
+        { plugins: [pinia] },
+      )
+
+      expect(wrapper.vm.data).toEqual({
+        pages: [[1, 2, 3]],
+        pageParams: [0],
+      })
+
+      expect(wrapper.vm.hasNextPage).toBe(true)
+    })
+
+    it('hasNextPage remains correct after hydration and stale data refetch', async () => {
+      const pinia = createPiniawithHydratedCache({
+        '["key"]': [{ pages: [[1, 2, 3]], pageParams: [0] }, null, 0],
+      })
+
+      const { wrapper, query } = mountSimple(
+        {
+          // No staleTime override - uses default (5s), data is fresh
+          getNextPageParam: (lastPage, allPages, lastPageParam) => {
+            return lastPageParam >= 3 ? null : lastPageParam + 1
+          },
+        },
+        { plugins: [pinia] },
+      )
+
+      // Before any async work, hasNextPage should already be set from hydrated data
+      expect(wrapper.vm.hasNextPage).toBe(true)
+
+      await flushPromises()
+
+      // After everything settles, hasNextPage should still be true
+      expect(wrapper.vm.hasNextPage).toBe(true)
+      expect(wrapper.vm.data).toEqual({
+        pages: [[1, 2, 3]],
+        pageParams: [0],
+      })
+    })
+
+    it('hasNextPage is true after hydration with query disabled on client', async () => {
+      const pinia = createPiniawithHydratedCache({
+        '["key"]': [{ pages: [[1, 2, 3]], pageParams: [0] }, null, 0],
+      })
+
+      const { wrapper, query } = mountSimple(
+        {
+          // Simulates `enabled: !import.meta.env.SSR` on the client
+          enabled: false,
+          getNextPageParam: (lastPage, allPages, lastPageParam) => {
+            return lastPageParam >= 3 ? null : lastPageParam + 1
+          },
+        },
+        { plugins: [pinia] },
+      )
+
+      // Data should be from hydration
+      expect(wrapper.vm.data).toEqual({
+        pages: [[1, 2, 3]],
+        pageParams: [0],
+      })
+
+      // Query should not have been called since enabled is false
+      expect(query).not.toHaveBeenCalled()
+
+      // hasNextPage should still be true from the hydrated data
+      expect(wrapper.vm.hasNextPage).toBe(true)
+
+      await flushPromises()
+
+      // After everything settles, hasNextPage should remain true
+      expect(wrapper.vm.hasNextPage).toBe(true)
+    })
   })
 
   // https://github.com/posva/pinia-colada/issues/458
