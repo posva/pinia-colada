@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount, enableAutoUnmount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
-import { defineComponent, effectScope, createApp, ref, nextTick, shallowRef } from 'vue'
+import { defineComponent, effectScope, createApp, ref, nextTick } from 'vue'
 import type { GlobalMountOptions } from '@posva/test-utils'
 import { delay } from '@posva/test-utils'
 import type { UseMutationOptions } from './mutation-options'
@@ -9,7 +9,6 @@ import { useMutation } from './use-mutation'
 import { PiniaColada } from './pinia-colada'
 import { mockConsoleError, mockWarn } from '@posva/test-utils'
 import { useMutationCache } from './mutation-store'
-import type { PiniaColadaPlugin } from './plugins'
 
 describe('useMutation', () => {
   beforeEach(() => {
