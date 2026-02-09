@@ -1,3 +1,9 @@
+## [0.21.4](https://github.com/posva/pinia-colada/compare/v0.21.3...v0.21.4) (2026-02-09)
+
+### Features
+
+- plugin support for mutations ([#490](https://github.com/posva/pinia-colada/issues/490)) ([06822c8](https://github.com/posva/pinia-colada/commit/06822c89fd9eaad4c590602a1c9611065c7f61e6)), closes [#495](https://github.com/posva/pinia-colada/issues/495)
+
 ## [0.21.3](https://github.com/posva/pinia-colada/compare/v0.21.2...v0.21.3) (2026-02-06)
 
 ### Bug Fixes
