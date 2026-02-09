@@ -183,22 +183,17 @@ export function useMutation<
     extensions[key] = computed<unknown>({
       get: () =>
         toValue<unknown>(
-          entry.value.ext[
-            key as keyof UseMutationEntryExtensions<TData, TVars, TError, TContext>
-          ],
+          entry.value.ext[key as keyof UseMutationEntryExtensions<TData, TVars, TError, TContext>],
         ),
       set(value) {
-        const target = entry.value.ext[
-          key as keyof UseMutationEntryExtensions<TData, TVars, TError, TContext>
-        ]
+        const target =
+          entry.value.ext[key as keyof UseMutationEntryExtensions<TData, TVars, TError, TContext>]
         if (isRef(target)) {
           ;(target as ShallowRef<unknown>).value = value
         } else {
-          ;(
-            entry.value.ext[
-              key as keyof UseMutationEntryExtensions<TData, TVars, TError, TContext>
-            ] as unknown
-          ) = value
+          ;(entry.value.ext[
+            key as keyof UseMutationEntryExtensions<TData, TVars, TError, TContext>
+          ] as unknown) = value
         }
       },
     })

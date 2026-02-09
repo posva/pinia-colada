@@ -174,25 +174,27 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
       options: UseMutationOptionsWithDefaults<TData, TVars, TError, TContext>,
       key?: EntryKey | undefined,
       vars?: TVars,
-    ): UseMutationEntry<TData, TVars, TError, TContext> => extend(scope.run(() =>
-        markRaw<UseMutationEntry<TData, TVars, TError, TContext>>({
-          // only ids > 0 are real ids
-          id: 0,
-          state: shallowRef<DataState<TData, TError>>({
-            status: 'pending',
-            data: undefined,
-            error: null,
-          }),
-          gcTimeout: undefined,
-          asyncStatus: shallowRef<AsyncStatus>('idle'),
-          when: 0,
-          vars,
-          key,
-          options,
-          ext: {},
-        } satisfies UseMutationEntry<TData, TVars, TError, TContext>),
-      )!
-    ),
+    ): UseMutationEntry<TData, TVars, TError, TContext> =>
+      extend(
+        scope.run(() =>
+          markRaw<UseMutationEntry<TData, TVars, TError, TContext>>({
+            // only ids > 0 are real ids
+            id: 0,
+            state: shallowRef<DataState<TData, TError>>({
+              status: 'pending',
+              data: undefined,
+              error: null,
+            }),
+            gcTimeout: undefined,
+            asyncStatus: shallowRef<AsyncStatus>('idle'),
+            when: 0,
+            vars,
+            key,
+            options,
+            ext: {},
+          } satisfies UseMutationEntry<TData, TVars, TError, TContext>),
+        )!,
+      ),
   )
 
   /**
@@ -355,9 +357,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     TVars = unknown,
     TError = unknown,
     TContext extends Record<any, any> = _EmptyObject,
-  >(
-    entry: UseMutationEntry<TData, TVars, TError, TContext>,
-  ): Promise<TData> {
+  >(entry: UseMutationEntry<TData, TVars, TError, TContext>): Promise<TData> {
     // the vars is set when the entry is ensured, we warn against it below
     const { vars, options } = entry as typeof entry & { vars: TVars }
 
