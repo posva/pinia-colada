@@ -36,3 +36,29 @@ queryCache.setQueryData(
   await fetch('/api/users').then((res) => res.json()),
 )
 ```
+
+Differently from using `ensure()` or `useQuery()`, this does not attach any query options to the cache entry, so it won't be able to refetch or know when the data is stale. In most cases this is fine, but if you want to have a fully functional query, it's better to use `ensure()` first to attach options to the _query entry_. We can combine this with [`defineQueryOptions`](./queries.md#Organizing-Queries) to have type safety and a consistent way to reference queries:
+
+```ts
+import { defineQueryOptions } from '@pinia/colada'
+import { fetchItemById } from '@/api/items'
+import type { Item } from '@/api/items'
+
+export const itemDetailQuery = defineQueryOptions((id: number) => ({
+  key: ['items', id],
+  query: () => fetchItemById(id),
+}))
+```
+
+Then you can ensure the entry and set the data:
+
+```ts
+import { useQueryCache } from '@pinia/colada'
+import { itemDetailQuery } from './queries/items'
+
+const queryCache = useQueryCache()
+
+const queryOptions = itemDetailQuery(item.id)
+queryCache.ensure(queryOptions)
+queryCache.setQueryData(queryOptions.key, itemData)
+```
