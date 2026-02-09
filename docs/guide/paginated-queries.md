@@ -43,12 +43,6 @@ const { state } = useQuery({
 
 Regular pagination with `useQuery()` still treats each page as an independent entry in the cache. They get invalidated and garbage collected individually which means they can get garbage collected and removed from the cache if they are not being currently used. When implementing infinite scroll, you might want to merge together the results of multiple pages so they can be used as one. This is where `useInfiniteQuery()` comes into play.
 
-::: danger
-
-`useInfiniteQuery()` is experimental and subject to change. We are looking for [feedback](https://github.com/posva/pinia-colada/issues/178) on this API and the needed use cases.
-
-:::
-
 ::: code-group
 
 ```vue [pages/cat-facts.vue]
@@ -65,9 +59,9 @@ const {
   hasNextPage,
 } = useInfiniteQuery({
   key: ['feed'],
-  query: async ({ pageParam }) => factsApi.get<CatFacts>({query: {page: pageParam, limit: 10}}),
+  query: async ({ pageParam }) => factsApi.get<CatFacts>({ query: { page: pageParam, limit: 10 } }),
   initialPageParam: 1,
-  getNextPageParam: (lastPage) => lastPage.next_page_url ? lastPage.current_page + 1 : null,
+  getNextPageParam: (lastPage) => (lastPage.next_page_url ? lastPage.current_page + 1 : null),
 })
 
 const loadMoreEl = useTemplateRef('load-more')

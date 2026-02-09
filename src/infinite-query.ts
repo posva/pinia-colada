@@ -36,7 +36,6 @@ export interface UseInfiniteQueryFnContext<
 /**
  * Options for {@link useInfiniteQuery}.
  *
- * @experimental See https://github.com/posva/pinia-colada/issues/178
  */
 export interface UseInfiniteQueryOptions<
   TData,
@@ -166,12 +165,10 @@ type NextPageIndicator = 0 | 1 | -1
 
 /**
  * Store and merge paginated data into a single cache entry. Allows to handle
- * infinite scrolling. This is an **experimental** API and is subject to
- * change.
+ * infinite scrolling.
  *
  * @param options - Options to configure the infinite query.
  *
- * @experimental See https://github.com/posva/pinia-colada/issues/178
  */
 export function useInfiniteQuery<
   TData,
