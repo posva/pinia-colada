@@ -23,6 +23,8 @@ watch(error, (e) => {
 
 To centralize side effect handling, use the built-in `PiniaColadaQueryHooksPlugin`.
 
+This plugin is implemented using the same plugin mechanism described in [Plugins](../advanced/plugins.md) (it listens to the query cache `fetch` action via `$onAction()`).
+
 You can pass a `meta` field to your query to define the error message to display globally:
 
 ```ts
