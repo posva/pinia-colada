@@ -236,12 +236,10 @@ describe('Mutation Cache store', () => {
         }
       })
 
-      const entry = mutationCache.create({
+      mutationCache.create({
         ...USE_MUTATION_DEFAULTS,
         mutation: async () => 'ok',
       })
-      // NOTE: ensure is not required anymore to trigger extension
-      void entry
 
       expect(extendSpy).toHaveBeenCalledTimes(1)
     })
@@ -281,7 +279,7 @@ describe('Mutation Cache store', () => {
         if (action.name === 'extend') {
           const entry = action.args[0] as UseMutationEntry
           // Plugin extends the entry
-          ;((entry.ext as unknown) as Record<string, unknown>).customProperty = 'test-value'
+          ;(entry.ext as unknown as Record<string, unknown>).customProperty = 'test-value'
         }
       })
 
