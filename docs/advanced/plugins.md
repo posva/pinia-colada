@@ -1,11 +1,5 @@
 # Plugins
 
-::: warning
-
-The plugin system is still under development and the API is subject to change. If you want to develop a plugin, please [open a discussion](https://github.com/posva/pinia-colada/discussions) to share your progress and issues you might encounter.
-
-:::
-
 Plugins are install-time functions that subscribe to **Pinia Colada cache actions** allowing you to observe and modify query/mutation lifecycles globally without needing to change your components or the core library.
 
 This behavior is based on [Pinia's `$onAction()` subscriptions](https://pinia.vuejs.org/core-concepts/actions.html#Subscribing-to-actions) and is possible because Pinia Colada is built on top of Pinia stores. Under the hood, `useQuery()` and `useMutation()` are composables that trigger actions on their respective caches (`queryCache` and `mutationCache`) to perform their work.
