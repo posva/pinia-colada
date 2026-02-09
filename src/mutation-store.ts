@@ -153,7 +153,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
       TContext extends Record<any, any> = _EmptyObject,
     >(
       _entry: UseMutationEntry<TData, TVars, TError, TContext>,
-    ) => {},
+    ) => _entry,
   )
 
   /**
@@ -190,20 +190,11 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
           vars,
           key,
           options,
-          // eslint-disable-next-line ts/ban-ts-comment
-          // @ts-ignore: some plugins are adding properties to the entry type
-          ext: START_EXT,
+          ext: {},
         } satisfies UseMutationEntry<TData, TVars, TError, TContext>),
       )!
 
-      // extend the entry with plugins immediately so `useMutation()` can expose extensions
-      // right away (same ergonomics as `useQuery()`).
-      if (entry.ext === START_EXT) {
-        ;(entry as { ext: object }).ext = {}
-        extend(entry)
-      }
-
-      return entry
+      return extend(entry)
     },
   )
 
