@@ -17,9 +17,9 @@ Most plugin work falls into one of these categories:
 - observe outcomes centrally (logging, analytics, notifications)
 - coordinate timers/retries/refetch policies
 
-::: important
+::: tip
 
-Pinia Colada's core is intentionally minimal. The plugin system is designed to be powerful and flexible enough to cover a wide range of use cases, from simple extensions to complex behaviors like retries or persistence.
+Pinia Colada's core is intentionally minimal. The plugin system is designed to be powerful and flexible enough to cover a wide range of use cases, from simple extensions to complex behaviors like retries or persistence. If you find something is missing, consider implementing it as a plugin! In most cases, you can just point an agent like Claude, Codex, Cursor, ... the codebase of the [delay plugin](https://github.com/posva/pinia-colada/tree/main/plugins/delay) as an example and ask it to generate a new plugin with the desired behavior.
 
 :::
 
@@ -39,9 +39,7 @@ import { PiniaColada } from '@pinia/colada'
 import PiniaColadaFeaturePlugin from 'pinia-colada-plugin-feature'
 
 app.use(PiniaColada, {
-  plugins: [
-    PiniaColadaFeaturePlugin(options),
-  ],
+  plugins: [PiniaColadaFeaturePlugin(options)],
 })
 ```
 
@@ -92,13 +90,11 @@ export function PiniaColadaFeaturePlugin(options: FeaturePluginOptions = {}): Pi
     mutationCache.$onAction(({ name, args }) => {
       if (name === 'mutate') {
         const [entry] = args
-        void entry
       }
     })
   }
 }
 ```
-
 
 ## Plugin Context
 
@@ -119,23 +115,6 @@ export function PiniaColadaFeaturePlugin(): PiniaColadaPlugin {
   }
 }
 ```
-
-::: warning
-
-The plugin context does not include the mutation cache by default to keep the core bundle smaller. If your plugin needs to observe mutations, import `useMutationCache()` and call it with the `pinia` instance from the context.
-
-```ts
-import { useMutationCache, type PiniaColadaPlugin } from '@pinia/colada'
-
-export function PiniaColadaFeaturePlugin(): PiniaColadaPlugin {
-  return ({ pinia }) => {
-    const mutationCache = useMutationCache(pinia)
-    // ...
-  }
-}
-```
-
-:::
 
 ## Plugin Subscriptions
 
@@ -191,17 +170,11 @@ Before writing a plugin to augment or modify `useQuery()`'s behavior, it's impor
 
 All these steps happen when using `useQuery()` and are observable via the query cache actions.
 
-::: note
-
-The name of the method of the cache is the name of the action to observe. For example, to observe when a query is fetched, subscribe to the `fetch` action. To observe any state change, subscribe to the `setEntryState` action.
-
-:::
-
 Most query plugins hook into:
 
 - `extend(entry)` to define `entry.ext.*`
 - `fetch(entry, options?)` to observe success/error of the query function
-- `setEntryState(entry, state)` to observe *any* state change (including `setQueryData()`)
+- `setEntryState(entry, state)` to observe _any_ state change (including `setQueryData()`)
 - `remove(entry)` to cleanup timers/resources
 
 ::: tip
@@ -212,13 +185,14 @@ Most query plugins hook into:
 
 ### Cache Keys
 
-The cache keys are used to identify queries in the cache. The `key` passed to queries gets serialized deterministically with `toCacheKey()`.
+The cache keys are used to identify queries in the cache. The `key` passed to queries gets serialized deterministically with `toCacheKey()`. This value is saved via `entry.keyHash` and is available in entries too.
 
 ```ts twoslash
-import { toCacheKey } from '@pinia/colada'
+import { toCacheKey, useQueryCache } from '@pinia/colada'
 
 const key = toCacheKey(['users', 1, { type: 'friends' }])
-void key
+const queryCache = useQueryCache()
+queryCache.getEntries().at(0)?.keyHash
 ```
 
 ### Query Hooks
@@ -238,9 +212,9 @@ This plugin observes **fetches**. If you need "any data change" semantics, hook 
 
 `useMutation()` uses the mutation cache store under the hood, so to hook into `useMutation()`'s lifecycle, subscribe to the `mutationCache` actions.
 
-::: note
+::: info
 
-You need to opt in to the mutation cache by calling `useMutationCache(pinia)` in your plugin. This is intentional to keep the core bundle smaller for users who only need query plugins.
+You need to opt in to the mutation cache by calling `useMutationCache(pinia)` in your plugin. This is intentional to tree shake the mutation cache if it's not used in your app.
 
 ```ts
 import { useMutationCache, type PiniaColadaPlugin } from '@pinia/colada'
@@ -329,7 +303,7 @@ export function PiniaColadaFeaturePlugin(): PiniaColadaPlugin {
 }
 
 declare module '@pinia/colada' {
-  interface UseQueryEntryExtensions<TData, TError> {
+  interface UseQueryEntryExtensions<TData, TError, TDataInitial> {
     /**
      * Example of an extension field added by the plugin.
      */
@@ -385,16 +359,9 @@ const { myField } = useMutation({
 </script>
 ```
 
-You should only add new keys to `entry.ext` during the `extend` action as it is shared across all plugins. Do not assign it a completely new object.
+You should only add new keys to `entry.ext` during the `extend` action as it is shared across all plugins and it's called only once per entry. Do not assign it a completely new object.
 
 Also, you can't add new keys to `entry.ext` later (e.g. in `fetch` or `setEntryState`). You must define all the needed keys in `extend` so they are available on the return value from the start.
-
-::: note
-
-The `extend` action is only triggered once per entry.
-
-:::
-
 
 ### Examples
 
@@ -429,7 +396,7 @@ export function PiniaColadaDataUpdatedAtPlugin(): PiniaColadaPlugin {
 }
 
 declare module '@pinia/colada' {
-  interface UseQueryEntryExtensions<TData, TError> {
+  interface UseQueryEntryExtensions<TData, TError, TDataInitial> {
     /**
      * Time stamp of the last time the data was updated.
      */
@@ -516,7 +483,7 @@ declare module '@pinia/colada' {
 }
 ```
 
-::: note
+::: info
 
 You must keep all the generic parameters (`TData`, `TError`, `TDataInitial`) even if you don't use them, otherwise you'll get type errors.
 
@@ -530,7 +497,7 @@ import { PiniaColada } from '@pinia/colada'
 app.use(PiniaColada, {
   queryOptions: {
     myOption: true,
-  }
+  },
 })
 ```
 
@@ -540,13 +507,13 @@ Augment `UseQueryEntryExtensions`:
 
 ```ts
 declare module '@pinia/colada' {
-  interface UseQueryEntryExtensions<TData, TError> {
+  interface UseQueryEntryExtensions<TData, TError, TDataInitial> {
     myField: string
   }
 }
 ```
 
-::: note
+::: warning
 
 You must keep all the generic parameters (`TData`, `TError`) even if you don't use them, otherwise you'll get type errors.
 
@@ -578,7 +545,7 @@ declare module '@pinia/colada' {
 }
 ```
 
-::: note
+::: info
 
 You must keep all the generic parameters (`TData`, `TVars`, `TError`, `TContext`) even if you don't use them, otherwise you'll get type errors.
 
@@ -592,7 +559,7 @@ import { PiniaColada } from '@pinia/colada'
 app.use(PiniaColada, {
   mutationOptions: {
     myOption: true,
-  }
+  },
 })
 ```
 
@@ -608,7 +575,7 @@ declare module '@pinia/colada' {
 }
 ```
 
-::: note
+::: warning
 
 You must keep all the generic parameters (`TData`, `TVars`, `TError`, `TContext`) even if you don't use them, otherwise you'll get type errors.
 
