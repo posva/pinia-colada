@@ -174,8 +174,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
       options: UseMutationOptionsWithDefaults<TData, TVars, TError, TContext>,
       key?: EntryKey | undefined,
       vars?: TVars,
-    ): UseMutationEntry<TData, TVars, TError, TContext> => {
-      const entry = scope.run(() =>
+    ): UseMutationEntry<TData, TVars, TError, TContext> => extend(scope.run(() =>
         markRaw<UseMutationEntry<TData, TVars, TError, TContext>>({
           // only ids > 0 are real ids
           id: 0,
@@ -193,9 +192,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
           ext: {},
         } satisfies UseMutationEntry<TData, TVars, TError, TContext>),
       )!
-
-      return extend(entry)
-    },
+    ),
   )
 
   /**
