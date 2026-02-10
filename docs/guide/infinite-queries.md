@@ -103,7 +103,7 @@ const {
   key: ['feed'],
   query: async ({ pageParam }) => fetch(`/api/feed?page=${pageParam}&limit=10`).then(r => r.json()),
   initialPageParam: 1,
-  getNextPageParam: (lastPage) => (lastPage.next_page_url ? lastPage.current_page + 1 : null),
+  getNextPageParam: (lastPage) => (lastPage.nextPageUrl ? lastPage.currentPage + 1 : null),
 })
 
 const loadMoreTrigger = ref<HTMLElement | null>(null)
