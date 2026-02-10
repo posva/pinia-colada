@@ -88,7 +88,7 @@ useInfiniteQuery({
 
 ## Load more example
 
-You may want a feed-like behavior where you load more items as the user scrolls down. This can be achieved using an `InersectionObserver` that triggers `loadNextPage()` when the user scrolls near the bottom of the list.
+You may want a feed-like behavior where you load more items as the user scrolls down. This can be achieved using an `IntersectionObserver` that triggers `loadNextPage()` when the user scrolls near the bottom of the list.
 
 ```vue twoslash
 <script setup lang="ts">
