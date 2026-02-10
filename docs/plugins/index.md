@@ -25,18 +25,9 @@ Most plugins follow the same workflow:
 
 Plugin order matters: if multiple plugins hook the same cache actions, they run in installation order.
 
-## Official plugins
+## Official and Community plugins
 
-- [Query Hooks (built-in)](./official/query-hooks.md)
-- [Auto refetch](./official/auto-refetch.md)
-- [Retry](./official/retry.md)
-- [Delay](./official/delay.md)
-- [Cache persister](./official/cache-persister.md)
-- [Debug](./official/debug.md)
-
-## Community plugins
-
-See the curated list in [Community plugins](./community.md).
+See [Official plugins](./official/index.md) and [Community plugins](./community.md).
 
 ## Writing plugins
 
