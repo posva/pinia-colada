@@ -54,7 +54,11 @@ app.use(PiniaColada, {
 
 ## Configuration
 
-You can only configure the plugin globally, not per query.
+You can only configure the plugin globally, not per query:
+
+- `onError`: called when a query fails.
+- `onSuccess`: called when a query succeeds.
+- `onSettled`: called when a query settles, regardless of the outcome.
 
 ## Links
 
