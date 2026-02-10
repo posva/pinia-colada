@@ -130,7 +130,7 @@ watch(loadMoreTrigger, (el) => {
 
 <template>
   <ul>
-    <li v-for="item in data.pages.flatMap(page => page.items)" :key="item.id">
+    <li v-for="item in facts.pages.flatMap(page => page.items)" :key="item.id">
       {{ item.text }}
     </li>
   </ul>
