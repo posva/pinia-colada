@@ -14,6 +14,8 @@ Give it a clear name with the `pinia-colada-plugin-` prefix, and add the `pinia-
 
 :::
 
+Want to build your own plugin? See [Writing plugins](/advanced/plugins.html).
+
 ## Recently Successful
 
 Adds a `recentlySuccessful` ref to `useMutation()` results. It becomes `true` on success and automatically resets after a configurable duration.
