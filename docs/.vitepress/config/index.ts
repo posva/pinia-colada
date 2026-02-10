@@ -244,6 +244,15 @@ On top of that Pinia Colada is highly extensible. You can create your own plugin
           ],
         },
         {
+          text: 'Plugins',
+          items: [
+            { text: 'Build-in plugins', items: [
+                { text: 'Query Hooks', link: '/plugins/official/query-hooks.html' },
+              ]
+            },
+          ],
+        },
+        {
           text: 'Advanced',
           items: [
             { text: 'Query Cache', link: '/advanced/query-cache.html' },
