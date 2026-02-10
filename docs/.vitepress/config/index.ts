@@ -45,7 +45,7 @@ export default defineConfig({
         details: `
 - Automatic caching
 - Request deduplication
-- Opmitistic updates
+- Optimistic updates
 - Async state management
 - Sensible defaults
 - Extensible
