@@ -1,4 +1,4 @@
-# Plugins
+# Writing Plugins
 
 Plugins are install-time functions that subscribe to **Pinia Colada cache actions** allowing you to observe and modify query/mutation lifecycles globally without needing to change your components or the core library.
 
