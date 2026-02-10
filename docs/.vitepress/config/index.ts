@@ -45,7 +45,7 @@ export default defineConfig({
         details: `
 - Automatic caching
 - Request deduplication
-- Opmitistic updates
+- Optimistic updates
 - Async state management
 - Sensible defaults
 - Extensible
@@ -254,6 +254,7 @@ On top of that Pinia Colada is highly extensible. You can create your own plugin
                 { text: 'Debug', link: '/plugins/official/debug.html' },
               ]
             },
+            { text: 'Community plugins', link: '/plugins/community.html' },
           ],
         },
         {
