@@ -92,7 +92,7 @@ You may want a feed-like behavior where you load more items as the user scrolls 
 
 ```vue twoslash
 <script setup lang="ts">
-import { ref, watch, onWatcherCleanup } from 'vue'
+import { useTemplateRef, watch, onWatcherCleanup } from 'vue'
 import { useInfiniteQuery } from '@pinia/colada'
 
 const {
@@ -106,7 +106,7 @@ const {
   getNextPageParam: (lastPage) => (lastPage.nextPageUrl ? lastPage.currentPage + 1 : null),
 })
 
-const loadMoreTrigger = ref<HTMLElement | null>(null)
+const loadMoreTrigger = useTemplateRef<HTMLElement | null>(null)
 
 watch(loadMoreTrigger, (el) => {
   if (!el) return
