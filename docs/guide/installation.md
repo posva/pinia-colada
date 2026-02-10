@@ -99,4 +99,17 @@ app.use(PiniaColada, {
 })
 ```
 
-Other plugins must be installed separately (e.g. [Retries](https://github.com/posva/pinia-colada/tree/main/plugins/retry), [Loading delay](https://github.com/posva/pinia-colada/tree/main/plugins/delay), [Auto refetch](https://github.com/posva/pinia-colada/tree/main/plugins/auto-refetch)) and can also be created directly in your project for any custom behavior like offline, cache normalization, etc.
+Other plugins must be installed separately and registered the same way.
+
+Official plugins:
+
+- [Query Hooks](/plugins/official/query-hooks.html)
+- [Auto refetch](/plugins/official/auto-refetch.html)
+- [Retry](/plugins/official/retry.html)
+- [Delay](/plugins/official/delay.html)
+- [Cache persister](/plugins/official/cache-persister.html)
+- [Debug](/plugins/official/debug.html)
+
+You can also use community plugins (and build your own). Start here:
+
+- [Plugins overview](/plugins/)
