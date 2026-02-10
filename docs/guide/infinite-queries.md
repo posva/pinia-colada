@@ -92,6 +92,7 @@ You may want a feed-like behavior where you load more items as the user scrolls 
 
 ```vue twoslash
 <script setup lang="ts">
+import { ref, watch, onWatcherCleanup } from 'vue'
 import { useInfiniteQuery } from '@pinia/colada'
 
 const {
@@ -105,32 +106,31 @@ const {
   getNextPageParam: (lastPage) => (lastPage.next_page_url ? lastPage.current_page + 1 : null),
 })
 
-const loadMoreTrigger = useTemplateRef('loadMoreTrigger')
+const loadMoreTrigger = ref<HTMLElement | null>(null)
 
 watch(loadMoreTrigger, (el) => {
-  if (el) {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          loadNextPage()
-        }
-      },
-      {
-        rootMargin: '300px',
-        threshold: [0],
-      },
-    )
-    observer.observe(el)
-    onWatcherCleanup(() => {
-      observer.disconnect()
-    })
-  }
+  if (!el) return
+  const observer = new IntersectionObserver(
+    (entries) => {
+      if (entries[0]?.isIntersecting) {
+        loadNextPage()
+      }
+    },
+    {
+      rootMargin: '300px',
+      threshold: [0],
+    },
+  )
+  observer.observe(el)
+  onWatcherCleanup(() => {
+    observer.disconnect()
+  })
 })
 </script>
 
 <template>
   <ul>
-    <li v-for="item in facts.pages.flatMap(page => page.items)" :key="item.id">
+    <li v-for="item in (facts?.pages ?? []).flatMap(page => page.items)" :key="item.id">
       {{ item.text }}
     </li>
   </ul>
