@@ -34,7 +34,7 @@ You can configure retry behavior globally (plugin option) and/or per query.
 - `retry: number` retries that many times with no delay
 - `retry: (failureCount, error) => boolean | number` retries based on the failure count and error. Return `true` to retry immediately, a number to retry after a delay in milliseconds, or `false` to stop retrying.
 
-You can override retry behavior per query:
+Per-query example:
 
 ```ts
 useQuery({
