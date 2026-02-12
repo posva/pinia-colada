@@ -4,7 +4,7 @@
 
 ## Install
 
-This plugin is build-in, so you don't have to install it separately.
+This plugin is built-in, so you don't have to install it separately.
 
 ## Enable
 
@@ -22,7 +22,7 @@ app.use(PiniaColada, {
 
 ### Keep `useQuery` declarative
 
-To decouple side effects from data logic, a common patter is to keep queries declarative and pass a `meta` field:
+To decouple side effects from data logic, a common pattern is to keep queries declarative and pass a `meta` field:
 
 ```ts
 useQuery({
