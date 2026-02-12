@@ -66,15 +66,19 @@ const status = computed(() => getQueryStatus(entry))
       <a
         :href
         class="hover:cursor-pointer flex gap-1 items-center overflow-hidden"
-        :title="entry.active ? 'Active query' : 'Inactive query'"
         @click="isActive ? unselect($event) : navigate($event)"
       >
-        <i-lucide-zap
+        <span
           v-if="!entry.options"
-          class="shrink-0 text-info-700 dark:text-info-300 cursor-help"
           title="This query was prefetched or set manually"
-        />
-        <ol class="flex font-mono grow gap-0.5 overflow-auto items-center">
+          class="shrink-0 text-info-700 dark:text-info-300 cursor-help"
+        >
+          <i-lucide-zap />
+        </span>
+        <ol
+          class="flex font-mono grow gap-0.5 overflow-auto items-center"
+          :title="entry.active ? 'Active query' : 'Inactive query'"
+        >
           <template v-for="(key, i) in formattedKey" :key="key">
             <li class="text-wrap wrap-break-word rounded bg-(--ui-text)/5 px-0.5">{{ key }}</li>
             <li v-if="i < formattedKey.length - 1" aria-hidden="true">/</li>
