@@ -106,7 +106,7 @@ const {
   getNextPageParam: (lastPage) => (lastPage.nextPageUrl ? lastPage.currentPage + 1 : null),
 })
 
-const loadMoreTrigger = useTemplateRef<HTMLElement | null>(null)
+const loadMoreTrigger = useTemplateRef<HTMLElement>('loadMoreTrigger')
 
 watch(loadMoreTrigger, (el) => {
   if (!el) return
