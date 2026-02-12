@@ -341,7 +341,7 @@ const handleValueUpdate = (path: Array<string | number>, value: unknown) => {
         </div>
       </UCollapse>
 
-      <UCollapse title="Options" :open="false" :icon="IBraces" no-padding>
+      <UCollapse title="Options" :open="!selectedQuery.options" :icon="IBraces" no-padding>
         <JsonViewer v-if="selectedQuery.options" :data="selectedQuery.options" readonly />
         <p v-else>
           This Query entry has no options. It might have been created from the server or manually

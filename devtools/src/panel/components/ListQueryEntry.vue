@@ -34,7 +34,7 @@ const status = computed(() => getQueryStatus(entry))
       class="grid grid-cols-[minmax(0,auto)_1fr] grid-flow-col items-center gap-x-2 p-1 relative text-sm @container"
       :class="[
         isActive ? 'bg-neutral-200 dark:bg-neutral-700' : 'hover:bg-(--ui-bg-elevated)',
-        entry.active ? '' : 'text-(--ui-text)/50',
+        entry.active || !entry.options ? '' : 'text-(--ui-text)/50',
       ]"
     >
       <div class="h-full w-6 relative">
@@ -65,10 +65,15 @@ const status = computed(() => getQueryStatus(entry))
 
       <a
         :href
-        class="hover:cursor-pointer block overflow-hidden"
+        class="hover:cursor-pointer flex gap-1 items-center overflow-hidden"
         :title="entry.active ? 'Active query' : 'Inactive query'"
         @click="isActive ? unselect($event) : navigate($event)"
       >
+        <i-lucide-zap
+          v-if="!entry.options"
+          class="shrink-0 text-info-700 dark:text-info-300 cursor-help"
+          title="This query was prefetched or set manually"
+        />
         <ol class="flex font-mono grow gap-0.5 overflow-auto items-center">
           <template v-for="(key, i) in formattedKey" :key="key">
             <li class="text-wrap wrap-break-word rounded bg-(--ui-text)/5 px-0.5">{{ key }}</li>
