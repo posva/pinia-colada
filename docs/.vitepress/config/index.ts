@@ -247,7 +247,7 @@ On top of that Pinia Colada is highly extensible. You can create your own plugin
           text: 'Plugins',
           items: [
             {
-              text: 'First-party plugins',
+              text: 'Official plugins',
               items: [
                 { text: 'Auto refetch', link: '/plugins/official/auto-refetch.html' },
                 { text: 'Retry', link: '/plugins/official/retry.html' },
