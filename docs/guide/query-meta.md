@@ -65,7 +65,7 @@ Now your meta will be fully typed across your application.
 
 ## Using Meta in Query Hooks
 
-The most common use case for meta is to access it in global hooks like [plugins](../advanced/plugins.md). You could for example notify the user with toast **on specific errors** with the `PiniaColadaQueryHooksPlugin`:
+The most common use case for meta is to access it in global hooks like [plugins](../plugins/writing-plugins.md). You could for example notify the user with toast **on specific errors** with the `PiniaColadaQueryHooksPlugin`:
 
 ```ts twoslash
 import { PiniaColada, PiniaColadaQueryHooksPlugin } from '@pinia/colada'
