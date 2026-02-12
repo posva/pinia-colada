@@ -258,6 +258,7 @@ On top of that Pinia Colada is highly extensible. You can create your own plugin
               ],
             },
             { text: 'Community plugins', link: '/plugins/community.html' },
+            { text: 'Writing plugins', link: '/plugins/writing-plugins.html' },
           ],
         },
         {
@@ -265,7 +266,6 @@ On top of that Pinia Colada is highly extensible. You can create your own plugin
           items: [
             { text: 'Query Cache', link: '/advanced/query-cache.html' },
             { text: 'Reusable Queries', link: '/advanced/reusable-queries.html' },
-            { text: 'Plugins', link: '/advanced/plugins.html' },
           ],
         },
         {

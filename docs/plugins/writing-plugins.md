@@ -1,4 +1,4 @@
-# Plugins
+# Writing Plugins
 
 Plugins are install-time functions that subscribe to **Pinia Colada cache actions** allowing you to observe and modify query/mutation lifecycles globally without needing to change your components or the core library.
 
@@ -94,7 +94,7 @@ export function PiniaColadaFeaturePlugin(options: FeaturePluginOptions = {}): Pi
 
 The plugin context is automatically passed to the plugin function and includes:
 
-- `queryCache`: the [Query Cache](./query-cache.md) store (powers `useQuery()` and query utilities)
+- `queryCache`: the [Query Cache](../advanced/query-cache.md) store (powers `useQuery()` and query utilities)
 - `pinia`: the Pinia instance (use it to access other stores, like the mutation cache)
 - `scope`: a Vue `EffectScope` for any reactive work your plugin creates (`ref()`, `watch()`, ...)
 

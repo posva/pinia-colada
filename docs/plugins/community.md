@@ -14,7 +14,7 @@ Give it a clear name with the `pinia-colada-plugin-` prefix, and add the `pinia-
 
 :::
 
-Want to build your own plugin? See [Writing plugins](/advanced/plugins.html).
+Want to build your own plugin? See [Writing plugins](./writing-plugins.md).
 
 ## Recently Successful
 

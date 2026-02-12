@@ -64,7 +64,7 @@ app.mount('#app')
 
 This setup allows you to define global `onError`, `onSuccess`, and `onSettled` hooks that will be called for all queries (not for mutations) in your application.
 
-If you want to customize this behavior (or observe mutations too), see [Plugins](../advanced/plugins.md) for the underlying `$onAction()` mechanism and how to hook into the mutation cache.
+If you want to customize this behavior (or observe mutations too), see [Plugins](../plugins/writing-plugins.md) for the underlying `$onAction()` mechanism and how to hook into the mutation cache.
 
 ## Typing Errors Locally
 
