@@ -146,7 +146,7 @@
       ]
     }
   ],
-  "packageManager": "pnpm@10.29.2",
+  "packageManager": "pnpm@10.29.3",
   "pnpm": {
     "overrides": {
       "twoslash-vue": "0.3.6",
