@@ -79,6 +79,7 @@ export function PiniaColadaRetry(
         scope.run(() => {
           entry.ext.isRetrying = shallowRef(false)
           entry.ext.retryCount = shallowRef(0)
+          entry.ext.retryError = shallowRef(null)
         })
         return
       }
@@ -120,7 +121,11 @@ export function PiniaColadaRetry(
         retryMap.delete(key)
         queryEntry.ext.isRetrying.value = false
         queryEntry.ext.retryCount.value = 0
+        queryEntry.ext.retryError.value = null
       }
+
+      // capture state before the fetch runs so we can revert during retries
+      const previousState = queryEntry.state.value
 
       const retryFetch = () => {
         if (queryEntry.state.value.status === 'error') {
@@ -138,12 +143,16 @@ export function PiniaColadaRetry(
           if (shouldRetry) {
             queryEntry.ext.isRetrying.value = true
             queryEntry.ext.retryCount.value = entry.retryCount + 1
+            queryEntry.ext.retryError.value = error
+            // revert to pre-fetch state so the error is only visible via retryError
+            queryEntry.state.value = previousState
             const delayTime = typeof delay === 'function' ? delay(entry.retryCount) : delay
             entry.timeoutId = setTimeout(() => {
               if (!queryEntry.active || toValue(queryEntry.options?.enabled) === false) {
                 retryMap.delete(key)
                 queryEntry.ext.isRetrying.value = false
                 queryEntry.ext.retryCount.value = 0
+                queryEntry.ext.retryError.value = null
                 return
               }
               // NOTE: we could add some default error handler
@@ -159,12 +168,14 @@ export function PiniaColadaRetry(
           } else {
             // remove the entry if we are not going to retry
             queryEntry.ext.isRetrying.value = false
+            queryEntry.ext.retryError.value = null
             retryMap.delete(key)
           }
         } else {
           // remove the entry if it worked out to reset it
           queryEntry.ext.isRetrying.value = false
           queryEntry.ext.retryCount.value = 0
+          queryEntry.ext.retryError.value = null
           retryMap.delete(key)
         }
       }
@@ -194,5 +205,10 @@ declare module '@pinia/colada' {
      * Requires the `@pinia/colada-plugin-retry` plugin.
      */
     retryCount: ShallowRef<number>
+    /**
+     * The error that triggered the current retry. `null` when not retrying or when retries are exhausted.
+     * Requires the `@pinia/colada-plugin-retry` plugin.
+     */
+    retryError: ShallowRef<TError | null>
   }
 }
