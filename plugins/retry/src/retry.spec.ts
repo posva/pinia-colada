@@ -410,6 +410,126 @@ describe('Pinia Colada Retry Plugin', () => {
     })
   })
 
+  describe('retry error suppression', () => {
+    it('suppresses error state during retries', async () => {
+      const query = vi.fn(async () => {
+        throw new Error('ko')
+      })
+
+      const { wrapper } = factory({
+        key: ['key'],
+        query,
+        retry: 2,
+      })
+
+      // initial fetch fails, retry scheduled — error suppressed
+      await flushPromises()
+      expect((wrapper.vm as any).status).not.toBe('error')
+      expect((wrapper.vm as any).error).toBeNull()
+      expect((wrapper.vm as any).retryError).toEqual(new Error('ko'))
+    })
+
+    it('shows error when retries are exhausted', async () => {
+      const query = vi.fn(async () => {
+        throw new Error('ko')
+      })
+
+      const { wrapper } = factory({
+        key: ['key'],
+        query,
+        retry: 1,
+      })
+
+      // initial fetch fails, retry scheduled
+      await flushPromises()
+      expect((wrapper.vm as any).status).not.toBe('error')
+      expect((wrapper.vm as any).retryError).toEqual(new Error('ko'))
+
+      // retry fails, retries exhausted — error appears normally
+      vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
+      await flushPromises()
+      expect((wrapper.vm as any).status).toBe('error')
+      expect((wrapper.vm as any).error).toEqual(new Error('ko'))
+      expect((wrapper.vm as any).retryError).toBeNull()
+    })
+
+    it('retryError is null on success', async () => {
+      let callCount = 0
+      const query = vi.fn(async () => {
+        if (++callCount === 1) throw new Error('ko')
+        return 'ok'
+      })
+
+      const { wrapper } = factory({
+        key: ['key'],
+        query,
+        retry: 2,
+      })
+
+      // first call fails, retry scheduled
+      await flushPromises()
+      expect((wrapper.vm as any).retryError).toEqual(new Error('ko'))
+
+      // retry succeeds
+      vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
+      await flushPromises()
+      expect((wrapper.vm as any).error).toBeNull()
+      expect((wrapper.vm as any).retryError).toBeNull()
+    })
+
+    it('reverts to success with previous data during retry', async () => {
+      let callCount = 0
+      const query = vi.fn(async () => {
+        if (++callCount <= 1) return 'initial data'
+        throw new Error('ko')
+      })
+
+      const { wrapper } = factory({
+        key: ['key'],
+        query,
+        retry: 2,
+      })
+
+      // initial fetch succeeds
+      await flushPromises()
+      expect((wrapper.vm as any).status).toBe('success')
+      expect((wrapper.vm as any).data).toBe('initial data')
+
+      // refetch fails — state reverts to success with old data
+      wrapper.vm.refetch()
+      await flushPromises()
+      expect((wrapper.vm as any).status).toBe('success')
+      expect((wrapper.vm as any).data).toBe('initial data')
+      expect((wrapper.vm as any).retryError).toEqual(new Error('ko'))
+    })
+
+    it('retryError is cleared on manual refetch', async () => {
+      let callCount = 0
+      const query = vi.fn(async () => {
+        // first call fails, manual refetch succeeds
+        if (++callCount === 1) throw new Error('ko')
+        return 'ok'
+      })
+
+      const { wrapper } = factory({
+        key: ['key'],
+        query,
+        retry: 2,
+      })
+
+      // first call fails, retry scheduled
+      await flushPromises()
+      expect((wrapper.vm as any).retryError).toEqual(new Error('ko'))
+
+      // manual refetch succeeds
+      wrapper.vm.refetch()
+      await flushPromises()
+      expect((wrapper.vm as any).retryError).toBeNull()
+      expect((wrapper.vm as any).error).toBeNull()
+      expect((wrapper.vm as any).status).toBe('success')
+    })
+  })
+
   it('no retries if enabled becomes false while waiting', async () => {
     const query = vi.fn(async () => {
       throw new Error('ko')
