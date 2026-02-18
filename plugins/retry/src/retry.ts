@@ -195,7 +195,7 @@ declare module '@pinia/colada' {
   }
 
   // eslint-disable-next-line unused-imports/no-unused-vars
-  interface UseQueryEntryExtensions<TData, TError> {
+  interface UseQueryEntryExtensions<TData, TError, TDataInitial> {
     /**
      * Whether the query is currently retrying. Requires the `@pinia/colada-plugin-retry` plugin.
      */

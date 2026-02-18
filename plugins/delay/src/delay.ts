@@ -74,11 +74,8 @@ declare module '@pinia/colada' {
 
   interface UseQueryOptionsGlobal extends PiniaColadaDelayOptions {}
 
-  interface UseQueryEntryExtensions<
-    TData,
-    // eslint-disable-next-line unused-imports/no-unused-vars
-    TError,
-  > {
+  // eslint-disable-next-line unused-imports/no-unused-vars
+  interface UseQueryEntryExtensions<TData, TError, TDataInitial> {
     /**
      * Returns whether the query is currently delaying its `asyncStatus` from becoming `'loading'`. Requires the {@link PiniaColadaDelay} plugin.
      */
