@@ -279,6 +279,137 @@ describe('Pinia Colada Retry Plugin', () => {
     expect(query).toHaveBeenCalledTimes(4)
   })
 
+  describe('retry state tracking', () => {
+    it('isRetrying is true while a retry is pending', async () => {
+      const query = vi.fn(async () => {
+        throw new Error('ko')
+      })
+
+      const { wrapper } = factory({
+        key: ['key'],
+        query,
+        retry: 2,
+      })
+
+      // initial fetch fails, first retry scheduled
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+      expect((wrapper.vm as any).isRetrying).toBe(true)
+
+      // first retry fires and fails, second retry scheduled
+      vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(2)
+      expect((wrapper.vm as any).isRetrying).toBe(true)
+
+      // second retry fires and fails, retries exhausted
+      vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(3)
+      expect((wrapper.vm as any).isRetrying).toBe(false)
+    })
+
+    it('retryCount increments on each retry', async () => {
+      const query = vi.fn(async () => {
+        throw new Error('ko')
+      })
+
+      const { wrapper } = factory({
+        key: ['key'],
+        query,
+        retry: 3,
+      })
+
+      // initial fetch fails, first retry scheduled
+      await flushPromises()
+      expect((wrapper.vm as any).retryCount).toBe(1)
+
+      // retry 1 fails
+      vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
+      await flushPromises()
+      expect((wrapper.vm as any).retryCount).toBe(2)
+
+      // retry 2 fails
+      vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
+      await flushPromises()
+      expect((wrapper.vm as any).retryCount).toBe(3)
+
+      // retries exhausted, count stays at 3
+      vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(4)
+      expect((wrapper.vm as any).retryCount).toBe(3)
+    })
+
+    it('resets retry state on success', async () => {
+      let callCount = 0
+      const query = vi.fn(async () => {
+        if (++callCount === 1) throw new Error('ko')
+        return 'ok'
+      })
+
+      const { wrapper } = factory({
+        key: ['key'],
+        query,
+        retry: 2,
+      })
+
+      // first call fails, retry scheduled
+      await flushPromises()
+      expect((wrapper.vm as any).isRetrying).toBe(true)
+      expect((wrapper.vm as any).retryCount).toBe(1)
+
+      // retry succeeds
+      vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
+      await flushPromises()
+      expect((wrapper.vm as any).isRetrying).toBe(false)
+      expect((wrapper.vm as any).retryCount).toBe(0)
+    })
+
+    it('resets retry state on manual refetch', async () => {
+      const query = vi.fn(async () => {
+        throw new Error('ko')
+      })
+
+      const { wrapper } = factory({
+        key: ['key'],
+        query,
+        retry: 2,
+      })
+
+      // first failure, retry scheduled
+      await flushPromises()
+      expect((wrapper.vm as any).retryCount).toBe(1)
+
+      // first retry fires and fails
+      vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
+      await flushPromises()
+      expect((wrapper.vm as any).retryCount).toBe(2)
+
+      // manual refetch resets and starts fresh retry cycle
+      wrapper.vm.refetch()
+      await flushPromises()
+      expect((wrapper.vm as any).retryCount).toBe(1)
+      expect((wrapper.vm as any).isRetrying).toBe(true)
+    })
+
+    it('isRetrying stays false when retry is 0', async () => {
+      const query = vi.fn(async () => {
+        throw new Error('ko')
+      })
+
+      const { wrapper } = factory({
+        key: ['key'],
+        query,
+        retry: 0,
+      })
+
+      await flushPromises()
+      expect((wrapper.vm as any).isRetrying).toBe(false)
+      expect((wrapper.vm as any).retryCount).toBe(0)
+    })
+  })
+
   it('no retries if enabled becomes false while waiting', async () => {
     const query = vi.fn(async () => {
       throw new Error('ko')
