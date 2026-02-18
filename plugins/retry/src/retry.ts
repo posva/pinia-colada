@@ -6,7 +6,8 @@
  * @module @pinia/colada-plugin-retry
  */
 import type { PiniaColadaPluginContext } from '@pinia/colada'
-import { toValue } from 'vue'
+import type { ShallowRef } from 'vue'
+import { shallowRef, toValue } from 'vue'
 
 /**
  * Options for the Pinia Colada Retry plugin.
@@ -68,11 +69,20 @@ export function PiniaColadaRetry(
 ): (context: PiniaColadaPluginContext) => void {
   const defaults = { ...RETRY_OPTIONS_DEFAULTS, ...globalOptions }
 
-  return ({ queryCache }) => {
+  return ({ queryCache, scope }) => {
     const retryMap = new Map<string, RetryEntry>()
 
     let isInternalCall = false
     queryCache.$onAction(({ name, args, after, onError }) => {
+      if (name === 'extend') {
+        const [entry] = args
+        scope.run(() => {
+          entry.ext.isRetrying = shallowRef(false)
+          entry.ext.retryCount = shallowRef(0)
+        })
+        return
+      }
+
       // cleanup all pending retries when data is deleted (means the data is not needed anymore)
       if (name === 'remove') {
         const [cacheEntry] = args
@@ -108,6 +118,8 @@ export function PiniaColadaRetry(
       // if the user manually calls the action, reset the retry count
       if (!isInternalCall) {
         retryMap.delete(key)
+        queryEntry.ext.isRetrying.value = false
+        queryEntry.ext.retryCount.value = 0
       }
 
       const retryFetch = () => {
@@ -124,10 +136,14 @@ export function PiniaColadaRetry(
             typeof retry === 'number' ? retry > entry.retryCount : retry(entry.retryCount, error)
 
           if (shouldRetry) {
+            queryEntry.ext.isRetrying.value = true
+            queryEntry.ext.retryCount.value = entry.retryCount + 1
             const delayTime = typeof delay === 'function' ? delay(entry.retryCount) : delay
             entry.timeoutId = setTimeout(() => {
               if (!queryEntry.active || toValue(queryEntry.options?.enabled) === false) {
                 retryMap.delete(key)
+                queryEntry.ext.isRetrying.value = false
+                queryEntry.ext.retryCount.value = 0
                 return
               }
               // NOTE: we could add some default error handler
@@ -142,10 +158,13 @@ export function PiniaColadaRetry(
             }, delayTime)
           } else {
             // remove the entry if we are not going to retry
+            queryEntry.ext.isRetrying.value = false
             retryMap.delete(key)
           }
         } else {
           // remove the entry if it worked out to reset it
+          queryEntry.ext.isRetrying.value = false
+          queryEntry.ext.retryCount.value = 0
           retryMap.delete(key)
         }
       }
@@ -162,5 +181,18 @@ declare module '@pinia/colada' {
      * Options for the retries of this query added by `@pinia/colada-plugin-retry`.
      */
     retry?: RetryOptions | Exclude<RetryOptions['retry'], undefined>
+  }
+
+  // eslint-disable-next-line unused-imports/no-unused-vars
+  interface UseQueryEntryExtensions<TData, TError> {
+    /**
+     * Whether the query is currently retrying. Requires the `@pinia/colada-plugin-retry` plugin.
+     */
+    isRetrying: ShallowRef<boolean>
+    /**
+     * The number of retries that have been scheduled so far. Resets on success or manual refetch.
+     * Requires the `@pinia/colada-plugin-retry` plugin.
+     */
+    retryCount: ShallowRef<number>
   }
 }
