@@ -106,7 +106,7 @@ const { createTodo, status, asyncStatus, todoText } = useCreateTodo()
 </script>
 
 <template>
-  <form @submit.prevent="createTodo(todoText)">
+  <form @submit.prevent="createTodo()">
     <input v-model="todoText">
     <button :disabled="asyncStatus === 'loading'">
       Add todo
