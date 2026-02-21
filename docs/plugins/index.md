@@ -31,4 +31,4 @@ See [Official plugins](./official/index.md) and [Community plugins](./community.
 
 ## Writing plugins
 
-If you want to create your own plugin (or understand how existing ones work), see [Writing plugins](/advanced/plugins.html).
+If you want to create your own plugin (or understand how existing ones work), see [Writing plugins](/advanced/plugins.md).
