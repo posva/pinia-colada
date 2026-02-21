@@ -16,6 +16,12 @@ export default defineNuxtPlugin({
   setup(nuxtApp) {
     nuxtApp.vueApp.use(PiniaColada, {
       ...coladaOptions,
+      queryOptions: {
+        ...coladaOptions.queryOptions,
+        // Disable GC during SSR to prevent setTimeout closures from retaining
+        // entry objects in memory across requests
+        gcTime: import.meta.server ? false : coladaOptions.queryOptions.gcTime,
+      },
     } satisfies PiniaColadaOptions)
 
     const queryCache = useQueryCache()

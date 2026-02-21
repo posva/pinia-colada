@@ -896,7 +896,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * @param entry - the entry of the query to remove
    */
   const remove = action((entry: UseQueryEntry) => {
-    // setting without a value is like setting it to undefined
+    clearTimeout(entry.gcTimeout)
     cachesRaw.delete(entry.keyHash)
     triggerRef(caches)
   })
