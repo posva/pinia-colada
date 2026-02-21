@@ -327,6 +327,12 @@ importers:
         specifier: workspace:^
         version: link:../..
 
+  plugins/tanstack-compat:
+    devDependencies:
+      '@pinia/colada':
+        specifier: workspace:^
+        version: link:../..
+
   test-utils: {}
 
 packages:
