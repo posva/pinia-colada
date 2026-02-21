@@ -20,7 +20,7 @@ export default defineNuxtPlugin({
         ...coladaOptions.queryOptions,
         // Disable GC during SSR to prevent setTimeout closures from retaining
         // entry objects in memory across requests
-        gcTime: import.meta.server ? false : coladaOptions.queryOptions.gcTime,
+        gcTime: import.meta.server ? false : coladaOptions.queryOptions?.gcTime,
       },
     } satisfies PiniaColadaOptions)
 
