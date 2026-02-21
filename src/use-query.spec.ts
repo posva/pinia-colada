@@ -10,7 +10,7 @@ import type { PropType } from 'vue'
 import { delay, isSpy, mockConsoleError, mockWarn, promiseWithResolvers } from '@posva/test-utils'
 import { PiniaColada } from './pinia-colada'
 import { hydrateQueryCache, QUERY_STORE_ID, useQueryCache } from './query-store'
-import type { UseQueryEntryNodeValueSerializd } from './query-store'
+import type { UseQueryEntry, UseQueryEntryNodeValueSerializd } from './query-store'
 import { useQuery } from './use-query'
 
 describe('useQuery', () => {
@@ -748,8 +748,37 @@ describe('useQuery', () => {
       key.value = 2
       await nextTick()
       expect(placeholderData).toHaveBeenCalledTimes(2)
-      expect(placeholderData).toHaveBeenCalledWith(42)
+      expect(placeholderData).toHaveBeenCalledWith(
+        42,
+        expect.objectContaining({ state: expect.anything() }),
+      )
       expect(wrapper.vm.data).toBe(24)
+    })
+
+    it('passes the previous entry as second arg to the placeholderData callback when key changes', async () => {
+      const key = ref(1)
+      const placeholderData = vi.fn(
+        (
+          previousData: number | undefined,
+          previousEntry: UseQueryEntry<number, unknown, undefined> | undefined,
+        ) => 24,
+      )
+      const { wrapper } = mountSimple({
+        key: () => [key.value],
+        query: async () => 42,
+        placeholderData,
+      })
+
+      await flushPromises()
+
+      key.value = 2
+      await nextTick()
+      expect(placeholderData).toHaveBeenCalledTimes(2)
+      // second arg should be the previous entry with status 'success' and data 42
+      const previousEntry = placeholderData.mock.calls[1]![1]!
+      expect(previousEntry).toBeDefined()
+      expect(previousEntry.state.value.data).toBe(42)
+      expect(previousEntry.state.value.status).toBe('success')
     })
 
     it('passes the previous placeholderData to the new placeholderData function if the key changes while loading', async () => {
@@ -774,14 +803,22 @@ describe('useQuery', () => {
       vi.advanceTimersByTime(51)
       await nextTick()
       expect(placeholderData).toHaveBeenCalledTimes(2)
-      expect(placeholderData).toHaveBeenNthCalledWith(1, undefined)
-      expect(placeholderData).toHaveBeenNthCalledWith(2, 'from-placeholder')
+      expect(placeholderData).toHaveBeenNthCalledWith(1, undefined, undefined)
+      expect(placeholderData).toHaveBeenNthCalledWith(
+        2,
+        'from-placeholder',
+        expect.objectContaining({ placeholderData: 'from-placeholder' }),
+      )
       expect(wrapper.vm.data).toBe('previous-from-placeholder')
 
       key.value++
       await nextTick()
       expect(placeholderData).toHaveBeenCalledTimes(3)
-      expect(placeholderData).toHaveBeenNthCalledWith(3, 'previous-from-placeholder')
+      expect(placeholderData).toHaveBeenNthCalledWith(
+        3,
+        'previous-from-placeholder',
+        expect.objectContaining({ placeholderData: 'previous-from-placeholder' }),
+      )
       expect(wrapper.vm.data).toBe('previous-previous-from-placeholder')
     })
 

@@ -556,6 +556,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
             isEntryUsingPlaceholderData(previousEntry)
               ? previousEntry.placeholderData
               : previousEntry?.state.value.data,
+            previousEntry,
           )
         }
         triggerRef(caches)

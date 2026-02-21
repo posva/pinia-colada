@@ -62,7 +62,7 @@ export interface UseQueryOptionsGlobal {
    * query finishes loading (no matter the outcome of the query). Note: unlike
    * with `initialData`, the placeholder does not change the cache state.
    */
-  placeholderData?: (previousData: unknown) => any // any allows us to not worry about the types when merging options
+  placeholderData?: (previousData: unknown, previousEntry: UseQueryEntry | undefined) => any // any allows us to not worry about the types when merging options
 
   /**
    * Whether to catch errors during SSR (onServerPrefetch) when the query fails.
@@ -211,8 +211,9 @@ export interface UseQueryOptions<
     | NoInfer<TData>
     // NOTE: the generic here allows to make UseQueryOptions<T> assignable to UseQueryOptions<unknown>
     // https://www.typescriptlang.org/play/?#code/JYOwLgpgTgZghgYwgAgPIAczAPYgM4A8AKsgLzICuIA1iNgO4gB8yA3gFDLICOAXMgAoAlGRYAFKNgC2wPBGJNOydAH5eSrgHpNyABZwAbqADmyMLpRwoxilIjhkAIygQ41PMmBgNyAD6CBdBcjbAo8ABE4MDh+ADlsAEkQGGgFP0oQABMIGFAITJFSFniklKgFIR9tZCJdWWQDaDwcEGR6bCh3Kp1-AWISCAAPSCyPIiZA4JwwyOj+IhJ-KmzckHzCliJKgF92dlBIWEQUAFFwKABPYjIM2gZmNiVsTBa8fgwsXEJx9JAKABt-uxduwYFQEJ9WggAPr2MCXBQCZ6Qt5oF5fNL+P6AoT8M7wq4-DhcFxgChQVqsZDI17IXa7BBfMDIDzkNb0ZAAZQgYAI+MuE0qeAAdHBMpkBDC4ZcBMSuDx+HA8BcQAhBBtkAAWABMABofOh+AIQBrWgBCNkA-7IFTIVoAKmQ2uQ-E1wKElSAA
-    | (<T extends TData>(
+    | (<T extends TData, TInitial extends TDataInitial>(
         previousData: T | undefined,
+        previousEntry: UseQueryEntry<TData, TError, TInitial> | undefined,
       ) => NoInfer<TDataInitial> | NoInfer<TData> | undefined)
 
   /**
