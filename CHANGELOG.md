@@ -1,3 +1,14 @@
+## [0.21.5](https://github.com/posva/pinia-colada/compare/v0.21.4...v0.21.5) (2026-02-22)
+
+### Bug Fixes
+
+- **ssr:** prevent memory leak ([#514](https://github.com/posva/pinia-colada/issues/514)) ([9fd9baa](https://github.com/posva/pinia-colada/commit/9fd9baa30f9e485a8ef6c2aaa08bd34192e5b382))
+- **types:** restore UseQueryOptions variance for placeholderData callback ([ef4a006](https://github.com/posva/pinia-colada/commit/ef4a006728cef27d1f6fe1afabbc621a4dbf08ea))
+
+### Features
+
+- pass previousEntry in placeholderData ([14e8d86](https://github.com/posva/pinia-colada/commit/14e8d8648651ecbe1f334c0120d8f9c770f109bd)), closes [#512](https://github.com/posva/pinia-colada/issues/512)
+
 ## [0.21.4](https://github.com/posva/pinia-colada/compare/v0.21.3...v0.21.4) (2026-02-09)
 
 ### Features

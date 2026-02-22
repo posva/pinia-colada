@@ -1,3 +1,16 @@
+## [0.1.5](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-delay@0.1.4...@pinia/colada-plugin-delay@0.1.5) (2026-02-22)
+
+- refactor!: remove CJS support ([458071a](https://github.com/posva/pinia-colada/commit/458071a3a16f7f93ecde6b0816ae61239769526f))
+
+### Bug Fixes
+
+- missing type in extension ([7964498](https://github.com/posva/pinia-colada/commit/7964498249257f9f1dbf5b4ad86b9adbb203a19d))
+
+### BREAKING CHANGES
+
+- ESM have been natively supported in node since 18 and
+  is now required.
+
 ## [0.1.4](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-delay@0.1.3...@pinia/colada-plugin-delay@0.1.4) (2025-12-23)
 
 Fix in build

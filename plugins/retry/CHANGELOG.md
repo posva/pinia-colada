@@ -1,3 +1,14 @@
+## [0.2.2](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-retry@0.2.1...@pinia/colada-plugin-retry@0.2.2) (2026-02-22)
+
+### Bug Fixes
+
+- missing type in extension ([7964498](https://github.com/posva/pinia-colada/commit/7964498249257f9f1dbf5b4ad86b9adbb203a19d))
+
+### Features
+
+- **retry:** add retryError and suppress error state during retries ([485b94d](https://github.com/posva/pinia-colada/commit/485b94de3326373e423171da0a714cc803d25ecb))
+- **retry:** track retry state with retryCount and isRetrying ([155075a](https://github.com/posva/pinia-colada/commit/155075a79d4f11d7167b6193bf33c49357592749))
+
 ## [0.2.1](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-retry@0.2.0...@pinia/colada-plugin-retry@0.2.1) (2026-01-12)
 
 - refactor!: remove CJS support ([458071a](https://github.com/posva/pinia-colada/commit/458071a3a16f7f93ecde6b0816ae61239769526f))

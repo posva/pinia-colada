@@ -1,3 +1,10 @@
+## [0.4.3](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.4.2...@pinia/colada-devtools@0.4.3) (2026-02-22)
+
+### Features
+
+- **devtools:** distinguish prefetched queries in DevTools panel ([e99b8f6](https://github.com/posva/pinia-colada/commit/e99b8f62021a132bd69f8799161d6a494e9528be))
+- improve hover titel ([6404b6a](https://github.com/posva/pinia-colada/commit/6404b6a79b88a4e04d9c19dc4b1d36edc3876110))
+
 ## [0.4.2](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.4.1...@pinia/colada-devtools@0.4.2) (2026-01-20)
 
 ### Bug Fixes

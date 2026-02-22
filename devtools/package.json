@@ -1,7 +1,7 @@
 {
   "name": "@pinia/colada-devtools",
   "type": "module",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "packageManager": "pnpm@10.29.3",
   "description": "Devtools for Pinia Colada",
   "publishConfig": {
