@@ -26,11 +26,13 @@ describe('PiniaColada plugin types', () => {
 describe('UseQueryOptions', () => {
   function track(_options: UseQueryOptions<unknown, unknown, unknown>): void {}
 
-  it('specific is assinable to generic', () => {
-    expectTypeOf(track).toBeCallableWith({} as UseQueryOptions)
-    expectTypeOf(track).toBeCallableWith(
-      {} as UseQueryOptions<number, SyntaxError, number | undefined>,
-    )
-    expectTypeOf<UseQueryOptions>().toExtend<UseQueryOptions>()
+  it('specific is assignable to generic with a non-generic sink', () => {
+    expectTypeOf<Parameters<typeof track>[0]>().toEqualTypeOf<
+      UseQueryOptions<unknown, unknown, unknown>
+    >()
+
+    track({} as UseQueryOptions)
+    track({} as UseQueryOptions<unknown, { custom: Error }, undefined>)
+    track({} as UseQueryOptions<number, SyntaxError, number | undefined>)
   })
 })

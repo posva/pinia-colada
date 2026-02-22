@@ -5,6 +5,7 @@ import type { UseQueryOptions } from './query-options'
 import type { DefineQueryOptions } from './define-query'
 import type { DefineQueryOptionsTagged } from './define-query-options'
 import type { DataStateStatus } from './data-state'
+import type { UseQueryEntry } from './query-store'
 
 describe('useQuery type inference', () => {
   it('infers the data type', () => {
@@ -228,6 +229,23 @@ describe('useQuery type inference', () => {
       placeholderData: (n) => {
         expectTypeOf<number | undefined>(n)
         return n ?? 42
+      },
+    })
+  })
+
+  it('types previousEntry in placeholderData callback', () => {
+    useQuery({
+      key: ['id'],
+      query: async () => ({ text: 'ok' }),
+      initialData: () => ({ text: 'init', fromInit: true }),
+      placeholderData: (previousData, previousEntry) => {
+        expectTypeOf<{ text: string } | undefined>(previousData)
+        expectTypeOf<
+          | UseQueryEntry<{ text: string }, { custom: Error }, { text: string; fromInit: boolean }>
+          | undefined
+        >(previousEntry)
+        expectTypeOf<{ custom: Error } | null | undefined>(previousEntry?.state.value.error)
+        return previousData
       },
     })
   })
