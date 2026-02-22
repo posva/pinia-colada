@@ -20,3 +20,4 @@ vite.config.shared.ts.timestamp-*.mjs
 docs/api
 .osgrep
 ralph.sh
+.tsc-types
