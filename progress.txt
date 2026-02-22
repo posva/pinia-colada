@@ -1,0 +1,37 @@
+# Progress Log
+
+## 2026-01-07: Type augmentation fix for tanstack-compat plugin
+
+### What was done
+- Made all properties in `UseQueryEntryExtensions` optional (12 properties)
+- Made all properties in `UseMutationEntryExtensions` optional (7 properties)
+- Updated tanstack-compat.spec.ts to use `!` assertions for optional ext properties
+- Fixed mutation-store.spec.ts test that set `customProperty` on ext (needed cast to `{ ext: unknown }`)
+
+### Why
+The plugin's type augmentation was declaring required properties on the extension interfaces. Since the core library doesn't have the plugin installed, `ext: {}` didn't satisfy the interface, breaking compilation.
+
+### Files changed
+- `plugins/tanstack-compat/src/tanstack-compat.ts` - optional properties in interfaces
+- `plugins/tanstack-compat/src/tanstack-compat.spec.ts` - non-null assertions
+- `src/mutation-store.spec.ts` - cast for customProperty test
+
+### Verification
+- `pnpm run test:types` passes
+- 15 tanstack-compat tests pass
+
+### Next steps
+Remaining PRD items:
+- Run plugin tests (verification) - should pass now
+- Build verification
+
+## 2026-01-07: Verification complete
+
+### What was done
+- Verified 15 tanstack-compat plugin tests pass
+- Verified `pnpm run test:types` passes
+- Verified `pnpm run build` passes
+- Updated PRD: all items now pass
+
+### Status
+PRD complete. All type fixes verified and working.
