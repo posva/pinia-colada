@@ -5,4 +5,3 @@
 - [Retry](./retry.md)
 - [Delay](./delay.md)
 - [Cache persister](./cache-persister.md)
-- [Debug](./debug.md)
