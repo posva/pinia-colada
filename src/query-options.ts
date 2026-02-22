@@ -102,6 +102,15 @@ export interface UseQueryFnContext<
 export declare const tErrorSymbol: unique symbol
 
 /**
+ * Helper function type to keep callback arguments bivariant in object properties.
+ *
+ * @internal
+ */
+type BivariantCallback<TArgs extends readonly unknown[], TResult> = {
+  bivarianceHack(...args: TArgs): TResult
+}['bivarianceHack']
+
+/**
  * Options for `useQuery()`. Can be extended by plugins.
  *
  * @example
@@ -211,10 +220,13 @@ export interface UseQueryOptions<
     | NoInfer<TData>
     // NOTE: the generic here allows to make UseQueryOptions<T> assignable to UseQueryOptions<unknown>
     // https://www.typescriptlang.org/play/?#code/JYOwLgpgTgZghgYwgAgPIAczAPYgM4A8AKsgLzICuIA1iNgO4gB8yA3gFDLICOAXMgAoAlGRYAFKNgC2wPBGJNOydAH5eSrgHpNyABZwAbqADmyMLpRwoxilIjhkAIygQ41PMmBgNyAD6CBdBcjbAo8ABE4MDh+ADlsAEkQGGgFP0oQABMIGFAITJFSFniklKgFIR9tZCJdWWQDaDwcEGR6bCh3Kp1-AWISCAAPSCyPIiZA4JwwyOj+IhJ-KmzckHzCliJKgF92dlBIWEQUAFFwKABPYjIM2gZmNiVsTBa8fgwsXEJx9JAKABt-uxduwYFQEJ9WggAPr2MCXBQCZ6Qt5oF5fNL+P6AoT8M7wq4-DhcFxgChQVqsZDI17IXa7BBfMDIDzkNb0ZAAZQgYAI+MuE0qeAAdHBMpkBDC4ZcBMSuDx+HA8BcQAhBBtkAAWABMABofOh+AIQBrWgBCNkA-7IFTIVoAKmQ2uQ-E1wKElSAA
-    | (<T extends TData, TInitial extends TDataInitial>(
-        previousData: T | undefined,
-        previousEntry: UseQueryEntry<TData, TError, TInitial> | undefined,
-      ) => NoInfer<TDataInitial> | NoInfer<TData> | undefined)
+    | BivariantCallback<
+        [
+          previousData: TData | undefined,
+          previousEntry: UseQueryEntry<TData, TError, TDataInitial> | undefined,
+        ],
+        NoInfer<TDataInitial> | NoInfer<TData> | undefined
+      >
 
   /**
    * Meta information associated with the query. Can be a raw object, a function
