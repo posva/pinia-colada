@@ -71,6 +71,7 @@ export default defineConfig({
       exclude: [
         //
         '**/src/index.ts',
+        'test-utils',
         'src/utils.ts',
         // we are not event sure to keep them because we have
         // our own devtools
