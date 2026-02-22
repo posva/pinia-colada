@@ -6,12 +6,14 @@ import { createPinia } from 'pinia'
 import { PiniaColada } from './pinia-colada'
 import { useQuery } from './use-query'
 import { useQueryCache } from './query-store'
-import { delay } from '@posva/test-utils'
+import { delay, mockWarn } from '@posva/test-utils'
 
 describe('defineQueryOptions', () => {
   beforeEach(() => {
     vi.useFakeTimers()
   })
+
+  mockWarn()
 
   it('can describe static options', () => {
     const query = async () => 42
@@ -55,7 +57,7 @@ describe('defineQueryOptions', () => {
         {
           setup() {
             return {
-              ...useQuery(opts, id),
+              ...useQuery(() => opts(id.value)),
             }
           },
           template: `<div>{{ data }}</div>`,
@@ -94,7 +96,7 @@ describe('defineQueryOptions', () => {
         {
           setup() {
             return {
-              ...useQuery(opts, id),
+              ...useQuery(() => opts(id.value)),
             }
           },
           template: `<div>{{ data }}</div>`,
@@ -158,6 +160,66 @@ describe('defineQueryOptions', () => {
       await flushPromises()
       expect(query).toHaveBeenCalledTimes(1)
     })
+
+    it('warns once when using deprecated second argument', async () => {
+      const opts = defineQueryOptions((id: number) => ({
+        key: ['a', id],
+        query: async () => id,
+      }))
+      const id = ref(0)
+
+      mount(
+        {
+          setup() {
+            return {
+              ...useQuery(opts, id),
+            }
+          },
+          template: `<div>{{ data }}</div>`,
+        },
+        {
+          global: {
+            plugins: [createPinia(), PiniaColada],
+          },
+        },
+      )
+
+      await flushPromises()
+      id.value = 1
+      await flushPromises()
+
+      expect('useQuery(setupOptions, paramsGetter) is deprecated').toHaveBeenWarnedTimes(1)
+    })
+
+    it('does not warn with the single function form', async () => {
+      const opts = defineQueryOptions((id: number) => ({
+        key: ['a', id],
+        query: async () => id,
+      }))
+      const id = ref(0)
+
+      mount(
+        {
+          setup() {
+            return {
+              ...useQuery(() => opts(id.value)),
+            }
+          },
+          template: `<div>{{ data }}</div>`,
+        },
+        {
+          global: {
+            plugins: [createPinia(), PiniaColada],
+          },
+        },
+      )
+
+      await flushPromises()
+      id.value = 1
+      await flushPromises()
+
+      expect('useQuery(setupOptions, paramsGetter) is deprecated').toHaveBeenWarnedTimes(0)
+    })
   })
 
   describe('abort signal', () => {
@@ -178,7 +240,7 @@ describe('defineQueryOptions', () => {
         {
           setup() {
             return {
-              ...useQuery(opts, id),
+              ...useQuery(() => opts(id.value)),
             }
           },
           template: `<div>{{ data }}</div>`,

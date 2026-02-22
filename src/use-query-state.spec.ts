@@ -6,6 +6,7 @@ import { PiniaColada } from './pinia-colada'
 import { useQueryState } from './use-query-state'
 import { defineQueryOptions } from './define-query-options'
 import { useQueryCache } from './query-store'
+import { mockWarn } from '@posva/test-utils'
 
 describe('useQueryState', () => {
   beforeEach(() => {
@@ -17,6 +18,7 @@ describe('useQueryState', () => {
     await vi.runAllTimersAsync()
     vi.restoreAllMocks()
   })
+  mockWarn()
 
   it('returns undefined for non-existent queries', () => {
     const pinia = createPinia()
@@ -117,7 +119,7 @@ describe('useQueryState', () => {
     const wrapper = mount(
       defineComponent({
         setup() {
-          return { ...useQueryState(itemQuery, keyId) }
+          return { ...useQueryState(() => itemQuery(keyId.value).key) }
         },
         template: `<div>{{ data?.name }}</div>`,
       }),
@@ -143,5 +145,63 @@ describe('useQueryState', () => {
     keyId.value = 3
     await nextTick()
     expect(wrapper.vm.data).toBeUndefined() // New key doesn't exist yet
+  })
+
+  it('warns once when using deprecated second argument', async () => {
+    const pinia = createPinia()
+    const itemQuery = defineQueryOptions((id: number) => ({
+      key: ['item', id],
+      query: async () => ({ id, name: `Item ${id}` }),
+    }))
+
+    const keyId = ref(1)
+    mount(
+      defineComponent({
+        setup() {
+          return { ...useQueryState(itemQuery, keyId) }
+        },
+        template: `<div>{{ data?.name }}</div>`,
+      }),
+      {
+        global: {
+          plugins: [pinia, PiniaColada],
+        },
+      },
+    )
+
+    await nextTick()
+    keyId.value = 2
+    await nextTick()
+
+    expect('useQueryState(setupOptions, paramsGetter) is deprecated').toHaveBeenWarnedTimes(1)
+  })
+
+  it('does not warn with the single function form', async () => {
+    const pinia = createPinia()
+    const itemQuery = defineQueryOptions((id: number) => ({
+      key: ['item', id],
+      query: async () => ({ id, name: `Item ${id}` }),
+    }))
+
+    const keyId = ref(1)
+    mount(
+      defineComponent({
+        setup() {
+          return { ...useQueryState(() => itemQuery(keyId.value).key) }
+        },
+        template: `<div>{{ data?.name }}</div>`,
+      }),
+      {
+        global: {
+          plugins: [pinia, PiniaColada],
+        },
+      },
+    )
+
+    await nextTick()
+    keyId.value = 2
+    await nextTick()
+
+    expect('useQueryState(setupOptions, paramsGetter) is deprecated').toHaveBeenWarnedTimes(0)
   })
 })

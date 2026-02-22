@@ -1,0 +1,18 @@
+id: migration-piniacolada-usequery-single-function
+language: TypeScript
+rule:
+  any:
+    - pattern: useQuery($SETUP, () => { return $PARAMS })
+    - pattern: useQuery($SETUP, function () { return $PARAMS })
+    - pattern: useQuery($SETUP, () => $PARAMS)
+fix: useQuery(() => $SETUP($PARAMS))
+
+---
+id: migration-piniacolada-usequerystate-single-function
+language: TypeScript
+rule:
+  any:
+    - pattern: useQueryState($SETUP, () => { return $PARAMS })
+    - pattern: useQueryState($SETUP, function () { return $PARAMS })
+    - pattern: useQueryState($SETUP, () => $PARAMS)
+fix: useQueryState(() => $SETUP($PARAMS).key)

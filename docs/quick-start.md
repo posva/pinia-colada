@@ -305,9 +305,8 @@ import ProductItemDetail from '@/components/ProductItemDetail.vue'
 const route = useRoute()
 
 // Pass the defined query options to useQuery
-const { state: product, asyncStatus } = useQuery(
-  productDetailsQuery,
-  () => route.params.id as string,
+const { state: product, asyncStatus } = useQuery(() =>
+  productDetailsQuery(route.params.id as string),
 )
 </script>
 

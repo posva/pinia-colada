@@ -29,7 +29,7 @@ describe('useQueryState type inference', () => {
       query: async () => ({ id, name: `Item ${id}` }),
     }))
 
-    const { data } = useQueryState(itemQuery, () => 1)
+    const { data } = useQueryState(() => itemQuery(1).key)
     expectTypeOf(data.value).toEqualTypeOf<{ id: number; name: string } | undefined>()
   })
 

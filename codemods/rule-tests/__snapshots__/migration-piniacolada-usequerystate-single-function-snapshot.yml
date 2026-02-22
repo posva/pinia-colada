@@ -1,0 +1,37 @@
+id: migration-piniacolada-usequerystate-single-function
+snapshots:
+  'useQueryState(documentDetailsQuery, () => ({ id: route.params.id as string }))':
+    fixed: 'useQueryState(() => documentDetailsQuery(({ id: route.params.id as string })).key)'
+    labels:
+    - source: 'useQueryState(documentDetailsQuery, () => ({ id: route.params.id as string }))'
+      style: primary
+      start: 0
+      end: 78
+  useQueryState(documentDetailsQuery, () => route.params.id):
+    fixed: useQueryState(() => documentDetailsQuery(route.params.id).key)
+    labels:
+    - source: useQueryState(documentDetailsQuery, () => route.params.id)
+      style: primary
+      start: 0
+      end: 58
+  useQueryState(documentDetailsQuery, () => { return route.params.id }):
+    fixed: useQueryState(() => documentDetailsQuery(route.params.id).key)
+    labels:
+    - source: useQueryState(documentDetailsQuery, () => { return route.params.id })
+      style: primary
+      start: 0
+      end: 69
+  'useQueryState(documentDetailsQuery, () => { return { id: route.params.id as string } })':
+    fixed: 'useQueryState(() => documentDetailsQuery({ id: route.params.id as string }).key)'
+    labels:
+    - source: 'useQueryState(documentDetailsQuery, () => { return { id: route.params.id as string } })'
+      style: primary
+      start: 0
+      end: 87
+  useQueryState(documentDetailsQuery, function () { return route.params.id }):
+    fixed: useQueryState(() => documentDetailsQuery(route.params.id).key)
+    labels:
+    - source: useQueryState(documentDetailsQuery, function () { return route.params.id })
+      style: primary
+      start: 0
+      end: 75

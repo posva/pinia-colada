@@ -147,9 +147,11 @@ import { useQuery } from '@pinia/colada'
 import { documentByIdQuery } from '@/queries/documents'
 
 const route = useRoute()
-const { data } = useQuery(documentByIdQuery, () => ({
-  id: route.params.docId as string,
-}))
+const { data } = useQuery(() =>
+  documentByIdQuery({
+    id: route.params.docId as string,
+  }),
+)
 </script>
 ```
 

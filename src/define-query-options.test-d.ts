@@ -25,7 +25,7 @@ describe('typed query keys', () => {
         query: async () => `a:${id}`,
       }))
 
-      const { state: s1, data: d1 } = useQuery(optsDynamic, () => 4)
+      const { state: s1, data: d1 } = useQuery(() => optsDynamic(4))
       expectTypeOf(queryCache.getQueryData(optsDynamic(4).key)).toEqualTypeOf<string | undefined>()
 
       expectTypeOf(d1.value).toEqualTypeOf<string | undefined>()
@@ -36,7 +36,7 @@ describe('typed query keys', () => {
         query: async () => ({ id, name: 'Eduardo' }),
       }))
 
-      const { state: s2, data: d2 } = useQuery(optsDynamic2, () => ({ id: 4 }))
+      const { state: s2, data: d2 } = useQuery(() => optsDynamic2({ id: 4 }))
       expectTypeOf(queryCache.getQueryData(optsDynamic2({}).key)).toEqualTypeOf<
         | {
             id: number
@@ -75,7 +75,7 @@ describe('typed query keys', () => {
         // only allow dynamic properties?
       }))
 
-      useQuery(o, () => 4)
+      useQuery(() => o(4))
       queryCache.getQueryData(o(4).key)
 
       const o2 = defineQueryOptions({
@@ -228,7 +228,7 @@ describe('typed query keys', () => {
         },
       }))
 
-      const { data } = useQuery(docQueryById, () => '2')
+      const { data } = useQuery(() => docQueryById('2'))
       expectTypeOf(data.value).toEqualTypeOf<{ toto: number } | undefined>()
 
       expectTypeOf(queryCache.getQueryData(docQueryById('2').key)).toEqualTypeOf<
@@ -300,7 +300,7 @@ describe('typed query keys', () => {
       const r1 = useQuery(documentsListQuery)
       expectTypeOf(r1).toEqualTypeOf(r0)
 
-      const r2 = useQuery(documentsListQuery, () => ({ page: 2, withComments: true }))
+      const r2 = useQuery(() => documentsListQuery({ page: 2, withComments: true }))
       expectTypeOf(r2.data.value).toEqualTypeOf<
         | {
             page: number

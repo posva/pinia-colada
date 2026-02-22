@@ -296,7 +296,7 @@ const documentByIdQuery = defineQueryOptions(
 )
 ```
 
-To use dynamic query options, pass an extra parameter to `useQuery`:
+To use dynamic query options, pass a single function to `useQuery`:
 
 ```vue{6} twoslash
 <script setup lang="ts">
@@ -305,12 +305,12 @@ import { useRoute } from 'vue-router'
 import { documentByIdQuery } from './queries/documents'
 
 const route = useRoute()
-const { state } = useQuery(documentByIdQuery, () => ({
-  id: route.params.docId as string
-}))
+const { state } = useQuery(() =>
+  documentByIdQuery({
+    id: route.params.docId as string,
+  }),
+)
 </script>
 ```
-
-This second parameter can be a `ref`, a `computed`, or a _getter_ function (just like `key`).
 
 You can also [pass any extra options](./queries.md#Passing-extra-options-defineQueryOptions-) to `useQuery` that will override the ones defined in `defineQueryOptions`.

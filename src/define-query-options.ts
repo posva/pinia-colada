@@ -18,8 +18,8 @@ export interface DefineQueryOptionsTagged<
 /**
  * Define dynamic query options by passing a function that accepts an optional
  * arbitrary parameter and returns the query options. Enables type-safe query
- * keys. Must be passed to {@link useQuery} with or without a getter to
- * retrieve the params.
+ * keys. Pass to {@link useQuery} as a single function:
+ * `useQuery(() => setupOptions(params))`.
  *
  * @param setupOptions - A function that returns the query options.
  */
@@ -35,7 +35,8 @@ export function defineQueryOptions<
 /**
  * Define dynamic query options by passing a function that accepts an arbitrary
  * parameter and returns the query options. Enables type-safe query keys.
- * Must be passed to {@link useQuery} alongside a getter for the params.
+ * Pass to {@link useQuery} as a single function:
+ * `useQuery(() => setupOptions(params))`.
  *
  * @param setupOptions - A function that returns the query options.
  */

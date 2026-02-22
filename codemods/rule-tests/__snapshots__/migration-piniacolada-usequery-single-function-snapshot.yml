@@ -1,0 +1,37 @@
+id: migration-piniacolada-usequery-single-function
+snapshots:
+  'useQuery(documentDetailsQuery, () => ({ id: route.params.id as string }))':
+    fixed: 'useQuery(() => documentDetailsQuery(({ id: route.params.id as string })))'
+    labels:
+    - source: 'useQuery(documentDetailsQuery, () => ({ id: route.params.id as string }))'
+      style: primary
+      start: 0
+      end: 73
+  useQuery(documentDetailsQuery, () => route.params.id):
+    fixed: useQuery(() => documentDetailsQuery(route.params.id))
+    labels:
+    - source: useQuery(documentDetailsQuery, () => route.params.id)
+      style: primary
+      start: 0
+      end: 53
+  useQuery(documentDetailsQuery, () => { return route.params.id }):
+    fixed: useQuery(() => documentDetailsQuery(route.params.id))
+    labels:
+    - source: useQuery(documentDetailsQuery, () => { return route.params.id })
+      style: primary
+      start: 0
+      end: 64
+  'useQuery(documentDetailsQuery, () => { return { id: route.params.id as string } })':
+    fixed: 'useQuery(() => documentDetailsQuery({ id: route.params.id as string }))'
+    labels:
+    - source: 'useQuery(documentDetailsQuery, () => { return { id: route.params.id as string } })'
+      style: primary
+      start: 0
+      end: 82
+  useQuery(documentDetailsQuery, function () { return route.params.id }):
+    fixed: useQuery(() => documentDetailsQuery(route.params.id))
+    labels:
+    - source: useQuery(documentDetailsQuery, function () { return route.params.id })
+      style: primary
+      start: 0
+      end: 70

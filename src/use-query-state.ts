@@ -7,6 +7,7 @@ import type { AsyncStatus, DataState, DataStateStatus } from './data-state'
 import type { ErrorDefault } from './types-extension'
 import type { DefineQueryOptions } from './define-query'
 import type { defineQueryOptions } from './define-query-options'
+import { warnOnce } from './utils'
 
 /**
  * Return type for the {@link useQueryState} composable.
@@ -83,6 +84,10 @@ export function useQueryState<
  * @see {@link DefineQueryOptions}
  * @see {@link defineQueryOptions}
  */
+/**
+ * @deprecated Pass a single function instead:
+ * `useQueryState(() => setupOptions(toValue(paramsGetter)).key)`.
+ */
 export function useQueryState<Params, TData, TError, TDataInitial extends TData | undefined>(
   setupOptions: (params: Params) => DefineQueryOptions<TData, TError, TDataInitial>,
   paramsGetter: MaybeRefOrGetter<NoInfer<Params>>,
@@ -112,6 +117,13 @@ export function useQueryState<
         paramsGetter?: MaybeRefOrGetter<unknown>,
       ]
 ): UseQueryStateReturn<TData, TError, TDataInitial> {
+  if (paramsGetter != null && process.env.NODE_ENV !== 'production') {
+    warnOnce(
+      'useQueryState(setupOptions, paramsGetter) is deprecated. Use useQueryState(() => setupOptions(toValue(paramsGetter)).key) instead. You can migrate most callsites with codemods/rules/migration-0-21-to-1-0.yaml.',
+      'use-query-state-second-arg-deprecated',
+    )
+  }
+
   const queryCache = useQueryCache()
 
   const key = paramsGetter

@@ -11,7 +11,7 @@ import {
   toValue,
   watch,
 } from 'vue'
-import { IS_CLIENT, useEventListener } from './utils'
+import { IS_CLIENT, useEventListener, warnOnce } from './utils'
 import type { UseQueryEntry, UseQueryEntryExtensions } from './query-store'
 import { currentDefineQueryEntry, isEntryUsingPlaceholderData, useQueryCache } from './query-store'
 import { useQueryOptions } from './query-options'
@@ -132,10 +132,14 @@ export function useQuery<
  *   query: () => fetchDocument(id),
  * }))
  *
- * useQuery(documentDetailsQuery, 4)
- * useQuery(documentDetailsQuery, () => route.params.id)
- * useQuery(documentDetailsQuery, () => props.id)
+ * useQuery(() => documentDetailsQuery(4))
+ * useQuery(() => documentDetailsQuery(route.params.id))
+ * useQuery(() => documentDetailsQuery(props.id))
  * ```
+ */
+/**
+ * @deprecated Pass a single function instead:
+ * `useQuery(() => setupOptions(toValue(paramsGetter)))`.
  */
 export function useQuery<Params, TData, TError, TDataInitial extends TData | undefined>(
   setupOptions: (params: Params) => DefineQueryOptions<TData, TError, TDataInitial>,
@@ -170,6 +174,12 @@ export function useQuery<
 // paramsGetter?: MaybeRefOrGetter<unknown>,
 : UseQueryReturn<TData, TError, TDataInitial> {
   if (paramsGetter != null) {
+    if (process.env.NODE_ENV !== 'production') {
+      warnOnce(
+        'useQuery(setupOptions, paramsGetter) is deprecated. Use useQuery(() => setupOptions(toValue(paramsGetter))) instead. You can migrate most callsites with codemods/rules/migration-0-21-to-1-0.yaml.',
+        'use-query-second-arg-deprecated',
+      )
+    }
     return useQuery(() =>
       // NOTE: we manually type cast here because TS cannot infer correctly in overloads
       (_options as (params: unknown) => DefineQueryOptions<TData, TError, TDataInitial>)(

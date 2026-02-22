@@ -20,7 +20,7 @@ const queryCache = useQueryCache()
 //   query: ({ signal }) => getContactById(route.params.id, { signal }),
 // })
 
-const { data: contact, error, asyncStatus } = useQuery(contactByIdQuery, () => route.params.id)
+const { data: contact, error, asyncStatus } = useQuery(() => contactByIdQuery(route.params.id))
 
 const { mutate: updateContact } = useMutation({
   mutation: (contact: Partial<Contact> & { id: number }) => _updateContact(contact),

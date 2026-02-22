@@ -1,0 +1,26 @@
+id: migration-piniacolada-usequery-single-function
+invalid:
+  - 'useQuery(documentDetailsQuery, () => route.params.id)'
+  - 'useQuery(documentDetailsQuery, () => ({ id: route.params.id as string }))'
+  - 'useQuery(documentDetailsQuery, () => { return route.params.id })'
+  - 'useQuery(documentDetailsQuery, function () { return route.params.id })'
+  - 'useQuery(documentDetailsQuery, () => { return { id: route.params.id as string } })'
+vaild:
+  - 'useQuery(() => documentDetailsQuery(route.params.id))'
+  - 'useQuery(() => documentDetailsQuery({ id: route.params.id as string }))'
+  - 'useQuery(documentDetailsQuery, () => { sideEffect() })'
+  - 'useQuery(documentDetailsQuery, function () { sideEffect() })'
+
+---
+id: migration-piniacolada-usequerystate-single-function
+invalid:
+  - 'useQueryState(documentDetailsQuery, () => route.params.id)'
+  - 'useQueryState(documentDetailsQuery, () => ({ id: route.params.id as string }))'
+  - 'useQueryState(documentDetailsQuery, () => { return route.params.id })'
+  - 'useQueryState(documentDetailsQuery, function () { return route.params.id })'
+  - 'useQueryState(documentDetailsQuery, () => { return { id: route.params.id as string } })'
+vaild:
+  - 'useQueryState(() => documentDetailsQuery(route.params.id).key)'
+  - 'useQueryState(() => documentDetailsQuery({ id: route.params.id as string }).key)'
+  - 'useQueryState(documentDetailsQuery, () => { sideEffect() })'
+  - 'useQueryState(documentDetailsQuery, function () { sideEffect() })'
