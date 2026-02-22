@@ -1,4 +1,7 @@
 {
   "extends": "../tsconfig.plugin-base.json",
+  "compilerOptions": {
+    "declarationDir": "./.tsc-types"
+  },
   "include": ["src/**/*"]
 }
