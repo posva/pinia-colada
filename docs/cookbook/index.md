@@ -5,3 +5,4 @@
 - [Query Hooks](./query-hooks.md)
 - [Testing](./testing.md)
 - [Migrating from `@tanstack/vue-query` to `@pinia/colada`](./migration-tvq.md)
+- [Migration Codemods](./migrations.md)

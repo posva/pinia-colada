@@ -281,6 +281,7 @@ On top of that Pinia Colada is highly extensible. You can create your own plugin
             { text: 'Cache Persistence', link: '/cookbook/cache-persistence.html' },
             { text: 'Testing', link: '/cookbook/testing.html' },
             { text: 'Migrating from Tanstack Query', link: '/cookbook/migration-tvq.html' },
+            { text: 'Migration Codemods', link: '/cookbook/migrations.html' },
           ],
         },
       ],
