@@ -76,7 +76,7 @@ By default, the devtools are stripped off in production builds. Use the `<PiniaC
 
 ## Plugins
 
-Pinia Colada comes with a few plugins that you can use to enhance Pinia Colada's functionality:
+Pinia Colada comes with [a few plugins](../plugins/index.md) that you can use to enhance Pinia Colada's functionality. Here is an example that adds global query hooks:
 
 ```ts twoslash
 import { createApp } from 'vue'
@@ -99,4 +99,4 @@ app.use(PiniaColada, {
 })
 ```
 
-Other plugins must be installed separately (e.g. [Retries](https://github.com/posva/pinia-colada/tree/main/plugins/retry), [Loading delay](https://github.com/posva/pinia-colada/tree/main/plugins/delay), [Auto refetch](https://github.com/posva/pinia-colada/tree/main/plugins/auto-refetch)) and can also be created directly in your project for any custom behavior like offline, cache normalization, etc.
+Other plugins must be installed separately (e.g. [Retries](https://github.com/posva/pinia-colada/tree/main/plugins/retry), [Loading delay](https://github.com/posva/pinia-colada/tree/main/plugins/delay), [Auto refetch](https://github.com/posva/pinia-colada/tree/main/plugins/auto-refetch)) and can also be created directly in your project for any custom behavior like offline, cache normalization, etc. See the [plugins documentation](../plugins/index.md) for more details.
