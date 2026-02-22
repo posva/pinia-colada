@@ -9,6 +9,23 @@
 
 - pass previousEntry in placeholderData ([14e8d86](https://github.com/posva/pinia-colada/commit/14e8d8648651ecbe1f334c0120d8f9c770f109bd)), closes [#512](https://github.com/posva/pinia-colada/issues/512)
 
+### Deprecations
+
+- The two-parameter form of `useQuery(setup, () => params)` and `useQueryState(setup, () => params)` is deprecated. Use a single function parameter instead:
+
+  ```diff
+  - useQuery(useContactList, () => ({ search: search.value }))
+  + useQuery(() => useContactList({ search: search.value }))
+  ```
+
+  A codemod is available to automate this migration. Commit your changes first, then run:
+
+  ```sh
+  pnpm --package=@ast-grep/cli dlx ast-grep scan -r node_modules/@pinia/colada/codemods/rules/migration-0-21-to-1-0.yaml -i src
+  ```
+
+  See [Migration Codemods](/cookbook/migrations.html) for details.
+
 ## [0.21.4](https://github.com/posva/pinia-colada/compare/v0.21.3...v0.21.4) (2026-02-09)
 
 ### Features
