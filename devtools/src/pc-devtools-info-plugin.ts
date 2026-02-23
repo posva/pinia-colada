@@ -3,7 +3,7 @@
  *
  */
 import type { QueryCache, UseQueryEntry, MutationCache, UseMutationEntry } from '@pinia/colada'
-import { toValue } from 'vue'
+import { isRef, toValue } from 'vue'
 import { DEVTOOLS_INFO_KEY } from '@pinia/colada-devtools/shared'
 import type {
   UseQueryEntryHistoryEntry,
@@ -182,6 +182,9 @@ export function createQueryEntryPayload(entry: UseQueryEntry): UseQueryEntryPayl
     gcTimeout: typeof entry.gcTimeout === 'number' ? (entry.gcTimeout as number) : null,
 
     devtools: entry[DEVTOOLS_INFO_KEY],
+    plugins: Object.fromEntries(
+      Object.entries(entry.ext).filter(([, v]) => v !== null && typeof v === 'object' && !isRef(v)),
+    ),
   }
 }
 

@@ -13,6 +13,7 @@ import ICircleX from '~icons/lucide/circle-x'
 import IBraces from '~icons/lucide/braces'
 import IHistory from '~icons/lucide/history'
 import ISigmaSquare from '~icons/lucide/sigma-square'
+import IPlugZap from '~icons/lucide/plug-zap'
 import { useTimeAgo, formatTimeAgo, useLocalStorage } from '@vueuse/core'
 import type { FormatTimeAgoOptions } from '@vueuse/core'
 
@@ -200,6 +201,26 @@ const handleValueUpdate = (path: Array<string | number>, value: unknown) => {
               }}</span>
             </template>
           </p>
+        </div>
+      </UCollapse>
+
+      <UCollapse
+        v-if="Object.keys(selectedQuery.plugins).length"
+        title="Plugins"
+        :icon="IPlugZap"
+        :open="true"
+      >
+        <div class="py-1 space-y-1">
+          <UCollapse
+            v-for="(data, name) in selectedQuery.plugins"
+            :key="name"
+            :title="String(name)"
+            :open="true"
+            no-padding
+            class="rounded border border-(--ui-border) overflow-hidden"
+          >
+            <JsonViewer :data="data" readonly />
+          </UCollapse>
         </div>
       </UCollapse>
 

@@ -16,6 +16,7 @@ export interface UseQueryEntryPayload {
   gcTimeout: number | null
 
   devtools: UseQueryEntry[typeof DEVTOOLS_INFO_KEY]
+  plugins: Record<string, unknown>
 }
 
 export interface UseQueryEntryPayloadDepComponent {

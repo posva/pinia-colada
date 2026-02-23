@@ -81,6 +81,9 @@ export function PiniaColadaRetry(
           entry.ext.retryCount = shallowRef(0)
           entry.ext.retryError = shallowRef(null)
         })
+        if (process.env.NODE_ENV === 'development') {
+          entry.ext.retry = { isRetrying: false, retryCount: 0, retryError: null as unknown }
+        }
         return
       }
 
@@ -122,6 +125,11 @@ export function PiniaColadaRetry(
         queryEntry.ext.isRetrying.value = false
         queryEntry.ext.retryCount.value = 0
         queryEntry.ext.retryError.value = null
+        if (process.env.NODE_ENV === 'development' && queryEntry.ext.retry) {
+          queryEntry.ext.retry.isRetrying = false
+          queryEntry.ext.retry.retryCount = 0
+          queryEntry.ext.retry.retryError = null
+        }
       }
 
       // capture state before the fetch runs so we can revert during retries
@@ -144,6 +152,11 @@ export function PiniaColadaRetry(
             queryEntry.ext.isRetrying.value = true
             queryEntry.ext.retryCount.value = entry.retryCount + 1
             queryEntry.ext.retryError.value = error
+            if (process.env.NODE_ENV === 'development' && queryEntry.ext.retry) {
+              queryEntry.ext.retry.isRetrying = true
+              queryEntry.ext.retry.retryCount = entry.retryCount + 1
+              queryEntry.ext.retry.retryError = error
+            }
             // revert to pre-fetch state so the error is only visible via retryError
             queryEntry.state.value = previousState
             const delayTime = typeof delay === 'function' ? delay(entry.retryCount) : delay
@@ -153,6 +166,11 @@ export function PiniaColadaRetry(
                 queryEntry.ext.isRetrying.value = false
                 queryEntry.ext.retryCount.value = 0
                 queryEntry.ext.retryError.value = null
+                if (process.env.NODE_ENV === 'development' && queryEntry.ext.retry) {
+                  queryEntry.ext.retry.isRetrying = false
+                  queryEntry.ext.retry.retryCount = 0
+                  queryEntry.ext.retry.retryError = null
+                }
                 return
               }
               // NOTE: we could add some default error handler
@@ -170,6 +188,10 @@ export function PiniaColadaRetry(
             queryEntry.ext.isRetrying.value = false
             queryEntry.ext.retryError.value = null
             retryMap.delete(key)
+            if (process.env.NODE_ENV === 'development' && queryEntry.ext.retry) {
+              queryEntry.ext.retry.isRetrying = false
+              queryEntry.ext.retry.retryError = null
+            }
           }
         } else {
           // remove the entry if it worked out to reset it
@@ -177,6 +199,11 @@ export function PiniaColadaRetry(
           queryEntry.ext.retryCount.value = 0
           queryEntry.ext.retryError.value = null
           retryMap.delete(key)
+          if (process.env.NODE_ENV === 'development' && queryEntry.ext.retry) {
+            queryEntry.ext.retry.isRetrying = false
+            queryEntry.ext.retry.retryCount = 0
+            queryEntry.ext.retry.retryError = null
+          }
         }
       }
       onError(retryFetch)
@@ -210,5 +237,9 @@ declare module '@pinia/colada' {
      * Requires the `@pinia/colada-plugin-retry` plugin.
      */
     retryError: ShallowRef<TError | null>
+    /**
+     * Plain object with retry state for devtools. Only present in development mode.
+     */
+    retry?: { isRetrying: boolean; retryCount: number; retryError: unknown }
   }
 }
