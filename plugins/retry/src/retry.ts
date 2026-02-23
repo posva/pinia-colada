@@ -46,14 +46,14 @@ const RETRY_OPTIONS_DEFAULTS = {
     )
     if (process.env.NODE_ENV === 'development') {
       // oxlint-disable-next-line no-console
-      console.log(`⏲️ delaying attempt #${attempt + 1} by ${time}ms`)
+      console.debug(`⏲️ delaying attempt #${attempt + 1} by ${time}ms`)
     }
     return time
   },
   retry: (count) => {
     if (process.env.NODE_ENV === 'development') {
       // oxlint-disable-next-line no-console
-      console.log(`🔄 Retrying ${'🟨'.repeat(count + 1)}${'⬜️'.repeat(2 - count)}`)
+      console.debug(`🔄 Retrying ${'🟨'.repeat(count + 1)}${'⬜️'.repeat(2 - count)}`)
     }
     return count < 2
   },
