@@ -67,7 +67,7 @@
     "prepare": "simple-git-hooks"
   },
   "devDependencies": {
-    "@ast-grep/cli": "^0.40.5",
+    "@ast-grep/cli": "^0.41.0",
     "@pinia/colada": "workspace:*",
     "@posva/prompts": "^2.4.4",
     "@posva/test-utils": "workspace:*",
@@ -146,11 +146,11 @@
       ]
     }
   ],
-  "packageManager": "pnpm@10.30.0",
+  "packageManager": "pnpm@10.30.1",
   "pnpm": {
     "overrides": {
       "twoslash-vue": "0.3.6",
-      "vue-router": "^5.0.2"
+      "vue-router": "^5.0.3"
     },
     "onlyBuiltDependencies": [
       "@ast-grep/cli",
