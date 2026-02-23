@@ -4,6 +4,7 @@ import { createApp } from 'vue'
 // import { routes } from 'vue-router/auto-routes'
 import { createPinia, getActivePinia } from 'pinia'
 import { hydrateQueryCache, PiniaColada, useMutationCache, useQueryCache } from '@pinia/colada'
+import { PiniaColadaRetry } from '@pinia/colada-plugin-retry'
 import { createRouter, createWebHistory } from 'vue-router'
 import './style.css'
 import 'water.css'
@@ -13,6 +14,7 @@ app.provide('test', 'IT WORKS!')
 app.use(createPinia())
 app.use(PiniaColada, {
   queryOptions: {},
+  plugins: [PiniaColadaRetry({})],
 })
 
 // simulate SSR
