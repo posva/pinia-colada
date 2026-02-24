@@ -359,7 +359,11 @@ async function main() {
   }
 
   step('\nPushing to Github...')
-  await runIfNotDry('git', ['push', 'origin', ...versionsToPush])
+  // NOTE: push tags one by one, GitHub silently skips push events when >3
+  // tags are pushed in a single command, so CI workflows would never trigger.
+  for (const tag of versionsToPush) {
+    await runIfNotDry('git', ['push', 'origin', tag])
+  }
   await runIfNotDry('git', ['push'])
 }
 
