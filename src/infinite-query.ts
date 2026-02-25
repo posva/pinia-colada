@@ -1,4 +1,4 @@
-import { computed, ref, toValue, type Ref } from 'vue'
+import { computed, shallowRef, toValue, type ShallowRef } from 'vue'
 import type { UseQueryFnContext, UseQueryOptions } from './query-options'
 import { useQuery } from './use-query'
 import type { UseQueryReturn } from './use-query'
@@ -135,7 +135,7 @@ export interface UseInfiniteQueryReturn<
    * Whether there is a next page to load. Defined based on the result of
    * {@link UseInfiniteQueryOptions.getNextPageParam}.
    */
-  hasNextPage: Ref<boolean>
+  hasNextPage: ShallowRef<boolean>
 
   /**
    * Load the next page of data.
@@ -146,7 +146,7 @@ export interface UseInfiniteQueryReturn<
    * Whether there is a previous page to load. Defined based on the result of
    * {@link UseInfiniteQueryOptions.getPreviousPageParam}.
    */
-  hasPreviousPage: Ref<boolean>
+  hasPreviousPage: ShallowRef<boolean>
 
   /**
    * Load the previous page of data.
@@ -183,9 +183,9 @@ export function useInfiniteQuery<
   let nextPage: NextPageIndicator = 0
   // initially, we don't know if there is a next or previous page
   // this must be computed based on the entry
-  const nextPageParam = ref<TPageParam | null | undefined>()
+  const nextPageParam = shallowRef<TPageParam | null | undefined>()
   const hasNextPage = computed(() => nextPageParam.value != null)
-  const previousPageParam = ref<TPageParam | null | undefined>()
+  const previousPageParam = shallowRef<TPageParam | null | undefined>()
   const hasPreviousPage = computed(() => previousPageParam.value != null)
   let entry:
     | UseQueryEntry<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>
