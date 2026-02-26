@@ -3,8 +3,8 @@
 </p>
 <br/>
 <p align="center">
-  <a href="https://npmjs.com/package/@pinia/colada">
-    <img src="https://badgen.net/npm/v/@pinia/colada/latest" alt="npm package">
+  <a href="https://npmx.dev/package/@pinia/colada">
+    <img src="https://badgen.net/npm/v/@pinia/colada" alt="npm package">
   </a>
   <a href="https://github.com/posva/pinia-colada/actions/workflows/ci.yml">
     <img src="https://github.com/posva/pinia-colada/actions/workflows/ci.yml/badge.svg" alt="build status">
