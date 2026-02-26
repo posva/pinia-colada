@@ -21,3 +21,4 @@ docs/api
 .osgrep
 ralph.sh
 .tsc-types
+.cursor
