@@ -1,3 +1,10 @@
+## [0.2.3](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-retry@0.2.2...@pinia/colada-plugin-retry@0.2.3) (2026-02-26)
+
+### Features
+
+- **devtools:** surface retry plugin info in devtools plugins panel ([23822d0](https://github.com/posva/pinia-colada/commit/23822d0ddd5a1cf936ac4885c2a88de28c98133b))
+- use debug instead of log ([50a41ad](https://github.com/posva/pinia-colada/commit/50a41ad4789a9d41b52f9841ef99e2020c4911dc))
+
 ## [0.2.2](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-retry@0.2.1...@pinia/colada-plugin-retry@0.2.2) (2026-02-22)
 
 ### Bug Fixes

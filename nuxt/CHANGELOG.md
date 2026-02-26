@@ -1,3 +1,9 @@
+## [0.3.2](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.3.1...@pinia/colada-nuxt@0.3.2) (2026-02-26)
+
+### Bug Fixes
+
+- **ssr:** prevent memory leak ([#514](https://github.com/posva/pinia-colada/issues/514)) ([9fd9baa](https://github.com/posva/pinia-colada/commit/9fd9baa30f9e485a8ef6c2aaa08bd34192e5b382))
+
 ## [0.3.1](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.3.0...@pinia/colada-nuxt@0.3.1) (2026-01-20)
 
 ### Features

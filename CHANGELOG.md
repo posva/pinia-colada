@@ -1,3 +1,14 @@
+## [0.21.6](https://github.com/posva/pinia-colada/compare/v0.21.5...v0.21.6) (2026-02-26)
+
+### Bug Fixes
+
+- **infinite:** allow initial null page ([00e4ed1](https://github.com/posva/pinia-colada/commit/00e4ed142a75cf0b8b4566db42533b8c8f87d3c6)), closes [#518](https://github.com/posva/pinia-colada/issues/518) [#519](https://github.com/posva/pinia-colada/issues/519)
+- **infinite:** ensure page params are attached to entries ([e43b3fd](https://github.com/posva/pinia-colada/commit/e43b3fd713dd4d4e8d6103c51942cef7a0e97f85)), closes [#517](https://github.com/posva/pinia-colada/issues/517)
+
+### Performance Improvements
+
+- use shallowRef ([3f8235b](https://github.com/posva/pinia-colada/commit/3f8235b07c22bc313e6229787ec7d2f8f6ddae78))
+
 ## [0.21.5](https://github.com/posva/pinia-colada/compare/v0.21.4...v0.21.5) (2026-02-22)
 
 ### Bug Fixes

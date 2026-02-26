@@ -1,3 +1,13 @@
+## [0.4.4](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.4.3...@pinia/colada-devtools@0.4.4) (2026-02-26)
+
+### Bug Fixes
+
+- clamp devtools height to minimum when reading from localStorage ([#521](https://github.com/posva/pinia-colada/issues/521)) ([7f0b82a](https://github.com/posva/pinia-colada/commit/7f0b82a31e09014e92fcfae07d327bbcce0593a5))
+
+### Features
+
+- **devtools:** surface retry plugin info in devtools plugins panel ([23822d0](https://github.com/posva/pinia-colada/commit/23822d0ddd5a1cf936ac4885c2a88de28c98133b))
+
 ## [0.4.3](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.4.2...@pinia/colada-devtools@0.4.3) (2026-02-22)
 
 ### Features
