@@ -17,8 +17,8 @@ const colorTheme = computed(() => {
 
 const pipContainerHeight = useLocalStorage('pinia-colada-devtools-pip-container-height', 400)
 
-// ensure the height it less than 80% of the screen height
-pipContainerHeight.value = Math.min(pipContainerHeight.value, window.innerHeight * 0.8)
+// ensure the height is between 20% and 80% of the screen height
+pipContainerHeight.value = Math.min(Math.max(pipContainerHeight.value, window.innerHeight * 0.2), window.innerHeight * 0.8)
 
 // TODO: refactor into CSS v-bind
 const containerStyle = computed(() => ({ height: `${pipContainerHeight.value}px` }))
