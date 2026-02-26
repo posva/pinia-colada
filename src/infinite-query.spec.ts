@@ -701,6 +701,46 @@ describe('useInfiniteQuery', () => {
     expect(wrapper.vm.hasNextPage).toBe(false)
   })
 
+  it('works when initialPageParam is null (cursor-based pagination)', async () => {
+    const pages: Record<string, string[]> = {
+      __initial__: ['a', 'b', 'c'],
+      cursor1: ['d', 'e', 'f'],
+    }
+
+    const { wrapper } = mountSimple<string[], Error, string | null>({
+      initialPageParam: null,
+      query: vi.fn(async ({ pageParam }) => {
+        return pages[pageParam ?? '__initial__'] ?? []
+      }),
+      getNextPageParam: (_lastPage, _allPages, lastPageParam) => {
+        // null (initial) -> cursor1 -> done
+        if (lastPageParam === null) return 'cursor1'
+        return undefined
+      },
+      getPreviousPageParam: () => null,
+    })
+
+    await flushPromises()
+
+    // First page loaded, next page available
+    expect(wrapper.vm.data).toEqual({
+      pages: [['a', 'b', 'c']],
+      pageParams: [null],
+    })
+    expect(wrapper.vm.hasNextPage).toBe(true)
+
+    // Load second page
+    await wrapper.vm.loadNextPage()
+    expect(wrapper.vm.data).toEqual({
+      pages: [
+        ['a', 'b', 'c'],
+        ['d', 'e', 'f'],
+      ],
+      pageParams: [null, 'cursor1'],
+    })
+    expect(wrapper.vm.hasNextPage).toBe(false)
+  })
+
   it('does not call the query if getNextPageParam returns null on initial fetch', async () => {
     const { wrapper, query } = mountSimple({
       getNextPageParam: () => {
