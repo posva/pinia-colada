@@ -1164,6 +1164,10 @@ describe('useInfiniteQuery', () => {
       serverApp.use(serverPinia)
       const serverQC = useQueryCache(serverPinia)
       serverQC.setQueryData(key, data)
+      serverQC.getEntries({ key }).forEach((entry) => {
+        // mark as infinite query for hydration
+        entry.meta.__i = true
+      })
 
       // Serialize (as Nuxt does in app:rendered hook)
       const serialized = serializeQueryCache(serverQC)
@@ -1179,6 +1183,7 @@ describe('useInfiniteQuery', () => {
           { pages: [[1, 2, 3]], pageParams: [0] },
           null,
           0,
+          { __i: true },
         ],
       })
 
@@ -1204,7 +1209,7 @@ describe('useInfiniteQuery', () => {
 
     it('hasNextPage is false after hydration when no more pages are available', async () => {
       const pinia = createPiniawithHydratedCache({
-        '["key"]': [{ pages: [[10, 11, 12]], pageParams: [3] }, null, 0],
+        '["key"]': [{ pages: [[10, 11, 12]], pageParams: [3] }, null, 0, { __i: true }],
       })
 
       const { wrapper } = mountSimple(
@@ -1229,7 +1234,7 @@ describe('useInfiniteQuery', () => {
 
     it('hasPreviousPage is true after hydration when previous pages are available', async () => {
       const pinia = createPiniawithHydratedCache({
-        '["key"]': [{ pages: [[4, 5, 6]], pageParams: [1] }, null, 0],
+        '["key"]': [{ pages: [[4, 5, 6]], pageParams: [1] }, null, 0, { __i: true }],
       })
 
       const { wrapper } = mountSimple(
@@ -1254,7 +1259,7 @@ describe('useInfiniteQuery', () => {
 
     it('can loadNextPage after hydration', async () => {
       const pinia = createPiniawithHydratedCache({
-        '["key"]': [{ pages: [[1, 2, 3]], pageParams: [0] }, null, 0],
+        '["key"]': [{ pages: [[1, 2, 3]], pageParams: [0] }, null, 0, { __i: true }],
       })
 
       const { wrapper } = mountSimple(
@@ -1282,7 +1287,7 @@ describe('useInfiniteQuery', () => {
 
     it('avoids refetching if hydrated data is fresh', async () => {
       const pinia = createPiniawithHydratedCache({
-        '["key"]': [{ pages: [[1, 2, 3]], pageParams: [0] }, null, 0],
+        '["key"]': [{ pages: [[1, 2, 3]], pageParams: [0] }, null, 0, { __i: true }],
       })
 
       const { wrapper, query } = mountSimple(
@@ -1317,6 +1322,7 @@ describe('useInfiniteQuery', () => {
           },
           null,
           0,
+          { __i: true },
         ],
       })
 
@@ -1369,7 +1375,7 @@ describe('useInfiniteQuery', () => {
 
     it('hasNextPage remains correct after hydration and stale data refetch', async () => {
       const pinia = createPiniawithHydratedCache({
-        '["key"]': [{ pages: [[1, 2, 3]], pageParams: [0] }, null, 0],
+        '["key"]': [{ pages: [[1, 2, 3]], pageParams: [0] }, null, 0, { __i: true }],
       })
 
       const { wrapper, query } = mountSimple(
@@ -1397,7 +1403,7 @@ describe('useInfiniteQuery', () => {
 
     it('hasNextPage is true after hydration with query disabled on client', async () => {
       const pinia = createPiniawithHydratedCache({
-        '["key"]': [{ pages: [[1, 2, 3]], pageParams: [0] }, null, 0],
+        '["key"]': [{ pages: [[1, 2, 3]], pageParams: [0] }, null, 0, { __i: true }],
       })
 
       const { wrapper, query } = mountSimple(
@@ -1460,5 +1466,60 @@ describe('useInfiniteQuery', () => {
 
     expect(query).toHaveBeenCalledTimes(3)
     expect(query).toHaveBeenLastCalledWith(expect.objectContaining({ pageParam: 0 }))
+  })
+
+  it('does not lose hasNextPage when a stale key resolves after switching back', async () => {
+    const keyRef = ref(1)
+    let resolveKey0: (value: number[]) => void
+
+    const query = vi.fn(
+      async ({
+        pageParam,
+      }: UseInfiniteQueryFnContext<
+        UseInfiniteQueryData<unknown, number>,
+        Error,
+        undefined,
+        number
+      >) => {
+        // key=0 is slow
+        if (keyRef.value === 0) {
+          return new Promise<number[]>((resolve) => {
+            resolveKey0 = resolve
+          })
+        }
+        // key=1 resolves immediately with data that has more pages
+        return [pageParam * 3 + 1, pageParam * 3 + 2, pageParam * 3 + 3]
+      },
+    )
+
+    const { wrapper } = mountSimple({
+      key: () => ['key', keyRef.value],
+      query,
+      getNextPageParam(_lastPage, _allPages, lastPageParam) {
+        // key=1 always has next; key=0 does not
+        if (keyRef.value === 1) return lastPageParam + 1
+        return null
+      },
+    })
+
+    // 1. key=1 fetches and resolves — has more pages
+    await flushPromises()
+    expect(wrapper.vm.hasNextPage).toBe(true)
+
+    // 2. Switch to key=0 — starts slow fetch
+    keyRef.value = 0
+    await flushPromises()
+
+    // 3. Switch back to key=1 — cached, no re-fetch
+    keyRef.value = 1
+    await flushPromises()
+    expect(wrapper.vm.hasNextPage).toBe(true)
+
+    // 4. key=0's slow fetch resolves (no more pages for key=0)
+    resolveKey0!([100])
+    await flushPromises()
+
+    // 5. hasNextPage should still be true because active key is 1
+    expect(wrapper.vm.hasNextPage).toBe(true)
   })
 })

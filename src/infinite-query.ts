@@ -1,9 +1,9 @@
-import { computed, shallowRef, toValue, type ShallowRef } from 'vue'
+import { computed, type EffectScope, shallowRef, toValue, type ShallowRef } from 'vue'
 import type { UseQueryFnContext, UseQueryOptions } from './query-options'
 import { useQuery } from './use-query'
 import type { UseQueryReturn } from './use-query'
 import type { ErrorDefault } from './types-extension'
-import { useQueryCache, type UseQueryEntry } from './query-store'
+import { useQueryCache, type QueryCache, type UseQueryEntry } from './query-store'
 import { noop } from './utils'
 
 /**
@@ -164,6 +164,86 @@ export interface UseInfiniteQueryReturn<
 type NextPageIndicator = 0 | 1 | -1
 
 /**
+ * Extensions added to the query entry for infinite queries. These are used to
+ * store the next and previous page parameters and whether there are next or
+ * previous pages. They are created in the cache when the entry is created and
+ * updated when the query is fetched.
+ */
+type UseInfiniteQueryExtensions<TPageParam> = Pick<
+  UseInfiniteQueryReturn,
+  'hasNextPage' | 'hasPreviousPage'
+> & {
+  /**
+   * The next page parameter, computed based on the last page and all pages fetched
+   *
+   * @internal
+   */
+  nextPageParam: ShallowRef<TPageParam | null | undefined>
+
+  /**
+   * The previous page parameter, computed based on the first page and all pages fetched
+   *
+   * @internal
+   */
+  previousPageParam: ShallowRef<TPageParam | null | undefined>
+}
+
+/**
+ * Type guard to check if a query entry is an infinite query entry.
+ *
+ * @param entry - The query entry to check.
+ *
+ * @internal
+ */
+function isInfiniteQueryEntry(
+  entry: UseQueryEntry<unknown, unknown, unknown>,
+): entry is UseQueryEntry<UseInfiniteQueryData<unknown, unknown>, unknown, any> & {
+  ext: UseInfiniteQueryExtensions<unknown>
+} {
+  return !!entry.meta.__i
+}
+
+const installedMap = new WeakMap()
+function PiniaColadaInfiniteQueryPlugin(scope: EffectScope, queryCache: QueryCache) {
+  if (!installedMap.has(queryCache)) {
+    queryCache.$onAction(({ name, args }) => {
+      if (name === 'extend') {
+        const [entry] = args
+        if (isInfiniteQueryEntry(entry)) {
+          scope.run(() => {
+            const nextPageParam = shallowRef<unknown | null | undefined>()
+            const hasNextPage = computed(() => nextPageParam.value != null)
+            const previousPageParam = shallowRef<unknown | null | undefined>()
+            const hasPreviousPage = computed(() => previousPageParam.value != null)
+
+            entry.ext.nextPageParam = nextPageParam
+            entry.ext.hasNextPage = hasNextPage
+            entry.ext.previousPageParam = previousPageParam
+            entry.ext.hasPreviousPage = hasPreviousPage
+          })
+        }
+      }
+    })
+
+    installedMap.set(queryCache, true)
+  }
+}
+
+/**
+ * Creates the extensions for an infinite query entry. These are used to store the
+ * next and previous page parameters and whether there are next or previous pages.
+ *
+ * @param extensions - The extensions object to create.
+ * @internal
+ */
+function createInfiniteQueryEntryExtensions(extensions: UseInfiniteQueryExtensions<unknown>): void {
+  extensions.nextPageParam = shallowRef<unknown | null | undefined>()
+  extensions.hasNextPage = computed(() => extensions.nextPageParam.value != null)
+  extensions.previousPageParam = shallowRef<unknown | null | undefined>()
+  extensions.hasPreviousPage = computed(() => extensions.previousPageParam.value != null)
+}
+
+/**
  * Store and merge paginated data into a single cache entry. Allows to handle
  * infinite scrolling.
  *
@@ -179,14 +259,11 @@ export function useInfiniteQuery<
   options: UseInfiniteQueryOptions<TData, TError, TPageParam, TDataInitial>,
 ): UseInfiniteQueryReturn<TData, TError, TPageParam, TDataInitial> {
   const queryCache = useQueryCache()
+  // adds hasNextPage and hasPreviousPage to the entry when it's created in the cache
+  PiniaColadaInfiniteQueryPlugin(queryCache._s, queryCache)
   // we start by assuming we want to load the next page
   let nextPage: NextPageIndicator = 0
-  // initially, we don't know if there is a next or previous page
-  // this must be computed based on the entry
-  const nextPageParam = shallowRef<TPageParam | null | undefined>()
-  const hasNextPage = computed(() => nextPageParam.value != null)
-  const previousPageParam = shallowRef<TPageParam | null | undefined>()
-  const hasPreviousPage = computed(() => previousPageParam.value != null)
+
   let entry:
     | UseQueryEntry<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>
     | undefined
@@ -204,8 +281,9 @@ export function useInfiniteQuery<
         query: async (
           context: UseQueryFnContext<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>,
         ) => {
-          entry = context.entry
-          const state = entry.state.value
+          const currentEntry = (entry = context.entry)
+          const exts = currentEntry.ext as unknown as UseInfiniteQueryExtensions<TPageParam>
+          const state = currentEntry.state.value
           const { data } = state
 
           // result of pages and params
@@ -246,6 +324,8 @@ export function useInfiniteQuery<
                 pageParam,
               })
 
+              // TODO: throw if signal is aborted?
+
               pages.push(page)
               pageParams.push(pageParam)
 
@@ -270,9 +350,9 @@ export function useInfiniteQuery<
               }
             }
 
-            computePageParams(data)
+            computePageParams(currentEntry, data)
 
-            pageParam = (position ? nextPageParam : previousPageParam).value
+            pageParam = (position ? exts.nextPageParam : exts.previousPageParam).value
 
             // there is nothing to load
             if (pageParam == null && data) {
@@ -285,6 +365,8 @@ export function useInfiniteQuery<
               ...context,
               pageParam,
             })
+
+            // TODO: throw if signal is aborted?
 
             // we create copies to ensure the old versions are preserved
             // where they are needed (e.g. devtools)
@@ -309,13 +391,16 @@ export function useInfiniteQuery<
             }
           }
 
-          computePageParams({ pages, pageParams })
+          computePageParams(currentEntry, { pages, pageParams })
 
           return { pages, pageParams }
         },
 
         // other options that need to be normalized
-        meta: toValue(opts.meta),
+        meta: {
+          ...toValue(opts.meta),
+          __i: true,
+        },
         // enabled: toValue(opts.enabled),
         refetchOnMount: toValue(opts.refetchOnMount),
         refetchOnReconnect: toValue(opts.refetchOnReconnect),
@@ -327,14 +412,13 @@ export function useInfiniteQuery<
   )
 
   function computePageParams(
-    data:
-      | UseInfiniteQueryData<TData, TPageParam>
-      | Exclude<TDataInitial, undefined>
-      | NonNullable<TDataInitial>
-      | undefined,
+    entry: UseQueryEntry<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial> | undefined,
+    data = entry?.state.value.data,
   ) {
+    if (!entry) return
     const lastPageParam = data?.pageParams.at(-1)
-    nextPageParam.value =
+    const exts = entry.ext as unknown as UseInfiniteQueryExtensions<TPageParam>
+    exts.nextPageParam.value =
       lastPageParam != null
         ? options.getNextPageParam(
             // data is present if lastPageParam is not null
@@ -346,7 +430,7 @@ export function useInfiniteQuery<
         : null
 
     const firstPageParam = data?.pageParams.at(0)
-    previousPageParam.value =
+    exts.previousPageParam.value =
       firstPageParam != null
         ? options.getPreviousPageParam?.(
             // same as above
@@ -359,7 +443,7 @@ export function useInfiniteQuery<
   }
 
   // if we have initial data, we need to set the next and previous page params
-  computePageParams(entry?.state.value.data)
+  computePageParams(entry)
 
   async function loadPage(
     page: NextPageIndicator,
@@ -384,11 +468,11 @@ export function useInfiniteQuery<
     return queryCache.fetch(entry).catch(throwOnError ? undefined : noop)
   }
 
+  // @ts-expect-error: the query contains the missing properties
+  // and it's safer to add them in a plugin because they get scoped per entry
   return {
     ...query,
-    hasNextPage,
     loadNextPage: (options?: UseInfiniteQueryLoadMoreOptions) => loadPage(1, options),
-    hasPreviousPage,
     loadPreviousPage: (options?: UseInfiniteQueryLoadMoreOptions) => loadPage(-1, options),
   }
 }
