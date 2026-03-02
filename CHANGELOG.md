@@ -1,3 +1,9 @@
+## [0.21.7](https://github.com/posva/pinia-colada/compare/v0.21.6...v0.21.7) (2026-03-02)
+
+### Bug Fixes
+
+- **infinite:** detach $onAction listener to survive component unmount ([c756e3a](https://github.com/posva/pinia-colada/commit/c756e3a04997c8b7411283d50679c1d475f648f1)), closes [#525](https://github.com/posva/pinia-colada/issues/525)
+
 ## [0.21.6](https://github.com/posva/pinia-colada/compare/v0.21.5...v0.21.6) (2026-02-26)
 
 ### Bug Fixes

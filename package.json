@@ -1,6 +1,6 @@
 {
   "name": "@pinia/colada",
-  "version": "0.21.6",
+  "version": "0.21.7",
   "description": "The smart data fetching layer for Vue.js",
   "keywords": [
     "cache",
