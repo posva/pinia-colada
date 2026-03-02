@@ -1562,4 +1562,24 @@ describe('useInfiniteQuery', () => {
     // 5. hasNextPage should still be true because active key is 1
     expect(wrapper.vm.hasNextPage).toBe(true)
   })
+
+  it('works after unmounting and remounting with the same pinia instance', async () => {
+    const pinia = createPinia()
+    const plugins = [pinia] as GlobalMountOptions['plugins']
+
+    const { wrapper: w1 } = mountSimple({}, { plugins })
+    await flushPromises()
+    expect(w1.vm.data).toEqual({ pages: [[1, 2, 3]], pageParams: [0] })
+
+    // unmount the first component (simulates navigation away)
+    w1.unmount()
+
+    // mount a new component reusing the same pinia
+    const { wrapper: w2 } = mountSimple({}, { plugins })
+    await flushPromises()
+
+    // should work without throwing
+    expect(w2.vm.data).toEqual({ pages: [[1, 2, 3]], pageParams: [0] })
+    expect(w2.vm.hasNextPage).toBe(true)
+  })
 })

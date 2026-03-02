@@ -223,7 +223,7 @@ function PiniaColadaInfiniteQueryPlugin(scope: EffectScope, queryCache: QueryCac
           })
         }
       }
-    })
+    }, true)
 
     installedMap.set(queryCache, true)
   }
