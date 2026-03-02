@@ -1565,7 +1565,7 @@ describe('useInfiniteQuery', () => {
 
   it('works after unmounting and remounting with the same pinia instance', async () => {
     const pinia = createPinia()
-    const plugins = [pinia] as GlobalMountOptions['plugins']
+    const plugins = [pinia] as NonNullable<GlobalMountOptions>['plugins']
 
     const { wrapper: w1 } = mountSimple({}, { plugins })
     await flushPromises()
