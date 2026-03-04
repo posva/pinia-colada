@@ -160,66 +160,6 @@ describe('defineQueryOptions', () => {
       await flushPromises()
       expect(query).toHaveBeenCalledTimes(1)
     })
-
-    it('warns once when using deprecated second argument', async () => {
-      const opts = defineQueryOptions((id: number) => ({
-        key: ['a', id],
-        query: async () => id,
-      }))
-      const id = ref(0)
-
-      mount(
-        {
-          setup() {
-            return {
-              ...useQuery(opts, id),
-            }
-          },
-          template: `<div>{{ data }}</div>`,
-        },
-        {
-          global: {
-            plugins: [createPinia(), PiniaColada],
-          },
-        },
-      )
-
-      await flushPromises()
-      id.value = 1
-      await flushPromises()
-
-      expect('useQuery(setupOptions, paramsGetter) is deprecated').toHaveBeenWarnedTimes(1)
-    })
-
-    it('does not warn with the single function form', async () => {
-      const opts = defineQueryOptions((id: number) => ({
-        key: ['a', id],
-        query: async () => id,
-      }))
-      const id = ref(0)
-
-      mount(
-        {
-          setup() {
-            return {
-              ...useQuery(() => opts(id.value)),
-            }
-          },
-          template: `<div>{{ data }}</div>`,
-        },
-        {
-          global: {
-            plugins: [createPinia(), PiniaColada],
-          },
-        },
-      )
-
-      await flushPromises()
-      id.value = 1
-      await flushPromises()
-
-      expect('useQuery(setupOptions, paramsGetter) is deprecated').toHaveBeenWarnedTimes(0)
-    })
   })
 
   describe('abort signal', () => {

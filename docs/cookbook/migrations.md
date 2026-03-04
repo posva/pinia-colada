@@ -60,7 +60,7 @@ ast-grep scan -r node_modules/@pinia/colada/codemods/rules/migration-0-13-to-0-1
 
 **File:** `migration-0-21-to-1-0.yaml`
 
-The two-parameter form of `useQuery` and `useQueryState` is deprecated in favor of a single function parameter.
+The two-parameter form of `useQuery` and `useQueryState` has been removed. Use a single function parameter instead.
 
 Before:
 

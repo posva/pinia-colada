@@ -1,4 +1,4 @@
-import type { ComputedRef, MaybeRefOrGetter, Ref, ShallowRef } from 'vue'
+import type { ComputedRef, Ref, ShallowRef } from 'vue'
 import {
   computed,
   getCurrentInstance,
@@ -11,7 +11,7 @@ import {
   toValue,
   watch,
 } from 'vue'
-import { IS_CLIENT, useEventListener, warnOnce } from './utils'
+import { IS_CLIENT, useEventListener } from './utils'
 import type { UseQueryEntry, UseQueryEntryExtensions } from './query-store'
 import { currentDefineQueryEntry, isEntryUsingPlaceholderData, useQueryCache } from './query-store'
 import { useQueryOptions } from './query-options'
@@ -117,76 +117,19 @@ export function useQuery<
 ): UseQueryReturn<TData, TError, TDataInitial>
 
 /**
- * `useQuery` for dynamic typed query keys. Requires options defined with
- * {@link defineQueryOptions}.
- *
- * @param setupOptions - options defined with {@link defineQueryOptions}
- * @param paramsGetter - a getter or ref that returns the parameters for the `setupOptions`
- *
- * @example
- * ```ts
- * import { defineQueryOptions, useQuery } from '@pinia/colada'
- *
- * const documentDetailsQuery = defineQueryOptions((id: number ) => ({
- *   key: ['documents', id],
- *   query: () => fetchDocument(id),
- * }))
- *
- * useQuery(() => documentDetailsQuery(4))
- * useQuery(() => documentDetailsQuery(route.params.id))
- * useQuery(() => documentDetailsQuery(props.id))
- * ```
- */
-/**
- * @deprecated Pass a single function instead:
- * `useQuery(() => setupOptions(toValue(paramsGetter)))`.
- */
-export function useQuery<Params, TData, TError, TDataInitial extends TData | undefined>(
-  setupOptions: (params: Params) => DefineQueryOptions<TData, TError, TDataInitial>,
-  paramsGetter: MaybeRefOrGetter<NoInfer<Params>>,
-): UseQueryReturn<TData, TError, TDataInitial>
-
-/**
  * Ensures and return a shared query state based on the `key` option.
  *
  * @param _options - The options of the query
- * @param paramsGetter - a getter or ref that returns the parameters for the `_options`
  */
 export function useQuery<
   TData,
   TError = ErrorDefault,
   TDataInitial extends TData | undefined = undefined,
 >(
-  // NOTE: this version has better type inference but still imperfect
-  ...[_options, paramsGetter]:
-    | [
-        | UseQueryOptions<TData, TError, TDataInitial>
-        | (() => DefineQueryOptions<TData, TError, TDataInitial>),
-      ]
-    | [
-        (params: unknown) => DefineQueryOptions<TData, TError, TDataInitial>,
-        paramsGetter?: MaybeRefOrGetter<unknown>,
-      ]
-) // _options:
-//   | UseQueryOptions<TData, TError, TDataInitial>
-//   | (() => DefineQueryOptions<TData, TError, TDataInitial>)
-//   | ((params: unknown) => DefineQueryOptions<TData, TError, TDataInitial>),
-// paramsGetter?: MaybeRefOrGetter<unknown>,
-: UseQueryReturn<TData, TError, TDataInitial> {
-  if (paramsGetter != null) {
-    if (process.env.NODE_ENV !== 'production') {
-      warnOnce(
-        'useQuery(setupOptions, paramsGetter) is deprecated. Use useQuery(() => setupOptions(toValue(paramsGetter))) instead. You can migrate most callsites with codemods/rules/migration-0-21-to-1-0.yaml.',
-        'use-query-second-arg-deprecated',
-      )
-    }
-    return useQuery(() =>
-      // NOTE: we manually type cast here because TS cannot infer correctly in overloads
-      (_options as (params: unknown) => DefineQueryOptions<TData, TError, TDataInitial>)(
-        toValue(paramsGetter),
-      ),
-    )
-  }
+  _options:
+    | UseQueryOptions<TData, TError, TDataInitial>
+    | (() => DefineQueryOptions<TData, TError, TDataInitial>),
+): UseQueryReturn<TData, TError, TDataInitial> {
   const queryCache = useQueryCache()
   const optionDefaults = useQueryOptions()
   const hasCurrentInstance = getCurrentInstance()
@@ -200,12 +143,7 @@ export function useQuery<
     () =>
       ({
         ...optionDefaults,
-        ...toValue(
-          // NOTE: we manually type cast here because TS cannot infer correctly in overloads
-          _options as
-            | UseQueryOptions<TData, TError, TDataInitial>
-            | (() => DefineQueryOptions<TData, TError, TDataInitial>),
-        ),
+        ...toValue(_options),
       }) satisfies UseQueryOptionsWithDefaults<TData, TError, TDataInitial>,
   )
   const enabled = (): boolean => toValue(options.value.enabled)

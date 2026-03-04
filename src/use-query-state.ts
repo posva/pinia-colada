@@ -5,9 +5,6 @@ import type { UseQueryReturn } from './use-query'
 import type { EntryKey, EntryKeyTagged } from './entry-keys'
 import type { AsyncStatus, DataState, DataStateStatus } from './data-state'
 import type { ErrorDefault } from './types-extension'
-import type { DefineQueryOptions } from './define-query'
-import type { defineQueryOptions } from './define-query-options'
-import { warnOnce } from './utils'
 
 /**
  * Return type for the {@link useQueryState} composable.
@@ -78,24 +75,6 @@ export function useQueryState<
 /**
  * Reactive access to the state of a query entry without fetching it.
  *
- * @param setupOptions - function that returns the query options based on the provided params
- * @param paramsGetter - getter for the parameters used to generate the query key
- *
- * @see {@link DefineQueryOptions}
- * @see {@link defineQueryOptions}
- */
-/**
- * @deprecated Pass a single function instead:
- * `useQueryState(() => setupOptions(toValue(paramsGetter)).key)`.
- */
-export function useQueryState<Params, TData, TError, TDataInitial extends TData | undefined>(
-  setupOptions: (params: Params) => DefineQueryOptions<TData, TError, TDataInitial>,
-  paramsGetter: MaybeRefOrGetter<NoInfer<Params>>,
-): UseQueryStateReturn<TData, TError, TDataInitial>
-
-/**
- * Reactive access to the state of a query entry without fetching it.
- *
  * @param key - key of the query entry to access
  */
 export function useQueryState<
@@ -109,32 +88,9 @@ export function useQueryState<
   TError = ErrorDefault,
   TDataInitial extends TData | undefined = undefined,
 >(
-  // NOTE: this version has better type inference but still imperfect
-  ...[_keyOrSetup, paramsGetter]:
-    | [key: MaybeRefOrGetter<EntryKeyTagged<TData, TError, TDataInitial> | EntryKey>]
-    | [
-        (params: unknown) => DefineQueryOptions<TData, TError, TDataInitial>,
-        paramsGetter?: MaybeRefOrGetter<unknown>,
-      ]
+  key: MaybeRefOrGetter<EntryKeyTagged<TData, TError, TDataInitial> | EntryKey>,
 ): UseQueryStateReturn<TData, TError, TDataInitial> {
-  if (paramsGetter != null && process.env.NODE_ENV !== 'production') {
-    warnOnce(
-      'useQueryState(setupOptions, paramsGetter) is deprecated. Use useQueryState(() => setupOptions(toValue(paramsGetter)).key) instead. You can migrate most callsites with codemods/rules/migration-0-21-to-1-0.yaml.',
-      'use-query-state-second-arg-deprecated',
-    )
-  }
-
   const queryCache = useQueryCache()
-
-  const key = paramsGetter
-    ? computed(
-        () =>
-          // NOTE: we manually type cast here because TS cannot infer correctly in overloads
-          (_keyOrSetup as (params: unknown) => DefineQueryOptions<TData, TError, TDataInitial>)(
-            toValue(paramsGetter),
-          ).key as EntryKeyTagged<TData, TError, TDataInitial>,
-      )
-    : (_keyOrSetup as EntryKeyTagged<TData, TError, TDataInitial>)
 
   const entry = computed(() => queryCache.get(toValue(key)))
 
