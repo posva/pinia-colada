@@ -30,12 +30,18 @@ export { useQueryState, type UseQueryStateReturn } from './use-query-state'
 
 export {
   useInfiniteQuery,
+  type DefineInfiniteQueryOptions,
   type UseInfiniteQueryOptions,
   type UseInfiniteQueryReturn,
   type UseInfiniteQueryLoadMoreOptions,
   type UseInfiniteQueryData,
   type UseInfiniteQueryFnContext,
 } from './infinite-query'
+
+export {
+  defineInfiniteQueryOptions,
+  type DefineInfiniteQueryOptionsTagged,
+} from './define-infinite-query-options'
 
 export {
   hydrateQueryCache,
