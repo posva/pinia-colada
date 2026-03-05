@@ -90,4 +90,4 @@ interface UseMutationEntryExtensions<...> {
 - `src/tanstack-compat.ts` - Plugin implementation + type augmentation
 - `src/tanstack-compat.spec.ts` - 15 tests
 - `README.md` - Installation instructions
-- `docs/tanstack-compat.md` - Full documentation
+- `docs/cookbook/tanstack-compat.md` - Full documentation

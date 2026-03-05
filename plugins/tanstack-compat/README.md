@@ -58,7 +58,7 @@ const { data, isSuccess, isError, isFetching, isStale } = useQuery({
 
 ## Documentation
 
-For full documentation including all features, API reference, and migration guide, see [docs/tanstack-compat.md](./docs/tanstack-compat.md).
+For full documentation including all features, API reference, and migration guide, see the [TanStack Query Compatibility cookbook](https://pinia-colada.esm.dev/cookbook/tanstack-compat.html).
 
 ## License
 
