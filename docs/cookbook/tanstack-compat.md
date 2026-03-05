@@ -1,6 +1,6 @@
 # TanStack Query Compatibility Plugin
 
-This plugin provides a compatibility layer for developers migrating from TanStack Query (Vue) to Pinia Colada, or for those who prefer the TanStack Query API style.
+This plugin provides a compatibility layer for developers migrating from TanStack Query (Vue) to Pinia Colada, or for those who prefer the TanStack Query API style. It might not cover every single property or feature of TanStack Query, but it implements the most commonly used ones to make the transition smoother. If you find anything missing, please open a pull request to add it!
 
 ## Overview
 
