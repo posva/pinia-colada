@@ -334,27 +334,31 @@ describe('TanStack Compat plugin', () => {
         { mutation, key: ['test-mutation'] },
       )
 
-      // Trigger mutation to add entry to cache
+      // Starting state
+      expect(wrapper.vm.isIdle).toBe(true)
+      // mutations start without an ongoing operation, this is what Tanstack query does
+      expect(wrapper.vm.isPending).toBe(false)
+      expect(wrapper.vm.isSuccess).toBe(false)
+      expect(wrapper.vm.isError).toBe(false)
+
+      // Trigger mutation to change state
       wrapper.vm.mutate()
       await nextTick()
 
-      const entry = wrapper.vm.getMutationEntry()
-      expect(entry).not.toBeNull()
-
       // During mutation
-      expect(entry!.ext.isIdle!.value).toBe(false)
-      expect(entry!.ext.isPending!.value).toBe(true)
-      expect(entry!.ext.isSuccess!.value).toBe(false)
-      expect(entry!.ext.isError!.value).toBe(false)
+      expect(wrapper.vm.isIdle).toBe(false)
+      expect(wrapper.vm.isPending).toBe(true)
+      expect(wrapper.vm.isSuccess).toBe(false)
+      expect(wrapper.vm.isError).toBe(false)
 
       vi.advanceTimersByTime(100)
       await flushPromises()
 
       // After success
-      expect(entry!.ext.isIdle!.value).toBe(false)
-      expect(entry!.ext.isPending!.value).toBe(false)
-      expect(entry!.ext.isSuccess!.value).toBe(true)
-      expect(entry!.ext.isError!.value).toBe(false)
+      expect(wrapper.vm.isIdle).toBe(false)
+      expect(wrapper.vm.isPending).toBe(false)
+      expect(wrapper.vm.isSuccess).toBe(true)
+      expect(wrapper.vm.isError).toBe(false)
     })
 
     it('sets isError on mutation failure', async () => {
@@ -371,14 +375,12 @@ describe('TanStack Compat plugin', () => {
       wrapper.vm.mutate()
       await nextTick()
 
-      const entry = wrapper.vm.getMutationEntry()
-
       vi.advanceTimersByTime(100)
       await flushPromises()
 
-      expect(entry!.ext.isError!.value).toBe(true)
-      expect(entry!.ext.isSuccess!.value).toBe(false)
-      expect(entry!.ext.isPending!.value).toBe(false)
+      expect(wrapper.vm.isError).toBe(true)
+      expect(wrapper.vm.isSuccess).toBe(false)
+      expect(wrapper.vm.isPending).toBe(false)
     })
 
     it('adds submittedAt timestamp', async () => {
@@ -395,8 +397,7 @@ describe('TanStack Compat plugin', () => {
       wrapper.vm.mutate()
       await nextTick()
 
-      const entry = wrapper.vm.getMutationEntry()
-      expect(entry!.ext.submittedAt!.value).toBeGreaterThan(0)
+      expect(wrapper.vm.submittedAt).toBeGreaterThan(0)
     })
 
     it('adds dataUpdatedAt and errorUpdatedAt timestamps', async () => {
@@ -413,15 +414,14 @@ describe('TanStack Compat plugin', () => {
       wrapper.vm.mutate()
       await nextTick()
 
-      const entry = wrapper.vm.getMutationEntry()
       // Initially 0 before completion
-      expect(entry!.ext.errorUpdatedAt!.value).toBe(0)
+      expect(wrapper.vm.errorUpdatedAt).toBe(0)
 
       vi.advanceTimersByTime(100)
       await flushPromises()
 
-      expect(entry!.ext.dataUpdatedAt!.value).toBeGreaterThan(0)
-      expect(entry!.ext.errorUpdatedAt!.value).toBe(0)
+      expect(wrapper.vm.dataUpdatedAt).toBeGreaterThan(0)
+      expect(wrapper.vm.errorUpdatedAt).toBe(0)
     })
 
     it('updates errorUpdatedAt on mutation error', async () => {
@@ -437,12 +437,11 @@ describe('TanStack Compat plugin', () => {
 
       wrapper.vm.mutate()
       await nextTick()
-      const entry = wrapper.vm.getMutationEntry()
 
       vi.advanceTimersByTime(100)
       await flushPromises()
 
-      expect(entry!.ext.errorUpdatedAt!.value).toBeGreaterThan(0)
+      expect(wrapper.vm.errorUpdatedAt).toBeGreaterThan(0)
     })
 
     it('handles state changes correctly across mutation lifecycle', async () => {
@@ -459,14 +458,12 @@ describe('TanStack Compat plugin', () => {
       // First mutation
       wrapper.vm.mutate()
       await nextTick()
-      const entry1 = wrapper.vm.getMutationEntry()
-      expect(entry1).not.toBeNull()
 
       vi.advanceTimersByTime(100)
       await flushPromises()
 
-      expect(entry1!.ext.isSuccess!.value).toBe(true)
-      expect(entry1!.ext.isIdle!.value).toBe(false)
+      expect(wrapper.vm.isSuccess).toBe(true)
+      expect(wrapper.vm.isIdle).toBe(false)
 
       // Note: reset() creates a new entry in useMutation's local scope.
       // The old cached entry retains its state. This is expected behavior
