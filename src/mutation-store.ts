@@ -2,7 +2,7 @@ import type { ShallowRef } from 'vue'
 import type { AsyncStatus, DataState } from './data-state'
 import { defineStore, skipHydrate } from 'pinia'
 import { customRef, getCurrentScope, hasInjectionContext, markRaw, shallowRef } from 'vue'
-import { find, START_EXT } from './entry-keys'
+import { find } from './entry-keys'
 import type { EntryFilter } from './entry-filter'
 import type { _EmptyObject } from './utils'
 import { noop, toValueWithArgs, warnOnce } from './utils'
@@ -193,6 +193,8 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
             vars,
             key,
             options,
+            // eslint-disable-next-line ts/ban-ts-comment
+            // @ts-ignore: some plugins are adding properties to the entry type
             ext: {},
           } satisfies UseMutationEntry<TData, TVars, TError, TContext>),
         )!,
