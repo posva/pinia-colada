@@ -281,11 +281,6 @@ export function useInfiniteQuery<
   // we start by assuming we want to load the next page
   let nextPage: NextPageIndicator = 0
 
-  // normalize options to a getter to handle both UseInfiniteQueryOptions and DefineInfiniteQueryOptions getter
-  const optionsGetter = (
-    typeof options === 'function' ? options : () => options
-  ) as () => UseInfiniteQueryOptions<TData, TError, TPageParam, TDataInitial>
-
   let entry:
     | UseQueryEntry<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>
     | undefined
@@ -293,7 +288,7 @@ export function useInfiniteQuery<
   const query = useQuery<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>(
     // @ts-expect-error: FIXME: mismatch with TDataInitial and undefined somewhere
     () => {
-      const opts = optionsGetter()
+      const opts = toValue(options)
       const key = toValue(opts.key)
       entry = queryCache.get(key)
       // TODO: compute initial values for hasNextPage and hasPreviousPage based on initialData
@@ -438,7 +433,7 @@ export function useInfiniteQuery<
     data = entry?.state.value.data,
   ) {
     if (!entry) return
-    const opts = optionsGetter()
+    const opts = toValue(options)
     const lastPageParam = data?.pageParams.at(-1)
     const exts = entry.ext as unknown as UseInfiniteQueryExtensions<TPageParam>
     exts.nextPageParam.value =
@@ -465,7 +460,7 @@ export function useInfiniteQuery<
     page: NextPageIndicator,
     { throwOnError, cancelRefetch = true }: UseInfiniteQueryLoadMoreOptions = {},
   ): Promise<unknown> {
-    const opts = optionsGetter()
+    const opts = toValue(options)
     const entry = queryCache.get(toValue(opts.key))
     if (!entry) {
       if (process.env.NODE_ENV !== 'production') {
