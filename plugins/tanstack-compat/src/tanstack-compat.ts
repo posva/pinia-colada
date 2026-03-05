@@ -193,74 +193,74 @@ declare module '@pinia/colada' {
      * Whether the query status is 'success'.
      * TanStack Query compatible property.
      */
-    isSuccess?: ComputedRef<boolean>
+    isSuccess: ComputedRef<boolean>
 
     /**
      * Whether the query status is 'error'.
      * TanStack Query compatible property.
      */
-    isError?: ComputedRef<boolean>
+    isError: ComputedRef<boolean>
 
     /**
      * Whether the query is currently fetching (asyncStatus === 'loading').
      * TanStack Query compatible property.
      */
-    isFetching?: ComputedRef<boolean>
+    isFetching: ComputedRef<boolean>
 
     /**
      * Whether the query is refetching (fetching but not initial load).
      * TanStack Query compatible property.
      */
-    isRefetching?: ComputedRef<boolean>
+    isRefetching: ComputedRef<boolean>
 
     /**
      * Whether the query errored on initial load (never had data).
      * TanStack Query compatible property.
      */
-    isLoadingError?: ComputedRef<boolean>
+    isLoadingError: ComputedRef<boolean>
 
     /**
      * Whether the query errored on refetch (had data before).
      * TanStack Query compatible property.
      */
-    isRefetchError?: ComputedRef<boolean>
+    isRefetchError: ComputedRef<boolean>
 
     /**
      * Whether the query data is stale.
      * TanStack Query compatible property.
      */
-    isStale?: ComputedRef<boolean>
+    isStale: ComputedRef<boolean>
 
     /**
      * Whether the query has fetched at least once.
      * TanStack Query compatible property.
      */
-    isFetched?: ShallowRef<boolean>
+    isFetched: ShallowRef<boolean>
 
     /**
      * Whether the query has fetched after component mount.
      * TanStack Query compatible property.
      */
-    isFetchedAfterMount?: ShallowRef<boolean>
+    isFetchedAfterMount: ShallowRef<boolean>
 
     /**
      * Timestamp of when data was last successfully fetched.
      * TanStack Query compatible property.
      */
-    dataUpdatedAt?: ShallowRef<number>
+    dataUpdatedAt: ShallowRef<number>
 
     /**
      * Timestamp of when an error last occurred.
      * TanStack Query compatible property.
      */
-    errorUpdatedAt?: ShallowRef<number>
+    errorUpdatedAt: ShallowRef<number>
 
     /**
      * TanStack Query compatible fetch status.
      * Maps to: 'fetching' when loading, 'idle' otherwise.
      * Note: 'paused' is not currently supported.
      */
-    fetchStatus?: ComputedRef<FetchStatus>
+    fetchStatus: ComputedRef<FetchStatus>
   }
 
   interface UseMutationEntryExtensions<
@@ -277,42 +277,42 @@ declare module '@pinia/colada' {
      * Whether the mutation has never been called (status is 'pending' and asyncStatus is 'idle').
      * TanStack Query compatible property.
      */
-    isIdle?: ComputedRef<boolean>
+    isIdle: ComputedRef<boolean>
 
     /**
      * Whether the mutation is currently in progress (asyncStatus === 'loading').
      * TanStack Query compatible property.
      */
-    isPending?: ComputedRef<boolean>
+    isPending: ComputedRef<boolean>
 
     /**
      * Whether the mutation status is 'success'.
      * TanStack Query compatible property.
      */
-    isSuccess?: ComputedRef<boolean>
+    isSuccess: ComputedRef<boolean>
 
     /**
      * Whether the mutation status is 'error'.
      * TanStack Query compatible property.
      */
-    isError?: ComputedRef<boolean>
+    isError: ComputedRef<boolean>
 
     /**
      * Timestamp of when the mutation was last submitted.
      * TanStack Query compatible property.
      */
-    submittedAt?: ShallowRef<number>
+    submittedAt: ShallowRef<number>
 
     /**
      * Timestamp of when data was last successfully returned.
      * TanStack Query compatible property.
      */
-    dataUpdatedAt?: ShallowRef<number>
+    dataUpdatedAt: ShallowRef<number>
 
     /**
      * Timestamp of when an error last occurred.
      * TanStack Query compatible property.
      */
-    errorUpdatedAt?: ShallowRef<number>
+    errorUpdatedAt: ShallowRef<number>
   }
 }
