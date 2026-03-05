@@ -46,7 +46,7 @@ export function PiniaColadaTanStackCompat(): PiniaColadaPlugin {
     // For mutations, we hook into 'create' because 'extend' is only called on first mutate()
     // We need properties available immediately after useMutation() is called
     mutationCache.$onAction(({ name, after }) => {
-      if (name === 'create') {
+      if (name === 'extend') {
         after((entry) => {
           scope.run(() => extendMutationEntry(entry as UseMutationEntry))
         })

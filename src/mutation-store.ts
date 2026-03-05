@@ -175,6 +175,8 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
       key?: EntryKey | undefined,
       vars?: TVars,
     ): UseMutationEntry<TData, TVars, TError, TContext> =>
+      // mutations are not immediately ensured after being created, so we need to
+      // extend them right away to add any extensions that plugins might need.
       extend(
         scope.run(() =>
           markRaw<UseMutationEntry<TData, TVars, TError, TContext>>({
@@ -225,12 +227,6 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     // store the entry with the mutation ID as the map key
     cachesRaw.set(id, entry as unknown as UseMutationEntry)
     triggerCache()
-
-    // extend the entry with plugins the first time only
-    if (entry.ext === START_EXT) {
-      ;(entry as { ext: object }).ext = {}
-      extend(entry)
-    }
 
     return entry
   }
