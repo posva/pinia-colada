@@ -127,6 +127,7 @@ const { data, isLoadingError, isRefetchError, error, refetch } = useQuery({
 
 ```vue
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useQuery } from '@pinia/colada'
 
 const { data, isFetching, isRefetching, isFetched, isFetchedAfterMount, dataUpdatedAt } = useQuery({
@@ -152,6 +153,7 @@ const lastUpdated = computed(() =>
 
 ```vue
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useMutation, useMutationCache } from '@pinia/colada'
 
 const { mutate, status, data, error } = useMutation({

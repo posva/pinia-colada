@@ -1,5 +1,5 @@
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, nextTick } from 'vue'
 import { createPinia } from 'pinia'
 import { useQuery, useMutation, PiniaColada, useMutationCache } from '@pinia/colada'
@@ -15,6 +15,9 @@ describe('TanStack Compat plugin', () => {
   })
   afterEach(() => {
     vi.restoreAllMocks()
+  })
+  afterAll(() => {
+    vi.useRealTimers()
   })
 
   enableAutoUnmount(afterEach)
