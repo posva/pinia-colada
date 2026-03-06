@@ -1,3 +1,30 @@
+# [1.0.0](https://github.com/posva/pinia-colada/compare/v0.21.7...v1.0.0) (2026-03-06)
+
+- feat!: remove deprecated two-parameter overloads from `useQuery` and `useQueryState` ([422c391](https://github.com/posva/pinia-colada/commit/422c391789a8d20d618a9b1b4d3b4fd900ce361b))
+
+### BREAKING CHANGES
+
+Deprecations from 0.21.5 are now removed:
+
+- The `useQuery(setupOptions, paramsGetter)` and
+  `useQueryState(setupOptions, paramsGetter)` two-parameter forms have been
+  removed. Migrate to the single function parameter form:
+
+  // Before
+  useQuery(opts, () => id.value)
+  useQueryState(opts, () => id.value)
+
+  // After
+  useQuery(() => opts(id.value))
+  useQueryState(() => opts(id.value).key)
+
+An ast-grep codemod is available to automate most callsites (may not
+cover all edge cases):
+
+```sh
+ast-grep scan -r node_modules/@pinia/colada/codemods/rules/migration-0-21-to-1-0.yaml -i src
+```
+
 ## [0.21.7](https://github.com/posva/pinia-colada/compare/v0.21.6...v0.21.7) (2026-03-02)
 
 ### Bug Fixes
