@@ -71,6 +71,7 @@ jobs:
               ["@pinia/colada-plugin-debug"]="plugins/debug"
               ["@pinia/colada-plugin-cache-persister"]="plugins/cache-persister"
               ["@pinia/colada-plugin-auto-refetch"]="plugins/auto-refetch"
+              ["@pinia/colada-plugin-tanstack-compat"]="plugins/tanstack-compat"
             )
 
             if [[ -z "${MAP[$PKG_NAME]}" ]]; then
