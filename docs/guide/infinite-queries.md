@@ -2,12 +2,6 @@
 
 Infinite queries let you load and merge multiple pages into a **single cache entry**.
 
-::: warning Experimental
-
-`useInfiniteQuery()` is currently marked as experimental. Expect some API/behavior changes as it evolves.
-
-:::
-
 This is different from paginated queries with `useQuery()` where each page is a separate cache entry (page is part of the `key`).
 
 If you haven’t read it yet, start with [Paginated Queries](./paginated-queries.md).
