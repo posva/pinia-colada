@@ -4,7 +4,10 @@ import type { UserConfig } from 'tsdown'
 const commonOptions = {
   sourcemap: true,
   format: ['esm'],
-  external: ['vue', 'pinia', '@pinia/colada', '@vue/devtools-api'],
+  deps: {
+    onlyAllowBundle: [],
+    neverBundle: ['vue', 'pinia', '@pinia/colada', '@vue/devtools-api'],
+  },
   target: 'esnext',
   tsconfig: 'tsconfig.pinia-colada.json',
   dts: true,
