@@ -1,3 +1,7 @@
+## [0.1.4](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-cache-persister@0.1.3...@pinia/colada-plugin-cache-persister@0.1.4) (2026-03-06)
+
+No changes in this release.
+
 ## [0.1.3](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-cache-persister@0.1.2...@pinia/colada-plugin-cache-persister@0.1.3) (2026-01-09)
 
 No changes in this release.

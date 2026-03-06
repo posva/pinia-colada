@@ -1,3 +1,12 @@
+## [0.0.8](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-debug@0.0.7...@pinia/colada-plugin-debug@0.0.8) (2026-03-06)
+
+- refactor!: remove CJS support ([458071a](https://github.com/posva/pinia-colada/commit/458071a3a16f7f93ecde6b0816ae61239769526f))
+
+### BREAKING CHANGES
+
+- ESM have been natively supported in node since 18 and
+  is now required.
+
 ## [0.0.7](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-debug@0.0.6...@pinia/colada-plugin-debug@0.0.7) (2025-12-16)
 
 No changes in this release.

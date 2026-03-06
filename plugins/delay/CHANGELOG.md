@@ -1,3 +1,9 @@
+# [0.2.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-delay@0.1.5...@pinia/colada-plugin-delay@0.2.0) (2026-03-06)
+
+### Features
+
+- **delay:** add mutation support ([aff5d26](https://github.com/posva/pinia-colada/commit/aff5d2684791efffbfec84a12992fc5bff080877)), closes [#526](https://github.com/posva/pinia-colada/issues/526)
+
 ## [0.1.5](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-delay@0.1.4...@pinia/colada-plugin-delay@0.1.5) (2026-02-22)
 
 - refactor!: remove CJS support ([458071a](https://github.com/posva/pinia-colada/commit/458071a3a16f7f93ecde6b0816ae61239769526f))
