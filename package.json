@@ -71,10 +71,10 @@
     "@pinia/colada": "workspace:*",
     "@posva/prompts": "^2.4.4",
     "@posva/test-utils": "workspace:*",
-    "@shikijs/vitepress-twoslash": "^4.0.1",
-    "@size-limit/esbuild-why": "^12.0.0",
-    "@size-limit/preset-small-lib": "^12.0.0",
-    "@types/node": "^24.11.0",
+    "@shikijs/vitepress-twoslash": "^4.0.2",
+    "@size-limit/esbuild-why": "^12.0.1",
+    "@size-limit/preset-small-lib": "^12.0.1",
+    "@types/node": "^24.12.0",
     "@types/semver": "^7.7.1",
     "@vitejs/plugin-vue": "^6.0.4",
     "@vitest/coverage-v8": "^4.0.18",
@@ -91,7 +91,7 @@
     "pinia": "^3.0.4",
     "semver": "^7.7.4",
     "simple-git-hooks": "^2.13.1",
-    "size-limit": "^12.0.0",
+    "size-limit": "^12.0.1",
     "tsdown": "^0.21.0",
     "typedoc": "^0.28.17",
     "typedoc-plugin-markdown": "^4.10.0",
@@ -146,7 +146,7 @@
       ]
     }
   ],
-  "packageManager": "pnpm@10.30.3",
+  "packageManager": "pnpm@10.31.0",
   "pnpm": {
     "overrides": {
       "twoslash-vue": "0.3.6",
