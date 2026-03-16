@@ -41,7 +41,7 @@
     "tailwindcss": "^4.2.1",
     "typescript": "~5.9.3",
     "unplugin-vue-router": "^0.19.2",
-    "vite": "^7.3.1",
+    "vite": "^8.0.0",
     "vite-plugin-vue-devtools": "^8.0.7",
     "vue-tsc": "^3.2.5"
   }
