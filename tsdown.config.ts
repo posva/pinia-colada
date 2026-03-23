@@ -5,7 +5,7 @@ const commonOptions = {
   sourcemap: true,
   format: ['esm'],
   deps: {
-    onlyAllowBundle: [],
+    onlyBundle: [],
     neverBundle: ['vue', 'pinia', '@pinia/colada', '@vue/devtools-api'],
   },
   target: 'esnext',

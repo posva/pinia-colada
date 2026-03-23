@@ -4,7 +4,7 @@ export const commonOptions = {
   sourcemap: true,
   format: ['esm'],
   deps: {
-    onlyAllowBundle: [],
+    onlyBundle: [],
     neverBundle: ['vue', 'pinia', '@pinia/colada'],
   },
   dts: {
