@@ -86,19 +86,19 @@
     "execa": "^9.6.1",
     "happy-dom": "^20.8.4",
     "lint-staged": "^16.4.0",
-    "oxfmt": "^0.40.0",
-    "oxlint": "^1.55.0",
+    "oxfmt": "^0.41.0",
+    "oxlint": "^1.56.0",
     "pinia": "^3.0.4",
     "semver": "^7.7.4",
     "simple-git-hooks": "^2.13.1",
     "size-limit": "^12.0.1",
-    "tsdown": "^0.21.3",
-    "typedoc": "^0.28.17",
-    "typedoc-plugin-markdown": "^4.10.0",
+    "tsdown": "^0.21.4",
+    "typedoc": "^0.28.18",
+    "typedoc-plugin-markdown": "^4.11.0",
     "typedoc-vitepress-theme": "^1.1.2",
     "typescript": "~5.9.3",
     "vitepress": "1.6.4",
-    "vitepress-plugin-llms": "^1.11.0",
+    "vitepress-plugin-llms": "^1.12.0",
     "vitest": "^4.1.0",
     "vue": "^3.5.30"
   },
@@ -150,7 +150,7 @@
   "pnpm": {
     "overrides": {
       "twoslash-vue": "0.3.6",
-      "vue-router": "^5.0.3"
+      "vue-router": "^5.0.4"
     },
     "onlyBuiltDependencies": [
       "@ast-grep/cli",
