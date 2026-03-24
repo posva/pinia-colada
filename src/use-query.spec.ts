@@ -759,8 +759,8 @@ describe('useQuery', () => {
       const key = ref(1)
       const placeholderData = vi.fn(
         (
-          previousData: number | undefined,
-          previousEntry: UseQueryEntry<number, unknown, undefined> | undefined,
+          _previousData: number | undefined,
+          _previousEntry: UseQueryEntry<number, unknown, undefined> | undefined,
         ) => 24,
       )
       const { wrapper } = mountSimple({
@@ -2095,20 +2095,21 @@ describe('useQuery', () => {
       w1.unmount()
     })
 
-    it('should refetch after invalidateQueries when enabled changed from false to true', async () => {
-      const open = ref(false)
+    it('should invalidate an initially disabled query with fn syntax', async () => {
       const pinia = createPinia()
-      const query = vi.fn(async () => 42)
-
+      const enabled = ref(false)
+      const query = vi.fn(async () => 'ok')
       mount(
         defineComponent({
           render: () => null,
           setup() {
-            useQuery(() => ({
-              key: ['key'],
-              query,
-              enabled: open.value,
-            }))
+            return {
+              ...useQuery(() => ({
+                key: ['key'],
+                query,
+                enabled: enabled.value,
+              })),
+            }
           },
         }),
         { global: { plugins: [pinia, PiniaColada] } },
@@ -2116,14 +2117,14 @@ describe('useQuery', () => {
       const queryCache = useQueryCache(pinia)
 
       await flushPromises()
-      expect(query).not.toHaveBeenCalled()
+      expect(query).toHaveBeenCalledTimes(0)
 
-      open.value = true
-      await nextTick()
+      enabled.value = true
       await flushPromises()
-      expect(query).toHaveBeenCalledTimes(1)
 
-      await queryCache.invalidateQueries({ key: ['key'] })
+      expect(query).toHaveBeenCalledTimes(1)
+      queryCache.invalidateQueries({ key: ['key'] })
+      await flushPromises()
       expect(query).toHaveBeenCalledTimes(2)
     })
   })
