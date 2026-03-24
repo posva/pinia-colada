@@ -7,7 +7,7 @@
     "nursery": "off",
     "pedantic": "off",
     "perf": "warn",
-    "style": "off"
+    "style": "off",
   },
   "rules": {
     "no-control-regex": "off",
@@ -17,20 +17,20 @@
     "no-console": ["error", { "allow": ["warn", "error"] }],
     "numeric-separators-style": "warn",
     "curly": ["error", "multi-line"],
-    "require-post-message-target-origin": "off"
+    "require-post-message-target-origin": "off",
   },
   "settings": {
     "jsx-a11y": {
       "polymorphicPropName": null,
       "components": {},
-      "attributes": {}
+      "attributes": {},
     },
     "next": {
-      "rootDir": []
+      "rootDir": [],
     },
     "react": {
       "formComponents": [],
-      "linkComponents": []
+      "linkComponents": [],
     },
     "jsdoc": {
       "ignorePrivate": false,
@@ -40,11 +40,11 @@
       "augmentsExtendsReplacesDocs": false,
       "implementsReplacesDocs": false,
       "exemptDestructuredRootsFromChecks": false,
-      "tagNamePreference": {}
-    }
+      "tagNamePreference": {},
+    },
   },
   "env": {
-    "builtin": true
+    "builtin": true,
   },
   "globals": {},
   "ignorePatterns": [
@@ -54,6 +54,6 @@
     "devtools/dist",
     "devtools/components.d.ts",
     "devtools/dist-*",
-    "**/CLAUDE.md"
-  ]
+    "**/CLAUDE.md",
+  ],
 }
