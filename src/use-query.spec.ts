@@ -2094,6 +2094,38 @@ describe('useQuery', () => {
       w0.unmount()
       w1.unmount()
     })
+
+    it('should refetch after invalidateQueries when enabled changed from false to true', async () => {
+      const open = ref(false)
+      const pinia = createPinia()
+      const query = vi.fn(async () => 42)
+
+      mount(
+        defineComponent({
+          render: () => null,
+          setup() {
+            useQuery(() => ({
+              key: ['key'],
+              query,
+              enabled: open.value,
+            }))
+          },
+        }),
+        { global: { plugins: [pinia, PiniaColada] } },
+      )
+      const queryCache = useQueryCache(pinia)
+
+      await flushPromises()
+      expect(query).not.toHaveBeenCalled()
+
+      open.value = true
+      await nextTick()
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+
+      await queryCache.invalidateQueries({ key: ['key'] })
+      expect(query).toHaveBeenCalledTimes(2)
+    })
   })
 
   it('should not create entries while unmounting', async () => {
