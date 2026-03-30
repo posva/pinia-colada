@@ -30,6 +30,6 @@ jobs:
       # avoid updating deps that do not build docs
       - run: pnpm run docs:build
 
-      - uses: codecov/codecov-action@v5
+      - uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
