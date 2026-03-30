@@ -17,23 +17,27 @@ import { useMutationCache } from '@pinia/colada'
 export interface PiniaColadaDelayOptions {
   /**
    * Delay in milliseconds to wait before letting the `asyncStatus` become `'loading'`. Set to `false` or 0 to disable.
+   *
    * @default 200
    */
   delay?: number | false
 
   /**
-   * Query-specific delay override. Overrides the top-level `delay` for queries only.
+   * Query-specific delay override. Overrides the top-level `delay` for queries
+   * only.
    */
   query?: { delay?: number | false }
 
   /**
-   * Mutation-specific delay override. Overrides the top-level `delay` for mutations only.
+   * Mutation-specific delay override. Overrides the top-level `delay` for
+   * mutations only.
    */
   mutations?: { delay?: number | false }
 }
 
 /**
- * Creates a delayed `asyncStatus` customRef that waits before switching to `'loading'`.
+ * Creates a delayed `asyncStatus` customRef that waits before switching to
+ * `'loading'`.
  */
 function createDelayedAsyncStatus(
   initialValue: AsyncStatus,
@@ -68,7 +72,8 @@ function createDelayedAsyncStatus(
 }
 
 /**
- * Delays the `asyncStatus` of queries by a certain amount of time to avoid flickering between refreshes.
+ * Delays the `asyncStatus` of queries by a certain amount of time to avoid
+ * flickering between refreshes.
  *
  * @param options - Plugin options
  */
@@ -94,7 +99,8 @@ export function PiniaColadaDelayQuery(
 }
 
 /**
- * Delays the `asyncStatus` of mutations by a certain amount of time to avoid flickering.
+ * Delays the `asyncStatus` of mutations by a certain amount of time to avoid
+ * flickering.
  *
  * @param options - Plugin options
  */
@@ -121,8 +127,9 @@ export function PiniaColadaDelayMutations(
 }
 
 /**
- * Delays the `asyncStatus` of both queries and mutations by a certain amount of time to avoid flickering.
- * Options apply to both, with optional `query` and `mutations` nested overrides.
+ * Delays the `asyncStatus` of both queries and mutations by a certain amount
+ * of time to avoid flickering. Options apply to both, with optional `query`
+ * and `mutations` nested overrides.
  *
  * @param options - Plugin options
  */
@@ -151,7 +158,8 @@ declare module '@pinia/colada' {
   // eslint-disable-next-line unused-imports/no-unused-vars
   interface UseQueryEntryExtensions<TData, TError, TDataInitial> {
     /**
-     * Returns whether the query is currently delaying its `asyncStatus` from becoming `'loading'`. Requires the {@link PiniaColadaDelay} plugin.
+     * Returns whether the query is currently delaying its `asyncStatus` from
+     * becoming `'loading'`. Requires the {@link PiniaColadaDelay} plugin.
      */
     isDelaying: ShallowRef<boolean>
   }
@@ -159,7 +167,10 @@ declare module '@pinia/colada' {
   // eslint-disable-next-line unused-imports/no-unused-vars
   interface UseMutationOptions<TData, TVars, TError, TContext> {
     /**
-     * Delay in milliseconds to wait before letting the `asyncStatus` become `'loading'`. Set to `false` or 0 to disable. Requires the {@link PiniaColadaDelay} or {@link PiniaColadaDelayMutations} plugin.
+     * Delay in milliseconds to wait before letting the `asyncStatus` become
+     * `'loading'`. Set to `false` or 0 to disable. Requires the
+     * {@link PiniaColadaDelay} or {@link PiniaColadaDelayMutations} plugin.
+     *
      * @default 200
      */
     delay?: number | false
@@ -167,7 +178,10 @@ declare module '@pinia/colada' {
 
   interface UseMutationOptionsGlobal {
     /**
-     * Delay in milliseconds to wait before letting the `asyncStatus` become `'loading'`. Set to `false` or 0 to disable. Requires the {@link PiniaColadaDelay} or {@link PiniaColadaDelayMutations} plugin.
+     * Delay in milliseconds to wait before letting the `asyncStatus` become
+     * `'loading'`. Set to `false` or 0 to disable. Requires the
+     * {@link PiniaColadaDelay} or {@link PiniaColadaDelayMutations} plugin.
+     *
      * @default 200
      */
     delay?: number | false
@@ -176,7 +190,9 @@ declare module '@pinia/colada' {
   // eslint-disable-next-line unused-imports/no-unused-vars
   interface UseMutationEntryExtensions<TData, TVars, TError, TContext> {
     /**
-     * Returns whether the mutation is currently delaying its `asyncStatus` from becoming `'loading'`. Requires the {@link PiniaColadaDelay} or {@link PiniaColadaDelayMutations} plugin.
+     * Returns whether the mutation is currently delaying its `asyncStatus`
+     * from becoming `'loading'`. Requires the {@link PiniaColadaDelay} or
+     * {@link PiniaColadaDelayMutations} plugin.
      */
     isDelaying: ShallowRef<boolean>
   }
