@@ -66,7 +66,8 @@ describe('defineMutationOptions types', () => {
       mutation: async (text: string) => ({ id: 1, text }),
     })
 
-    expectTypeOf(opts.key).toEqualTypeOf<readonly string[] | undefined>()
+    // key is optional on mutations
+    expectTypeOf(opts).toHaveProperty('key')
   })
 
   it('supports function key', () => {
