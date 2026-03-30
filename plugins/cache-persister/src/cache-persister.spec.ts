@@ -26,7 +26,10 @@ describe('PiniaColadaCachePersister', () => {
 
   afterEach(() => {
     vi.restoreAllMocks()
-    localStorage.clear()
+    // Node 25+ has a built-in localStorage without clear()
+    if (typeof localStorage !== 'undefined' && typeof localStorage.clear === 'function') {
+      localStorage.clear()
+    }
   })
 
   enableAutoUnmount(afterEach)
