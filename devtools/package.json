@@ -2,7 +2,7 @@
   "name": "@pinia/colada-devtools",
   "type": "module",
   "version": "0.4.5",
-  "packageManager": "pnpm@10.32.1",
+  "packageManager": "pnpm@10.33.0",
   "description": "Devtools for Pinia Colada",
   "publishConfig": {
     "access": "public"
@@ -55,7 +55,7 @@
     "build": "pnpm run --stream '/^build:/'"
   },
   "devDependencies": {
-    "@iconify-json/lucide": "^1.2.98",
+    "@iconify-json/lucide": "^1.2.100",
     "@pinia/colada": "workspace:^*",
     "@posva/splitpanes": "^4.0.6",
     "@tailwindcss/vite": "^4.2.2",
@@ -65,9 +65,9 @@
     "pinia": "^3.0.4",
     "tailwindcss": "^4.2.2",
     "unplugin-icons": "^23.0.1",
-    "unplugin-vue-components": "^31.0.0",
+    "unplugin-vue-components": "^31.1.0",
     "vite-plugin-dts": "^4.5.4",
-    "vue": "^3.5.30",
+    "vue": "^3.5.31",
     "vue-router": "^5.0.4",
     "vue-tsc": "^3.2.6"
   }
