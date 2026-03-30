@@ -674,4 +674,37 @@ describe('useMutation', () => {
       expect(remainingEntries[0]!.id).not.toBe(firstEntryId)
     })
   })
+
+  describe('meta', () => {
+    it('accepts a raw meta object', async () => {
+      const meta = { priority: 'high', cache: true }
+      const { wrapper } = mountSimple({
+        key: ['meta-test'],
+        meta,
+      })
+      const cache = useMutationCache()
+
+      wrapper.vm.mutate()
+      await flushPromises()
+
+      const entry = cache.getEntries({ key: ['meta-test'] }).at(0)!
+      expect(entry).toBeDefined()
+      expect(entry.meta).toEqual(meta)
+      expect(entry.options.meta).toBe(meta)
+    })
+
+    it('defaults to empty object when meta is not provided', async () => {
+      const { wrapper } = mountSimple({
+        key: ['no-meta'],
+      })
+      const cache = useMutationCache()
+
+      wrapper.vm.mutate()
+      await flushPromises()
+
+      const entry = cache.getEntries({ key: ['no-meta'] }).at(0)!
+      expect(entry).toBeDefined()
+      expect(entry.meta).toEqual({})
+    })
+  })
 })

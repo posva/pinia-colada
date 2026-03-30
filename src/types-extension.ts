@@ -33,5 +33,9 @@ export type ErrorDefault = TypesConfig extends Record<'defaultError', infer E> ?
 export type QueryMeta =
   TypesConfig extends Record<'queryMeta', infer M> ? M : Record<string, unknown>
 
-// TODO:
-// export type MutationMeta = TypesConfig extends Record<'mutationMeta', infer M>
+/**
+ * The meta information stored alongside each mutation inferred from the {@link TypesConfig}.
+ * @internal
+ */
+export type MutationMeta =
+  TypesConfig extends Record<'mutationMeta', infer M> ? M : Record<string, unknown>

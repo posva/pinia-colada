@@ -10,6 +10,7 @@ import type { _ReduceContext } from './use-mutation'
 import { useMutationOptions } from './mutation-options'
 import type { UseMutationOptions, UseMutationOptionsWithDefaults } from './mutation-options'
 import type { EntryKey } from './entry-keys'
+import type { MutationMeta } from './types-extension'
 
 /**
  * Allows defining extensions to the mutation entry that are returned by `useMutation()`.
@@ -59,6 +60,11 @@ export interface UseMutationEntry<
    * Can be `undefined` if the entry has no key.
    */
   key: EntryKey | undefined
+
+  /**
+   * Resolved meta information for this mutation.
+   */
+  meta: MutationMeta
 
   /**
    * The variables used to call the mutation.
@@ -192,6 +198,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
             when: 0,
             vars,
             key,
+            meta: options.meta ?? {},
             options,
             // eslint-disable-next-line ts/ban-ts-comment
             // @ts-ignore: some plugins are adding properties to the entry type
