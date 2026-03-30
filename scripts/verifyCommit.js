@@ -1,4 +1,5 @@
 // @ts-check
+import { execSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 
@@ -8,7 +9,8 @@ const red = '\x1B[31m'
 const green = '\x1B[32m'
 const bgRedWhite = '\x1B[41m\x1B[37m'
 
-const msgPath = path.resolve('.git/COMMIT_EDITMSG')
+const gitDir = execSync('git rev-parse --git-dir', { encoding: 'utf-8' }).trim()
+const msgPath = path.resolve(gitDir, 'COMMIT_EDITMSG')
 const msg = readFileSync(msgPath, 'utf-8').trim()
 
 const commitRE =
