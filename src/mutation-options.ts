@@ -1,6 +1,6 @@
 import { inject } from 'vue'
 import type { InjectionKey } from 'vue'
-import type { ErrorDefault } from './types-extension'
+import type { ErrorDefault, MutationMeta } from './types-extension'
 import type { _ReduceContext, _MutationKey, UseMutationGlobalContext } from './use-mutation'
 import type { _EmptyObject, _Awaitable } from './utils'
 
@@ -132,6 +132,12 @@ export interface UseMutationOptions<
    * elsewhere, you should ignore this option.
    */
   key?: _MutationKey<NoInfer<TVars>>
+
+  /**
+   * Meta information associated with the mutation. Can be used by plugins
+   * to store additional data alongside the mutation entry.
+   */
+  meta?: MutationMeta
 
   /**
    * Runs before the mutation is executed. **It should be placed before `mutation()` for `context` to be inferred**. It

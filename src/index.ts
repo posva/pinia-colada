@@ -79,7 +79,7 @@ export {
 
 export type { PiniaColadaPlugin, PiniaColadaPluginContext } from './plugins'
 
-export type { TypesConfig } from './types-extension'
+export type { TypesConfig, QueryMeta, MutationMeta } from './types-extension'
 
 // internals
 export type {
