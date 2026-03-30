@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineMutationOptions } from './define-mutation-options'
 import { flushPromises, mount } from '@vue/test-utils'
+import { defineComponent } from 'vue'
 import { createPinia } from 'pinia'
 import { PiniaColada } from './pinia-colada'
 import { useMutation } from './use-mutation'
@@ -46,14 +47,14 @@ describe('defineMutationOptions', () => {
       const opts = defineMutationOptions({ mutation })
 
       const wrapper = mount(
-        {
+        defineComponent({
+          render: () => null,
           setup() {
             return {
               ...useMutation(opts),
             }
           },
-          template: `<div>{{ data }}</div>`,
-        },
+        }),
         {
           global: {
             plugins: [createPinia(), PiniaColada],
@@ -76,14 +77,14 @@ describe('defineMutationOptions', () => {
       }))
 
       const wrapper = mount(
-        {
+        defineComponent({
+          render: () => null,
           setup() {
             return {
               ...useMutation(opts('items')),
             }
           },
-          template: `<div>{{ data }}</div>`,
-        },
+        }),
         {
           global: {
             plugins: [createPinia(), PiniaColada],
