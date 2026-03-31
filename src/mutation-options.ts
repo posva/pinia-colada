@@ -18,7 +18,11 @@ export interface UseMutationOptionsGlobal {
      * The variables passed to the mutation.
      */
     vars: unknown,
-  ) => _Awaitable<UseMutationGlobalContext | undefined | void | null>
+    /**
+     * The context seeded by the runtime, containing the mutation entry.
+     */
+    context: UseMutationGlobalContext,
+  ) => _Awaitable<Omit<UseMutationGlobalContext, 'entry'> | undefined | void | null>
 
   /**
    * Runs when a mutation is successful.

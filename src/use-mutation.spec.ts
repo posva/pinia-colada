@@ -310,7 +310,10 @@ describe('useMutation', () => {
       // no need since it's synchronous
       // await flushPromises()
       expect(onMutate).toHaveBeenCalledTimes(1)
-      expect(onMutate).toHaveBeenCalledWith(undefined)
+      expect(onMutate).toHaveBeenCalledWith(
+        undefined,
+        expect.objectContaining({ entry: expect.any(Object) }),
+      )
     })
 
     it('local onMutate receives global onMutate result', async () => {
@@ -326,7 +329,10 @@ describe('useMutation', () => {
       )
 
       wrapper.vm.mutate()
-      expect(onMutate).toHaveBeenCalledWith(undefined, { global: true })
+      expect(onMutate).toHaveBeenCalledWith(
+        undefined,
+        expect.objectContaining({ global: true, entry: expect.any(Object) }),
+      )
     })
 
     it('triggers global onSuccess', async () => {
@@ -340,7 +346,11 @@ describe('useMutation', () => {
 
       wrapper.vm.mutate()
       await flushPromises()
-      expect(onSuccess).toHaveBeenCalledWith(42, undefined, {})
+      expect(onSuccess).toHaveBeenCalledWith(
+        42,
+        undefined,
+        expect.objectContaining({ entry: expect.any(Object) }),
+      )
     })
 
     it('triggers global onError', async () => {
@@ -358,7 +368,11 @@ describe('useMutation', () => {
 
       await expect(wrapper.vm.mutateAsync()).rejects.toThrow()
       await flushPromises()
-      expect(onError).toHaveBeenCalledWith(new Error('foobar'), undefined, {})
+      expect(onError).toHaveBeenCalledWith(
+        new Error('foobar'),
+        undefined,
+        expect.objectContaining({ entry: expect.any(Object) }),
+      )
     })
 
     it('triggers global onSettled', async () => {
@@ -372,7 +386,35 @@ describe('useMutation', () => {
 
       wrapper.vm.mutate()
       await flushPromises()
-      expect(onSettled).toHaveBeenCalledWith(42, undefined, undefined, {})
+      expect(onSettled).toHaveBeenCalledWith(
+        42,
+        undefined,
+        undefined,
+        expect.objectContaining({ entry: expect.any(Object) }),
+      )
+    })
+
+    it('passes entry to local onMutate via global context', async () => {
+      const onMutate = vi.fn()
+      const { wrapper } = mountSimple({ onMutate })
+
+      wrapper.vm.mutate()
+      expect(onMutate).toHaveBeenCalledWith(
+        undefined,
+        expect.objectContaining({ entry: expect.any(Object) }),
+      )
+    })
+
+    it('entry in context refers to the actual mutation entry', async () => {
+      const onSuccess = vi.fn()
+      const { wrapper } = mountSimple({ onSuccess })
+
+      wrapper.vm.mutate()
+      await flushPromises()
+      expect(onSuccess).toHaveBeenCalledTimes(1)
+      const context = onSuccess.mock.calls[0]![2]
+      expect(context.entry).toBeDefined()
+      expect(context.entry.state.value.data).toBe(42)
     })
   })
 

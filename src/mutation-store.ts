@@ -401,15 +401,17 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
       Required<UseMutationOptions<TData, TVars, TError, TContext>>['onError']
     >['2']
 
-    let context: OnMutateContext | OnErrorContext | OnSuccessContext = {}
+    let context: OnMutateContext | OnErrorContext | OnSuccessContext = { entry }
 
     try {
-      const globalOnMutateContext = globalOptions.onMutate?.(vars)
+      const globalOnMutateContext = globalOptions.onMutate?.(vars, context)
 
-      context =
-        (globalOnMutateContext instanceof Promise
+      context = {
+        entry,
+        ...(globalOnMutateContext instanceof Promise
           ? await globalOnMutateContext
-          : globalOnMutateContext) || {}
+          : globalOnMutateContext),
+      } as typeof context
 
       const onMutateContext = (await options.onMutate?.(
         vars,
