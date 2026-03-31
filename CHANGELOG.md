@@ -1,3 +1,13 @@
+# [1.1.0](https://github.com/posva/pinia-colada/compare/v1.0.0...v1.1.0) (2026-03-31)
+
+### Bug Fixes
+
+- update entry options on ensure early return ([#537](https://github.com/posva/pinia-colada/issues/537)) ([91fb61b](https://github.com/posva/pinia-colada/commit/91fb61ba3eeccfe88bb59c65bcf57376e7ef3c1d))
+
+### Features
+
+- add `meta` support to mutations ([#541](https://github.com/posva/pinia-colada/issues/541)) ([a6ee074](https://github.com/posva/pinia-colada/commit/a6ee0743776966cfbcd0256e2af18556ce9145a7))
+
 # [1.0.0](https://github.com/posva/pinia-colada/compare/v0.21.7...v1.0.0) (2026-03-06)
 
 - feat!: remove deprecated two-parameter overloads from `useQuery` and `useQueryState` ([422c391](https://github.com/posva/pinia-colada/commit/422c391789a8d20d618a9b1b4d3b4fd900ce361b))
