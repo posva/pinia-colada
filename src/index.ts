@@ -73,6 +73,7 @@ export {
 
 export { defineMutation } from './define-mutation'
 export { defineMutationOptions } from './define-mutation-options'
+export type { DefineMutationOptionsTagged } from './define-mutation-options'
 
 export type { UseMutationReturn } from './use-mutation'
 export { useMutation } from './use-mutation'
