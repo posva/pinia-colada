@@ -1,6 +1,6 @@
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, ref } from 'vue'
+import { defineComponent } from 'vue'
 import { createPinia } from 'pinia'
 import { PiniaColada, useQuery, useQueryCache } from '@pinia/colada'
 import type { UseQueryOptions } from '@pinia/colada'

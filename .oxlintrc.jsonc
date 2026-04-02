@@ -12,7 +12,20 @@
   "rules": {
     "no-control-regex": "off",
     "no-dupe-class-members": "error",
-    "no-unused-vars": "off",
+    "no-unused-vars": [
+      // in jsdoc we need to import even when unused for @link to work
+      "off",
+      // {
+      //   "fix": {
+      //     "imports": "safe-fix",
+      //     "variables": "off",
+      //   },
+      //   "varsIgnorePattern": "^_",
+      //   "argsIgnorePattern": "^_",
+      //   "caughtErrors": "none",
+      //   "ignoreRestSiblings": true,
+      // },
+    ],
     "unicorn/no-useless-spread": "off",
     "no-console": ["error", { "allow": ["warn", "error"] }],
     "numeric-separators-style": "warn",
@@ -21,7 +34,7 @@
   },
   "settings": {
     "jsx-a11y": {
-      "polymorphicPropName": null,
+      "polymorphicPropName": "as",
       "components": {},
       "attributes": {},
     },

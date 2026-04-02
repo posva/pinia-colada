@@ -1,5 +1,4 @@
 import { describe, expectTypeOf, it } from 'vitest'
-import type { ShallowRef } from 'vue'
 import { useMutation } from './use-mutation'
 import type { _EmptyObject } from './utils'
 import type { UseMutationEntry } from '@pinia/colada'

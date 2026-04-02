@@ -763,7 +763,7 @@ describe('useQuery', () => {
           _previousEntry: UseQueryEntry<number, unknown, undefined> | undefined,
         ) => 24,
       )
-      const { wrapper } = mountSimple({
+      mountSimple({
         key: () => [key.value],
         query: async () => 42,
         placeholderData,
