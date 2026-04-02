@@ -1,10 +1,11 @@
 import { computed, type EffectScope, shallowRef, toValue, type ShallowRef } from 'vue'
-import type { UseQueryFnContext, UseQueryOptions } from './query-options'
+import type { tErrorSymbol, UseQueryFnContext, UseQueryOptions } from './query-options'
 import { useQuery } from './use-query'
 import type { UseQueryReturn } from './use-query'
 import type { ErrorDefault } from './types-extension'
 import { useQueryCache, type QueryCache, type UseQueryEntry } from './query-store'
 import { noop } from './utils'
+import type { _RemoveMaybeRef } from './utils'
 
 /**
  * Structure of data stored for infinite queries.
@@ -102,6 +103,20 @@ export interface UseInfiniteQueryOptions<
   // TODO: placeholderData should be adapted to infinite queries
   // TODO: initialData should be adapted to infinite queries
 }
+
+/**
+ * Options to define an infinite query with `defineInfiniteQueryOptions()`.
+ * Similar to {@link UseInfiniteQueryOptions} but disallows reactive values.
+ */
+export type DefineInfiniteQueryOptions<
+  TData = unknown,
+  TError = ErrorDefault,
+  TPageParam = unknown,
+  TDataInitial extends UseInfiniteQueryData<TData, TPageParam> | undefined = undefined,
+> = _RemoveMaybeRef<
+  UseInfiniteQueryOptions<TData, TError, TPageParam, TDataInitial>,
+  typeof tErrorSymbol | 'initialData' | 'placeholderData'
+>
 
 /**
  * Options for {@link UseInfiniteQueryReturn.loadNextPage} and
@@ -256,7 +271,9 @@ export function useInfiniteQuery<
   TPageParam = unknown,
   TDataInitial extends UseInfiniteQueryData<TData, TPageParam> | undefined = undefined,
 >(
-  options: UseInfiniteQueryOptions<TData, TError, TPageParam, TDataInitial>,
+  options:
+    | UseInfiniteQueryOptions<TData, TError, TPageParam, TDataInitial>
+    | (() => DefineInfiniteQueryOptions<TData, TError, TPageParam, TDataInitial>),
 ): UseInfiniteQueryReturn<TData, TError, TPageParam, TDataInitial> {
   const queryCache = useQueryCache()
   // adds hasNextPage and hasPreviousPage to the entry when it's created in the cache
@@ -416,17 +433,18 @@ export function useInfiniteQuery<
     data = entry?.state.value.data,
   ) {
     if (!entry) return
+    const opts = toValue(options)
     const lastPageParam = data?.pageParams.at(-1)
     const exts = entry.ext as unknown as UseInfiniteQueryExtensions<TPageParam>
     exts.nextPageParam.value =
       data && data.pages.length > 0
-        ? options.getNextPageParam(data.pages.at(-1)!, data.pages, lastPageParam!, data.pageParams)
+        ? opts.getNextPageParam(data.pages.at(-1)!, data.pages, lastPageParam!, data.pageParams)
         : null
 
     const firstPageParam = data?.pageParams.at(0)
     exts.previousPageParam.value =
       data && data.pages.length > 0
-        ? options.getPreviousPageParam?.(
+        ? opts.getPreviousPageParam?.(
             data.pages.at(0)!,
             data.pages,
             firstPageParam!,
