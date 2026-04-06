@@ -67,14 +67,14 @@
     "prepare": "simple-git-hooks"
   },
   "devDependencies": {
-    "@ast-grep/cli": "^0.42.0",
+    "@ast-grep/cli": "^0.42.1",
     "@pinia/colada": "workspace:*",
     "@posva/prompts": "^2.4.4",
     "@posva/test-utils": "workspace:*",
     "@shikijs/vitepress-twoslash": "^4.0.2",
     "@size-limit/esbuild-why": "^12.0.1",
     "@size-limit/preset-small-lib": "^12.0.1",
-    "@types/node": "^24.12.0",
+    "@types/node": "^24.12.2",
     "@types/semver": "^7.7.1",
     "@vitejs/plugin-vue": "^6.0.5",
     "@vitest/coverage-v8": "^4.1.2",
@@ -86,7 +86,7 @@
     "execa": "^9.6.1",
     "happy-dom": "^20.8.9",
     "lint-staged": "^16.4.0",
-    "oxfmt": "^0.42.0",
+    "oxfmt": "^0.43.0",
     "oxlint": "^1.58.0",
     "pinia": "^3.0.4",
     "semver": "^7.7.4",
@@ -100,7 +100,7 @@
     "vitepress": "1.6.4",
     "vitepress-plugin-llms": "^1.12.0",
     "vitest": "^4.1.2",
-    "vue": "^3.5.31"
+    "vue": "^3.5.32"
   },
   "peerDependencies": {
     "pinia": "^2.2.6 || ^3.0.0",
