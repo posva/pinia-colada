@@ -3,6 +3,23 @@ import type { InjectionKey } from 'vue'
 import type { ErrorDefault, MutationMeta } from './types-extension'
 import type { _ReduceContext, _MutationKey, UseMutationGlobalContext } from './use-mutation'
 import type { _EmptyObject, _Awaitable } from './utils'
+import type { UseMutationEntry } from './mutation-store'
+
+/**
+ * Common context properties shared by all mutation hooks. Contains the mutation entry with optional generics for
+ * type-safe access in local hooks.
+ */
+export interface UseMutationContextCommon<
+  TData = unknown,
+  TVars = unknown,
+  TError = unknown,
+  TContext extends Record<any, any> = _EmptyObject,
+> {
+  /**
+   * The mutation entry associated with the current mutation call.
+   */
+  entry: Omit<UseMutationEntry<TData, TVars, TError, TContext>, 'options'>
+}
 
 /**
  * Options for mutations that can be globally overridden.
@@ -21,8 +38,8 @@ export interface UseMutationOptionsGlobal {
     /**
      * The context seeded by the runtime, containing the mutation entry.
      */
-    context: UseMutationGlobalContext,
-  ) => _Awaitable<Omit<UseMutationGlobalContext, 'entry'> | undefined | void | null>
+    context: UseMutationContextCommon,
+  ) => _Awaitable<UseMutationGlobalContext | undefined | void | null>
 
   /**
    * Runs when a mutation is successful.
@@ -39,7 +56,7 @@ export interface UseMutationOptionsGlobal {
     /**
      * The merged context from `onMutate` and the global context.
      */
-    context: UseMutationGlobalContext,
+    context: UseMutationContextCommon & UseMutationGlobalContext,
   ) => unknown
 
   /**
@@ -58,11 +75,13 @@ export interface UseMutationOptionsGlobal {
      * The merged context from `onMutate` and the global context. Properties returned by `onMutate` can be `undefined`
      * if `onMutate` throws.
      */
-    context:
-      | Partial<Record<keyof UseMutationGlobalContext, never>>
-      // this is the success case where everything is defined
-      // undefined if global onMutate throws
-      | UseMutationGlobalContext,
+    context: UseMutationContextCommon &
+      (
+        | Partial<Record<keyof UseMutationGlobalContext, never>>
+        // this is the success case where everything is defined
+        // undefined if global onMutate throws
+        | UseMutationGlobalContext
+      ),
   ) => unknown
 
   /**
@@ -85,11 +104,13 @@ export interface UseMutationOptionsGlobal {
      * The merged context from `onMutate` and the global context. Properties returned by `onMutate` can be `undefined`
      * if `onMutate` throws.
      */
-    context:
-      | Partial<Record<keyof UseMutationGlobalContext, never>>
-      // this is the success case where everything is defined
-      // undefined if global onMutate throws
-      | UseMutationGlobalContext,
+    context: UseMutationContextCommon &
+      (
+        | Partial<Record<keyof UseMutationGlobalContext, never>>
+        // this is the success case where everything is defined
+        // undefined if global onMutate throws
+        | UseMutationGlobalContext
+      ),
   ) => unknown
 
   /**
@@ -171,25 +192,23 @@ export interface UseMutationOptions<
      * The variables passed to the mutation.
      */
     vars: NoInfer<TVars>,
-    context: UseMutationGlobalContext,
+    context: UseMutationContextCommon<TData, TVars, TError, TContext>,
   ) => _Awaitable<TContext | undefined | void | null>
 
   /**
    * Runs if the mutation is successful.
+   *
+   * @param data - The result of the mutation.
+   * @param vars - The variables passed to the mutation.
+   * @param context - The merged context from `onMutate` and the global context.
+   * Properties returned by `onMutate` can be `undefined` if `onMutate` throws.
    */
   onSuccess?: (
-    /**
-     * The result of the mutation.
-     */
     data: NoInfer<TData>,
-    /**
-     * The variables passed to the mutation.
-     */
     vars: NoInfer<TVars>,
-    /**
-     * The merged context from `onMutate` and the global context.
-     */
-    context: UseMutationGlobalContext & _ReduceContext<NoInfer<TContext>>,
+    context: UseMutationContextCommon<TData, TVars, TError, TContext> &
+      UseMutationGlobalContext &
+      _ReduceContext<NoInfer<TContext>>,
   ) => unknown
 
   /**
@@ -208,12 +227,14 @@ export interface UseMutationOptions<
      * The merged context from `onMutate` and the global context. Properties returned by `onMutate` can be `undefined`
      * if `onMutate` throws.
      */
-    context:
-      | (Partial<Record<keyof UseMutationGlobalContext, never>> &
-          Partial<Record<keyof _ReduceContext<NoInfer<TContext>>, never>>)
-      // this is the success case where everything is defined
-      // undefined if global onMutate throws
-      | (UseMutationGlobalContext & _ReduceContext<NoInfer<TContext>>),
+    context: UseMutationContextCommon<TData, TVars, TError, TContext> &
+      (
+        | (Partial<Record<keyof UseMutationGlobalContext, never>> &
+            Partial<Record<keyof _ReduceContext<NoInfer<TContext>>, never>>)
+        // this is the success case where everything is defined
+        // undefined if global onMutate throws
+        | (UseMutationGlobalContext & _ReduceContext<NoInfer<TContext>>)
+      ),
   ) => unknown
 
   /**
@@ -236,12 +257,14 @@ export interface UseMutationOptions<
      * The merged context from `onMutate` and the global context. Properties returned by `onMutate` can be `undefined`
      * if `onMutate` throws.
      */
-    context:
-      | (Partial<Record<keyof UseMutationGlobalContext, never>> &
-          Partial<Record<keyof _ReduceContext<NoInfer<TContext>>, never>>)
-      // this is the success case where everything is defined
-      // undefined if global onMutate throws
-      | (UseMutationGlobalContext & _ReduceContext<NoInfer<TContext>>),
+    context: UseMutationContextCommon<TData, TVars, TError, TContext> &
+      (
+        | (Partial<Record<keyof UseMutationGlobalContext, never>> &
+            Partial<Record<keyof _ReduceContext<NoInfer<TContext>>, never>>)
+        // this is the success case where everything is defined
+        // undefined if global onMutate throws
+        | (UseMutationGlobalContext & _ReduceContext<NoInfer<TContext>>)
+      ),
   ) => unknown
 }
 

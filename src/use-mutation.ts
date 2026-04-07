@@ -65,7 +65,7 @@ export interface UseMutationGlobalContext {
   /**
    * The mutation entry associated with the current mutation call.
    */
-  entry: UseMutationEntry
+  // entry: UseMutationEntry
 }
 
 // export const USE_MUTATIONS_DEFAULTS = {} satisfies Partial<UseMutationsOptions>

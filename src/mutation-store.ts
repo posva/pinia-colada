@@ -445,7 +445,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     } catch (newError: unknown) {
       currentError = newError as TError
       await globalOptions.onError?.(currentError, vars, context)
-      await options.onError?.(currentError, vars, context)
+      await options.onError?.(currentError, vars, context as OnErrorContext)
       setEntryState(entry, {
         status: 'error',
         data: entry.state.value.data,
@@ -455,7 +455,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     } finally {
       // TODO: should we catch and log it?
       await globalOptions.onSettled?.(currentData, currentError, vars, context)
-      await options.onSettled?.(currentData, currentError, vars, context)
+      await options.onSettled?.(currentData, currentError, vars, context as OnErrorContext)
       entry.asyncStatus.value = 'idle'
     }
 
