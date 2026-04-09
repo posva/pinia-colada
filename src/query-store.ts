@@ -423,7 +423,10 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     // and we know its gcTime value
     if (entry.deps.size > 0 || !entry.options) return
     clearTimeout(entry.gcTimeout)
-    entry.pending?.abortController.abort()
+    // only abort if the query is still loading, not if it already settled
+    if (entry.asyncStatus.value === 'loading') {
+      entry.pending?.abortController.abort()
+    }
     // avoid setting a timeout with false, Infinity or NaN
     if ((Number.isFinite as (val: unknown) => val is number)(entry.options.gcTime)) {
       entry.gcTimeout = setTimeout(() => {
