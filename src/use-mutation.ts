@@ -61,7 +61,12 @@ export type _ReduceContext<TContext> = TContext extends void | null | undefined
  * })
  * ```
  */
-export interface UseMutationGlobalContext {}
+export interface UseMutationGlobalContext {
+  /**
+   * The mutation entry associated with the current mutation call.
+   */
+  // entry: UseMutationEntry
+}
 
 // export const USE_MUTATIONS_DEFAULTS = {} satisfies Partial<UseMutationsOptions>
 

@@ -49,6 +49,7 @@ export {
 } from './query-store'
 
 export type {
+  UseMutationContextCommon,
   UseMutationOptions,
   UseMutationOptionsGlobal,
   UseMutationOptionsGlobalDefaults,

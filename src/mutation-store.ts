@@ -401,15 +401,17 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
       Required<UseMutationOptions<TData, TVars, TError, TContext>>['onError']
     >['2']
 
-    let context: OnMutateContext | OnErrorContext | OnSuccessContext = {}
+    let context: OnMutateContext | OnErrorContext | OnSuccessContext = { entry }
 
     try {
-      const globalOnMutateContext = globalOptions.onMutate?.(vars)
+      const globalOnMutateContext = globalOptions.onMutate?.(vars, context)
 
-      context =
-        (globalOnMutateContext instanceof Promise
+      context = {
+        entry,
+        ...(globalOnMutateContext instanceof Promise
           ? await globalOnMutateContext
-          : globalOnMutateContext) || {}
+          : globalOnMutateContext),
+      } as typeof context
 
       const onMutateContext = (await options.onMutate?.(
         vars,
@@ -443,7 +445,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     } catch (newError: unknown) {
       currentError = newError as TError
       await globalOptions.onError?.(currentError, vars, context)
-      await options.onError?.(currentError, vars, context)
+      await options.onError?.(currentError, vars, context as OnErrorContext)
       setEntryState(entry, {
         status: 'error',
         data: entry.state.value.data,
@@ -453,7 +455,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     } finally {
       // TODO: should we catch and log it?
       await globalOptions.onSettled?.(currentData, currentError, vars, context)
-      await options.onSettled?.(currentData, currentError, vars, context)
+      await options.onSettled?.(currentData, currentError, vars, context as OnErrorContext)
       entry.asyncStatus.value = 'idle'
     }
 
