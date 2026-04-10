@@ -147,4 +147,11 @@ export function* find<T extends { key: EntryKey | undefined }>(
  *
  * @internal
  */
-export const START_EXT = Object.freeze({})
+export const START_EXT = Object.freeze(
+  process.env.NODE_ENV === 'production'
+    ? {}
+    : {
+        message:
+          'This is a placeholder object for Pinia Colada extensions, it should never be used directly, but only checked for identity. This is here to simplify debugging during dev.',
+      },
+)

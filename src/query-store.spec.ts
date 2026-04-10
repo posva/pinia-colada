@@ -325,7 +325,7 @@ describe('Query Cache store', () => {
     await promise.catch(() => {})
 
     // The abort signal should NOT have been called for a settled query
-    expect(abortSpy).not.toHaveBeenCalled()
+    expect(abortSpy).toHaveBeenCalledTimes(0)
     expect(entry.state.value.data).toBe('data')
   })
 })
