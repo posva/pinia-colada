@@ -1597,7 +1597,7 @@ describe('useInfiniteQuery', () => {
       query: async () => ({ pages: [[1, 2, 3]], pageParams: [0] }),
       meta: { __i: true },
     })
-    entry.ext = {} as any
+    ;(entry as { ext: object }).ext = {}
 
     // mounting should not throw
     const { wrapper } = mountSimple({ staleTime: 1000 }, { plugins: [pinia] })
