@@ -423,8 +423,10 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     // and we know its gcTime value
     if (entry.deps.size > 0 || !entry.options) return
     clearTimeout(entry.gcTimeout)
-    // only abort if the query is still loading, not if it already settled
-    if (entry.asyncStatus.value === 'loading') {
+    // only abort if the query hasn't settled yet because entry.pending might
+    // still be set (cleared in .finally()) but the state is already
+    // success/error
+    if (entry.state.value.status === 'pending') {
       entry.pending?.abortController.abort()
     }
     // avoid setting a timeout with false, Infinity or NaN

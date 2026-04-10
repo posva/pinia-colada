@@ -317,26 +317,15 @@ describe('Query Cache store', () => {
       gcTime: 1000,
     })
 
-    // Start tracking the query (simulate component mount)
-    const effect = {} as any
-    queryCache.track(entry, effect)
-
-    // Trigger the query and wait for it to resolve
+    // No tracking — deps.size stays 0, so setEntryState → scheduleGarbageCollection
+    // will enter the abort path when the query resolves in .then() (before .finally()
+    // clears entry.pending)
     const promise = queryCache.refresh(entry)
     await flushPromises()
-
-    // At this point the query has resolved (asyncStatus will transition to idle in .finally())
-    // but entry.pending is still set because .finally() hasn't run yet
-
-    // Simulate component unmount - this triggers GC
-    queryCache.untrack(entry, effect)
-    await nextTick()
+    await promise.catch(() => {})
 
     // The abort signal should NOT have been called for a settled query
     expect(abortSpy).not.toHaveBeenCalled()
-
-    // Wait for the query to fully complete
-    await promise
     expect(entry.state.value.data).toBe('data')
   })
 })
