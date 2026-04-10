@@ -1582,4 +1582,31 @@ describe('useInfiniteQuery', () => {
     expect(w2.vm.data).toEqual({ pages: [[1, 2, 3]], pageParams: [0] })
     expect(w2.vm.hasNextPage).toBe(true)
   })
+
+  it('does not crash when entry ext is missing nextPageParam', async () => {
+    const pinia = createPinia()
+    const app = createApp({})
+    app.use(pinia)
+    app.use(PiniaColada)
+    const queryCache = useQueryCache(pinia)
+
+    // simulate a cache entry whose ext refs were never initialized
+    // (e.g. the plugin's scope.run() didn't execute)
+    const entry = queryCache.ensure({
+      key: ['key'],
+      query: async () => ({ pages: [[1, 2, 3]], pageParams: [0] }),
+      meta: { __i: true },
+    })
+    ;(entry as { ext: object }).ext = {}
+
+    // mounting should not throw
+    const { wrapper } = mountSimple({ staleTime: 1000 }, { plugins: [pinia] })
+
+    await flushPromises()
+
+    expect(wrapper.vm.data).toEqual({
+      pages: [[1, 2, 3]],
+      pageParams: [0],
+    })
+  })
 })
