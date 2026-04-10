@@ -467,7 +467,7 @@ export function useInfiniteQuery<
     const lastPageParam = data?.pageParams.at(-1)
     const exts = entry.ext as unknown as UseInfiniteQueryExtensions<TPageParam>
     // extensions might not be initialized if the plugin's scope was stopped
-    if (!exts.nextPageParam) {
+    if (!exts.nextPageParam || !exts.previousPageParam) {
       createInfiniteQueryEntryExtensions(exts as unknown as UseInfiniteQueryExtensions<unknown>)
     }
     exts.nextPageParam.value =
