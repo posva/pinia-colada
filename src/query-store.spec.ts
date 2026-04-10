@@ -302,4 +302,30 @@ describe('Query Cache store', () => {
     vi.advanceTimersByTime(1000)
     expect(queryCache.getEntries({ key: ['prefetch-gc'] })).toHaveLength(0)
   })
+
+  // https://github.com/posva/pinia-colada/issues/461
+  it('does not abort settled queries during garbage collection', async () => {
+    const queryCache = useQueryCache()
+    const abortSpy = vi.fn()
+
+    const entry = queryCache.ensure({
+      key: ['settled-query-gc'],
+      query: async ({ signal }) => {
+        signal.addEventListener('abort', abortSpy)
+        return 'data'
+      },
+      gcTime: 1000,
+    })
+
+    // No tracking — deps.size stays 0, so setEntryState → scheduleGarbageCollection
+    // will enter the abort path when the query resolves in .then() (before .finally()
+    // clears entry.pending)
+    const promise = queryCache.refresh(entry)
+    await flushPromises()
+    await promise.catch(() => {})
+
+    // The abort signal should NOT have been called for a settled query
+    expect(abortSpy).not.toHaveBeenCalled()
+    expect(entry.state.value.data).toBe('data')
+  })
 })
