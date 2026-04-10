@@ -130,7 +130,7 @@ describe('useMutation', () => {
         },
         onMutate,
       })
-      expect(onMutate).not.toHaveBeenCalled()
+      expect(onMutate).toHaveBeenCalledTimes(0)
       wrapper.vm.mutate({ a: 24, b: 42 })
       expect(onMutate).toHaveBeenCalledTimes(1)
       expect(onMutate).toHaveBeenLastCalledWith({ a: 24, b: 42 }, expect.objectContaining({}))
@@ -148,7 +148,7 @@ describe('useMutation', () => {
         onError,
       })
 
-      expect(onError).not.toHaveBeenCalled()
+      expect(onError).toHaveBeenCalledTimes(0)
       wrapper.vm.mutate(24)
       await flushPromises()
       expect(onError).toHaveBeenCalledWith(new Error('24'), 24, expect.objectContaining({}))
@@ -211,9 +211,9 @@ describe('useMutation', () => {
 
       wrapper.vm.mutate()
       expect(onMutate).toHaveBeenCalled()
-      expect(mutation).not.toHaveBeenCalled()
+      expect(mutation).toHaveBeenCalledTimes(0)
       vi.advanceTimersByTime(10)
-      expect(mutation).not.toHaveBeenCalled()
+      expect(mutation).toHaveBeenCalledTimes(0)
       await flushPromises()
       expect(mutation).toHaveBeenCalled()
     })

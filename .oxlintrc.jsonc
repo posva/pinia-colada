@@ -1,6 +1,7 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["unicorn", "typescript", "oxc"],
+  "jsPlugins": ["oxlint-plugin-posva"],
   "categories": {
     "correctness": "error",
     "suspicious": "off",
@@ -31,6 +32,7 @@
     "numeric-separators-style": "warn",
     "curly": ["error", "multi-line"],
     "require-post-message-target-origin": "off",
+    "posva/vitest-prefer-to-have-been-called-times": "error",
   },
   "settings": {
     "jsx-a11y": {

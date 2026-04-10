@@ -1455,7 +1455,7 @@ describe('useQuery', () => {
 
       // The abort listener from the first (already succeeded) query
       // should NOT have been called
-      expect(abortListener).not.toHaveBeenCalled()
+      expect(abortListener).toHaveBeenCalledTimes(0)
     })
   })
 
@@ -1907,13 +1907,13 @@ describe('useQuery', () => {
       const queryCache = useQueryCache(pinia)
 
       await flushPromises()
-      expect(query).not.toHaveBeenCalled()
+      expect(query).toHaveBeenCalledTimes(0)
 
       queryCache.invalidateQueries({ key: ['key'] })
       expect(queryCache.getEntries({ key: ['key'] })[0]?.stale).toBe(true)
       await flushPromises()
 
-      expect(query).not.toHaveBeenCalled()
+      expect(query).toHaveBeenCalledTimes(0)
     })
 
     it('should invalidate but not refetch query when enabled function returns false', async () => {
@@ -1921,13 +1921,13 @@ describe('useQuery', () => {
       const queryCache = useQueryCache(pinia)
 
       await flushPromises()
-      expect(query).not.toHaveBeenCalled()
+      expect(query).toHaveBeenCalledTimes(0)
 
       queryCache.invalidateQueries({ key: ['key'] })
       expect(queryCache.getEntries({ key: ['key'] })[0]?.stale).toBe(true)
       await flushPromises()
 
-      expect(query).not.toHaveBeenCalled()
+      expect(query).toHaveBeenCalledTimes(0)
     })
 
     it('should only invalidate all and refetch active queries by default', async () => {

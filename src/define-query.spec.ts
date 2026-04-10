@@ -369,7 +369,7 @@ describe('defineQuery', () => {
 
       // The abort listener from the first (already succeeded) query
       // should NOT have been called
-      expect(abortListener).not.toHaveBeenCalled()
+      expect(abortListener).toHaveBeenCalledTimes(0)
     })
   })
 

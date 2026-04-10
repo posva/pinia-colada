@@ -64,7 +64,7 @@ describe('Query Hooks plugin', () => {
 
     expect(onSuccess).toHaveBeenCalledTimes(1)
     expect(onSettled).toHaveBeenCalledTimes(1)
-    expect(onError).not.toHaveBeenCalled()
+    expect(onError).toHaveBeenCalledTimes(0)
     expect(onSuccess).toHaveBeenCalledWith(42, expect.objectContaining({}))
     expect(onSuccess.mock.calls[0]?.[1]?.state?.value).toMatchObject({
       data: 42,
@@ -103,7 +103,7 @@ describe('Query Hooks plugin', () => {
 
     await flushPromises()
 
-    expect(onSuccess).not.toHaveBeenCalled()
+    expect(onSuccess).toHaveBeenCalledTimes(0)
     expect(onSettled).toHaveBeenCalledTimes(1)
     expect(onError).toHaveBeenCalledTimes(1)
 

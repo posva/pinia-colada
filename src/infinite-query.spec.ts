@@ -785,7 +785,7 @@ describe('useInfiniteQuery', () => {
     await wrapper.vm.loadNextPage()
 
     // Query should not be called again
-    expect(query).not.toHaveBeenCalled()
+    expect(query).toHaveBeenCalledTimes(0)
 
     // Data should remain unchanged
     expect(wrapper.vm.data).toEqual({
@@ -1170,7 +1170,7 @@ describe('useInfiniteQuery', () => {
     await flushPromises()
 
     // Should have cached data
-    expect(query).not.toHaveBeenCalled()
+    expect(query).toHaveBeenCalledTimes(0)
     // hasNextPage should be correctly computed from cached data
     expect(queryResult.hasNextPage.value).toBe(true)
   })
@@ -1464,7 +1464,7 @@ describe('useInfiniteQuery', () => {
       })
 
       // Query should not have been called since enabled is false
-      expect(query).not.toHaveBeenCalled()
+      expect(query).toHaveBeenCalledTimes(0)
 
       // hasNextPage should still be true from the hydrated data
       expect(wrapper.vm.hasNextPage).toBe(true)

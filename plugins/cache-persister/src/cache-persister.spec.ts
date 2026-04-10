@@ -108,7 +108,7 @@ describe('PiniaColadaCachePersister', () => {
       expect(query).toHaveBeenCalledTimes(1)
 
       // Before debounce, nothing persisted
-      expect(storage.setItem).not.toHaveBeenCalled()
+      expect(storage.setItem).toHaveBeenCalledTimes(0)
 
       // After debounce
       vi.advanceTimersByTime(100)
