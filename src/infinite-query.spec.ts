@@ -1474,6 +1474,30 @@ describe('useInfiniteQuery', () => {
       // After everything settles, hasNextPage should remain true
       expect(wrapper.vm.hasNextPage).toBe(true)
     })
+
+    it('can set the data before using infinite queries', async () => {
+      const pinia = createPiniawithHydratedCache({
+        // '["key"]': [{ pages: [[1, 2, 3]], pageParams: [0] }, null, 0, { __i: true }],
+      })
+      const queryCache = useQueryCache(pinia)
+      queryCache.setQueryData(['key'], { pages: [[1, 2, 3]], pageParams: [0] })
+
+      const { wrapper } = mountSimple(
+        {
+          staleTime: 1000,
+          getNextPageParam: (_lastPage, _allPages, lastPageParam) =>
+            lastPageParam >= 3 ? null : lastPageParam + 1,
+        },
+        { plugins: [pinia] },
+      )
+      await flushPromises()
+
+      expect(wrapper.vm.data).toEqual({
+        pages: [[1, 2, 3]],
+        pageParams: [0],
+      })
+      expect(wrapper.vm.hasNextPage).toBe(true)
+    })
   })
 
   // https://github.com/posva/pinia-colada/issues/458
@@ -1581,32 +1605,5 @@ describe('useInfiniteQuery', () => {
     // should work without throwing
     expect(w2.vm.data).toEqual({ pages: [[1, 2, 3]], pageParams: [0] })
     expect(w2.vm.hasNextPage).toBe(true)
-  })
-
-  it('does not crash when entry ext is missing nextPageParam', async () => {
-    const pinia = createPinia()
-    const app = createApp({})
-    app.use(pinia)
-    app.use(PiniaColada)
-    const queryCache = useQueryCache(pinia)
-
-    // simulate a cache entry whose ext refs were never initialized
-    // (e.g. the plugin's scope.run() didn't execute)
-    const entry = queryCache.ensure({
-      key: ['key'],
-      query: async () => ({ pages: [[1, 2, 3]], pageParams: [0] }),
-      meta: { __i: true },
-    })
-    ;(entry as { ext: object }).ext = {}
-
-    // mounting should not throw
-    const { wrapper } = mountSimple({ staleTime: 1000 }, { plugins: [pinia] })
-
-    await flushPromises()
-
-    expect(wrapper.vm.data).toEqual({
-      pages: [[1, 2, 3]],
-      pageParams: [0],
-    })
   })
 })
