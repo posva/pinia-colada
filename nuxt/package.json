@@ -38,7 +38,7 @@
     "@nuxt/eslint-config": "^1.15.2",
     "@nuxt/module-builder": "1.0.2",
     "@nuxt/schema": "^4.4.2",
-    "@nuxt/test-utils": "^4.0.0",
+    "@nuxt/test-utils": "^4.0.2",
     "@pinia/colada": "workspace:*",
     "@pinia/nuxt": "^0.11.3",
     "nuxi": "^3.34.0",
