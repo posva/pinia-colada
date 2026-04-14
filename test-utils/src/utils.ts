@@ -15,6 +15,19 @@ export function isSpy(fn: any): fn is Mock {
   )
 }
 
+/**
+ * Forces garbage collection. Requires `--expose-gc` node flag.
+ * Calls gc() twice with a microtask gap to handle weak ref chains.
+ */
+export async function triggerGC(): Promise<void> {
+  if (typeof globalThis.gc !== 'function') {
+    throw new Error('gc() not available. Run vitest with --expose-gc')
+  }
+  globalThis.gc()
+  await new Promise((r) => setTimeout(r, 10))
+  globalThis.gc()
+}
+
 export function promiseWithResolvers<T = unknown>() {
   let resolve!: (value: T | PromiseLike<T>) => void
   let reject!: (reason?: any) => void

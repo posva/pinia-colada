@@ -49,6 +49,7 @@ export default defineConfig({
             label: '🍹 @pinia/colada',
             color: 'white',
           },
+          include: ['src/**/*.{test,spec}.ts'],
           exclude: ['src/**/*.memory.spec.ts'],
           typecheck: {
             enabled: true,
@@ -73,7 +74,7 @@ export default defineConfig({
     ],
 
     // common config for all projects
-    include: ['src/**/*.{test,spec}.ts'],
+    include: [],
     environment: 'happy-dom',
     fakeTimers: {
       // easier to read, some date in 2001
