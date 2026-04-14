@@ -1,12 +1,12 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { createApp, defineComponent } from 'vue'
-import { delay, triggerGC } from '@posva/test-utils'
+import { triggerGC } from '@posva/test-utils'
 import { defineQuery } from './define-query'
 import { PiniaColada } from './pinia-colada'
 
-const GC_TIME = 100
+const GC_TIME = 1000
 
 function createPiniaWithApp({ pinia = createPinia() } = {}) {
   const app = createApp(defineComponent({ render: () => null }))
@@ -17,8 +17,12 @@ function createPiniaWithApp({ pinia = createPinia() } = {}) {
 }
 
 describe('defineQuery memory leaks', () => {
-  afterEach(async () => {
-    await delay(GC_TIME + 50)
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
   })
 
   enableAutoUnmount(afterEach)
@@ -56,11 +60,12 @@ describe('defineQuery memory leaks', () => {
 
     wrapper1.unmount()
     wrapper2.unmount()
-    await delay(GC_TIME + 50)
+    vi.advanceTimersByTime(GC_TIME)
 
     useTodos = null
     largeObject = null
 
+    vi.useRealTimers()
     await triggerGC()
     expect(ref.deref()).toBeUndefined()
   })
@@ -95,12 +100,13 @@ describe('defineQuery memory leaks', () => {
     await flushPromises()
 
     wrapper.unmount()
-    await delay(GC_TIME + 50)
+    vi.advanceTimersByTime(GC_TIME)
 
     // release both the defineQuery function and the captured object
     useTodos = null
     largeObject = null
 
+    vi.useRealTimers()
     await triggerGC()
     expect(ref.deref()).toBeUndefined()
 
