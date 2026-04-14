@@ -16,11 +16,7 @@ import { useMutationCache } from './mutation-store'
 import type { UseMutationEntry, UseMutationEntryExtensions } from './mutation-store'
 import { noop } from './utils'
 import type { _EmptyObject } from './utils'
-import {
-  USE_MUTATION_DEFAULTS,
-  useMutationOptions,
-  type UseMutationOptions,
-} from './mutation-options'
+import { useMutationOptions, type UseMutationOptions } from './mutation-options'
 
 /**
  * Valid keys for a mutation. Similar to query keys.
