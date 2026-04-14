@@ -404,9 +404,11 @@ describe('useMutation', () => {
       wrapper.vm.mutate()
       await flushPromises()
       expect(onSuccess).toHaveBeenCalledTimes(1)
-      const context = onSuccess.mock.calls[0]![2]
-      expect(context.entry).toBeDefined()
-      expect(context.entry.state.value.data).toBe(42)
+      expect(onSuccess).toHaveBeenCalledWith(
+        42,
+        undefined,
+        expect.objectContaining({ entry: anyEntry }),
+      )
     })
   })
 
