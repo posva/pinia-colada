@@ -8,7 +8,11 @@ import type { _EmptyObject } from './utils'
 import { noop, toValueWithArgs, warnOnce } from './utils'
 import type { _ReduceContext } from './use-mutation'
 import { useMutationOptions } from './mutation-options'
-import type { UseMutationOptions, UseMutationOptionsWithDefaults } from './mutation-options'
+import type {
+  UseMutationContextCommon,
+  UseMutationOptions,
+  UseMutationOptionsWithDefaults,
+} from './mutation-options'
 import type { EntryKey } from './entry-keys'
 import type { MutationMeta } from './types-extension'
 
@@ -391,9 +395,10 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     // TODO: AbortSignal that is aborted when the mutation is called again so we can throw in pending
     let currentData: TData | undefined
     let currentError: TError | undefined
-    type OnMutateContext = Parameters<
+    type OnMutateContext =
+      /* Parameters<
       Required<UseMutationOptions<TData, TVars, TError, TContext>>['onMutate']
-    >['1']
+    >['1'] */ UseMutationContextCommon<TData, TVars, TError, TContext>
     type OnSuccessContext = Parameters<
       Required<UseMutationOptions<TData, TVars, TError, TContext>>['onSuccess']
     >['2']
@@ -428,7 +433,12 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
 
       const newData = (currentData = await options.mutation(vars, context as OnSuccessContext))
 
-      await globalOptions.onSuccess?.(newData, vars, context as OnSuccessContext)
+      await globalOptions.onSuccess?.(
+        newData,
+        vars,
+        // contravariance + functions makes this too difficult to generalize without `any`
+        context as any,
+      )
       await options.onSuccess?.(
         newData,
         vars,
@@ -444,7 +454,12 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
       })
     } catch (newError: unknown) {
       currentError = newError as TError
-      await globalOptions.onError?.(currentError, vars, context)
+      await globalOptions.onError?.(
+        currentError,
+        vars,
+        // contravariance + functions makes this too difficult to generalize without `any`
+        context as any,
+      )
       await options.onError?.(currentError, vars, context as OnErrorContext)
       setEntryState(entry, {
         status: 'error',
@@ -454,7 +469,13 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
       throw newError
     } finally {
       // TODO: should we catch and log it?
-      await globalOptions.onSettled?.(currentData, currentError, vars, context)
+      await globalOptions.onSettled?.(
+        currentData,
+        currentError,
+        vars,
+        // contravariance + functions makes this too difficult to generalize without `any`
+        context as any,
+      )
       await options.onSettled?.(currentData, currentError, vars, context as OnErrorContext)
       entry.asyncStatus.value = 'idle'
     }

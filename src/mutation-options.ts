@@ -18,7 +18,8 @@ export interface UseMutationContextCommon<
   /**
    * The mutation entry associated with the current mutation call.
    */
-  entry: Omit<UseMutationEntry<TData, TVars, TError, TContext>, 'options'>
+  entry: UseMutationEntry<TData, TVars, TError, TContext>
+  // entry: Omit<UseMutationEntry<TData, TVars, TError, TContext>, 'options'>
 }
 
 /**
@@ -192,7 +193,8 @@ export interface UseMutationOptions<
      * The variables passed to the mutation.
      */
     vars: NoInfer<TVars>,
-    context: UseMutationContextCommon<TData, TVars, TError, TContext>,
+    // we must use unknown and _EmptyObject to avoid inference and breaking types in other places
+    context: UseMutationContextCommon<unknown, unknown, NoInfer<TError>, _EmptyObject>,
   ) => _Awaitable<TContext | undefined | void | null>
 
   /**
@@ -206,7 +208,12 @@ export interface UseMutationOptions<
   onSuccess?: (
     data: NoInfer<TData>,
     vars: NoInfer<TVars>,
-    context: UseMutationContextCommon<TData, TVars, TError, TContext> &
+    context: UseMutationContextCommon<
+      NoInfer<TData>,
+      NoInfer<TVars>,
+      NoInfer<TError>,
+      NoInfer<TContext>
+    > &
       UseMutationGlobalContext &
       _ReduceContext<NoInfer<TContext>>,
   ) => unknown

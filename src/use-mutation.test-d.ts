@@ -14,6 +14,55 @@ describe('useMutation type inference', () => {
     })
   })
 
+  it('passes an entry with the correct types to hooks', () => {
+    useMutation({
+      onMutate(_vars: string, { entry }) {
+        expectTypeOf(entry).not.toBeAny()
+        return { foo: 'bar' }
+      },
+
+      mutation: async (_one: string, context) => {
+        expectTypeOf(context).not.toBeAny()
+        expectTypeOf(context.foo).toBeString()
+        return { status: 'ok' }
+      },
+
+      onSuccess(data, vars, context) {
+        expectTypeOf(data).toEqualTypeOf<{ status: string }>()
+        expectTypeOf(vars).toBeString()
+        expectTypeOf(context).not.toBeAny()
+        expectTypeOf(context.foo).toBeString()
+        expectTypeOf<keyof typeof context>({} as any).toEqualTypeOf<'foo' | 'entry'>('' as any)
+        expectTypeOf(context.entry).toEqualTypeOf<
+          UseMutationEntry<{ status: string }, string, { custom: Error }, { foo: string }>
+        >()
+      },
+
+      onError(error, vars, context) {
+        expectTypeOf(error).toEqualTypeOf<{ custom: Error }>()
+        expectTypeOf(vars).toBeString()
+        expectTypeOf(context).not.toBeAny()
+        expectTypeOf(context.foo).toEqualTypeOf<string | undefined>()
+        expectTypeOf<keyof typeof context>({} as any).toEqualTypeOf<'foo' | 'entry'>('' as any)
+        expectTypeOf(context.entry).toEqualTypeOf<
+          UseMutationEntry<{ status: string }, string, { custom: Error }, { foo: string }>
+        >()
+      },
+
+      onSettled(data, error, vars, context) {
+        expectTypeOf(data).toEqualTypeOf<{ status: string } | undefined>()
+        expectTypeOf(error).toEqualTypeOf<{ custom: Error } | undefined>()
+        expectTypeOf(vars).toBeString()
+        expectTypeOf(context).not.toBeAny()
+        expectTypeOf(context.foo).toEqualTypeOf<string | undefined>()
+        expectTypeOf<keyof typeof context>({} as any).toEqualTypeOf<'foo' | 'entry'>('' as any)
+        expectTypeOf(context.entry).toEqualTypeOf<
+          UseMutationEntry<{ status: string }, string, { custom: Error }, { foo: string }>
+        >()
+      },
+    })
+  })
+
   it('can infer the arguments from the mutation', () => {
     useMutation({
       mutation: (_one: string) => Promise.resolve({ name: 'foo' }),
@@ -48,21 +97,20 @@ describe('useMutation type inference', () => {
       },
       mutation: async (vars: number, context) => {
         expectTypeOf(vars).toBeNumber()
-        expectTypeOf(context).not.toBeAny()
         expectTypeOf(context).toEqualTypeOf<{ foo: string }>()
         return 42
       },
       onSuccess(_d, _v, context) {
         expectTypeOf(context).not.toBeAny()
-        expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
+        expectTypeOf(context).toExtend<{ foo: string }>()
       },
       onError(_e, _v, context) {
         expectTypeOf(context).not.toBeAny()
-        expectTypeOf(context.foo).toMatchTypeOf<string | undefined>()
+        expectTypeOf(context.foo).toExtend<string | undefined>()
       },
       onSettled(_d, _e, _v, context) {
         expectTypeOf(context).not.toBeAny()
-        expectTypeOf(context.foo).toMatchTypeOf<string | undefined>()
+        expectTypeOf(context.foo).toExtend<string | undefined>()
       },
     })
   })
@@ -106,15 +154,15 @@ describe('useMutation type inference', () => {
       },
       onSuccess(_d, _v, context) {
         expectTypeOf(context).not.toBeAny()
-        expectTypeOf(context).toMatchTypeOf<{ foo: string }>()
+        expectTypeOf(context).toExtend<{ foo: string }>()
       },
       onError(_e, _v, context) {
         expectTypeOf(context).not.toBeAny()
-        expectTypeOf(context).toMatchTypeOf<{ foo?: string }>()
+        expectTypeOf(context).toExtend<{ foo?: string }>()
       },
       onSettled(_d, _e, _v, context) {
         expectTypeOf(context).not.toBeAny()
-        expectTypeOf(context).toMatchTypeOf<{ foo?: string }>()
+        expectTypeOf(context).toExtend<{ foo?: string }>()
       },
     })
   })
@@ -128,7 +176,7 @@ describe('useMutation type inference', () => {
       onSuccess(_d, _v, context) {
         expectTypeOf(context).not.toBeAny()
         if (context.foo != null) {
-          expectTypeOf(context).toMatchTypeOf<{ foo: string; bar: string }>()
+          expectTypeOf(context).toExtend<{ foo: string; bar: string }>()
         } else {
           expectTypeOf<never>(context.foo)
           expectTypeOf<never | undefined | string>(context.bar)
@@ -137,7 +185,7 @@ describe('useMutation type inference', () => {
       onError(_e, _v, context) {
         expectTypeOf(context).not.toBeAny()
         if (context.foo != null) {
-          expectTypeOf(context).toMatchTypeOf<{ foo: string; bar: string }>()
+          expectTypeOf(context).toExtend<{ foo: string; bar: string }>()
         } else {
           expectTypeOf<never | undefined>(context.foo)
           expectTypeOf<never | undefined>(context.bar)
@@ -146,7 +194,7 @@ describe('useMutation type inference', () => {
       onSettled(_d, _e, _v, context) {
         expectTypeOf(context).not.toBeAny()
         if (context.foo != null) {
-          expectTypeOf(context).toMatchTypeOf<{ foo: string; bar: string }>()
+          expectTypeOf(context).toExtend<{ foo: string; bar: string }>()
         } else {
           expectTypeOf<never | undefined>(context.foo)
           expectTypeOf<never | undefined>(context.bar)
@@ -164,15 +212,16 @@ describe('useMutation type inference', () => {
 
       onSuccess(_d, _v, context) {
         expectTypeOf(context).not.toBeAny()
-        expectTypeOf(context).toMatchTypeOf<_EmptyObject>()
+        expectTypeOf(context).toExtend<_EmptyObject>()
       },
       onError(_e, _v, context) {
         expectTypeOf(context).not.toBeAny()
-        expectTypeOf(context).toMatchTypeOf<_EmptyObject>()
+        expectTypeOf(context).toExtend<_EmptyObject>()
       },
       onSettled(_d, _e, _v, context) {
         expectTypeOf(context).not.toBeAny()
-        expectTypeOf(context).toMatchTypeOf<_EmptyObject>()
+        // FIXME: not good
+        expectTypeOf(context).toExtend<_EmptyObject>()
       },
     })
 
