@@ -47,7 +47,7 @@
   },
   "scripts": {
     "nuxt:prepare": "pnpm run --filter './nuxt' dev:prepare",
-    "dev": "vitest --ui",
+    "dev": "vitest --ui --project=!'memory-leaks'",
     "docs": "vitepress dev docs",
     "docs:build": "pnpm run docs:api:build && vitepress build docs",
     "docs:api:build": "node ./scripts/run-typedoc.js",

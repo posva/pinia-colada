@@ -16,6 +16,9 @@ const pluginsProjects: TestProjectInlineConfiguration[] = fs
         test: {
           name: '🔌 ' + pkg.name,
           root: dir,
+          typecheck: {
+            enabled: true,
+          },
         },
       } satisfies TestProjectInlineConfiguration
     } catch (error) {
@@ -46,6 +49,22 @@ export default defineConfig({
             label: '🍹 @pinia/colada',
             color: 'white',
           },
+          exclude: ['src/**/*.memory.spec.ts'],
+          typecheck: {
+            enabled: true,
+          },
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: {
+            label: 'memory-leaks',
+            color: 'cyan',
+          },
+          include: ['src/**/*.memory.spec.ts'],
+          pool: 'forks',
+          execArgv: ['--expose-gc'],
         },
       },
       ...pluginsProjects,
@@ -60,11 +79,9 @@ export default defineConfig({
       // easier to read, some date in 2001
       now: 1_000_000_000_000,
     },
-    typecheck: {
-      enabled: true,
-    },
     coverage: {
-      enabled: true,
+      // only run when enabled
+      enabled: false,
       provider: 'v8',
       reporter: ['text', 'lcovonly', 'html'],
       include: ['src', 'plugins/*/src'],
