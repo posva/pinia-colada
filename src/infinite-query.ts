@@ -457,8 +457,13 @@ export function useInfiniteQuery<
     entry: UseQueryEntry<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial> | undefined,
     data = entry?.state.value.data,
   ) {
-    if (!entry) return
-    const opts = toValueWithArgs(options)
+    if (!entry?.options) return
+    const opts = entry.options as unknown as UseInfiniteQueryOptions<
+      TData,
+      TError,
+      TPageParam,
+      TDataInitial
+    >
     const lastPageParam = data?.pageParams.at(-1)
     const exts = entry.ext as unknown as UseInfiniteQueryExtensions<TPageParam>
     exts.nextPageParam.value =
