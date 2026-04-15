@@ -16,8 +16,55 @@ describe('useMutation type inference', () => {
 
   it('passes an entry with the correct types to hooks', () => {
     useMutation({
-      onMutate(_vars: string, { entry }) {
-        expectTypeOf(entry).not.toBeAny()
+      onMutate(_vars: string) {
+        return { foo: 'bar' }
+      },
+
+      mutation: async (_one, context) => {
+        expectTypeOf(context).not.toBeAny()
+        expectTypeOf(context.foo).toBeString()
+        return { status: 'ok' }
+      },
+
+      onSuccess(data, vars, context) {
+        expectTypeOf(data).toEqualTypeOf<{ status: string }>()
+        expectTypeOf(vars).toBeString()
+        expectTypeOf(context).not.toBeAny()
+        expectTypeOf(context.foo).toBeString()
+        expectTypeOf<keyof typeof context>({} as any).toEqualTypeOf<'foo' | 'entry'>('' as any)
+        expectTypeOf(context.entry).toEqualTypeOf<
+          UseMutationEntry<{ status: string }, string, { custom: Error }, { foo: string }>
+        >()
+      },
+
+      onError(error, vars, context) {
+        expectTypeOf(error).toEqualTypeOf<{ custom: Error }>()
+        expectTypeOf(vars).toBeString()
+        expectTypeOf(context).not.toBeAny()
+        expectTypeOf(context.foo).toEqualTypeOf<string | undefined>()
+        expectTypeOf<keyof typeof context>({} as any).toEqualTypeOf<'foo' | 'entry'>('' as any)
+        expectTypeOf(context.entry).toEqualTypeOf<
+          UseMutationEntry<{ status: string }, string, { custom: Error }, { foo: string }>
+        >()
+      },
+
+      onSettled(data, error, vars, context) {
+        expectTypeOf(data).toEqualTypeOf<{ status: string } | undefined>()
+        expectTypeOf(error).toEqualTypeOf<{ custom: Error } | undefined>()
+        expectTypeOf(vars).toBeString()
+        expectTypeOf(context).not.toBeAny()
+        expectTypeOf(context.foo).toEqualTypeOf<string | undefined>()
+        expectTypeOf<keyof typeof context>({} as any).toEqualTypeOf<'foo' | 'entry'>('' as any)
+        expectTypeOf(context.entry).toEqualTypeOf<
+          UseMutationEntry<{ status: string }, string, { custom: Error }, { foo: string }>
+        >()
+      },
+    })
+  })
+
+  it('can omit the context argument in onMutate', () => {
+    useMutation({
+      onMutate(_vars: string) {
         return { foo: 'bar' }
       },
 
@@ -58,6 +105,53 @@ describe('useMutation type inference', () => {
         expectTypeOf<keyof typeof context>({} as any).toEqualTypeOf<'foo' | 'entry'>('' as any)
         expectTypeOf(context.entry).toEqualTypeOf<
           UseMutationEntry<{ status: string }, string, { custom: Error }, { foo: string }>
+        >()
+      },
+    })
+
+    useMutation({
+      mutation: async (_one: string, context) => {
+        expectTypeOf(context).not.toBeAny()
+        return { status: 'ok' }
+      },
+
+      onMutate(_vars: string, { entry }) {
+        expectTypeOf(entry).not.toBeAny()
+      },
+
+      onSuccess(data, vars, context) {
+        expectTypeOf(data).toEqualTypeOf<{ status: string }>()
+        expectTypeOf(vars).toBeString()
+        expectTypeOf(context).not.toBeAny()
+        expectTypeOf<keyof typeof context>({} as any).toEqualTypeOf<'entry'>('' as any)
+        expectTypeOf(context.entry).toEqualTypeOf<
+          UseMutationEntry<{ status: string }, string, { custom: Error }, _EmptyObject>
+        >()
+      },
+    })
+
+    useMutation({
+      mutation: async (_one: string, context) => {
+        expectTypeOf(context).not.toBeAny()
+        return { status: 'ok' }
+      },
+
+      onMutate(vars, context) {
+        expectTypeOf(vars).toBeString()
+        expectTypeOf(context).not.toBeAny()
+        expectTypeOf<keyof typeof context>({} as any).toEqualTypeOf<'entry'>('' as any)
+        expectTypeOf(context.entry).toEqualTypeOf<
+          UseMutationEntry<unknown, unknown, { custom: Error }, _EmptyObject>
+        >()
+      },
+
+      onSuccess(data, vars, context) {
+        expectTypeOf(data).toEqualTypeOf<{ status: string }>()
+        expectTypeOf(vars).toBeString()
+        expectTypeOf(context).not.toBeAny()
+        expectTypeOf<keyof typeof context>({} as any).toEqualTypeOf<'entry'>('' as any)
+        expectTypeOf(context.entry).toEqualTypeOf<
+          UseMutationEntry<{ status: string }, string, { custom: Error }, _EmptyObject>
         >()
       },
     })

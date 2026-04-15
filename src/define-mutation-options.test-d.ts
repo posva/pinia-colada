@@ -73,10 +73,12 @@ describe('defineMutationOptions types', () => {
       onMutate(vars: number) {
         return { previousValue: `old:${vars}` }
       },
-      mutation: async (vars: number, context) => {
+
+      mutation: async (vars, context) => {
         expectTypeOf(context).toEqualTypeOf<{ previousValue: string }>()
         return vars * 2
       },
+
       onSuccess(data, vars, context) {
         expectTypeOf(data).toEqualTypeOf<number>()
         expectTypeOf(vars).toEqualTypeOf<number>()
@@ -103,7 +105,7 @@ describe('defineMutationOptions types', () => {
   it('supports function key', () => {
     const opts = defineMutationOptions({
       key: (vars: number) => ['todos', 'delete', vars],
-      mutation: async (id: number) => ({ success: true }),
+      mutation: async (_id: number) => ({ success: true }),
     })
 
     expectTypeOf(opts.key).toEqualTypeOf<

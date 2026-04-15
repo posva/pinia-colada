@@ -11,6 +11,15 @@ import { mockConsoleError, mockWarn } from '@posva/test-utils'
 import { useMutationCache } from './mutation-store'
 
 describe('useMutation', () => {
+  // to facilitate testing  when we just want to check for something that looks like an entry
+  const anyEntry = expect.objectContaining({
+    id: expect.any(Number),
+    key: undefined,
+    when: expect.any(Number),
+    // varies depending on the last call
+    // vars: undefined,
+  })
+
   beforeEach(() => {
     vi.clearAllTimers()
     vi.useFakeTimers()
@@ -133,10 +142,10 @@ describe('useMutation', () => {
       expect(onMutate).toHaveBeenCalledTimes(0)
       wrapper.vm.mutate({ a: 24, b: 42 })
       expect(onMutate).toHaveBeenCalledTimes(1)
-      expect(onMutate).toHaveBeenLastCalledWith({ a: 24, b: 42 }, expect.objectContaining({}))
+      expect(onMutate).toHaveBeenLastCalledWith({ a: 24, b: 42 }, { entry: anyEntry })
       wrapper.vm.mutateAsync({ a: 0, b: 1 })
       expect(onMutate).toHaveBeenCalledTimes(2)
-      expect(onMutate).toHaveBeenLastCalledWith({ a: 0, b: 1 }, expect.objectContaining({}))
+      expect(onMutate).toHaveBeenLastCalledWith({ a: 0, b: 1 }, { entry: anyEntry })
     })
 
     it('invokes the "onError" hook if mutation throws', async () => {
@@ -296,15 +305,6 @@ describe('useMutation', () => {
       })
     })
 
-    // to facilitate testing  when we just want to check for something that looks like an entry
-    const anyEntry = expect.objectContaining({
-      id: expect.any(Number),
-      key: undefined,
-      when: expect.any(Number),
-      // varies depending on the last call
-      // vars: undefined,
-    })
-
     it('triggers global onMutate', async () => {
       const onMutate = vi.fn()
       const { wrapper } = mountSimple(
@@ -337,10 +337,7 @@ describe('useMutation', () => {
       )
 
       wrapper.vm.mutate()
-      expect(onMutate).toHaveBeenCalledWith(undefined, {
-        global: true,
-        entry: anyEntry,
-      })
+      expect(onMutate).toHaveBeenCalledWith(undefined, { global: true, entry: anyEntry })
     })
 
     it('triggers global onSuccess', async () => {
@@ -389,7 +386,7 @@ describe('useMutation', () => {
       expect(onSettled).toHaveBeenCalledWith(42, undefined, undefined, { entry: anyEntry })
     })
 
-    it('passes entry to local onMutate via global context', async () => {
+    it('local onMutate receives only vars', async () => {
       const onMutate = vi.fn()
       const { wrapper } = mountSimple({ onMutate })
 
