@@ -19,6 +19,7 @@ const pluginsProjects: TestProjectInlineConfiguration[] = fs
           typecheck: {
             enabled: true,
           },
+          include: ['src/**/*.{test,spec}.ts'],
         },
       } satisfies TestProjectInlineConfiguration
     } catch (error) {
