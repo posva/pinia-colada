@@ -170,6 +170,8 @@ export interface UseMutationOptions<
    * can return a value that will be passed to `mutation`, `onSuccess`, `onError` and `onSettled`. If it returns a
    * promise, it will be awaited before running `mutation`.
    *
+   * @param vars - The variables passed to the mutation.
+   *
    * @example
    * ```ts
    * useMutation({
@@ -192,7 +194,7 @@ export interface UseMutationOptions<
     /**
      * The variables passed to the mutation.
      */
-    vars: NoInfer<TVars>,
+    vars: TVars,
     // we must use unknown and _EmptyObject to avoid inference and breaking types in other places
     context: UseMutationContextCommon<unknown, unknown, NoInfer<TError>, _EmptyObject> &
       UseMutationGlobalContext,

@@ -409,7 +409,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     let context: OnMutateContext | OnErrorContext | OnSuccessContext = { entry }
 
     try {
-      const globalOnMutateContext = globalOptions.onMutate?.(vars, context)
+      const globalOnMutateContext = globalOptions.onMutate?.(vars, context as any)
 
       context = {
         entry,
