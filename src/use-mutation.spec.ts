@@ -386,7 +386,7 @@ describe('useMutation', () => {
       expect(onSettled).toHaveBeenCalledWith(42, undefined, undefined, { entry: anyEntry })
     })
 
-    it('local onMutate receives only vars', async () => {
+    it('passes entry to local onMutate via global context', async () => {
       const onMutate = vi.fn()
       const { wrapper } = mountSimple({ onMutate })
 
