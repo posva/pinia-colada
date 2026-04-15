@@ -4,7 +4,7 @@ import { useQuery } from './use-query'
 import type { UseQueryReturn } from './use-query'
 import type { ErrorDefault } from './types-extension'
 import { useQueryCache, type QueryCache, type UseQueryEntry } from './query-store'
-import { noop } from './utils'
+import { noop, toValueWithArgs } from './utils'
 import type { _RemoveMaybeRef } from './utils'
 
 /**
@@ -263,8 +263,32 @@ function createInfiniteQueryEntryExtensions(extensions: UseInfiniteQueryExtensio
  * infinite scrolling.
  *
  * @param options - Options to configure the infinite query.
- *
  */
+export function useInfiniteQuery<
+  TData,
+  TError = ErrorDefault,
+  TPageParam = unknown,
+  TDataInitial extends UseInfiniteQueryData<TData, TPageParam> | undefined = undefined,
+>(
+  options: UseInfiniteQueryOptions<TData, TError, TPageParam, TDataInitial>,
+): UseInfiniteQueryReturn<TData, TError, TPageParam, TDataInitial>
+
+/**
+ * Store and merge paginated data into a single cache entry. Allows to handle
+ * infinite scrolling. Accepts a getter returning options defined with
+ * {@link defineInfiniteQueryOptions}.
+ *
+ * @param options - A getter that returns the infinite query options.
+ */
+export function useInfiniteQuery<
+  TData,
+  TError = ErrorDefault,
+  TPageParam = unknown,
+  TDataInitial extends UseInfiniteQueryData<TData, TPageParam> | undefined = undefined,
+>(
+  options: () => DefineInfiniteQueryOptions<TData, TError, TPageParam, TDataInitial>,
+): UseInfiniteQueryReturn<TData, TError, TPageParam, TDataInitial>
+
 export function useInfiniteQuery<
   TData,
   TError = ErrorDefault,
@@ -273,7 +297,8 @@ export function useInfiniteQuery<
 >(
   options:
     | UseInfiniteQueryOptions<TData, TError, TPageParam, TDataInitial>
-    | (() => DefineInfiniteQueryOptions<TData, TError, TPageParam, TDataInitial>),
+    // NOTE: not true technically but makes typing easier while being correct
+    | (() => UseInfiniteQueryOptions<TData, TError, TPageParam, TDataInitial>),
 ): UseInfiniteQueryReturn<TData, TError, TPageParam, TDataInitial> {
   const queryCache = useQueryCache()
   // adds hasNextPage and hasPreviousPage to the entry when it's created in the cache
@@ -288,7 +313,7 @@ export function useInfiniteQuery<
   const query = useQuery<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>(
     // @ts-expect-error: FIXME: mismatch with TDataInitial and undefined somewhere
     () => {
-      const opts = toValue(options)
+      const opts = toValueWithArgs(options)
       const key = toValue(opts.key)
       entry = queryCache.get(key)
       // TODO: compute initial values for hasNextPage and hasPreviousPage based on initialData
@@ -433,7 +458,7 @@ export function useInfiniteQuery<
     data = entry?.state.value.data,
   ) {
     if (!entry) return
-    const opts = toValue(options)
+    const opts = toValueWithArgs(options)
     const lastPageParam = data?.pageParams.at(-1)
     const exts = entry.ext as unknown as UseInfiniteQueryExtensions<TPageParam>
     exts.nextPageParam.value =
@@ -460,7 +485,7 @@ export function useInfiniteQuery<
     page: NextPageIndicator,
     { throwOnError, cancelRefetch = true }: UseInfiniteQueryLoadMoreOptions = {},
   ): Promise<unknown> {
-    const opts = toValue(options)
+    const opts = toValueWithArgs(options)
     const entry = queryCache.get(toValue(opts.key))
     if (!entry) {
       if (process.env.NODE_ENV !== 'production') {
