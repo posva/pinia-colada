@@ -194,7 +194,8 @@ export interface UseMutationOptions<
      */
     vars: NoInfer<TVars>,
     // we must use unknown and _EmptyObject to avoid inference and breaking types in other places
-    context: UseMutationContextCommon<unknown, unknown, NoInfer<TError>, _EmptyObject>,
+    context: UseMutationContextCommon<unknown, unknown, NoInfer<TError>, _EmptyObject> &
+      UseMutationGlobalContext,
   ) => _Awaitable<TContext | undefined | void | null>
 
   /**

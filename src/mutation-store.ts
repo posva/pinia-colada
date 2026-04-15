@@ -420,7 +420,8 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
 
       const onMutateContext = (await options.onMutate?.(
         vars,
-        context,
+        // contravariance + functions makes this too difficult to generalize without `any`
+        context as any,
         // NOTE: the cast makes it easier to write without extra code. It's safe because { ...null, ...undefined } works and TContext must be a Record<any, any>
       )) as _ReduceContext<TContext>
 
