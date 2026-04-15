@@ -23,3 +23,5 @@ ralph.sh
 .tsc-types
 .cursor
 .claude/worktrees
+.claude/settings.local.json
+.claude/plans
