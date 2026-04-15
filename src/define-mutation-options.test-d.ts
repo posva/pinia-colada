@@ -54,7 +54,7 @@ describe('defineMutationOptions types', () => {
 
   it('dynamic options with optional params', () => {
     const opts = defineMutationOptions((prefix?: string) => ({
-      key: ['items', prefix],
+      key: ['items', prefix ?? 'default'],
       mutation: async (id: number) => `${prefix ?? 'default'}:${id}`,
     }))
 
