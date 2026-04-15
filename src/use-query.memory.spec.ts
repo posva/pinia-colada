@@ -41,8 +41,9 @@ async function mountQueryAndCollect(
   await flushPromises()
 
   const cache = useQueryCache(pinia)
-  const entries = cache.getEntries({ key: [key] })
-  const weakRef = new WeakRef(entries[0]!.state.value)
+  const entry = cache.get([key])
+  expect(entry).toBeDefined()
+  const weakRef = new WeakRef(entry!)
 
   // hide child → triggers unmount → untrack → scheduleGarbageCollection
   showChild.value = false
@@ -62,6 +63,10 @@ describe('useQuery memory leaks', () => {
     vi.restoreAllMocks()
   })
 
+  // TODO: inconclusive — Vue component instances (and their stopped effects/closures)
+  // are not guaranteed to be GC'd in a single gc() cycle. Browser testing showed the
+  // entry is sometimes collected on its own. A real-world memory leak reproduction would
+  // be needed to determine if nulling entry fields in remove() is necessary.
   it.todo('query entry state is GC-able after child unmount + gcTime', async () => {
     const pinia = createPinia()
     const ref = await mountQueryAndCollect(pinia, 'gc-test')
@@ -106,11 +111,13 @@ describe('useQuery memory leaks', () => {
     expect(ref.deref()).toBeUndefined()
   })
 
-  it.todo('frees entries after their removal', async () => {
+  it('frees entries after their removal', async () => {
     const pinia = createPinia()
 
-    const wrapper = mount(
-      defineComponent({
+    const weakEntry = await (async () => {
+      const showChild = ref(true)
+
+      const Child = defineComponent({
         render: () => null,
         setup() {
           useQuery({
@@ -120,24 +127,35 @@ describe('useQuery memory leaks', () => {
           })
           return {}
         },
-      }),
-      {
-        global: {
-          plugins: [pinia, PiniaColada],
-        },
-      },
-    )
-    const queryCache = useQueryCache(pinia)
+      })
 
-    await flushPromises()
-    const ref = new WeakRef(queryCache.get(['closure-test'])!)
-    wrapper.unmount()
-    vi.advanceTimersByTime(GC_TIME)
+      const app = createApp(
+        defineComponent({
+          setup() {
+            return () => (showChild.value ? h(Child) : null)
+          },
+        }),
+      )
+      app.use(pinia)
+      app.use(PiniaColada)
+      app.mount(document.createElement('div'))
+      await flushPromises()
+
+      const cache = useQueryCache(pinia)
+      const weakRef = new WeakRef(cache.get(['closure-test'])!)
+
+      showChild.value = false
+      await flushPromises()
+      vi.advanceTimersByTime(GC_TIME)
+
+      app.unmount()
+      return weakRef
+    })()
 
     vi.useRealTimers()
     await triggerGC()
 
-    expect(ref.deref()).toBeUndefined()
+    expect(weakEntry.deref()).toBeUndefined()
   })
 
   it('repeated mount/unmount does not leak entries', async () => {

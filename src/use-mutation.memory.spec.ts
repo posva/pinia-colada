@@ -70,7 +70,10 @@ describe('useMutation memory leaks', () => {
     vi.restoreAllMocks()
   })
 
-  // TODO: figure out if real leak or not like with useQuery
+  // TODO: inconclusive — Vue component instances (and their stopped effects/closures)
+  // are not guaranteed to be GC'd in a single gc() cycle. Browser testing showed the
+  // entry is sometimes collected on its own. A real-world memory leak reproduction would
+  // be needed to determine if nulling entry fields in remove() is necessary.
   it.todo('mutation entry state is GC-able after child unmount', async () => {
     const pinia = createPinia()
     const ref = await mountMutationAndCollect(pinia)
