@@ -6,6 +6,8 @@ import type { ErrorDefault } from './types-extension'
 import { useQueryCache, type QueryCache, type UseQueryEntry } from './query-store'
 import { noop, toValueWithArgs } from './utils'
 import type { _RemoveMaybeRef } from './utils'
+import { START_EXT } from './entry-keys'
+import type { EntryKey, EntryKeyTagged } from './entry-keys'
 
 /**
  * Structure of data stored for infinite queries.
@@ -256,6 +258,45 @@ function createInfiniteQueryEntryExtensions(extensions: UseInfiniteQueryExtensio
   extensions.hasNextPage = computed(() => extensions.nextPageParam.value != null)
   extensions.previousPageParam = shallowRef<unknown | null | undefined>()
   extensions.hasPreviousPage = computed(() => extensions.previousPageParam.value != null)
+}
+
+/**
+ * Sets the data of an infinite query entry in the cache. Unlike {@link QueryCache.setQueryData | `queryCache.setQueryData()`},
+ * this function properly marks the entry as an infinite query and initializes the
+ * infinite query extensions (`hasNextPage`, `hasPreviousPage`, etc.).
+ *
+ * Use this when you need to set infinite query data before `useInfiniteQuery()` is mounted
+ * (e.g. optimistic updates from a mutation on a different page).
+ *
+ * @param queryCache - The query cache instance
+ * @param key - The key of the infinite query
+ * @param data - The data to set, or an updater function
+ */
+export function setInfiniteQueryData<TData = unknown, TError = ErrorDefault, TPageParam = unknown>(
+  queryCache: QueryCache,
+  key: EntryKeyTagged<UseInfiniteQueryData<TData, TPageParam>, TError> | EntryKey,
+  data:
+    | UseInfiniteQueryData<TData, TPageParam>
+    | ((
+        oldData: UseInfiniteQueryData<TData, TPageParam> | undefined,
+      ) => UseInfiniteQueryData<TData, TPageParam>),
+): void {
+  // Register the infinite query plugin (idempotent) so the extend action
+  // creates properly scoped computed refs for the entry
+  PiniaColadaInfiniteQueryPlugin(queryCache._s, queryCache)
+
+  // Delegate to setQueryData for entry creation, state setting, and reactivity
+  queryCache.setQueryData(key, data)
+
+  // Mark the entry as an infinite query so the plugin recognizes it
+  const entry = queryCache.get(key)!
+  entry.meta.__i = true
+
+  // Initialize extensions via the extend action if not yet done
+  if (entry.ext === START_EXT) {
+    ;(entry as { ext: object }).ext = {}
+    queryCache.extend(entry)
+  }
 }
 
 /**
