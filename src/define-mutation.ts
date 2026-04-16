@@ -1,3 +1,4 @@
+import { getCurrentInstance, getCurrentScope, onScopeDispose } from 'vue'
 import { useMutationCache } from './mutation-store'
 import type { ErrorDefault } from './types-extension'
 import { useMutation } from './use-mutation'
@@ -57,8 +58,24 @@ export function defineMutation(
 ): () => unknown {
   const setupFn =
     typeof optionsOrSetup === 'function' ? optionsOrSetup : () => useMutation(optionsOrSetup)
+
+  let refCount = 0
   return () => {
     const mutationCache = useMutationCache()
-    return mutationCache.ensureDefinedMutation(setupFn)
+    const currentScope = getCurrentInstance() || getCurrentScope()
+
+    const [ret, scope, isPaused] = mutationCache.ensureDefinedMutation(setupFn)
+
+    if (currentScope) {
+      refCount++
+      onScopeDispose(() => {
+        if (--refCount < 1) {
+          scope.pause()
+          isPaused.value = true
+        }
+      })
+    }
+
+    return ret
   }
 }

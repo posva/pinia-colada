@@ -1,7 +1,14 @@
-import type { ShallowRef } from 'vue'
 import type { AsyncStatus, DataState } from './data-state'
-import { defineStore, skipHydrate } from 'pinia'
-import { customRef, getCurrentScope, hasInjectionContext, markRaw, shallowRef } from 'vue'
+import { defineStore, getActivePinia, skipHydrate } from 'pinia'
+import {
+  customRef,
+  effectScope,
+  getCurrentScope,
+  hasInjectionContext,
+  markRaw,
+  shallowRef,
+} from 'vue'
+import type { App, EffectScope, ShallowRef } from 'vue'
 import { find } from './entry-keys'
 import type { EntryFilter } from './entry-filter'
 import type { _EmptyObject } from './utils'
@@ -104,6 +111,12 @@ export type UseMutationEntryFilter = EntryFilter<UseMutationEntry>
 export const MUTATION_STORE_ID = '_pc_mutation'
 
 /**
+ * A mutation entry that is defined with {@link defineMutation}.
+ * @internal
+ */
+type DefineMutationEntry = [returnValue: unknown, effect: EffectScope, paused: ShallowRef<boolean>]
+
+/**
  * Composable to get the cache of the mutations. As any other composable, it
  * can be used inside the `setup` function of a component, within another
  * composable, or in injectable contexts like stores and navigation guards.
@@ -145,8 +158,12 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     }
   }
 
+  const app: App<unknown> =
+    // @ts-expect-error: internal
+    getActivePinia()!._a
+
   const globalOptions = useMutationOptions()
-  const defineMutationMap = new WeakMap<() => unknown, unknown>()
+  const defineMutationMap = new WeakMap<() => unknown, DefineMutationEntry>()
 
   let nextMutationId = 1
 
@@ -245,16 +262,23 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
   }
 
   /**
-   * Ensures a query created with {@link defineMutation} is present in the cache. If it's not, it creates a new one.
-   * @param fn - function that defines the query
+   * Ensures a mutation created with {@link defineMutation} is present in the cache. If it's not, it creates a new one.
+   * @param fn - function that defines the mutation
    */
   const ensureDefinedMutation = action(<T>(fn: () => T) => {
-    let defineMutationResult = defineMutationMap.get(fn)
-    if (!defineMutationResult) {
-      defineMutationMap.set(fn, (defineMutationResult = scope.run(fn)))
+    let entry = defineMutationMap.get(fn)
+    if (!entry) {
+      entry = scope.run(() => [null, effectScope(), shallowRef(false)])! as DefineMutationEntry
+
+      entry[0] = app.runWithContext(() => entry![1].run(fn)!)
+      defineMutationMap.set(fn, entry)
+    } else {
+      // ensure the scope is active so effects run
+      entry[1].resume()
+      entry[2].value = false
     }
 
-    return defineMutationResult
+    return entry
   })
 
   /**
