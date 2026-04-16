@@ -29,6 +29,7 @@ export { useQuery, type UseQueryReturn } from './use-query'
 export { useQueryState, type UseQueryStateReturn } from './use-query-state'
 
 export {
+  setInfiniteQueryData,
   useInfiniteQuery,
   type DefineInfiniteQueryOptions,
   type UseInfiniteQueryOptions,

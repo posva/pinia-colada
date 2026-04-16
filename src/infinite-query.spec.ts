@@ -10,7 +10,7 @@ import type { Pinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createApp, defineComponent, h, isRef, nextTick, ref } from 'vue'
 import { isSpy, mockConsoleError, mockWarn } from '@posva/test-utils'
-import { useInfiniteQuery } from './infinite-query'
+import { setInfiniteQueryData, useInfiniteQuery } from './infinite-query'
 import { PiniaColada } from './pinia-colada'
 import {
   hydrateQueryCache,
@@ -1474,13 +1474,16 @@ describe('useInfiniteQuery', () => {
       // After everything settles, hasNextPage should remain true
       expect(wrapper.vm.hasNextPage).toBe(true)
     })
+  })
 
-    it('can set the data before using infinite queries', async () => {
-      const pinia = createPiniawithHydratedCache({
-        // '["key"]': [{ pages: [[1, 2, 3]], pageParams: [0] }, null, 0, { __i: true }],
-      })
+  describe('setInfiniteQueryData', () => {
+    it('preserves infinite query data format when set before useInfiniteQuery', async () => {
+      const pinia = createPinia()
+      const app = createApp({})
+      app.use(pinia)
       const queryCache = useQueryCache(pinia)
-      queryCache.setQueryData(['key'], { pages: [[1, 2, 3]], pageParams: [0] })
+
+      setInfiniteQueryData(queryCache, ['key'], { pages: [[1, 2, 3]], pageParams: [0] })
 
       const { wrapper } = mountSimple(
         {
@@ -1496,7 +1499,58 @@ describe('useInfiniteQuery', () => {
         pages: [[1, 2, 3]],
         pageParams: [0],
       })
+    })
+
+    it('hasNextPage works after setInfiniteQueryData', async () => {
+      const pinia = createPinia()
+      const app = createApp({})
+      app.use(pinia)
+      const queryCache = useQueryCache(pinia)
+
+      setInfiniteQueryData(queryCache, ['key'], { pages: [[1, 2, 3]], pageParams: [0] })
+
+      const { wrapper } = mountSimple(
+        {
+          staleTime: 1000,
+          getNextPageParam: (_lastPage, _allPages, lastPageParam) =>
+            lastPageParam >= 3 ? null : lastPageParam + 1,
+        },
+        { plugins: [pinia] },
+      )
+      await flushPromises()
+
       expect(wrapper.vm.hasNextPage).toBe(true)
+    })
+
+    it('supports updater function', async () => {
+      const pinia = createPinia()
+      const app = createApp({})
+      app.use(pinia)
+      const queryCache = useQueryCache(pinia)
+
+      setInfiniteQueryData(queryCache, ['key'], { pages: [[1, 2, 3]], pageParams: [0] })
+      setInfiniteQueryData(queryCache, ['key'], (old) => ({
+        pages: [...old!.pages, [4, 5, 6]],
+        pageParams: [...old!.pageParams, 1],
+      }))
+
+      const { wrapper } = mountSimple(
+        {
+          staleTime: 1000,
+          getNextPageParam: (_lastPage, _allPages, lastPageParam) =>
+            lastPageParam >= 3 ? null : lastPageParam + 1,
+        },
+        { plugins: [pinia] },
+      )
+      await flushPromises()
+
+      expect(wrapper.vm.data).toEqual({
+        pages: [
+          [1, 2, 3],
+          [4, 5, 6],
+        ],
+        pageParams: [0, 1],
+      })
     })
   })
 
