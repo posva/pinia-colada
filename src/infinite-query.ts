@@ -281,22 +281,15 @@ export function setInfiniteQueryData<TData = unknown, TError = ErrorDefault, TPa
         oldData: UseInfiniteQueryData<TData, TPageParam> | undefined,
       ) => UseInfiniteQueryData<TData, TPageParam>),
 ): void {
-  // Register the infinite query plugin (idempotent) so the extend action
-  // creates properly scoped computed refs for the entry
+  // Register the infinite query plugin (idempotent) so `ensure` creates
+  // the extra properties like hasNextPage, etc
   PiniaColadaInfiniteQueryPlugin(queryCache._s, queryCache)
 
   // Delegate to setQueryData for entry creation, state setting, and reactivity
   queryCache.setQueryData(key, data)
 
   // Mark the entry as an infinite query so the plugin recognizes it
-  const entry = queryCache.get(key)!
-  entry.meta.__i = true
-
-  // Initialize extensions via the extend action if not yet done
-  if (entry.ext === START_EXT) {
-    ;(entry as { ext: object }).ext = {}
-    queryCache.extend(entry)
-  }
+  queryCache.get(key)!.meta.__i = 1
 }
 
 /**
