@@ -41,9 +41,11 @@ describe('defineMutation', () => {
       },
     )
 
+    // calling outside a component/scope still works but warns
     const ret = useCreateTodo()
     expect(ret.mutate).toBe(useCreateTodo().mutate)
     expect(ret.data).toBe(returnedValues.data)
+    expect('outside of a component or effect scope').toHaveBeenWarned()
   })
 
   it('reuses the mutation in multiple places with a setup function', async () => {
@@ -71,12 +73,14 @@ describe('defineMutation', () => {
       },
     )
 
+    // calling outside a component/scope still works but warns
     const { todo, todoText, createTodo } = useCreateTodo()
     expect(todo).toBe(useCreateTodo().todo)
     expect(todo).toBe(returnedValues.todo)
     expect(todoText).toBe(useCreateTodo().todoText)
     expect(todoText).toBe(returnedValues.todoText)
     expect(createTodo).toBe(returnedValues.createTodo)
+    expect('outside of a component or effect scope').toHaveBeenWarned()
   })
 
   it('injects from app not from parent component', () => {
@@ -110,7 +114,9 @@ describe('defineMutation', () => {
       },
     )
 
+    // calling outside a component/scope still works but warns
     expect(useData().value).toBe('ok')
+    expect('outside of a component or effect scope').toHaveBeenWarned()
   })
 
   it('still works after one consumer unmounts', async () => {
@@ -158,6 +164,27 @@ describe('defineMutation', () => {
     expect(w2.vm.data).toEqual({ id: 1, text: 'world' })
   })
 
+  it('warns when called outside of a component or effect scope', () => {
+    const useMyMutation = defineMutation({
+      mutation: async () => 42,
+    })
+
+    const pinia = createPinia()
+    mount(
+      defineComponent({
+        setup() {
+          return { ...useMyMutation() }
+        },
+        render: () => null,
+      }),
+      { global: { plugins: [pinia, PiniaColada] } },
+    )
+
+    // calling outside any scope warns about potential leak
+    useMyMutation()
+    expect('outside of a component or effect scope').toHaveBeenWarned()
+  })
+
   describe('scope lifecycle', () => {
     it('pauses effects when all consumers unmount and resumes on remount', async () => {
       const watchSpy = vi.fn()
@@ -195,6 +222,9 @@ describe('defineMutation', () => {
       counter.value++
       await nextTick()
       expect(watchSpy).toHaveBeenCalledTimes(1)
+
+      // the call to useMyMutation() outside a component warns
+      expect('outside of a component or effect scope').toHaveBeenWarned()
     })
   })
 
@@ -220,6 +250,7 @@ describe('defineMutation', () => {
         const { mutate } = useCreateTodo()
         expect(mutate).toBe(useCreateTodo().mutate)
       })
+      expect('outside of a component or effect scope').toHaveBeenWarned()
     })
 
     it('reuses the mutation with a setup function', async () => {
@@ -236,6 +267,7 @@ describe('defineMutation', () => {
         expect(todo).toBe(useCreateTodo().todo)
         expect(todoText).toBe(useCreateTodo().todoText)
       })
+      expect('outside of a component or effect scope').toHaveBeenWarned()
     })
   })
 })

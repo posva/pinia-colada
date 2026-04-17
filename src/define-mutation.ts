@@ -73,6 +73,10 @@ export function defineMutation(
           scope.pause()
         }
       })
+    } else if (process.env.NODE_ENV !== 'production') {
+      console.warn(
+        `[@pinia/colada]: defineMutation() composable was called outside of a component or effect scope. The mutation effects will never be cleaned up, which may cause memory leaks. Make sure to call it inside a component setup, an effect scope, or a store.`,
+      )
     }
 
     return ret
