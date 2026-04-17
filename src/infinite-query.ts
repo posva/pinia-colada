@@ -6,7 +6,6 @@ import type { ErrorDefault } from './types-extension'
 import { useQueryCache, type QueryCache, type UseQueryEntry } from './query-store'
 import { noop, toValueWithArgs } from './utils'
 import type { _RemoveMaybeRef } from './utils'
-import { START_EXT } from './entry-keys'
 import type { EntryKey, EntryKeyTagged } from './entry-keys'
 
 /**
@@ -500,10 +499,6 @@ export function useInfiniteQuery<
     >
     const lastPageParam = data?.pageParams.at(-1)
     const exts = entry.ext as unknown as UseInfiniteQueryExtensions<TPageParam>
-    // extensions might not be initialized if the plugin's scope was stopped
-    if (!exts.nextPageParam || !exts.previousPageParam) {
-      createInfiniteQueryEntryExtensions(exts as unknown as UseInfiniteQueryExtensions<unknown>)
-    }
     exts.nextPageParam.value =
       data && data.pages.length > 0
         ? opts.getNextPageParam(data.pages.at(-1)!, data.pages, lastPageParam!, data.pageParams)
