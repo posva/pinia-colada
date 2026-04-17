@@ -1,3 +1,29 @@
+# [1.2.0](https://github.com/posva/pinia-colada/compare/v1.1.0...v1.2.0) (2026-04-17)
+
+### Bug Fixes
+
+- align defineMutation lifecycle with defineQuery ([cac8326](https://github.com/posva/pinia-colada/commit/cac8326a3c132da781c4ba3a9392026b7924e2d3)), closes [#85](https://github.com/posva/pinia-colada/issues/85)
+- also guard previousPageParam in the check ([cc5e548](https://github.com/posva/pinia-colada/commit/cc5e54805dfb7f5303cb2dcc949674ac5e71fc36))
+- avoid aborting settled queries during garbage collection ([#548](https://github.com/posva/pinia-colada/issues/548)) ([9b56ad4](https://github.com/posva/pinia-colada/commit/9b56ad4551f41aa067ea228840404ba26ed1486c))
+- avoid undefined in mutation key to fix type error with custom ErrorDefault ([98210a5](https://github.com/posva/pinia-colada/commit/98210a5415e8cb05067b3d5de045a0741c2a6f5c))
+- **infinite-query:** guard computePageParams against missing ext refs ([113d6cb](https://github.com/posva/pinia-colada/commit/113d6cb66a0d0a5b8deb935c7e41495e1b250930)), closes [#525](https://github.com/posva/pinia-colada/issues/525)
+- missing global type of context in onMutate ([5bb4a63](https://github.com/posva/pinia-colada/commit/5bb4a63a3630150400b9301751b9c1df42f9b2c8))
+- resolve type errors in defineMutationOptions tests ([aec434a](https://github.com/posva/pinia-colada/commit/aec434aa64449bab44690b6e00ee4229cd79791a))
+- use proper cast for readonly ext in test ([5f99764](https://github.com/posva/pinia-colada/commit/5f99764bba999299ebc9e3d10ce2bffc425dc115))
+
+### Features
+
+- add `defineMutationOptions` for type-safe reusable mutation options ([567732e](https://github.com/posva/pinia-colada/commit/567732e9b42bc7aaa2969b4240ea8dfea23da2fd))
+- add `entry` to `UseMutationGlobalContext` ([#544](https://github.com/posva/pinia-colada/issues/544)) ([218261d](https://github.com/posva/pinia-colada/commit/218261d423eebe8a65a1b1c7d1293a0e41794ff8))
+- add tagged key type to `defineMutationOptions` ([fa54b5f](https://github.com/posva/pinia-colada/commit/fa54b5fdead5f06de1a28591ea688160a19ba31b))
+- **infinite-query:** add `setInfiniteQueryData` to safely set infinite query data ([96b58c3](https://github.com/posva/pinia-colada/commit/96b58c3dcc74a205878c77e24cba685d107f6abf))
+- **infinite:** add `defineInfiniteQueryOptions` and getter support for `useInfiniteQuery` ([2dce28a](https://github.com/posva/pinia-colada/commit/2dce28aea93e0f5ef62f3d4bcd24c73f67332b94))
+- warn when defineMutation is called outside a scope ([bc0bbf6](https://github.com/posva/pinia-colada/commit/bc0bbf682bd06ecdfcc226e5b061e7ecd1bb8010))
+
+### Performance Improvements
+
+- smaller bundle ([bb68d33](https://github.com/posva/pinia-colada/commit/bb68d33880e8c70a22e6a0596c3d3cbecf91a601))
+
 # [1.1.0](https://github.com/posva/pinia-colada/compare/v1.0.0...v1.1.0) (2026-03-31)
 
 ### Bug Fixes
