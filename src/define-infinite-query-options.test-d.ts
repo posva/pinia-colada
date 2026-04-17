@@ -105,8 +105,8 @@ describe('typed infinite query keys', () => {
     })
 
     it('rejects wrong data with static options', () => {
-      // @ts-expect-error: wrong page type
       setInfiniteQueryData(queryCache, optsStatic.key, {
+        // @ts-expect-error: wrong page type
         pages: ['wrong'],
         pageParams: [0],
       })
@@ -120,8 +120,8 @@ describe('typed infinite query keys', () => {
     })
 
     it('rejects wrong data with dynamic options', () => {
-      // @ts-expect-error: wrong page type
       setInfiniteQueryData(queryCache, optsDynamic('books').key, {
+        // @ts-expect-error: wrong page type
         pages: [42],
         pageParams: [0],
       })
