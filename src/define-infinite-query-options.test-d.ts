@@ -1,7 +1,7 @@
 import { describe, expectTypeOf, it } from 'vitest'
 import { useInfiniteQuery } from './infinite-query'
 import type { UseInfiniteQueryData } from './infinite-query'
-import { useQueryCache, defineInfiniteQueryOptions } from '@pinia/colada'
+import { setInfiniteQueryData, useQueryCache, defineInfiniteQueryOptions } from '@pinia/colada'
 import type { EntryKeyTagged } from '@pinia/colada'
 import type { ErrorDefault } from './types-extension'
 
@@ -78,6 +78,64 @@ describe('typed infinite query keys', () => {
         initialPageParam: 0,
         getNextPageParam: () => null,
         meta: { hello: 'world' },
+      })
+    })
+  })
+
+  describe('setInfiniteQueryData', () => {
+    const optsStatic = defineInfiniteQueryOptions({
+      key: ['items'],
+      query: async ({ pageParam }) => ({ id: pageParam, items: [1, 2, 3] }),
+      initialPageParam: 0,
+      getNextPageParam: (lastPage) => lastPage.id + 1,
+    })
+
+    const optsDynamic = defineInfiniteQueryOptions((category: string) => ({
+      key: ['items', category] as const,
+      query: async ({ pageParam }) => ({ id: pageParam, items: [1, 2, 3] }),
+      initialPageParam: 0,
+      getNextPageParam: (lastPage) => lastPage.id + 1,
+    }))
+
+    it('accepts correct data with static options', () => {
+      setInfiniteQueryData(queryCache, optsStatic.key, {
+        pages: [{ id: 0, items: [1, 2, 3] }],
+        pageParams: [0],
+      })
+    })
+
+    it('rejects wrong data with static options', () => {
+      // @ts-expect-error: wrong page type
+      setInfiniteQueryData(queryCache, optsStatic.key, {
+        pages: ['wrong'],
+        pageParams: [0],
+      })
+    })
+
+    it('accepts correct data with dynamic options', () => {
+      setInfiniteQueryData(queryCache, optsDynamic('books').key, {
+        pages: [{ id: 1, items: [4, 5, 6] }],
+        pageParams: [1],
+      })
+    })
+
+    it('rejects wrong data with dynamic options', () => {
+      // @ts-expect-error: wrong page type
+      setInfiniteQueryData(queryCache, optsDynamic('books').key, {
+        pages: [42],
+        pageParams: [0],
+      })
+    })
+
+    it('types updater function correctly', () => {
+      setInfiniteQueryData(queryCache, optsStatic.key, (oldData) => {
+        expectTypeOf(oldData).toEqualTypeOf<
+          UseInfiniteQueryData<{ id: number; items: number[] }, number> | undefined
+        >()
+        return {
+          pages: [{ id: 0, items: [1] }],
+          pageParams: [0],
+        }
       })
     })
   })
