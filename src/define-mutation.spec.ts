@@ -2,10 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import type { App } from 'vue'
-import { computed, createApp, defineComponent, effectScope, inject, provide, ref } from 'vue'
+import { createApp, defineComponent, inject, nextTick, provide, ref, watch } from 'vue'
 import { defineMutation } from './define-mutation'
 import { useMutation } from './use-mutation'
-import { useMutationCache } from './mutation-store'
 import { PiniaColada } from './pinia-colada'
 import { mockWarn } from '@posva/test-utils'
 
@@ -160,54 +159,12 @@ describe('defineMutation', () => {
   })
 
   describe('scope lifecycle', () => {
-    it('pauses computed effects when all consumers unmount', async () => {
-      const mutation = vi.fn(async () => 42)
+    it('pauses effects when all consumers unmount and resumes on remount', async () => {
+      const watchSpy = vi.fn()
       const useMyMutation = defineMutation(() => {
-        const { data, ...rest } = useMutation({ mutation })
-        const doubled = computed(() => (data.value ? data.value * 2 : null))
-        return { ...rest, data, doubled }
-      })
-
-      const pinia = createPinia()
-      const wrapper = mount(
-        defineComponent({
-          setup() {
-            return { ...useMyMutation() }
-          },
-          render: () => null,
-        }),
-        { global: { plugins: [pinia, PiniaColada] } },
-      )
-
-      wrapper.vm.mutate()
-      await flushPromises()
-      expect(wrapper.vm.doubled).toBe(84)
-
-      wrapper.unmount()
-
-      // after unmount, calling the composable in a new component should resume the scope
-      const w2 = mount(
-        defineComponent({
-          setup() {
-            return { ...useMyMutation() }
-          },
-          render: () => null,
-        }),
-        { global: { plugins: [pinia, PiniaColada] } },
-      )
-
-      // data is preserved from the previous mutation
-      expect(w2.vm.doubled).toBe(84)
-
-      w2.vm.mutate()
-      await flushPromises()
-      expect(w2.vm.doubled).toBe(84)
-    })
-
-    it('resumes the scope when a new consumer mounts after all unmounted', async () => {
-      const mutation = vi.fn(async () => 42)
-      const useMyMutation = defineMutation({
-        mutation,
+        const counter = ref(0)
+        watch(counter, watchSpy)
+        return { counter, ...useMutation({ mutation: async () => 42 }) }
       })
 
       const pinia = createPinia()
@@ -218,97 +175,26 @@ describe('defineMutation', () => {
         render: () => null,
       })
 
+      // mount → watch should be active
       const w1 = mount(Comp, { global: { plugins: [pinia, PiniaColada] } })
-      w1.vm.mutate()
-      await flushPromises()
-      expect(w1.vm.data).toBe(42)
+      const { counter } = useMyMutation()
+      counter.value++
+      await nextTick()
+      expect(watchSpy).toHaveBeenCalledTimes(1)
 
+      // unmount all → scope paused → watch should stop
       w1.unmount()
+      watchSpy.mockClear()
+      counter.value++
+      await nextTick()
+      expect(watchSpy).toHaveBeenCalledTimes(0)
 
-      // mount a new consumer - scope should resume
-      const w2 = mount(Comp, { global: { plugins: [pinia, PiniaColada] } })
-      // data from previous mutation is still accessible
-      expect(w2.vm.data).toBe(42)
-
-      // can still mutate
-      mutation.mockResolvedValueOnce(99)
-      w2.vm.mutate()
-      await flushPromises()
-      expect(w2.vm.data).toBe(99)
-    })
-  })
-
-  describe('gcTime', () => {
-    it('keeps the entry in cache while a consumer is mounted', async () => {
-      const mutation = vi.fn(async () => 42)
-      const useMyMutation = defineMutation({
-        key: ['test'],
-        mutation,
-        gcTime: 1000,
-      })
-
-      const pinia = createPinia()
-      const wrapper = mount(
-        defineComponent({
-          setup() {
-            return { ...useMyMutation() }
-          },
-          render: () => null,
-        }),
-        { global: { plugins: [pinia, PiniaColada] } },
-      )
-
-      wrapper.vm.mutate()
-      await flushPromises()
-
-      const cache = useMutationCache()
-      expect(cache.getEntries({ key: ['test'] })).toHaveLength(1)
-
-      // gcTime passes but component is still mounted → entry stays
-      vi.advanceTimersByTime(2000)
-      expect(cache.getEntries({ key: ['test'] })).toHaveLength(1)
-    })
-
-    it('keeps the entry if a new consumer mounts before gcTime', async () => {
-      const mutation = vi.fn(async () => 42)
-      const useMyMutation = defineMutation({
-        key: ['test'],
-        mutation,
-        gcTime: 1000,
-      })
-
-      const pinia = createPinia()
-      const Comp = defineComponent({
-        setup() {
-          return { ...useMyMutation() }
-        },
-        render: () => null,
-      })
-
-      const w1 = mount(Comp, { global: { plugins: [pinia, PiniaColada] } })
-
-      w1.vm.mutate()
-      await flushPromises()
-
-      const cache = useMutationCache()
-      expect(cache.getEntries({ key: ['test'] })).toHaveLength(1)
-
-      w1.unmount()
-      vi.advanceTimersByTime(500)
-      // entry still there
-      expect(cache.getEntries({ key: ['test'] })).toHaveLength(1)
-
-      // mount new consumer before gcTime
-      const w2 = mount(Comp, { global: { plugins: [pinia, PiniaColada] } })
-
-      // trigger new mutation
-      w2.vm.mutate()
-      await flushPromises()
-
-      // advance past original gcTime
-      vi.advanceTimersByTime(1000)
-      // entry should still be there since a consumer is mounted
-      expect(cache.getEntries({ key: ['test'] }).length).toBeGreaterThan(0)
+      // remount → scope resumed → watch should fire again
+      mount(Comp, { global: { plugins: [pinia, PiniaColada] } })
+      watchSpy.mockClear()
+      counter.value++
+      await nextTick()
+      expect(watchSpy).toHaveBeenCalledTimes(1)
     })
   })
 

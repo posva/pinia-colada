@@ -114,7 +114,7 @@ export const MUTATION_STORE_ID = '_pc_mutation'
  * A mutation entry that is defined with {@link defineMutation}.
  * @internal
  */
-type DefineMutationEntry = [returnValue: unknown, effect: EffectScope, paused: ShallowRef<boolean>]
+type DefineMutationEntry = [returnValue: unknown, effect: EffectScope]
 
 /**
  * Composable to get the cache of the mutations. As any other composable, it
@@ -268,14 +268,13 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
   const ensureDefinedMutation = action(<T>(fn: () => T) => {
     let entry = defineMutationMap.get(fn)
     if (!entry) {
-      entry = scope.run(() => [null, effectScope(), shallowRef(false)])! as DefineMutationEntry
+      entry = scope.run(() => [null, effectScope()])! as DefineMutationEntry
 
       entry[0] = app.runWithContext(() => entry![1].run(fn)!)
       defineMutationMap.set(fn, entry)
     } else {
       // ensure the scope is active so effects run
       entry[1].resume()
-      entry[2].value = false
     }
 
     return entry

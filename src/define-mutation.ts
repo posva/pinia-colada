@@ -64,14 +64,13 @@ export function defineMutation(
     const mutationCache = useMutationCache()
     const currentScope = getCurrentInstance() || getCurrentScope()
 
-    const [ret, scope, isPaused] = mutationCache.ensureDefinedMutation(setupFn)
+    const [ret, scope] = mutationCache.ensureDefinedMutation(setupFn)
 
     if (currentScope) {
       refCount++
       onScopeDispose(() => {
         if (--refCount < 1) {
           scope.pause()
-          isPaused.value = true
         }
       })
     }
