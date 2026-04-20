@@ -530,6 +530,89 @@ describe('Pinia Colada Retry Plugin', () => {
     })
   })
 
+  describe('retryMap key uniqueness', () => {
+    function twoQueryFactory(a: UseQueryOptions, b: UseQueryOptions) {
+      const wrapper = mount(
+        defineComponent({
+          template: '<div></div>',
+          setup() {
+            const qa = useQuery(a)
+            const qb = useQuery(b)
+            return { qa, qb }
+          },
+        }),
+        {
+          global: {
+            plugins: [
+              createPinia(),
+              [PiniaColada, { plugins: [PiniaColadaRetry(RETRY_OPTIONS_DEFAULTS)] }],
+            ],
+          },
+        },
+      )
+      return { wrapper }
+    }
+
+    it('tracks retry state separately for keys with a shared join("/") representation', async () => {
+      const queryA = vi.fn(async () => {
+        throw new Error('A')
+      })
+      const queryB = vi.fn(async () => {
+        throw new Error('B')
+      })
+
+      twoQueryFactory(
+        { key: ['a/b'], query: queryA, retry: 2 },
+        { key: ['a', 'b'], query: queryB, retry: 2 },
+      )
+
+      // both initial fetches fail
+      await flushPromises()
+      expect(queryA).toHaveBeenCalledTimes(1)
+      expect(queryB).toHaveBeenCalledTimes(1)
+
+      // first retry fires for each query (retryCount: 0 → 1)
+      vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
+      await flushPromises()
+      expect(queryA).toHaveBeenCalledTimes(2)
+      expect(queryB).toHaveBeenCalledTimes(2)
+
+      // second retry fires for each query (retryCount: 1 → 2)
+      vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
+      await flushPromises()
+      expect(queryA).toHaveBeenCalledTimes(3)
+      expect(queryB).toHaveBeenCalledTimes(3)
+    })
+
+    it('tracks retry state separately for object-valued keys', async () => {
+      const queryA = vi.fn(async () => {
+        throw new Error('A')
+      })
+      const queryB = vi.fn(async () => {
+        throw new Error('B')
+      })
+
+      twoQueryFactory(
+        { key: ['users', { id: 1 }], query: queryA, retry: 2 },
+        { key: ['users', { id: 2 }], query: queryB, retry: 2 },
+      )
+
+      await flushPromises()
+      expect(queryA).toHaveBeenCalledTimes(1)
+      expect(queryB).toHaveBeenCalledTimes(1)
+
+      vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
+      await flushPromises()
+      expect(queryA).toHaveBeenCalledTimes(2)
+      expect(queryB).toHaveBeenCalledTimes(2)
+
+      vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
+      await flushPromises()
+      expect(queryA).toHaveBeenCalledTimes(3)
+      expect(queryB).toHaveBeenCalledTimes(3)
+    })
+  })
+
   it('no retries if enabled becomes false while waiting', async () => {
     const query = vi.fn(async () => {
       throw new Error('ko')
