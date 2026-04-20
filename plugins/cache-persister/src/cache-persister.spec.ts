@@ -430,6 +430,19 @@ describe('PiniaColadaCachePersister', () => {
       expect(queryCache.getQueryData(['async-restored'])).toBe('async-cached')
     })
 
+    it('calls getItem once when restoring from async storage', async () => {
+      const storage = createAsyncStorage()
+      storage.data['pinia-colada-cache'] = JSON.stringify({
+        '["once"]': ['cached', null, 0, {}],
+      })
+
+      factory({ key: ['once'], query: async () => 'fresh' }, { storage })
+
+      await flushPromises()
+
+      expect(storage.getItem).toHaveBeenCalledTimes(1)
+    })
+
     it('isCacheReady waits for async restore', async () => {
       const storage = createAsyncStorage()
       storage.data['pinia-colada-cache'] = JSON.stringify({
