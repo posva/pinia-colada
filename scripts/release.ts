@@ -97,6 +97,17 @@ const runIfNotDry = isDryRun ? dryRun : run
 
 const step = (...msg: string[]) => console.log(chalk.cyan(...msg))
 
+function daysAgo(isoDate: string | null): string | null {
+  if (!isoDate) return null
+  const then = new Date(`${isoDate}T00:00:00Z`).getTime()
+  if (Number.isNaN(then)) return null
+  const now = Date.now()
+  const days = Math.max(0, Math.floor((now - then) / 86_400_000))
+  if (days === 0) return 'today'
+  if (days === 1) return '1 day ago'
+  return `${days} days ago`
+}
+
 interface PackageJson {
   name: string
   version: string
@@ -113,6 +124,8 @@ interface PackageInfo {
   version: string
   pkg: PackageJson
   start: string
+  lastTag: string | null
+  lastTagDate: string | null
 }
 
 async function main() {
@@ -174,11 +187,17 @@ async function main() {
       message: 'What packages do you want to release?',
       instructions: false,
       min: 1,
-      choices: changedPackages.map((pkg) => ({
-        title: pkg.name,
-        value: pkg.name,
-        selected: true,
-      })),
+      choices: changedPackages.map((pkg) => {
+        const rel = daysAgo(pkg.lastTagDate)
+        const suffix = pkg.lastTag
+          ? `${pkg.lastTag}${rel ? ` (${rel})` : ''}`
+          : 'no previous release'
+        return {
+          title: `${pkg.name} ${chalk.dim(`— ${suffix}`)}`,
+          value: pkg.name,
+          selected: true,
+        }
+      }),
     })
 
     // const packagesToRelease = changedPackages
@@ -188,7 +207,7 @@ async function main() {
   step(`Ready to release ${packagesToRelease.map(({ name }) => chalk.bold.white(name)).join(', ')}`)
 
   const pkgWithVersions: PackageInfo[] = []
-  for (const { name, path, pkg, relativePath } of packagesToRelease) {
+  for (const { name, path, pkg, relativePath, lastTag, lastTagDate } of packagesToRelease) {
     let { version } = pkg
 
     const prerelease = semver.prerelease(version)
@@ -253,6 +272,8 @@ async function main() {
       pkg,
       // start is set later
       start: '',
+      lastTag,
+      lastTagDate,
     })
   }
 
@@ -411,11 +432,12 @@ function updateDeps(
 }
 
 /**
- * Get the last tag published for a package or null if there are no tags
+ * Get the last tag published for a package, along with its author date, or
+ * null if there are no tags for this package.
  */
-async function getLastTag(pkgName: string): Promise<string> {
+async function getLastTag(pkgName: string): Promise<{ tag: string; date: string | null } | null> {
   try {
-    const { stdout } = await run(
+    const { stdout: tag } = await run(
       'git',
       [
         'describe',
@@ -429,17 +451,33 @@ async function getLastTag(pkgName: string): Promise<string> {
       },
     )
 
-    return stdout as string
-  } catch (error: any) {
-    console.log(chalk.dim(`Couldn't get "${chalk.bold(pkgName)}" last tag, using first commit...`))
+    let date: string | null = null
+    try {
+      const { stdout } = await run('git', ['log', '-1', '--format=%as', tag as string], {
+        stdio: 'pipe',
+      })
+      date = (stdout as string) || null
+    } catch {
+      // leave date null
+    }
 
+    return { tag: tag as string, date }
+  } catch (error: any) {
     // 128 is the git exit code when there is nothing to describe
     if (error.exitCode !== 128) {
       console.error(error)
     }
-    const { stdout } = await run('git', ['rev-list', '--max-parents=0', 'HEAD'], { stdio: 'pipe' })
-    return stdout as string
+    return null
   }
+}
+
+/**
+ * Get the initial commit SHA to use as a diff baseline when a package has
+ * no previous release tag.
+ */
+async function getFirstCommit(): Promise<string> {
+  const { stdout } = await run('git', ['rev-list', '--max-parents=0', 'HEAD'], { stdio: 'pipe' })
+  return stdout as string
 }
 
 /**
@@ -459,7 +497,13 @@ async function getChangedPackages(...folders: string[]): Promise<PackageInfo[]> 
         return null
       }
 
-      const lastTag = await getLastTag(pkg.name)
+      const lastTagInfo = await getLastTag(pkg.name)
+      const diffStart = lastTagInfo?.tag ?? (await getFirstCommit())
+      if (!lastTagInfo) {
+        console.log(
+          chalk.dim(`No previous tag for "${chalk.bold(pkg.name)}", diffing from first commit...`),
+        )
+      }
 
       const hasChanges = (
         await run(
@@ -467,7 +511,7 @@ async function getChangedPackages(...folders: string[]): Promise<PackageInfo[]> 
           [
             'diff',
             '--name-only',
-            lastTag,
+            diffStart,
             '--',
             // TODO: should allow build files tsdown.config.ts
             // apparently {src,package.json} doesn't work
@@ -481,11 +525,16 @@ async function getChangedPackages(...folders: string[]): Promise<PackageInfo[]> 
       ).stdout as string
       const relativePath = relative(join(__dirname, '..'), folder)
 
+      const rel = daysAgo(lastTagInfo?.date ?? null)
+      const releaseDescription = lastTagInfo
+        ? `${lastTagInfo.tag}${rel ? ` (${rel})` : ''}`
+        : 'no previous release'
+
       if (hasChanges || skipChangeCheck) {
         const changedFiles = hasChanges.split('\n').filter(Boolean)
         console.log(
           chalk.dim.blueBright(
-            `Found ${changedFiles.length} changed files in "${pkg.name}" since last release (${lastTag})`,
+            `Found ${changedFiles.length} changed files in "${pkg.name}" since ${releaseDescription}`,
           ),
         )
         console.log(chalk.dim(`"${changedFiles.join('", "')}"`))
@@ -496,11 +545,13 @@ async function getChangedPackages(...folders: string[]): Promise<PackageInfo[]> 
           name: pkg.name,
           version: pkg.version,
           pkg,
-          start: lastTag,
+          start: diffStart,
+          lastTag: lastTagInfo?.tag ?? null,
+          lastTagDate: lastTagInfo?.date ?? null,
         }
       } else {
         console.warn(
-          chalk.dim(`Skipping "${pkg.name}" as it has no changes since last release (${lastTag})`),
+          chalk.dim(`Skipping "${pkg.name}" as it has no changes since ${releaseDescription}`),
         )
         return null
       }
