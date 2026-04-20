@@ -43,7 +43,7 @@
     "@pinia/nuxt": "^0.11.3",
     "nuxi": "^3.34.0",
     "nuxt": "^4.4.2",
-    "typescript": "~6.0.2",
-    "vue-tsc": "^3.2.6"
+    "typescript": "~6.0.3",
+    "vue-tsc": "^3.2.7"
   }
 }
