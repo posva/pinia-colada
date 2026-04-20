@@ -1,3 +1,7 @@
+# [1.0.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.4.5...@pinia/colada-devtools@1.0.0) (2026-04-20)
+
+No code changes in this release.
+
 ## [0.4.5](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.4.4...@pinia/colada-devtools@0.4.5) (2026-03-06)
 
 No code changes in this release.

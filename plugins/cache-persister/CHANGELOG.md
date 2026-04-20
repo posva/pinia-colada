@@ -1,3 +1,10 @@
+# [1.0.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-cache-persister@0.1.4...@pinia/colada-plugin-cache-persister@1.0.0) (2026-04-20)
+
+### Bug Fixes
+
+- **cache-persister:** await captured promise on async restore ([#562](https://github.com/posva/pinia-colada/issues/562)) ([7370e41](https://github.com/posva/pinia-colada/commit/7370e41fc29e0e588b7a6d59cbe8f59f8144c5d1))
+- **cache-persister:** guard localStorage.clear() for Node 25+ ([c29c61d](https://github.com/posva/pinia-colada/commit/c29c61d22ebc62625faec769ab4f6f5c7ddc1157))
+
 ## [0.1.4](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-cache-persister@0.1.3...@pinia/colada-plugin-cache-persister@0.1.4) (2026-03-06)
 
 No changes in this release.

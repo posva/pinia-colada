@@ -1,3 +1,9 @@
+# [1.0.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-retry@0.2.3...@pinia/colada-plugin-retry@1.0.0) (2026-04-20)
+
+### Bug Fixes
+
+- **retry:** prevent retryMap key collisions for structurally distinct keys ([#563](https://github.com/posva/pinia-colada/issues/563)) ([d002271](https://github.com/posva/pinia-colada/commit/d0022712070c43504be277b09262a6eb4677a679))
+
 ## [0.2.3](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-retry@0.2.2...@pinia/colada-plugin-retry@0.2.3) (2026-02-26)
 
 ### Features
