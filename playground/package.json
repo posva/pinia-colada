@@ -33,16 +33,16 @@
     "@pinia/colada-devtools": "workspace:^",
     "@tailwindcss/vite": "^4.2.2",
     "@types/node": "^24.12.2",
-    "@vitejs/plugin-vue": "^6.0.5",
+    "@vitejs/plugin-vue": "^6.0.6",
     "@vue/tsconfig": "^0.9.1",
-    "autoprefixer": "^10.4.27",
+    "autoprefixer": "^10.5.0",
     "json-server": "0.17.4",
     "npm-run-all2": "^8.0.4",
     "tailwindcss": "^4.2.2",
-    "typescript": "~6.0.2",
+    "typescript": "~6.0.3",
     "unplugin-vue-router": "^0.19.2",
-    "vite": "^8.0.8",
+    "vite": "^8.0.9",
     "vite-plugin-vue-devtools": "^8.1.1",
-    "vue-tsc": "^3.2.6"
+    "vue-tsc": "^3.2.7"
   }
 }
