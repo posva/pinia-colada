@@ -86,7 +86,7 @@
     "execa": "^9.6.1",
     "happy-dom": "^20.9.0",
     "lint-staged": "^16.4.0",
-    "oxfmt": "^0.44.0",
+    "oxfmt": "^0.45.0",
     "oxlint": "^1.60.0",
     "oxlint-plugin-posva": "0.0.2",
     "pinia": "^3.0.4",
