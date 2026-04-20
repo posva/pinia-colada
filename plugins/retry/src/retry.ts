@@ -90,7 +90,7 @@ export function PiniaColadaRetry(
       // cleanup all pending retries when data is deleted (means the data is not needed anymore)
       if (name === 'remove') {
         const [cacheEntry] = args
-        const key = cacheEntry.key.join('/')
+        const key = cacheEntry.keyHash
         const entry = retryMap.get(key)
         if (entry) {
           clearTimeout(entry.timeoutId)
@@ -115,7 +115,7 @@ export function PiniaColadaRetry(
       // avoid setting up anything at all
       if (retry === 0) return
 
-      const key = queryEntry.key.join('/')
+      const key = queryEntry.keyHash
 
       // clear any pending retry
       clearTimeout(retryMap.get(key)?.timeoutId)
