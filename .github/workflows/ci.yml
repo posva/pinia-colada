@@ -22,13 +22,27 @@ jobs:
           node-version: lts/*
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm -C nuxt run dev:prepare
-      - run: pnpm run lint
-      - run: pnpm run test
-      - run: pnpm run size
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Prepare Nuxt
+        run: pnpm -C nuxt run dev:prepare
+      - name: Lint
+        run: pnpm run lint
+      - name: Build
+        run: pnpm run build
+      - name: Build all packages
+        run: pnpm run build:all
+      - name: Test with coverage
+        run: pnpm run test:cov
+      - name: Type tests
+        run: pnpm run test:types
+      - name: Size check
+        run: pnpm run size
+      - name: Codemods tests
+        run: pnpm run codemods:test
       # avoid updating deps that do not build docs
-      - run: pnpm run docs:build
+      - name: Build docs
+        run: pnpm run docs:build
 
       - uses: codecov/codecov-action@v6
         with:
