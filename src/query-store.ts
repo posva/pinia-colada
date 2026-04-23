@@ -137,17 +137,17 @@ export interface UseQueryEntry<
 
   /**
    * Internal property used in development to detect when a component with an
-   * active query was hot-updated and invalidate the entry. We store the
-   * identity of the component's `setup` and `render` functions; a real HMR
-   * reload replaces these references while a plain remount of the same
-   * component keeps them identical.
+   * active query was hot-updated and invalidate the entry. For each component
+   * type (keyed by `__hmrId`) we remember the identity of its `setup` and
+   * `render` functions; a real HMR reload replaces these references while a
+   * plain remount of the same component keeps them identical. Keying by
+   * `__hmrId` is required because multiple distinct component types can share
+   * the same query key — without it, alternating mounts would ping-pong a
+   * single snapshot and falsely invalidate the shared entry.
    *
    * @internal
    */
-  __hmr?: {
-    setup: unknown
-    render: unknown
-  }
+  __hmr?: Map<string, { setup: unknown; render: unknown }>
 }
 
 /**
@@ -573,11 +573,12 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
             render?: unknown
           }
           if (type.__hmrId) {
-            const prev = entry.__hmr
+            const hmrById = (entry.__hmr ??= new Map())
+            const prev = hmrById.get(type.__hmrId)
             if (prev && (prev.setup !== type.setup || prev.render !== type.render)) {
               invalidate(entry)
             }
-            entry.__hmr = { setup: type.setup, render: type.render }
+            hmrById.set(type.__hmrId, { setup: type.setup, render: type.render })
           }
         }
       }
