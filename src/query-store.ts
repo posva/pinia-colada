@@ -147,7 +147,13 @@ export interface UseQueryEntry<
    *
    * @internal
    */
-  __hmr?: Map<string, { setup: unknown; render: unknown }>
+  __hmr?: {
+    /**
+     * Identity of the `setup` and `render` functions last seen for each
+     * component type (keyed by `__hmrId`) that uses this entry.
+     */
+    components: Map<string, { setup: unknown; render: unknown }>
+  }
 }
 
 /**
@@ -573,12 +579,12 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
             render?: unknown
           }
           if (type.__hmrId) {
-            const hmrById = (entry.__hmr ??= new Map())
-            const prev = hmrById.get(type.__hmrId)
+            const components = (entry.__hmr ??= { components: new Map() }).components
+            const prev = components.get(type.__hmrId)
             if (prev && (prev.setup !== type.setup || prev.render !== type.render)) {
               invalidate(entry)
             }
-            hmrById.set(type.__hmrId, { setup: type.setup, render: type.render })
+            components.set(type.__hmrId, { setup: type.setup, render: type.render })
           }
         }
       }
