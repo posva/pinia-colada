@@ -1,7 +1,7 @@
 import { describe, expectTypeOf, it } from 'vitest'
 import { useQuery } from './use-query'
 import { useQueryCache, defineQueryOptions } from '@pinia/colada'
-import type { EntryKeyTagged } from '@pinia/colada'
+import type { DefineQueryOptions, EntryKeyTagged } from '@pinia/colada'
 import type { ErrorDefault } from './types-extension'
 
 describe('typed query keys', () => {
@@ -115,12 +115,7 @@ describe('typed query keys', () => {
         initialData: () => 'YES',
       })
 
-      // @ts-expect-error: initialData must be a function
-      defineQueryOptions({
-        key,
-        query,
-        initialData: 'YES',
-      })
+      expectTypeOf<'YES'>().not.toExtend<DefineQueryOptions<string>['initialData']>()
     })
 
     it('preserves initialData type', async () => {
@@ -332,12 +327,7 @@ describe('typed query keys', () => {
     })
 
     it('disallows function in meta', () => {
-      // @ts-expect-error: meta cannot be a function
-      defineQueryOptions({
-        key: ['a'],
-        query: async () => 'ok',
-        meta: () => ({}),
-      })
+      expectTypeOf<() => {}>().not.toExtend<DefineQueryOptions['meta']>()
 
       defineQueryOptions({
         key: ['a'],

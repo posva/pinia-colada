@@ -18,11 +18,7 @@ describe('defineQuery types', () => {
   })
 
   it('does not allow refs or getters in the key', () => {
-    // @ts-expect-error: key must be a direct value
-    defineQuery({
-      key: () => ['todos'],
-      query: async () => [{ id: 1 }],
-    })
+    expectTypeOf<() => readonly ['todos']>().not.toExtend<DefineQueryOptions['key']>()
   })
 
   it('can define a query with a function', () => {
