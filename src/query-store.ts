@@ -136,16 +136,17 @@ export interface UseQueryEntry<
   readonly ext: UseQueryEntryExtensions<TData, TError, TDataInitial>
 
   /**
-   * Internal property to store the HMR ids of the components that are using
-   * this query and force refetching.
+   * Internal property used in development to detect when a component with an
+   * active query was hot-updated and invalidate the entry. We store the
+   * identity of the component's `setup` and `render` functions; a real HMR
+   * reload replaces these references while a plain remount of the same
+   * component keeps them identical.
    *
    * @internal
    */
   __hmr?: {
-    /**
-     * Reference count of the components using this query.
-     */
-    ids: Map<string, number>
+    setup: unknown
+    render: unknown
   }
 }
 
@@ -400,18 +401,6 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     // avoid clearing an existing timeout
     if (!effect || !entry.deps.has(effect)) return
 
-    // clear any HMR to avoid letting the set grow
-    if (process.env.NODE_ENV !== 'production') {
-      if ('type' in effect && '__hmrId' in effect.type && entry.__hmr) {
-        const count = (entry.__hmr.ids.get(effect.type.__hmrId) ?? 1) - 1
-        if (count > 0) {
-          entry.__hmr.ids.set(effect.type.__hmrId, count)
-        } else {
-          entry.__hmr.ids.delete(effect.type.__hmrId)
-        }
-      }
-    }
-
     entry.deps.delete(effect)
     triggerRef(caches)
 
@@ -570,27 +559,25 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       }
 
       // during HMR, staleTime could be long and if we change the query function, the query won't trigger a refetch
-      // so we need to detect and trigger just in case
+      // so we need to detect and trigger just in case. Vue's HMR reload mutates the component options object in place
+      // and swaps `setup`/`render` with new function references while keeping `__hmrId` stable. Comparing the function
+      // references lets us distinguish a real hot-update (invalidate) from a plain remount of the same component
+      // (skip) — remounting the same component across ticks in a `v-for` must not cancel the shared pending request.
+      // See https://github.com/posva/pinia-colada/issues/569.
       if (process.env.NODE_ENV !== 'production') {
         const currentInstance = getCurrentInstance()
         if (currentInstance) {
-          entry.__hmr ??= { ids: new Map() }
-
-          const id =
-            // @ts-expect-error: internal property
-            currentInstance.type?.__hmrId
-
-          // FIXME: if the user mounts the same component multiple times, I think it makes sense to fix this
-          // because we could have the same component mounted multiple times with different props but inside of the same
-          // they use the same query (cache, centralized). This sholdn't invalidate the query
-          // we can fix it by storing the currentInstance.type.render (we need to copy the values because the
-          // type object gets reused and replaced in place). It's not clear if this will work with Vapor
-          if (id) {
-            if (entry.__hmr.ids.has(id)) {
+          const type = currentInstance.type as {
+            __hmrId?: string
+            setup?: unknown
+            render?: unknown
+          }
+          if (type.__hmrId) {
+            const prev = entry.__hmr
+            if (prev && (prev.setup !== type.setup || prev.render !== type.render)) {
               invalidate(entry)
             }
-            const count = (entry.__hmr.ids.get(id) ?? 0) + 1
-            entry.__hmr.ids.set(id, count)
+            entry.__hmr = { setup: type.setup, render: type.render }
           }
         }
       }

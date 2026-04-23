@@ -25,3 +25,6 @@ ralph.sh
 .claude/worktrees
 .claude/settings.local.json
 .claude/plans
+e2e/hmr/playground-tmp-*
+playwright-report
+test-results
