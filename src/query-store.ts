@@ -143,9 +143,13 @@ export interface UseQueryEntry<
    */
   __hmr?: {
     /**
-     * Reference count of the components using this query.
+     * Per-hmrId tracking: reference count of mounted components and the last seen
+     * `render` function. A real HMR update replaces the component's `render`
+     * reference, so a changed reference signals an actual code update (and
+     * warrants invalidation), while an unchanged reference means a legitimate
+     * new instance of the same component (no invalidation needed).
      */
-    ids: Map<string, number>
+    ids: Map<string, { count: number, render: unknown }>
   }
 }
 
@@ -403,11 +407,15 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     // clear any HMR to avoid letting the set grow
     if (process.env.NODE_ENV !== 'production') {
       if ('type' in effect && '__hmrId' in effect.type && entry.__hmr) {
-        const count = (entry.__hmr.ids.get(effect.type.__hmrId) ?? 1) - 1
-        if (count > 0) {
-          entry.__hmr.ids.set(effect.type.__hmrId, count)
+        const existing = entry.__hmr.ids.get(effect.type.__hmrId as string)
+        const count = (existing?.count ?? 1) - 1
+        if (count > 0 && existing) {
+          entry.__hmr.ids.set(effect.type.__hmrId as string, {
+            count,
+            render: existing.render,
+          })
         } else {
-          entry.__hmr.ids.delete(effect.type.__hmrId)
+          entry.__hmr.ids.delete(effect.type.__hmrId as string)
         }
       }
     }
@@ -570,27 +578,34 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       }
 
       // during HMR, staleTime could be long and if we change the query function, the query won't trigger a refetch
-      // so we need to detect and trigger just in case
+      // so we need to detect and trigger just in case.
+      //
+      // We distinguish a real HMR update from a legitimate new instance of the
+      // same component (lists, virtualized tables, staged mounts, etc.) by
+      // comparing the identity of `type.render`: a real HMR swap replaces it
+      // with a new function, while a new instance keeps the same reference.
       if (process.env.NODE_ENV !== 'production') {
         const currentInstance = getCurrentInstance()
         if (currentInstance) {
           entry.__hmr ??= { ids: new Map() }
 
-          const id =
-            // @ts-expect-error: internal property
-            currentInstance.type?.__hmrId
+          const type = currentInstance.type as {
+            __hmrId?: string
+            render?: unknown
+          }
+          const id = type?.__hmrId
 
-          // FIXME: if the user mounts the same component multiple times, I think it makes sense to fix this
-          // because we could have the same component mounted multiple times with different props but inside of the same
-          // they use the same query (cache, centralized). This sholdn't invalidate the query
-          // we can fix it by storing the currentInstance.type.render (we need to copy the values because the
-          // type object gets reused and replaced in place). It's not clear if this will work with Vapor
           if (id) {
-            if (entry.__hmr.ids.has(id)) {
+            const existing = entry.__hmr.ids.get(id)
+            const currentRender = type.render
+            if (existing && existing.render !== currentRender) {
+              // real HMR: the render function reference changed → code was updated
               invalidate(entry)
             }
-            const count = (entry.__hmr.ids.get(id) ?? 0) + 1
-            entry.__hmr.ids.set(id, count)
+            entry.__hmr.ids.set(id, {
+              count: (existing?.count ?? 0) + 1,
+              render: currentRender,
+            })
           }
         }
       }

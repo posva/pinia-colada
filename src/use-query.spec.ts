@@ -2328,14 +2328,15 @@ describe('useQuery', () => {
   })
 
   describe('hmr', () => {
-    it('always refetches on hmr', async () => {
+    it('refetches when the component render function is swapped (real HMR)', async () => {
       const query = vi.fn(async () => 42)
+      const setup = () => {
+        useQuery({ key: ['id'], query })
+        return {}
+      }
       const component = defineComponent({
         render: () => null,
-        setup() {
-          useQuery({ key: ['id'], query })
-          return {}
-        },
+        setup,
         // to simulate HMR, the HMR id is stable across remounts
         __hmrId: 'some-id',
       })
@@ -2345,10 +2346,49 @@ describe('useQuery', () => {
       // simulate the wait of things to settle but do not let staleTime pass
       await flushPromises()
 
-      mount(component, { global: { plugins: [pinia, PiniaColada] } })
+      // simulate an HMR update: same __hmrId, but the render function reference
+      // changes (as Vite's HMR runtime does when the component's code updates).
+      const updatedComponent = defineComponent({
+        render: () => null,
+        setup,
+        __hmrId: 'some-id',
+      })
+      mount(updatedComponent, { global: { plugins: [pinia, PiniaColada] } })
       w1.unmount()
       await flushPromises()
       expect(query).toHaveBeenCalledTimes(2)
+    })
+
+    it('does not refetch when the same component is mounted multiple times (list/grid scenario)', async () => {
+      const query = vi.fn(async () => 42)
+      const component = defineComponent({
+        render: () => null,
+        setup() {
+          useQuery({ key: ['shared'], query })
+          return {}
+        },
+        __hmrId: 'stable-id',
+      })
+
+      const pinia = createPinia()
+
+      // mount the same component 7 times, staggered across ticks — simulates
+      // a list/virtualized grid where rows mount one by one (pending fetch of
+      // the first instance should be reused by the rest).
+      const wrappers = []
+      for (let i = 0; i < 7; i++) {
+        wrappers.push(mount(component, { global: { plugins: [pinia, PiniaColada] } }))
+        // allow the pending fetch to start before the next instance mounts
+        await vi.advanceTimersByTimeAsync(10)
+      }
+
+      await flushPromises()
+
+      // all 7 instances share the same query key and the same render reference,
+      // so only one fetch should have happened — dedup must hold.
+      expect(query).toHaveBeenCalledTimes(1)
+
+      wrappers.forEach((w) => w.unmount())
     })
   })
 
