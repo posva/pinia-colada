@@ -45,7 +45,7 @@ test.describe('dedupe (issue #569)', () => {
     expect(await page.evaluate(() => window.__fetchCount)).toBe(1)
 
     // swap Child.vue with an edited version — this fires a real HMR update
-    applyEditFile('src/scenarios/Child.vue', 'edits/src/scenarios/Child-v2.vue')
+    applyEditFile('src/scenarios/dedupe/Child.vue', 'edits/src/scenarios/Child.vue')
 
     // wait for the shared query to resolve
     await expect(page.getByTestId('child').first()).toContainText('x,y,z')

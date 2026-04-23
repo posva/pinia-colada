@@ -38,7 +38,7 @@ test.describe('HMR', () => {
     await expect.poll(async () => page.evaluate(() => window.__fetchCount)).toBe(1)
 
     // swap Child.vue with an edited version — this fires a real HMR update
-    applyEditFile('src/scenarios/Child.vue', 'edits/src/scenarios/Child-v2.vue')
+    applyEditFile('src/scenarios/hmr/Child.vue', 'edits/src/scenarios/Child.vue')
 
     // the edited component uses the same key but a different body, so the
     // shared entry should be invalidated and refetched
