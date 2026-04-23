@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import Dedupe from './scenarios/Dedupe.vue'
-import Hmr from './scenarios/Hmr.vue'
+import Dedupe from './scenarios/dedupe/Dedupe.vue'
+import Hmr from './scenarios/hmr/Hmr.vue'
 
 const params = new URLSearchParams(window.location.search)
 const scenario = params.get('scenario') || 'dedupe'

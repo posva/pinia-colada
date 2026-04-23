@@ -6,7 +6,7 @@ import { useQuery } from '@pinia/colada'
 const { data, isLoading } = useQuery({
   key: () => ['shared-items'],
   query: async () => {
-    ;(window as any).__fetchCount++
+    window.__fetchCount++
     await new Promise((r) => setTimeout(r, 20))
     return ['x', 'y', 'z']
   },
