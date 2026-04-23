@@ -55,7 +55,7 @@ describe('useInfiniteQuery', () => {
           async ({
             pageParam,
           }: UseInfiniteQueryFnContext<
-            UseInfiniteQueryData<TData, TPageParam>,
+            UseInfiniteQueryData<unknown, TPageParam>,
             TError,
             TDataInitial,
             TPageParam
@@ -85,7 +85,7 @@ describe('useInfiniteQuery', () => {
         render: () => null,
         setup() {
           queryCache = useQueryCache()
-          const useInfiniteQueryResult = useInfiniteQuery<TData, TError, TPageParam>({
+          const useInfiniteQueryResult = useInfiniteQuery<TData, TError, TPageParam, TDataInitial>({
             key: ['key'],
             initialPageParam: 0 as TPageParam,
             getNextPageParam(lastPage, allPages, lastPageParam, allPageParams) {
@@ -106,7 +106,6 @@ describe('useInfiniteQuery', () => {
               )
             },
             ...options,
-            // @ts-expect-error: it's fine
             query,
           })
           return {
