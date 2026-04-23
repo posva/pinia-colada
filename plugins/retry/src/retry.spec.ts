@@ -2,7 +2,7 @@ import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent } from 'vue'
 import { createPinia } from 'pinia'
-import { useQuery, PiniaColada } from '@pinia/colada'
+import { useQuery, PiniaColada, useQueryCache } from '@pinia/colada'
 import type { UseQueryOptions } from '@pinia/colada'
 import { PiniaColadaRetry } from './retry'
 
@@ -23,6 +23,7 @@ describe('Pinia Colada Retry Plugin', () => {
   } as const
 
   function factory(queryOptions: UseQueryOptions) {
+    const pinia = createPinia()
     const wrapper = mount(
       defineComponent({
         template: '<div></div>',
@@ -33,7 +34,7 @@ describe('Pinia Colada Retry Plugin', () => {
       {
         global: {
           plugins: [
-            createPinia(),
+            pinia,
             [
               // split lines
               PiniaColada,
@@ -44,7 +45,7 @@ describe('Pinia Colada Retry Plugin', () => {
       },
     )
 
-    return { wrapper }
+    return { wrapper, pinia }
   }
 
   it('apply global retry options', async () => {
@@ -635,5 +636,59 @@ describe('Pinia Colada Retry Plugin', () => {
     vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
     await flushPromises()
     expect(query).toHaveBeenCalledTimes(1)
+  })
+
+  describe('cancel behavior', () => {
+    it('does not fire the scheduled retry after queryCache.cancel()', async () => {
+      const query = vi.fn(async () => {
+        throw new Error('ko')
+      })
+
+      const { pinia } = factory({
+        key: ['key'],
+        query,
+        retry: 3,
+      })
+
+      // initial fetch fails, retry scheduled
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+
+      const queryCache = useQueryCache(pinia)
+      const entry = queryCache.getEntries({ key: ['key'] })[0]!
+      queryCache.cancel(entry)
+
+      // retry window elapses - no new fetch should fire
+      vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay * 5)
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+    })
+
+    it('resets retry UI flags on cancel', async () => {
+      const query = vi.fn(async () => {
+        throw new Error('ko')
+      })
+
+      const { wrapper, pinia } = factory({
+        key: ['key'],
+        query,
+        retry: 3,
+      })
+
+      // initial fetch fails, retry scheduled - flags set
+      await flushPromises()
+      expect((wrapper.vm as any).isRetrying).toBe(true)
+      expect((wrapper.vm as any).retryCount).toBe(1)
+      expect((wrapper.vm as any).retryError).toEqual(new Error('ko'))
+
+      const queryCache = useQueryCache(pinia)
+      const entry = queryCache.getEntries({ key: ['key'] })[0]!
+      queryCache.cancel(entry)
+      await flushPromises()
+
+      expect((wrapper.vm as any).isRetrying).toBe(false)
+      expect((wrapper.vm as any).retryCount).toBe(0)
+      expect((wrapper.vm as any).retryError).toBeNull()
+    })
   })
 })

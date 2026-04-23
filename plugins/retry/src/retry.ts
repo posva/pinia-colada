@@ -98,6 +98,25 @@ export function PiniaColadaRetry(
         }
       }
 
+      // cleanup any pending retry when the user cancels the query
+      if (name === 'cancel') {
+        const [cacheEntry] = args
+        const key = cacheEntry.keyHash
+        const entry = retryMap.get(key)
+        if (entry) {
+          clearTimeout(entry.timeoutId)
+          retryMap.delete(key)
+        }
+        cacheEntry.ext.isRetrying.value = false
+        cacheEntry.ext.retryCount.value = 0
+        cacheEntry.ext.retryError.value = null
+        if (process.env.NODE_ENV === 'development' && cacheEntry.ext.retry) {
+          cacheEntry.ext.retry.isRetrying = false
+          cacheEntry.ext.retry.retryCount = 0
+          cacheEntry.ext.retry.retryError = null
+        }
+      }
+
       if (name !== 'fetch') return
       const [queryEntry] = args
       const localOptions = queryEntry.options?.retry
