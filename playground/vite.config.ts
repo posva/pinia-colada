@@ -3,7 +3,7 @@ import { resolve, dirname } from 'node:path'
 
 import { defineConfig } from 'vite'
 import Vue from '@vitejs/plugin-vue'
-import VueRouter from 'unplugin-vue-router/vite'
+import VueRouter from 'vue-router/vite'
 import VueDevTools from 'vite-plugin-vue-devtools'
 import TailwindCSS from '@tailwindcss/vite'
 
