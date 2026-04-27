@@ -21,7 +21,7 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
       - name: Run Playwright tests
         run: pnpm run test:e2e:hmr
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
           name: playwright-report
