@@ -123,6 +123,45 @@ describe('useInfiniteQuery', () => {
     return { wrapper, query, pinia, queryCache }
   }
 
+  describe('global query options', () => {
+    it('respects refetchOnWindowFocus from PiniaColada plugin defaults', async () => {
+      const query = vi.fn(async ({ pageParam }: { pageParam: number }) => [pageParam])
+      const wrapper = mount(
+        defineComponent({
+          render: () => null,
+          setup() {
+            return {
+              ...useInfiniteQuery({
+                key: ['global-options'],
+                initialPageParam: 0,
+                getNextPageParam: () => null,
+                query,
+              }),
+            }
+          },
+        }),
+        {
+          global: {
+            plugins: [
+              createPinia(),
+              [PiniaColada, { queryOptions: { refetchOnWindowFocus: 'always' } }],
+            ],
+          },
+        },
+      )
+
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+
+      document.dispatchEvent(new Event('visibilitychange'))
+      await flushPromises()
+
+      expect(query).toHaveBeenCalledTimes(2)
+
+      wrapper.unmount()
+    })
+  })
+
   it('appends data when fetching next pages', async () => {
     const { wrapper } = mountSimple()
 

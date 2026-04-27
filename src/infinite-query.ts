@@ -471,16 +471,10 @@ export function useInfiniteQuery<
           return { pages, pageParams }
         },
 
-        // other options that need to be normalized
         meta: {
           ...toValue(opts.meta),
           __i: 1,
         },
-        // enabled: toValue(opts.enabled),
-        refetchOnMount: toValue(opts.refetchOnMount),
-        refetchOnReconnect: toValue(opts.refetchOnReconnect),
-        refetchOnWindowFocus: toValue(opts.refetchOnWindowFocus),
-        // initialData: toValue(opts.initialData),
       }
       // satisfies DefineQueryOptions<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>
     },
