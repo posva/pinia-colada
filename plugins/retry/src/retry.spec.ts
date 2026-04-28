@@ -638,58 +638,55 @@ describe('Pinia Colada Retry Plugin', () => {
     expect(query).toHaveBeenCalledTimes(1)
   })
 
-  describe('cancel behavior', () => {
-    it('does not fire the scheduled retry after queryCache.cancel()', async () => {
-      const query = vi.fn(async () => {
-        throw new Error('ko')
-      })
-
-      const { pinia, wrapper } = factory({
-        key: ['key'],
-        query,
-        retry: 3,
-      })
-
-      // initial fetch fails, retry scheduled
-      await flushPromises()
-      expect(query).toHaveBeenCalledTimes(1)
-      expect(wrapper.vm.isRetrying).toBe(true)
-
-      const queryCache = useQueryCache(pinia)
-      queryCache.cancelQueries({ key: ['key'] })
-      expect(wrapper.vm.isRetrying).toBe(false)
-
-      // retry window elapses - no new fetch should fire
-      vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay * 5)
-      await flushPromises()
-      expect(query).toHaveBeenCalledTimes(1)
+  it('cancel ongoing retries if query is cancelled', async () => {
+    const query = vi.fn(async () => {
+      throw new Error('ko')
     })
 
-    it('resets retry UI flags on cancel', async () => {
-      const query = vi.fn(async () => {
-        throw new Error('ko')
-      })
-
-      const { wrapper, pinia } = factory({
-        key: ['key'],
-        query,
-        retry: 3,
-      })
-
-      // initial fetch fails, retry scheduled - flags set
-      await flushPromises()
-      expect(wrapper.vm.isRetrying).toBe(true)
-      expect(wrapper.vm.retryCount).toBe(1)
-      expect(wrapper.vm.retryError).toEqual(new Error('ko'))
-
-      const queryCache = useQueryCache(pinia)
-      const entry = queryCache.getEntries({ key: ['key'] })[0]!
-      queryCache.cancel(entry)
-      await flushPromises()
-
-      expect(wrapper.vm.isRetrying).toBe(false)
-      expect(wrapper.vm.retryCount).toBe(0)
-      expect(wrapper.vm.retryError).toBeNull()
+    const { pinia, wrapper } = factory({
+      key: ['key'],
+      query,
+      retry: 3,
     })
+    const queryCache = useQueryCache(pinia)
+
+    // initial fetch fails, retry scheduled
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(1)
+    expect(wrapper.vm.isRetrying).toBe(true)
+
+    queryCache.cancelQueries({ key: ['key'] })
+    expect(wrapper.vm.isRetrying).toBe(false)
+
+    // retry window elapses - no new fetch should fire
+    vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay * 5)
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(1)
+  })
+
+  it('resets retry state when query is cancelled', async () => {
+    const query = vi.fn(async () => {
+      throw new Error('ko')
+    })
+
+    const { wrapper, pinia } = factory({
+      key: ['key'],
+      query,
+      retry: 3,
+    })
+    const queryCache = useQueryCache(pinia)
+
+    // initial fetch fails, retry scheduled - flags set
+    await flushPromises()
+    expect(wrapper.vm.isRetrying).toBe(true)
+    expect(wrapper.vm.retryCount).toBe(1)
+    expect(wrapper.vm.retryError).toEqual(new Error('ko'))
+
+    queryCache.cancelQueries({ key: ['key'] })
+    await flushPromises()
+
+    expect(wrapper.vm.isRetrying).toBe(false)
+    expect(wrapper.vm.retryCount).toBe(0)
+    expect(wrapper.vm.retryError).toBeNull()
   })
 })
