@@ -5,7 +5,7 @@
  *
  * @module @pinia/colada-plugin-retry
  */
-import type { PiniaColadaPluginContext } from '@pinia/colada'
+import type { PiniaColadaPluginContext, UseQueryEntry } from '@pinia/colada'
 import type { ShallowRef } from 'vue'
 import { shallowRef, toValue } from 'vue'
 
@@ -82,11 +82,7 @@ export function PiniaColadaRetry(
           entry.ext.retryError = shallowRef(null)
         })
         if (process.env.NODE_ENV === 'development') {
-          entry.ext.retry = {
-            isRetrying: false,
-            retryCount: 0,
-            retryError: null,
-          }
+          updateDevtoolsState(entry)
         }
         return
       } else if (name === 'remove' || name === 'cancel') {
@@ -103,10 +99,8 @@ export function PiniaColadaRetry(
         cacheEntry.ext.retryCount.value = 0
         cacheEntry.ext.retryError.value = null
 
-        if (process.env.NODE_ENV === 'development' && cacheEntry.ext.retry) {
-          cacheEntry.ext.retry.isRetrying = false
-          cacheEntry.ext.retry.retryCount = 0
-          cacheEntry.ext.retry.retryError = null
+        if (process.env.NODE_ENV === 'development') {
+          updateDevtoolsState(cacheEntry)
         }
       } else if (name === 'fetch') {
         const [queryEntry] = args
@@ -135,10 +129,8 @@ export function PiniaColadaRetry(
           queryEntry.ext.isRetrying.value = false
           queryEntry.ext.retryCount.value = 0
           queryEntry.ext.retryError.value = null
-          if (process.env.NODE_ENV === 'development' && queryEntry.ext.retry) {
-            queryEntry.ext.retry.isRetrying = false
-            queryEntry.ext.retry.retryCount = 0
-            queryEntry.ext.retry.retryError = null
+          if (process.env.NODE_ENV === 'development') {
+            updateDevtoolsState(queryEntry)
           }
         }
 
@@ -162,10 +154,8 @@ export function PiniaColadaRetry(
               queryEntry.ext.isRetrying.value = true
               queryEntry.ext.retryCount.value = entry.retryCount + 1
               queryEntry.ext.retryError.value = error
-              if (process.env.NODE_ENV === 'development' && queryEntry.ext.retry) {
-                queryEntry.ext.retry.isRetrying = true
-                queryEntry.ext.retry.retryCount = entry.retryCount + 1
-                queryEntry.ext.retry.retryError = error
+              if (process.env.NODE_ENV === 'development') {
+                updateDevtoolsState(queryEntry)
               }
               // revert to pre-fetch state so the error is only visible via retryError
               queryEntry.state.value = previousState
@@ -176,10 +166,8 @@ export function PiniaColadaRetry(
                   queryEntry.ext.isRetrying.value = false
                   queryEntry.ext.retryCount.value = 0
                   queryEntry.ext.retryError.value = null
-                  if (process.env.NODE_ENV === 'development' && queryEntry.ext.retry) {
-                    queryEntry.ext.retry.isRetrying = false
-                    queryEntry.ext.retry.retryCount = 0
-                    queryEntry.ext.retry.retryError = null
+                  if (process.env.NODE_ENV === 'development') {
+                    updateDevtoolsState(queryEntry)
                   }
                   return
                 }
@@ -198,9 +186,8 @@ export function PiniaColadaRetry(
               queryEntry.ext.isRetrying.value = false
               queryEntry.ext.retryError.value = null
               retryMap.delete(key)
-              if (process.env.NODE_ENV === 'development' && queryEntry.ext.retry) {
-                queryEntry.ext.retry.isRetrying = false
-                queryEntry.ext.retry.retryError = null
+              if (process.env.NODE_ENV === 'development') {
+                updateDevtoolsState(queryEntry)
               }
             }
           } else {
@@ -209,10 +196,8 @@ export function PiniaColadaRetry(
             queryEntry.ext.retryCount.value = 0
             queryEntry.ext.retryError.value = null
             retryMap.delete(key)
-            if (process.env.NODE_ENV === 'development' && queryEntry.ext.retry) {
-              queryEntry.ext.retry.isRetrying = false
-              queryEntry.ext.retry.retryCount = 0
-              queryEntry.ext.retry.retryError = null
+            if (process.env.NODE_ENV === 'development') {
+              updateDevtoolsState(queryEntry)
             }
           }
         }
@@ -220,6 +205,27 @@ export function PiniaColadaRetry(
         after(retryFetch)
       }
     })
+  }
+}
+
+/**
+ * Updates the devtools state for the retry plugin. Only used in development mode.
+ *
+ * @param entry - the query entry to update
+ *
+ * @internal
+ */
+function updateDevtoolsState(entry: UseQueryEntry): void {
+  if (entry.ext.retry) {
+    entry.ext.retry.isRetrying = entry.ext.isRetrying.value
+    entry.ext.retry.retryCount = entry.ext.retryCount.value
+    entry.ext.retry.retryError = entry.ext.retryError.value
+  } else {
+    entry.ext.retry ??= {
+      isRetrying: entry.ext.isRetrying.value,
+      retryCount: entry.ext.retryCount.value,
+      retryError: entry.ext.retryError.value,
+    }
   }
 }
 
