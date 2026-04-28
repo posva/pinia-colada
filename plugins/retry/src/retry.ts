@@ -82,13 +82,15 @@ export function PiniaColadaRetry(
           entry.ext.retryError = shallowRef(null)
         })
         if (process.env.NODE_ENV === 'development') {
-          entry.ext.retry = { isRetrying: false, retryCount: 0, retryError: null as unknown }
+          entry.ext.retry = {
+            isRetrying: false,
+            retryCount: 0,
+            retryError: null,
+          }
         }
         return
-      }
-
-      // cleanup all pending retries when data is deleted (means the data is not needed anymore)
-      if (name === 'remove') {
+      } else if (name === 'remove' || name === 'cancel') {
+        // cleanup all pending retries
         const [cacheEntry] = args
         const key = cacheEntry.keyHash
         const entry = retryMap.get(key)
@@ -96,137 +98,127 @@ export function PiniaColadaRetry(
           clearTimeout(entry.timeoutId)
           retryMap.delete(key)
         }
-      }
-
-      // cleanup any pending retry when the user cancels the query
-      if (name === 'cancel') {
-        const [cacheEntry] = args
-        const key = cacheEntry.keyHash
-        const entry = retryMap.get(key)
-        if (entry) {
-          clearTimeout(entry.timeoutId)
-          retryMap.delete(key)
-        }
+        // also reset the state
         cacheEntry.ext.isRetrying.value = false
         cacheEntry.ext.retryCount.value = 0
         cacheEntry.ext.retryError.value = null
+
         if (process.env.NODE_ENV === 'development' && cacheEntry.ext.retry) {
           cacheEntry.ext.retry.isRetrying = false
           cacheEntry.ext.retry.retryCount = 0
           cacheEntry.ext.retry.retryError = null
         }
-      }
+      } else if (name === 'fetch') {
+        const [queryEntry] = args
+        const localOptions = queryEntry.options?.retry
 
-      if (name !== 'fetch') return
-      const [queryEntry] = args
-      const localOptions = queryEntry.options?.retry
+        const options = {
+          ...(typeof localOptions === 'object'
+            ? localOptions
+            : {
+                retry: localOptions,
+              }),
+        } satisfies RetryOptions
 
-      const options = {
-        ...(typeof localOptions === 'object'
-          ? localOptions
-          : {
-              retry: localOptions,
-            }),
-      } satisfies RetryOptions
+        const retry = options.retry ?? defaults.retry
+        const delay = options.delay ?? defaults.delay
+        // avoid setting up anything at all
+        if (retry === 0) return
 
-      const retry = options.retry ?? defaults.retry
-      const delay = options.delay ?? defaults.delay
-      // avoid setting up anything at all
-      if (retry === 0) return
+        const key = queryEntry.keyHash
 
-      const key = queryEntry.keyHash
-
-      // clear any pending retry
-      clearTimeout(retryMap.get(key)?.timeoutId)
-      // if the user manually calls the action, reset the retry count
-      if (!isInternalCall) {
-        retryMap.delete(key)
-        queryEntry.ext.isRetrying.value = false
-        queryEntry.ext.retryCount.value = 0
-        queryEntry.ext.retryError.value = null
-        if (process.env.NODE_ENV === 'development' && queryEntry.ext.retry) {
-          queryEntry.ext.retry.isRetrying = false
-          queryEntry.ext.retry.retryCount = 0
-          queryEntry.ext.retry.retryError = null
-        }
-      }
-
-      // capture state before the fetch runs so we can revert during retries
-      const previousState = queryEntry.state.value
-
-      const retryFetch = () => {
-        if (queryEntry.state.value.status === 'error') {
-          const error = queryEntry.state.value.error
-          // ensure the entry exists
-          let entry = retryMap.get(key)
-          if (!entry) {
-            entry = { retryCount: 0 }
-            retryMap.set(key, entry)
-          }
-
-          const shouldRetry =
-            typeof retry === 'number' ? retry > entry.retryCount : retry(entry.retryCount, error)
-
-          if (shouldRetry) {
-            queryEntry.ext.isRetrying.value = true
-            queryEntry.ext.retryCount.value = entry.retryCount + 1
-            queryEntry.ext.retryError.value = error
-            if (process.env.NODE_ENV === 'development' && queryEntry.ext.retry) {
-              queryEntry.ext.retry.isRetrying = true
-              queryEntry.ext.retry.retryCount = entry.retryCount + 1
-              queryEntry.ext.retry.retryError = error
-            }
-            // revert to pre-fetch state so the error is only visible via retryError
-            queryEntry.state.value = previousState
-            const delayTime = typeof delay === 'function' ? delay(entry.retryCount) : delay
-            entry.timeoutId = setTimeout(() => {
-              if (!queryEntry.active || toValue(queryEntry.options?.enabled) === false) {
-                retryMap.delete(key)
-                queryEntry.ext.isRetrying.value = false
-                queryEntry.ext.retryCount.value = 0
-                queryEntry.ext.retryError.value = null
-                if (process.env.NODE_ENV === 'development' && queryEntry.ext.retry) {
-                  queryEntry.ext.retry.isRetrying = false
-                  queryEntry.ext.retry.retryCount = 0
-                  queryEntry.ext.retry.retryError = null
-                }
-                return
-              }
-              // NOTE: we could add some default error handler
-              isInternalCall = true
-              Promise.resolve(queryCache.fetch(queryEntry)).catch(
-                process.env.NODE_ENV !== 'test' ? console.error : () => {},
-              )
-              isInternalCall = false
-              if (entry) {
-                entry.retryCount++
-              }
-            }, delayTime)
-          } else {
-            // remove the entry if we are not going to retry
-            queryEntry.ext.isRetrying.value = false
-            queryEntry.ext.retryError.value = null
-            retryMap.delete(key)
-            if (process.env.NODE_ENV === 'development' && queryEntry.ext.retry) {
-              queryEntry.ext.retry.isRetrying = false
-              queryEntry.ext.retry.retryError = null
-            }
-          }
-        } else {
-          // remove the entry if it worked out to reset it
+        // clear any pending retry
+        clearTimeout(retryMap.get(key)?.timeoutId)
+        // if the user manually calls the action, reset the retry count
+        if (!isInternalCall) {
+          retryMap.delete(key)
           queryEntry.ext.isRetrying.value = false
           queryEntry.ext.retryCount.value = 0
           queryEntry.ext.retryError.value = null
-          retryMap.delete(key)
           if (process.env.NODE_ENV === 'development' && queryEntry.ext.retry) {
             queryEntry.ext.retry.isRetrying = false
             queryEntry.ext.retry.retryCount = 0
             queryEntry.ext.retry.retryError = null
           }
         }
+
+        // capture state before the fetch runs so we can revert during retries
+        const previousState = queryEntry.state.value
+
+        const retryFetch = () => {
+          if (queryEntry.state.value.status === 'error') {
+            const error = queryEntry.state.value.error
+            // ensure the entry exists
+            let entry = retryMap.get(key)
+            if (!entry) {
+              entry = { retryCount: 0 }
+              retryMap.set(key, entry)
+            }
+
+            const shouldRetry =
+              typeof retry === 'number' ? retry > entry.retryCount : retry(entry.retryCount, error)
+
+            if (shouldRetry) {
+              queryEntry.ext.isRetrying.value = true
+              queryEntry.ext.retryCount.value = entry.retryCount + 1
+              queryEntry.ext.retryError.value = error
+              if (process.env.NODE_ENV === 'development' && queryEntry.ext.retry) {
+                queryEntry.ext.retry.isRetrying = true
+                queryEntry.ext.retry.retryCount = entry.retryCount + 1
+                queryEntry.ext.retry.retryError = error
+              }
+              // revert to pre-fetch state so the error is only visible via retryError
+              queryEntry.state.value = previousState
+              const delayTime = typeof delay === 'function' ? delay(entry.retryCount) : delay
+              entry.timeoutId = setTimeout(() => {
+                if (!queryEntry.active || toValue(queryEntry.options?.enabled) === false) {
+                  retryMap.delete(key)
+                  queryEntry.ext.isRetrying.value = false
+                  queryEntry.ext.retryCount.value = 0
+                  queryEntry.ext.retryError.value = null
+                  if (process.env.NODE_ENV === 'development' && queryEntry.ext.retry) {
+                    queryEntry.ext.retry.isRetrying = false
+                    queryEntry.ext.retry.retryCount = 0
+                    queryEntry.ext.retry.retryError = null
+                  }
+                  return
+                }
+                // NOTE: we could add some default error handler
+                isInternalCall = true
+                Promise.resolve(queryCache.fetch(queryEntry)).catch(
+                  process.env.NODE_ENV !== 'test' ? console.error : () => {},
+                )
+                isInternalCall = false
+                if (entry) {
+                  entry.retryCount++
+                }
+              }, delayTime)
+            } else {
+              // remove the entry if we are not going to retry
+              queryEntry.ext.isRetrying.value = false
+              queryEntry.ext.retryError.value = null
+              retryMap.delete(key)
+              if (process.env.NODE_ENV === 'development' && queryEntry.ext.retry) {
+                queryEntry.ext.retry.isRetrying = false
+                queryEntry.ext.retry.retryError = null
+              }
+            }
+          } else {
+            // remove the entry if it worked out to reset it
+            queryEntry.ext.isRetrying.value = false
+            queryEntry.ext.retryCount.value = 0
+            queryEntry.ext.retryError.value = null
+            retryMap.delete(key)
+            if (process.env.NODE_ENV === 'development' && queryEntry.ext.retry) {
+              queryEntry.ext.retry.isRetrying = false
+              queryEntry.ext.retry.retryCount = 0
+              queryEntry.ext.retry.retryError = null
+            }
+          }
+        }
+        onError(retryFetch)
+        after(retryFetch)
       }
-      onError(retryFetch)
-      after(retryFetch)
     })
   }
 }
