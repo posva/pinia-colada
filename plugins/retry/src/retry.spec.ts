@@ -644,7 +644,7 @@ describe('Pinia Colada Retry Plugin', () => {
         throw new Error('ko')
       })
 
-      const { pinia } = factory({
+      const { pinia, wrapper } = factory({
         key: ['key'],
         query,
         retry: 3,
@@ -653,10 +653,11 @@ describe('Pinia Colada Retry Plugin', () => {
       // initial fetch fails, retry scheduled
       await flushPromises()
       expect(query).toHaveBeenCalledTimes(1)
+      expect(wrapper.vm.isRetrying).toBe(true)
 
       const queryCache = useQueryCache(pinia)
-      const entry = queryCache.getEntries({ key: ['key'] })[0]!
-      queryCache.cancel(entry)
+      queryCache.cancelQueries({ key: ['key'] })
+      expect(wrapper.vm.isRetrying).toBe(false)
 
       // retry window elapses - no new fetch should fire
       vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay * 5)
@@ -677,18 +678,18 @@ describe('Pinia Colada Retry Plugin', () => {
 
       // initial fetch fails, retry scheduled - flags set
       await flushPromises()
-      expect((wrapper.vm as any).isRetrying).toBe(true)
-      expect((wrapper.vm as any).retryCount).toBe(1)
-      expect((wrapper.vm as any).retryError).toEqual(new Error('ko'))
+      expect(wrapper.vm.isRetrying).toBe(true)
+      expect(wrapper.vm.retryCount).toBe(1)
+      expect(wrapper.vm.retryError).toEqual(new Error('ko'))
 
       const queryCache = useQueryCache(pinia)
       const entry = queryCache.getEntries({ key: ['key'] })[0]!
       queryCache.cancel(entry)
       await flushPromises()
 
-      expect((wrapper.vm as any).isRetrying).toBe(false)
-      expect((wrapper.vm as any).retryCount).toBe(0)
-      expect((wrapper.vm as any).retryError).toBeNull()
+      expect(wrapper.vm.isRetrying).toBe(false)
+      expect(wrapper.vm.retryCount).toBe(0)
+      expect(wrapper.vm.retryError).toBeNull()
     })
   })
 })
