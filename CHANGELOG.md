@@ -1,3 +1,11 @@
+## [1.2.1](https://github.com/posva/pinia-colada/compare/v1.2.0...v1.2.1) (2026-04-28)
+
+### Bug Fixes
+
+- **hmr:** avoid cancelling in-flight requests on remount ([c01b6dc](https://github.com/posva/pinia-colada/commit/c01b6dcad9ee14cef5f9dee90ed06971a3ffab97)), closes [#569](https://github.com/posva/pinia-colada/issues/569) [#570](https://github.com/posva/pinia-colada/issues/570)
+- **hmr:** key **hmr snapshots by **hmrId ([95ea5ac](https://github.com/posva/pinia-colada/commit/95ea5acf2c634e80207e82fea971c517ee73d54f))
+- **infinite-query:** respect global query options ([#577](https://github.com/posva/pinia-colada/issues/577)) ([a14cc9f](https://github.com/posva/pinia-colada/commit/a14cc9f44c8240eb9279917a824ec5a1543333d5))
+
 # [1.2.0](https://github.com/posva/pinia-colada/compare/v1.1.0...v1.2.0) (2026-04-17)
 
 ### Bug Fixes
