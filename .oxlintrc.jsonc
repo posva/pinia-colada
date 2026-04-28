@@ -34,6 +34,16 @@
     "require-post-message-target-origin": "off",
     "posva/vitest-prefer-to-have-been-called-times": "error",
   },
+
+  "overrides": [
+    {
+      "files": ["e2e/**", "**/*.spec.ts"],
+      "rules": {
+        "no-await-in-loop": "off",
+      },
+    },
+  ],
+
   "settings": {
     "jsx-a11y": {
       "polymorphicPropName": "as",
