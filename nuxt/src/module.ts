@@ -59,10 +59,12 @@ export default defineNuxtModule<ModuleOptions>({
     const { configFile } = await loadColadaConfig(nuxt, options, logger)
 
     if (!configFile) {
-      logger.warn('No colada configuration found')
+      throw new Error(
+        'No colada configuration found. Create a colada.config.ts file in your project root or follow `unjs/c12`',
+      )
     }
 
-    nuxt.options.alias['#colada/config'] = configFile!
+    nuxt.options.alias['#colada/config'] = configFile
 
     // avoids having multiple copies of @pinia/colada
     nuxt.options.vite.optimizeDeps ??= {}
