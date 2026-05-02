@@ -80,6 +80,9 @@ yarn add @pinia/colada @pinia/colada-nuxt
 // nuxt.config.ts
 export default defineNuxtConfig({
   modules: ['@pinia/colada-nuxt'],
+  colada: {
+    watch: false // default
+  }
 })
 ```
 
@@ -95,15 +98,34 @@ npx nuxi module add pinia
 
 ## Configuration
 
-You can configure the Pinia Colada plugin by creating a `colada.options.ts` file at the root of your project.
+You can configure the Pinia Colada plugin by creating a `colada.config.ts` file at the root of your project.
 
 ```ts
-// colada.options.ts
+// colada.config.ts
+import { defineColadaConfig } from '@pinia/colada-nuxt'
+
+export default defineColadaConfig({
+  // Options here
+})
+
+// Or
+
 import type { PiniaColadaOptions } from '@pinia/colada'
 
 export default {
   // Options here
 } satisfies PiniaColadaOptions
+```
+ 
+If you would like the Nuxt server to automatically restart when you change the config in dev, you can set:
+
+```ts
+// nuxt.config.ts
+export default defineNuxtConfig({
+  colada: {
+    watch: true
+  }
+})
 ```
 
 These options will get passed to the `PiniaColada` Vue plugin. This allows you to add options like [plugins](./guide/installation.md#Plugins).
