@@ -9,6 +9,9 @@ export default defineNuxtConfig({
   future: {
     compatibilityVersion: 4,
   },
+  colada: {
+    watch: true,
+  },
   vite: {
     resolve: {
       alias: {

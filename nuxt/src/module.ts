@@ -1,21 +1,68 @@
-import { existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { addImports, addPlugin, addTemplate, createResolver, defineNuxtModule } from '@nuxt/kit'
+import { addImports, addPlugin, createResolver, defineNuxtModule, useLogger } from '@nuxt/kit'
+import { loadConfig, watchConfig } from 'c12'
+import type { Nuxt } from 'nuxt/schema'
+import type { ConsolaInstance } from 'consola'
+import { relative } from 'node:path'
 
-export default defineNuxtModule<never>({
+async function loadColadaConfig(nuxt: Nuxt, options: ModuleOptions, logger: ConsolaInstance) {
+  const watch = nuxt.options.dev && options.watch
+  const loader: typeof watchConfig = watch
+    ? (opts) =>
+        watchConfig({
+          ...opts,
+          onWatch: (e) => {
+            logger.info(
+              relative(nuxt.options.rootDir, e.path),
+              `${e.type}, restarting the Nuxt server...`,
+            )
+            nuxt.hooks.callHook('restart', { hard: true })
+          },
+        })
+    : (loadConfig as typeof watchConfig)
+
+  const config = await loader({
+    name: 'colada',
+    cwd: nuxt.options.rootDir,
+  })
+
+  if (watch) {
+    nuxt.hook('close', () => config.unwatch())
+  }
+
+  return config
+}
+
+export interface ModuleOptions {
+  /**
+   * Development HMR
+   * @default false
+   */
+  watch?: boolean
+}
+
+export default defineNuxtModule<ModuleOptions>({
   meta: {
     name: 'pinia-colada',
-    // NOTE: there is no config in nuxtConfig
     configKey: 'colada',
     compatibility: {
       nuxt: '^3.17.7 || ^4.0.0',
     },
   },
-  // Default configuration options of the Nuxt module
-  setup(_options, nuxt) {
+  defaults: {
+    watch: false,
+  },
+  async setup(options, nuxt) {
+    const logger: ConsolaInstance = useLogger('@pinia/colada-nuxt')
     const { resolve } = createResolver(import.meta.url)
     const runtimeDir = fileURLToPath(new URL('./runtime', import.meta.url))
-    const coladaOptionsPath = resolve(nuxt.options.rootDir, 'colada.options')
+    const { configFile } = await loadColadaConfig(nuxt, options, logger)
+
+    if (!configFile) {
+      logger.warn('No colada configuration found')
+    }
+
+    nuxt.options.alias['#colada/config'] = configFile!
 
     // avoids having multiple copies of @pinia/colada
     nuxt.options.vite.optimizeDeps ??= {}
@@ -33,17 +80,6 @@ export default defineNuxtModule<never>({
 
     nuxt.hook('prepare:types', (opts) => {
       opts.references.push({ path: resolve('./types/build.d.ts') })
-    })
-
-    addTemplate({
-      filename: 'colada.options.mjs',
-      getContents() {
-        if (!existsSync(coladaOptionsPath + '.ts') && !existsSync(coladaOptionsPath + '.js')) {
-          return 'export default {}'
-        }
-
-        return `export { default as default } from "${coladaOptionsPath}";`
-      },
     })
 
     type Import = Exclude<Parameters<typeof addImports>[0], unknown[]>
@@ -67,3 +103,5 @@ export default defineNuxtModule<never>({
     >)
   },
 })
+
+export { defineColadaConfig } from './config'

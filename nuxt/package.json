@@ -28,7 +28,8 @@
     "test:types": "vue-tsc --noEmit && cd playground && vue-tsc --noEmit"
   },
   "dependencies": {
-    "@nuxt/kit": "^4.4.2"
+    "@nuxt/kit": "^4.4.2",
+    "c12": "4.0.0-beta.4"
   },
   "peerDependencies": {
     "@pinia/colada": "workspace:>="

@@ -7,7 +7,7 @@ import {
 } from '@pinia/colada'
 import { markRaw } from 'vue'
 import { defineNuxtPlugin } from '#app'
-import coladaOptions from '#build/colada.options'
+import coladaOptions from '#colada/config'
 
 export default defineNuxtPlugin({
   name: 'Pinia Colada',
