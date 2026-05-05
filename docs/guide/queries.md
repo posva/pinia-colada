@@ -103,7 +103,7 @@ const { state } = useQuery({
 </script>
 ```
 
-Each unique `key` generates a new query entry in the cache. When you switch back to a previously cached entry, it reuses the cached data, avoiding unnecessary network requests. This enhances your application's performance and responsiveness, making navigations feel instant ✨.
+Each unique `key` grants access to a unique entry in the cache. Reusing the same key, gives access to the same entry, and that's how it reuses cached data, avoiding unnecessary network requests. This enhances your application's performance and responsiveness, making navigations feel instant ✨.
 
 ## Organizing Queries
 
