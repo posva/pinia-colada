@@ -429,6 +429,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       entry.gcTimeout = setTimeout(() => {
         remove(entry)
       }, entry.options.gcTime)
+      // gc cleanup must not keep Node.js alive — SSG, build, and test processes need to exit.
+      ;(entry.gcTimeout as { unref?: () => void })?.unref?.()
     }
   }
 

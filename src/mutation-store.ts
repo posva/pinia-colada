@@ -375,6 +375,8 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
         entry.gcTimeout = setTimeout(() => {
           remove(entry)
         }, entry.options.gcTime)
+        // gc cleanup must not keep Node.js alive — SSG, build, and test processes need to exit.
+        ;(entry.gcTimeout as { unref?: () => void })?.unref?.()
       }
     },
   )

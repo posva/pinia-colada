@@ -328,4 +328,20 @@ describe('Query Cache store', () => {
     expect(abortSpy).toHaveBeenCalledTimes(0)
     expect(entry.state.value.data).toBe('data')
   })
+
+  it('unrefs the gc timer so SSG/build/test processes can exit while it is pending', async () => {
+    const queryCache = useQueryCache()
+
+    const entry = queryCache.ensure({
+      key: ['unref-gc'],
+      query: async () => 'value',
+      gcTime: 1000,
+    })
+
+    await queryCache.refresh(entry)
+
+    // hasRef() on Node's Timeout returns false after unref(); fake timers mirror the API.
+    expect(entry.gcTimeout).toBeDefined()
+    expect((entry.gcTimeout as NodeJS.Timeout).hasRef()).toBe(false)
+  })
 })
