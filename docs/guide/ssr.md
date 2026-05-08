@@ -31,6 +31,30 @@ app.use(PiniaColada)
 hydrateQueryCache(useQueryCache(pinia), revivedData)
 ```
 
+## Garbage collection on the server
+
+By default, Pinia Colada schedules a `setTimeout` to garbage collect cache entries after `gcTime`. On the server this is undesirable for two reasons:
+
+- The pending timer keeps the Node.js process alive, which can hang `node`-based SSG / build pipelines for the duration of `gcTime` after rendering completes.
+- The closure inside the timer retains the entry in memory across requests.
+
+For server-side rendering you should disable GC on the server and clear the cache after each render. Pinia Colada exports the `PiniaColadaSSRNoGc` plugin for the first part:
+
+```ts
+import { PiniaColada, PiniaColadaSSRNoGc, useQueryCache } from '@pinia/colada'
+
+app.use(PiniaColada, {
+  plugins: import.meta.env.SSR ? [PiniaColadaSSRNoGc()] : [],
+})
+
+// after rendering each request:
+useQueryCache(pinia).caches.clear()
+```
+
+The plugin forces `gcTime: false` on every query and mutation entry, so even per-call `useQuery({ gcTime: 30_000 })` overrides won't schedule a timer on the server.
+
+The [Nuxt module](../nuxt.md) wires both of these for you automatically.
+
 ## Lazy queries
 
 By passing the `enabled` option we can control whether the query should be executed or not. This is useful in many scenarios, for example, when you want to avoid fetching data on the server side.
