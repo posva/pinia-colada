@@ -28,3 +28,4 @@ ralph.sh
 e2e/hmr/playground-tmp-*
 playwright-report
 test-results
+.clack-session.json
