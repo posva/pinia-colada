@@ -1,3 +1,9 @@
+## [1.0.1](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@1.0.0...@pinia/colada-nuxt@1.0.1) (2026-05-08)
+
+### Features
+
+- add PiniaColadaSSRNoGc plugin ([1080100](https://github.com/posva/pinia-colada/commit/10801004c11c40492bbe9c67aa7d3955af7d1c5e))
+
 # [1.0.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@0.3.2...@pinia/colada-nuxt@1.0.0) (2026-04-20)
 
 No code changes in this release.
