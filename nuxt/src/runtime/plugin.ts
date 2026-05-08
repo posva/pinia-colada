@@ -1,6 +1,7 @@
 import {
   useQueryCache,
   PiniaColada,
+  PiniaColadaSSRNoGc,
   serializeQueryCache,
   type PiniaColadaOptions,
   hydrateQueryCache,
@@ -16,12 +17,12 @@ export default defineNuxtPlugin({
   setup(nuxtApp) {
     nuxtApp.vueApp.use(PiniaColada, {
       ...coladaOptions,
-      queryOptions: {
-        ...coladaOptions.queryOptions,
-        // Disable GC during SSR to prevent setTimeout closures from retaining
-        // entry objects in memory across requests
-        gcTime: import.meta.server ? false : coladaOptions.queryOptions?.gcTime,
-      },
+      // Disable GC during SSR: setTimeout closures would retain entries across
+      // requests, and on SSG/build pipelines pending timers keep Node alive.
+      plugins: [
+        ...(coladaOptions.plugins ?? []),
+        ...(import.meta.server ? [PiniaColadaSSRNoGc()] : []),
+      ],
     } satisfies PiniaColadaOptions)
 
     const queryCache = useQueryCache()

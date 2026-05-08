@@ -87,6 +87,8 @@ export {
   type PiniaColadaQueryHooksPluginOptions,
 } from './plugins/query-hooks'
 
+export { PiniaColadaSSRNoGc } from './plugins/no-gc-ssr'
+
 export type { PiniaColadaPlugin, PiniaColadaPluginContext } from './plugins'
 
 export type { TypesConfig, QueryMeta, MutationMeta } from './types-extension'
