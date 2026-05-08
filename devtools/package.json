@@ -68,7 +68,7 @@
     "unplugin-vue-components": "^32.0.0",
     "vite-plugin-dts": "^5.0.0",
     "vue": "^3.5.33",
-    "vue-router": "^5.0.6",
+    "vue-router": "^5.0.4",
     "vue-tsc": "^3.2.7"
   }
 }
