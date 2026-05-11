@@ -4,3 +4,9 @@ packages:
   - nuxt
   - devtools
   - test-utils
+allowBuilds:
+  '@ast-grep/cli': true
+  '@parcel/watcher': false
+  esbuild: false
+  simple-git-hooks: true
+  unrs-resolver: false
