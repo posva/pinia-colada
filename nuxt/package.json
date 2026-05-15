@@ -28,7 +28,7 @@
     "test:types": "vue-tsc --noEmit && cd playground && vue-tsc --noEmit"
   },
   "dependencies": {
-    "@nuxt/kit": "^4.4.2"
+    "@nuxt/kit": "^4.4.5"
   },
   "peerDependencies": {
     "@pinia/colada": "workspace:>="
@@ -37,13 +37,13 @@
     "@nuxt/devtools": "^3.2.4",
     "@nuxt/eslint-config": "^1.15.2",
     "@nuxt/module-builder": "1.0.2",
-    "@nuxt/schema": "^4.4.2",
+    "@nuxt/schema": "^4.4.5",
     "@nuxt/test-utils": "^4.0.3",
     "@pinia/colada": "workspace:*",
     "@pinia/nuxt": "^0.11.3",
-    "nuxi": "^3.35.1",
-    "nuxt": "^4.4.2",
+    "nuxi": "^3.35.2",
+    "nuxt": "^4.4.5",
     "typescript": "~6.0.3",
-    "vue-tsc": "^3.2.7"
+    "vue-tsc": "^3.2.9"
   }
 }

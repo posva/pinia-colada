@@ -68,30 +68,30 @@
     "prepare": "simple-git-hooks"
   },
   "devDependencies": {
-    "@ast-grep/cli": "^0.42.1",
-    "@clack/prompts": "npm:@posva/clack-prompts@^1.2.1",
+    "@ast-grep/cli": "^0.42.2",
+    "@clack/prompts": "npm:@posva/clack-prompts@^1.2.2",
     "@pinia/colada": "workspace:*",
-    "@playwright/test": "^1.58.1",
+    "@playwright/test": "^1.60.0",
     "@posva/test-utils": "workspace:*",
     "@shikijs/vitepress-twoslash": "^4.0.2",
     "@size-limit/esbuild-why": "^12.1.0",
     "@size-limit/preset-small-lib": "^12.1.0",
-    "@types/node": "^24.12.2",
+    "@types/node": "^24.12.4",
     "@types/semver": "^7.7.1",
-    "@typescript/native-preview": "7.0.0-dev.20260508.1",
-    "@vitejs/plugin-vue": "^6.0.6",
-    "@vitest/coverage-v8": "^4.1.5",
-    "@vitest/ui": "^4.1.5",
+    "@typescript/native-preview": "7.0.0-dev.20260514.1",
+    "@vitejs/plugin-vue": "^6.0.7",
+    "@vitest/coverage-v8": "^4.1.6",
+    "@vitest/ui": "^4.1.6",
     "@vue/test-utils": "^2.4.10",
     "conventional-changelog": "^7.2.0",
     "conventional-changelog-angular": "^8.3.1",
     "happy-dom": "^20.9.0",
-    "lint-staged": "^17.0.2",
-    "oxfmt": "^0.48.0",
-    "oxlint": "^1.63.0",
+    "lint-staged": "^17.0.4",
+    "oxfmt": "^0.49.0",
+    "oxlint": "^1.64.0",
     "oxlint-plugin-posva": "0.0.2",
     "pinia": "^3.0.4",
-    "semver": "^7.7.4",
+    "semver": "^7.8.0",
     "simple-git-hooks": "^2.13.1",
     "size-limit": "^12.1.0",
     "tsdown": "^0.22.0",
@@ -100,9 +100,9 @@
     "typedoc-vitepress-theme": "^1.1.2",
     "typescript": "~6.0.3",
     "vitepress": "1.6.4",
-    "vitepress-plugin-llms": "^1.12.1",
-    "vitest": "^4.1.5",
-    "vue": "^3.5.33"
+    "vitepress-plugin-llms": "^1.12.2",
+    "vitest": "^4.1.6",
+    "vue": "^3.5.34"
   },
   "peerDependencies": {
     "pinia": "^2.2.6 || ^3.0.0",
@@ -148,5 +148,5 @@
       ]
     }
   ],
-  "packageManager": "pnpm@11.0.9"
+  "packageManager": "pnpm@11.1.2"
 }
