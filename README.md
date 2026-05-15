@@ -36,7 +36,7 @@ Pinia Colada makes data fetching in Vue applications a breeze. It's built on top
 - ✨ **Optimistic Updates**: UI that updates before the server responds
 - 💡 **Sensible defaults**: Works well out of the box while remaining fully configurable
 - 🧩 **Out-of-the box plugins**: Auto refetch, delay loading, and more
-- 📚 **Typescript Support**: Best-in-class TypeScript support
+- 📚 **TypeScript Support**: Best-in-class TypeScript support
   <!-- - 📡 **Network Status**: Handle network status and offline support -->
   <!-- - 🛠 **Devtools**: Integration with the Vue devtools -->
 - 💨 **Small Bundle Size**: A baseline of ~2kb and fully tree-shakeable
