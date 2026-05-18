@@ -658,6 +658,106 @@ describe('useInfiniteQuery', () => {
     })
   })
 
+  it('loadNextPage continues from the last page across multiple components sharing the same key', async () => {
+    const pinia = createPinia()
+
+    const query = vi.fn(async ({ pageParam }: { pageParam: number }) => {
+      return [pageParam * 3 + 1, pageParam * 3 + 2, pageParam * 3 + 3] as number[]
+    })
+
+    const sharedOptions = {
+      key: ['shared-key'],
+      query,
+      initialPageParam: 0,
+      getNextPageParam: (_lastPage: number[], _allPages: number[][], lastPageParam: number) =>
+        lastPageParam + 1,
+    }
+
+    let queryA!: ReturnType<typeof useInfiniteQuery>
+    let queryB!: ReturnType<typeof useInfiniteQuery>
+
+    const ComponentA = defineComponent({
+      setup() {
+        queryA = useInfiniteQuery(sharedOptions)
+      },
+      render: () => null,
+    })
+
+    const ComponentB = defineComponent({
+      setup() {
+        queryB = useInfiniteQuery(sharedOptions)
+      },
+      render: () => null,
+    })
+
+    const showComponentB = ref(false)
+
+    // Mount both in the same app so they share the same pinia/queryCache. Component B is initially hidden.
+    mount(
+      defineComponent({
+        components: { ComponentA, ComponentB },
+        render() {
+          return [h(ComponentA), showComponentB.value ? h(ComponentB) : null]
+        },
+      }),
+      { global: { plugins: [pinia, PiniaColada] } },
+    )
+
+    await flushPromises()
+
+    expect(queryA.data.value).toEqual({ pages: [[1, 2, 3]], pageParams: [0] })
+
+    // Load next page from component A.
+    await queryA.loadNextPage()
+
+    expect(queryA.data.value).toEqual({
+      pages: [
+        [1, 2, 3],
+        [4, 5, 6],
+      ],
+      pageParams: [0, 1],
+    })
+
+    // Show component B, it should have the same data without refetching since it shares the same key and query cache.
+    showComponentB.value = true
+    await nextTick()
+    query.mockClear()
+
+    expect(queryB.data.value).toEqual({
+      pages: [
+        [1, 2, 3],
+        [4, 5, 6],
+      ],
+      pageParams: [0, 1],
+    })
+
+    expect(query).toHaveBeenCalledTimes(0)
+
+    // Load next page from component B, should continue from the same pageParam and update both A and B.
+    await queryB.loadNextPage()
+
+    expect(query).toHaveBeenCalledTimes(1)
+    expect(query).toHaveBeenCalledWith(expect.objectContaining({ pageParam: 2 }))
+
+    expect(queryA.data.value).toEqual({
+      pages: [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
+      ],
+      pageParams: [0, 1, 2],
+    })
+
+    expect(queryB.data.value).toEqual({
+      pages: [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
+      ],
+      pageParams: [0, 1, 2],
+    })
+  })
+
   it('sets hasNextPage to false if getNextPageParam returns null', async () => {
     const { wrapper } = mountSimple({
       getNextPageParam: (lastPage, allPages, lastPageParam) => {

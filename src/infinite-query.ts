@@ -202,6 +202,13 @@ type UseInfiniteQueryExtensions<TPageParam> = Pick<
    * @internal
    */
   previousPageParam: ShallowRef<TPageParam | null | undefined>
+
+  /**
+   * The next page that will be loaded: 0 for all pages, 1 for next page, and -1 for previous page
+   *
+   * @internal
+   */
+  nextPageIndicator: NextPageIndicator
 }
 
 /**
@@ -236,6 +243,7 @@ function PiniaColadaInfiniteQueryPlugin(scope: EffectScope, queryCache: QueryCac
             entry.ext.hasNextPage = hasNextPage
             entry.ext.previousPageParam = previousPageParam
             entry.ext.hasPreviousPage = hasPreviousPage
+            entry.ext.nextPageIndicator = 0
           })
         }
       }
@@ -257,6 +265,7 @@ function createInfiniteQueryEntryExtensions(extensions: UseInfiniteQueryExtensio
   extensions.hasNextPage = computed(() => extensions.nextPageParam.value != null)
   extensions.previousPageParam = shallowRef<unknown | null | undefined>()
   extensions.hasPreviousPage = computed(() => extensions.previousPageParam.value != null)
+  extensions.nextPageIndicator = 0
 }
 
 /**
@@ -336,8 +345,6 @@ export function useInfiniteQuery<
   const queryCache = useQueryCache()
   // adds hasNextPage and hasPreviousPage to the entry when it's created in the cache
   PiniaColadaInfiniteQueryPlugin(queryCache._s, queryCache)
-  // we start by assuming we want to load the next page
-  let nextPage: NextPageIndicator = 0
 
   let entry:
     | UseQueryEntry<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>
@@ -371,16 +378,16 @@ export function useInfiniteQuery<
             (state.status === 'pending' ||
               // edge case: data is empty, we want to fetch normally
               !data?.pages.length) &&
-            !nextPage
+            !exts.nextPageIndicator
           ) {
-            nextPage = 1
+            exts.nextPageIndicator = 1
           }
 
-          const position = nextPage > 0 ? -1 : 0
+          const position = exts.nextPageIndicator > 0 ? -1 : 0
 
           // the status was not pending so this is a manual refetch
           if (
-            !nextPage &&
+            !exts.nextPageIndicator &&
             // NOTE: at this point data cannot be undefined but this makes TS happy
             data
           ) {
@@ -414,7 +421,7 @@ export function useInfiniteQuery<
               }
             }
           } else {
-            nextPage = 0
+            exts.nextPageIndicator = 0
 
             if (process.env.NODE_ENV !== 'production') {
               if (position === 0 && !opts.getPreviousPageParam) {
@@ -531,7 +538,7 @@ export function useInfiniteQuery<
       return entry.pending.refreshCall
     }
 
-    nextPage = page
+    ;(entry.ext as unknown as UseInfiniteQueryExtensions<TPageParam>).nextPageIndicator = page
 
     return queryCache.fetch(entry).catch(throwOnError ? undefined : noop)
   }
