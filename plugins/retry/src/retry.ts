@@ -160,6 +160,7 @@ export function PiniaColadaRetry(
               // revert to pre-fetch state so the error is only visible via retryError
               queryEntry.state.value = previousState
               const delayTime = typeof delay === 'function' ? delay(entry.retryCount) : delay
+              queryEntry.when = 0
               entry.timeoutId = setTimeout(() => {
                 if (!queryEntry.active || toValue(queryEntry.options?.enabled) === false) {
                   retryMap.delete(key)

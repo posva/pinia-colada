@@ -690,7 +690,7 @@ describe('Pinia Colada Retry Plugin', () => {
     expect(wrapper.vm.retryError).toBeNull()
   })
 
-  it.todo('refetches after a scheduled retry is abandoned by unmount', async () => {
+  it('refetches after a scheduled retry is abandoned by unmount', async () => {
     const query = vi.fn(async () => {
       throw new Error('ko')
     })
