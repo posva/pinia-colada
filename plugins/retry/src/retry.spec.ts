@@ -689,4 +689,49 @@ describe('Pinia Colada Retry Plugin', () => {
     expect(wrapper.vm.retryCount).toBe(0)
     expect(wrapper.vm.retryError).toBeNull()
   })
+
+  it.todo('refetches after a scheduled retry is abandoned by unmount', async () => {
+    const query = vi.fn(async () => {
+      throw new Error('ko')
+    })
+
+    const { wrapper, pinia } = factory({ key: ['key'], query })
+
+    // Initial fetch fails; retry plugin schedules a retry.
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(1)
+
+    // Unmount before the retry fires — the scheduled callback will
+    // bail on `!entry.active` without refetching.
+    wrapper.unmount()
+    vi.advanceTimersByTime(RETRY_OPTIONS_DEFAULTS.delay)
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(1)
+
+    // Entry is pending with no data; must read as stale so a remount's
+    // `refresh()` triggers a fetch.
+    const queryCache = useQueryCache(pinia)
+    const entry = queryCache.getEntries({ key: ['key'] })[0]!
+    expect(entry.state.value.status).toBe('pending')
+    expect(entry.state.value.data).toBeUndefined()
+    expect(entry.stale).toBe(true)
+
+    // Remount with the same key — should refetch.
+    mount(
+      defineComponent({
+        template: '<div></div>',
+        setup() {
+          return useQuery({ key: ['key'], query })
+        },
+      }),
+      {
+        global: {
+          plugins: [pinia, [PiniaColada, { plugins: [PiniaColadaRetry(RETRY_OPTIONS_DEFAULTS)] }]],
+        },
+      },
+    )
+
+    await flushPromises()
+    expect(query).toHaveBeenCalledTimes(2)
+  })
 })
