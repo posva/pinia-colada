@@ -1,3 +1,9 @@
+## [1.3.1](https://github.com/posva/pinia-colada/compare/v1.3.0...v1.3.1) (2026-05-20)
+
+### Bug Fixes
+
+- **infinite-query:** store nextPageIndicator on entry.ext instead of closure ([#590](https://github.com/posva/pinia-colada/issues/590)) ([b88fc98](https://github.com/posva/pinia-colada/commit/b88fc9861be5b4098ee7c7d6aea94eeca0e5cbd2))
+
 # [1.3.0](https://github.com/posva/pinia-colada/compare/v1.2.1...v1.3.0) (2026-05-08)
 
 ### Features

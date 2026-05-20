@@ -1,3 +1,9 @@
+## [1.0.2](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-retry@1.0.1...@pinia/colada-plugin-retry@1.0.2) (2026-05-20)
+
+### Bug Fixes
+
+- reset when if a retry is canceled ([acb8759](https://github.com/posva/pinia-colada/commit/acb87594525a00f2fc2d302a11f4c0bde0629970)), closes [#592](https://github.com/posva/pinia-colada/issues/592)
+
 ## [1.0.1](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-retry@1.0.0...@pinia/colada-plugin-retry@1.0.1) (2026-04-28)
 
 ### Bug Fixes
