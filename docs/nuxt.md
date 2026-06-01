@@ -159,7 +159,7 @@ await refresh()
 
 Without `await`, the page renders immediately (showing loading states), and data populates when ready.
 
-Another alternative is to use [Data Loaders](https://uvr.esm.is/data-loaders/colada/), which connect the data fetching lifecycle to Vue Router (and therefore Nuxt) navigation system.
+Another alternative is to use [Data Loaders](https://router.vuejs.org/data-loaders/colada/), which connect the data fetching lifecycle to Vue Router (and therefore Nuxt) navigation system.
 
 ## Migration Guide
 
