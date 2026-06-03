@@ -2,8 +2,18 @@ name: Playwright Tests
 on:
   push:
     branches: [main]
+    paths:
+      - 'src/**'
+      - 'e2e/**'
+      - 'package.json'
+      - '.github/workflows/playwright.yml'
   pull_request:
     branches: [main]
+    paths:
+      - 'src/**'
+      - 'e2e/**'
+      - 'package.json'
+      - '.github/workflows/playwright.yml'
 jobs:
   test:
     timeout-minutes: 60
