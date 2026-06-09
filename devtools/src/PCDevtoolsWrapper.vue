@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, useTemplateRef } from 'vue'
 import ClientOnly from './ClientOnly.vue'
 import PiniaColadaDevtools from './PiniaColadaDevtools.vue'
-import { useLocalStorage } from '@vueuse/core'
+import { useEventListener, useLocalStorage } from '@vueuse/core'
 import logoURL from './logo.svg?inline'
 // to inject them manually and keep the lib as a js
 import buttonStyles from './button-style.css?inline'
@@ -11,6 +11,62 @@ import { addDevtoolsInfo } from './pc-devtools-info-plugin'
 
 const isCEDefined = ref(false)
 const areDevtoolsOpen = useLocalStorage('pinia-colada-devtools-open', false)
+
+// keep this in sync with the `width`/`height` in button-style.css
+const BUTTON_SIZE = 58
+const BUTTON_MARGIN = 16
+
+function clampButtonX(x: number) {
+  const max = Math.max(BUTTON_MARGIN, window.innerWidth - BUTTON_SIZE - BUTTON_MARGIN)
+  return Math.min(Math.max(BUTTON_MARGIN, x), max)
+}
+
+const buttonRef = useTemplateRef<HTMLButtonElement>('devtools-button')
+const buttonX = useLocalStorage('pinia-colada-devtools-button-x', () =>
+  // horizontal offset from the left edge, in px. Defaults to the right side.
+  typeof window === 'undefined' ? 0 : window.innerWidth - BUTTON_SIZE - BUTTON_MARGIN,
+)
+const isDragging = ref(false)
+// becomes `true` once the pointer moves past a small threshold so a drag does
+// not trigger the click that opens the devtools
+let didDrag = false
+// drag state shared with the window listeners below
+let startPointer = 0
+let startX = 0
+let currentX = 0
+
+function onPointerDown(event: PointerEvent) {
+  // only the primary (left) button starts a drag
+  if (!buttonRef.value || event.button !== 0) return
+  startPointer = event.clientX
+  startX = currentX = buttonX.value
+  didDrag = false
+  isDragging.value = true
+}
+
+// follow the mouse while dragging
+useEventListener('pointermove', (event: PointerEvent) => {
+  if (!isDragging.value) return
+  const delta = event.clientX - startPointer
+  if (Math.abs(delta) > 4) didDrag = true
+  currentX = clampButtonX(startX + delta)
+  // write straight to the DOM during the drag: no Vue re-render, transform-only
+  buttonRef.value?.style.setProperty('--pc-x', `${currentX}px`)
+})
+
+// stop as soon as the pointer is released, cancelled, or the page blurs
+useEventListener(['pointerup', 'pointercancel', 'blur'], () => {
+  if (!isDragging.value) return
+  isDragging.value = false
+  // persist the resting position; the binding picks it back up from here
+  buttonX.value = currentX
+})
+
+// keep the button on screen when the viewport shrinks
+useEventListener('resize', () => {
+  buttonX.value = clampButtonX(buttonX.value)
+})
+
 async function ensureCEDefined() {
   if (isCEDefined.value) return
   isCEDefined.value = true
@@ -26,6 +82,11 @@ const mutationCache = useMutationCache()
 addDevtoolsInfo(queryCache, mutationCache)
 
 async function openDevtools() {
+  // ignore the click that ends a drag
+  if (didDrag) {
+    didDrag = false
+    return
+  }
   await ensureCEDefined()
   areDevtoolsOpen.value = true
 }
@@ -57,8 +118,12 @@ onMounted(() => {
     <button
       v-if="!areDevtoolsOpen"
       id="open-devtools-button"
+      ref="devtools-button"
       aria-label="Open Pinia Colada Devtools"
-      title="Open Pinia Colada Devtools"
+      title="Open Pinia Colada Devtools (drag to move)"
+      :style="{ '--pc-x': `${buttonX}px` }"
+      :data-dragging="isDragging"
+      @pointerdown="onPointerDown"
       @click="openDevtools()"
     >
       <img :src="logoURL" alt="Pinia Colada Devtools Logo" />

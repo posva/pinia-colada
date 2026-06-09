@@ -4,17 +4,24 @@
   box-sizing: border-box;
 
   font-size: 16px;
+  /* anchored to the bottom; horizontal position comes from `--pc-x` (set in JS) */
   position: fixed;
-  right: 1em;
+  left: 0;
   bottom: 1em;
+  /* allow horizontal dragging on touch without the page scrolling */
+  touch-action: pan-y;
 
   overflow: hidden;
   user-select: none;
+  -webkit-user-select: none;
 
   color-scheme: light dark;
 
   --bg-color: light-dark(rgb(225, 255, 255), rgb(0, 20, 30));
   --fg-color: light-dark(rgb(0, 20, 30), rgb(225, 255, 255));
+
+  /* idle (no hover) the button rests shrunk; it grows on hover/focus/drag */
+  --pc-scale: 0.6;
 
   padding: 5px 5px;
   border-radius: 50%;
@@ -31,10 +38,17 @@
 
   z-index: 999999;
 
+  cursor: grab;
+  /* GPU-friendly: position (--pc-x) and size (--pc-scale) are both transform, never layout */
+  transform: translateX(var(--pc-x, 0px)) scale(var(--pc-scale));
+  transform-origin: bottom center;
+  will-change: transform;
+
   transition:
     background-color 0.2s ease-in-out,
     border 0.2s ease-in-out,
-    box-shadow 0.2s ease-in-out;
+    box-shadow 0.2s ease-in-out,
+    transform 0.25s ease-in-out;
 
   &:focus {
     outline: 2px solid var(--fg-color);
@@ -42,8 +56,11 @@
   }
 
   &:hover,
-  &:focus {
-    cursor: pointer;
+  &:focus,
+  &[data-dragging='true'] {
+    cursor: grab;
+    --pc-scale: 1;
+
     border-width: 2px;
     border-color: color-mix(in srgb, var(--fg-color), black 10%);
     background-color: color-mix(in srgb, var(--bg-color), transparent 10%);
@@ -56,12 +73,18 @@
     }
   }
 
+  &[data-dragging='true'] {
+    cursor: grabbing;
+    /* follow the pointer with zero lag — no transition delay while dragging */
+    transition: none;
+  }
+
   & > img {
     width: 100%;
     height: 100%;
     pointer-events: none;
 
-    transition: transform 0.2s ease-in-out;
+    transition: transform 0.25s ease-in-out;
 
     transform: scale(1.85) translateY(20%);
   }
