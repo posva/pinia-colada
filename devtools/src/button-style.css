@@ -77,6 +77,13 @@
     cursor: grabbing;
     /* follow the pointer with zero lag — no transition delay while dragging */
     transition: none;
+
+    /* the icon leans into the drag, driven by `--pc-tilt` (set from pointer speed) */
+    & > img {
+      transform: scale(3.5) translateY(20%) translateX(-5%) rotateZ(var(--pc-tilt, 0deg));
+      /* snappier than the resting transition so it tracks the movement naturally */
+      transition: transform 0.15s ease-out;
+    }
   }
 
   & > img {

@@ -34,11 +34,20 @@ let didDrag = false
 let startPointer = 0
 let startX = 0
 let currentX = 0
+// how much the inner icon leans into the movement, and how fast it relaxes back
+const TILT_FACTOR = 0.5
+const MAX_TILT = 20
+let lastPointer = 0
+let tiltRelaxTimer: ReturnType<typeof setTimeout> | undefined
+
+function setTilt(deg: number) {
+  buttonRef.value?.style.setProperty('--pc-tilt', `${deg}deg`)
+}
 
 function onPointerDown(event: PointerEvent) {
   // only the primary (left) button starts a drag
   if (!buttonRef.value || event.button !== 0) return
-  startPointer = event.clientX
+  startPointer = lastPointer = event.clientX
   startX = currentX = buttonX.value
   didDrag = false
   isDragging.value = true
@@ -52,12 +61,22 @@ useEventListener('pointermove', (event: PointerEvent) => {
   currentX = clampButtonX(startX + delta)
   // write straight to the DOM during the drag: no Vue re-render, transform-only
   buttonRef.value?.style.setProperty('--pc-x', `${currentX}px`)
+
+  // lean the icon into the movement, scaled by the pointer speed (px since last move)
+  const speed = event.clientX - lastPointer
+  lastPointer = event.clientX
+  setTilt(Math.max(-MAX_TILT, Math.min(MAX_TILT, speed * TILT_FACTOR)))
+  // relax back to neutral once the pointer goes still; CSS eases the return
+  clearTimeout(tiltRelaxTimer)
+  tiltRelaxTimer = setTimeout(() => setTilt(0), 80)
 })
 
 // stop as soon as the pointer is released, cancelled, or the page blurs
 useEventListener(['pointerup', 'pointercancel', 'blur'], () => {
   if (!isDragging.value) return
   isDragging.value = false
+  clearTimeout(tiltRelaxTimer)
+  setTilt(0)
   // persist the resting position; the binding picks it back up from here
   buttonX.value = currentX
 })
