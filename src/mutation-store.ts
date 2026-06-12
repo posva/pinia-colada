@@ -12,9 +12,10 @@ import type { App, EffectScope, ShallowRef } from 'vue'
 import { find } from './entry-keys'
 import type { EntryFilter } from './entry-filter'
 import type { _EmptyObject } from './utils'
-import { noop, toValueWithArgs, warnOnce } from './utils'
+import { noop, toValueWithArgs } from './utils'
 import type { _ReduceContext } from './use-mutation'
 import { useMutationOptions } from './mutation-options'
+import { diagnostics } from './diagnostics'
 import type {
   UseMutationContextCommon,
   UseMutationOptions,
@@ -22,6 +23,9 @@ import type {
 } from './mutation-options'
 import type { EntryKey } from './entry-keys'
 import type { MutationMeta } from './types-extension'
+
+// dev-only guard so the missing injection context diagnostic is reported once (matches the previous `warnOnce` behavior)
+let warnedNoInjectionContext = false
 
 /**
  * Allows defining extensions to the mutation entry that are returned by `useMutation()`.
@@ -137,9 +141,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
           set:
             process.env.NODE_ENV !== 'production'
               ? () => {
-                  console.error(
-                    `[@pinia/colada]: The mutation cache instance cannot be set directly, it must be modified. This will fail in production.`,
-                  )
+                  diagnostics.PC_R0007({}, { method: 'error' })
                 }
               : noop,
         },
@@ -150,11 +152,9 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
   const scope = getCurrentScope()!
 
   if (process.env.NODE_ENV !== 'production') {
-    if (!hasInjectionContext()) {
-      warnOnce(
-        `useMutationCache() was called outside of an injection context (component setup, store, navigation guard) You will get a warning about "inject" being used incorrectly from Vue. Make sure to use it only in allowed places.\n` +
-          `See https://vuejs.org/guide/reusability/composables.html#usage-restrictions`,
-      )
+    if (!hasInjectionContext() && !warnedNoInjectionContext) {
+      warnedNoInjectionContext = true
+      diagnostics.PC_R0006()
     }
   }
 
@@ -398,18 +398,14 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
       const key = entry.key?.join('/')
       const keyMessage = key ? `with key "${key}"` : 'without a key'
       if (entry.id === 0) {
-        console.error(
-          `[@pinia/colada] A mutation entry ${keyMessage} was mutated before being ensured. If you are manually calling the "mutationCache.mutate()", you should always ensure the entry first If not, this is probably a bug. Please, open an issue on GitHub with a boiled down reproduction.`,
-        )
+        diagnostics.PC_R0008({ keyMessage }, { method: 'error' })
       }
       if (
         // the entry has already an ongoing request
         entry.state.value.status !== 'pending' ||
         entry.asyncStatus.value === 'loading'
       ) {
-        console.error(
-          `[@pinia/colada] A mutation entry ${keyMessage} was reused. If you are manually calling the "mutationCache.mutate()", you should always ensure the entry first: "mutationCache.mutate(mutationCache.ensure(entry, vars))". If not this is probably a bug. Please, open an issue on GitHub with a boiled down reproduction.`,
-        )
+        diagnostics.PC_R0009({ keyMessage }, { method: 'error' })
       }
     }
 

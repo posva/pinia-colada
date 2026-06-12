@@ -274,6 +274,24 @@ On top of that Pinia Colada is highly extensible. You can create your own plugin
           ],
         },
         {
+          text: 'Diagnostics',
+          link: '/errors/',
+          items: [
+            { text: 'PC_R0001', link: '/errors/pc_r0001.html' },
+            { text: 'PC_R0002', link: '/errors/pc_r0002.html' },
+            { text: 'PC_R0003', link: '/errors/pc_r0003.html' },
+            { text: 'PC_R0004', link: '/errors/pc_r0004.html' },
+            { text: 'PC_R0005', link: '/errors/pc_r0005.html' },
+            { text: 'PC_R0006', link: '/errors/pc_r0006.html' },
+            { text: 'PC_R0007', link: '/errors/pc_r0007.html' },
+            { text: 'PC_R0008', link: '/errors/pc_r0008.html' },
+            { text: 'PC_R0009', link: '/errors/pc_r0009.html' },
+            { text: 'PC_R0010', link: '/errors/pc_r0010.html' },
+            { text: 'PC_R0011', link: '/errors/pc_r0011.html' },
+            { text: 'PC_R0012', link: '/errors/pc_r0012.html' },
+          ],
+        },
+        {
           text: 'Cookbook',
           link: '/cookbook/',
           items: [

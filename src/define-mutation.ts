@@ -5,6 +5,7 @@ import { useMutation } from './use-mutation'
 import type { UseMutationReturn } from './use-mutation'
 import type { UseMutationOptions } from './mutation-options'
 import type { _EmptyObject } from './utils'
+import { diagnostics } from './diagnostics'
 
 /**
  * Define a mutation with the given options. Similar to `useMutation(options)` but allows you to reuse the mutation in
@@ -74,9 +75,7 @@ export function defineMutation(
         }
       })
     } else if (process.env.NODE_ENV !== 'production') {
-      console.warn(
-        `[@pinia/colada]: defineMutation() composable was called outside of a component or effect scope. The mutation effects will never be cleaned up, which may cause memory leaks. Make sure to call it inside a component setup, an effect scope, or a store.`,
-      )
+      diagnostics.PC_R0005()
     }
 
     return ret
