@@ -18,7 +18,8 @@ import type { UseQueryOptions, UseQueryOptionsWithDefaults } from './query-optio
 import type { EntryFilter } from './entry-filter'
 import { find, START_EXT, toCacheKey } from './entry-keys'
 import type { ErrorDefault, QueryMeta } from './types-extension'
-import { toValueWithArgs, warnOnce } from './utils'
+import { toValueWithArgs } from './utils'
+import { diagnostics } from './diagnostics'
 
 /**
  * Allows defining extensions to the query entry that are returned by `useQuery()`.
@@ -231,6 +232,8 @@ type DefineQueryEntry = [
   paused: ShallowRef<boolean>,
 ]
 
+let _warnedQueryCacheOutsideContext = false
+
 /**
  * Composable to get the cache of the queries. As any other composable, it can
  * be used inside the `setup` function of a component, within another
@@ -247,9 +250,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       () => caches.value !== cachesRaw,
       (isDifferent) => {
         if (isDifferent) {
-          console.error(
-            `[@pinia/colada] The query cache cannot be directly set, it must be modified only. This will fail on production`,
-          )
+          diagnostics.PC_R0002({}, { method: 'error' })
         }
       },
     )
@@ -264,11 +265,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     getActivePinia()!._a
 
   if (process.env.NODE_ENV !== 'production') {
-    if (!hasInjectionContext()) {
-      warnOnce(
-        `useQueryCache() was called outside of an injection context (component setup, store, navigation guard) You will get a warning about "inject" being used incorrectly from Vue. Make sure to use it only in allowed places.\n` +
-          `See https://vuejs.org/guide/reusability/composables.html#usage-restrictions`,
-      )
+    if (!hasInjectionContext() && !_warnedQueryCacheOutsideContext) {
+      _warnedQueryCacheOutsideContext = true
+      diagnostics.PC_R0001({})
     }
   }
 
@@ -517,9 +516,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       const keyHash = toCacheKey(key)
 
       if (process.env.NODE_ENV !== 'production' && keyHash === '[]') {
-        throw new Error(
-          `useQuery() was called with an empty array as the key. It must have at least one element.`,
-        )
+        throw diagnostics.PC_R0003({})
       }
 
       // do not reinitialize the entry
@@ -648,9 +645,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       options = entry.options,
     ): Promise<DataState<TData, TError, TDataInitial>> => {
       if (process.env.NODE_ENV !== 'production' && !options) {
-        throw new Error(
-          `"entry.refresh()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`,
-        )
+        throw diagnostics.PC_R0004({})
       }
 
       if (entry.state.value.error || entry.stale) {
@@ -673,9 +668,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       options = entry.options,
     ): Promise<DataState<TData, TError, TDataInitial>> => {
       if (process.env.NODE_ENV !== 'production' && !options) {
-        throw new Error(
-          `"entry.fetch()" was called but the entry has no options. This is probably a bug, report it to pinia-colada with a boiled down example to reproduce it. Thank you!`,
-        )
+        throw diagnostics.PC_R0005({})
       }
 
       entry.asyncStatus.value = 'loading'

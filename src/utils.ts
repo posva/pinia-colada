@@ -185,23 +185,6 @@ export const setReactiveValue = Object.assign as <T>(value: T, ...args: T[]) => 
 export interface _EmptyObject {}
 
 /**
- * Dev only warning that is only shown once.
- */
-const warnedMessages = new Set<string>()
-
-/**
- * Warns only once. This should only be used in dev
- *
- * @param message - Message to show
- * @param id - Unique id for the message, defaults to the message
- */
-export function warnOnce(message: string, id: string = message) {
-  if (warnedMessages.has(id)) return
-  warnedMessages.add(id)
-  console.warn(`[@pinia/colada]: ${message}`)
-}
-
-/**
  * @internal
  */
 export type _IsMaybeRefOrGetter<T> = [T] extends [MaybeRefOrGetter<infer U>]

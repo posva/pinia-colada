@@ -5,6 +5,7 @@ import type { UseQueryReturn } from './use-query'
 import type { ErrorDefault } from './types-extension'
 import { useQueryCache, type QueryCache, type UseQueryEntry } from './query-store'
 import { noop, toValueWithArgs } from './utils'
+import { diagnostics } from './diagnostics'
 import type { _RemoveMaybeRef } from './utils'
 import type { EntryKey, EntryKeyTagged } from './entry-keys'
 
@@ -425,10 +426,7 @@ export function useInfiniteQuery<
 
             if (process.env.NODE_ENV !== 'production') {
               if (position === 0 && !opts.getPreviousPageParam) {
-                const msg =
-                  '[useInfiniteQuery] Trying to load previous page but `getPreviousPageParam` is not defined in options. This will fail in production.'
-                console.warn(msg)
-                throw new Error(msg)
+                throw diagnostics.PC_R0011({})
               }
             }
 
@@ -528,7 +526,7 @@ export function useInfiniteQuery<
     const entry = queryCache.get(toValue(opts.key))
     if (!entry) {
       if (process.env.NODE_ENV !== 'production') {
-        console.warn('[useInfiniteQuery] Cannot load next page: query entry not found in cache.')
+        diagnostics.PC_R0012({})
       }
       return null
     }

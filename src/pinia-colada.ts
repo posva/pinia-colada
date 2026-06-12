@@ -1,5 +1,6 @@
 import type { App, Plugin } from 'vue'
 import type { Pinia } from 'pinia'
+import { diagnostics } from './diagnostics'
 import type { UseQueryOptionsGlobal } from './query-options'
 import { USE_QUERY_DEFAULTS, USE_QUERY_OPTIONS_KEY } from './query-options'
 import { useQueryCache } from './query-store'
@@ -62,9 +63,7 @@ export const PiniaColada: Plugin<[options?: PiniaColadaOptions]> = (
   })
 
   if (process.env.NODE_ENV !== 'production' && !pinia) {
-    throw new Error(
-      '[@pinia/colada] root pinia plugin not detected. Make sure you install pinia before installing the "PiniaColada" plugin or to manually pass the pinia instance.',
-    )
+    throw diagnostics.PC_C0001({})
   }
 
   // install plugins
