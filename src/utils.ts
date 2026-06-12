@@ -184,21 +184,18 @@ export const setReactiveValue = Object.assign as <T>(value: T, ...args: T[]) => 
  */
 export interface _EmptyObject {}
 
-/**
- * Dev only warning that is only shown once.
- */
-const warnedMessages = new Set<string>()
+const reportedMessages = new Set<string>()
 
 /**
- * Warns only once. This should only be used in dev
+ * Reports only once. This should only be used in dev.
  *
- * @param message - Message to show
- * @param id - Unique id for the message, defaults to the message
+ * @param id - Unique id for the diagnostic
+ * @param report - Diagnostic report to run
  */
-export function warnOnce(message: string, id: string = message) {
-  if (warnedMessages.has(id)) return
-  warnedMessages.add(id)
-  console.warn(`[@pinia/colada]: ${message}`)
+export function reportOnce(id: string, report: () => void) {
+  if (reportedMessages.has(id)) return
+  reportedMessages.add(id)
+  report()
 }
 
 /**

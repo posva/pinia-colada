@@ -5,6 +5,7 @@ import { useDuplexChannel, useQueryEntries } from '../../composables/duplex-chan
 import { formatDuration } from '../../utils/time'
 import { useRoute } from 'vue-router'
 import type { DataStateStatus } from '@pinia/colada'
+import { diagnostics, formatDiagnosticValue } from '../../../diagnostics'
 
 import IWrench from '~icons/lucide/wrench'
 import IInfoCircle from '~icons/lucide/info'
@@ -79,7 +80,7 @@ watch(
 // Helper function to set nested value
 function setNestedValue(obj: any, path: Array<string | number>, value: unknown): boolean {
   if (path.length === 0) {
-    console.error('Cannot set value with empty path')
+    diagnostics.PCD_R0009({}, { method: 'error' })
     return false
   }
 
@@ -87,7 +88,10 @@ function setNestedValue(obj: any, path: Array<string | number>, value: unknown):
   // Navigate to parent of target value
   for (let i = 0; i < path.length - 1; i++) {
     if (current == null || typeof current !== 'object') {
-      console.error('Invalid path:', path, 'at index', i, 'Current value:', current)
+      diagnostics.PCD_R0010(
+        { path: formatDiagnosticValue(path), index: i, value: formatDiagnosticValue(current) },
+        { method: 'error' },
+      )
       return false
     }
     current = current[path[i]!]
@@ -95,7 +99,7 @@ function setNestedValue(obj: any, path: Array<string | number>, value: unknown):
 
   // Validate the final parent exists
   if (current == null || typeof current !== 'object') {
-    console.error('Invalid final parent in path:', path)
+    diagnostics.PCD_R0011({ path: formatDiagnosticValue(path) }, { method: 'error' })
     return false
   }
 
@@ -112,7 +116,7 @@ const handleValueUpdate = (path: Array<string | number>, value: unknown) => {
   const success = setNestedValue(selectedQuery.value.state.data, path, value)
 
   if (!success) {
-    console.error('Failed to update value at path:', path)
+    diagnostics.PCD_R0012({ path: formatDiagnosticValue(path) }, { method: 'error' })
     return
   }
 

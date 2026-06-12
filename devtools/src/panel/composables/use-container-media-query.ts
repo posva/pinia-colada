@@ -1,6 +1,7 @@
 import type { MaybeRefOrGetter } from 'vue'
 import { computed, onScopeDispose, shallowRef, toValue, watchEffect } from 'vue'
 import { useEventListener, useSupported } from '@vueuse/core'
+import { diagnostics } from '../../diagnostics'
 
 // copied from match-container and adapted to shadow DOM
 // import 'match-container'
@@ -60,7 +61,7 @@ class ContainerQueryList extends EventTarget {
 
     const rootNode = element.getRootNode()
     if (!(rootNode instanceof ShadowRoot) && !(rootNode instanceof Document)) {
-      console.error(`root node of element isn't a ShadowRoot or Document`, rootNode)
+      diagnostics.PCD_R0016({ cause: rootNode }, { method: 'error' })
       throw new TypeError('Root node must be a ShadowRoot or Document')
     }
 

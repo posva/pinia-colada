@@ -9,6 +9,7 @@ import type { UseMutationEntryPayload } from '../mutation-serialized'
 import { toRaw } from 'vue'
 import { restoreClonedDeep, safeSerialize } from './custom-values'
 import { isPlainObject } from '../json'
+import { diagnostics, formatDiagnosticValue } from '../../diagnostics'
 
 export { isNonSerializableValue } from './custom-values'
 export type { NonSerializableValue } from './custom-values'
@@ -43,7 +44,10 @@ export class DuplexChannel<
 
   private onMessage(event: MessageEvent) {
     if (!event.data || typeof event.data !== 'object' || typeof event.data.id !== 'string') {
-      console.error(`${this.constructor.name}: invalid message`, event.data)
+      diagnostics.PCD_R0007(
+        { channel: this.constructor.name, data: formatDiagnosticValue(event.data) },
+        { method: 'error' },
+      )
       return
     }
     const listeners = this.listenersByEvent.get(event.data.id)
@@ -56,7 +60,7 @@ export class DuplexChannel<
   }
 
   private onMessageError(event: MessageEvent) {
-    console.error(`${this.constructor.name}: message error`, event)
+    diagnostics.PCD_R0008({ channel: this.constructor.name, cause: event }, { method: 'error' })
   }
 
   stop() {

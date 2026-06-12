@@ -54,6 +54,9 @@
     "build:panel": "vite build --config vite.config.panel.ts",
     "build": "pnpm run --stream '/^build:/'"
   },
+  "dependencies": {
+    "nostics": "^0.4.0"
+  },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.104",
     "@pinia/colada": "workspace:^*",

@@ -6,6 +6,7 @@ import type { AppEmits, DevtoolsEmits } from '@pinia/colada-devtools/shared'
 import { createQueryEntryPayload, createMutationEntryPayload } from './pc-devtools-info-plugin'
 // use dependency free simple useEventListener because this component is used directly in the app
 import { useEventListener } from './use-event-listener'
+import { diagnostics } from './diagnostics'
 
 const emit = defineEmits<{
   close: []
@@ -260,14 +261,12 @@ transmitter.on('mutations:replay', (id) => {
   const entry = mutationCache.get(id)
 
   if (!entry) {
-    console.warn('[@pinia/colada] Cannot replay: mutation entry not found')
+    diagnostics.PCD_R0001()
     return
   }
 
   if (entry.gcTimeout) {
-    console.warn(
-      "[@pinia/colada] Cannot replay: mutation is in the process of being garbage collected. It isn't used anywhere and replaying it will have no effect.",
-    )
+    diagnostics.PCD_R0002()
     return
   }
 
@@ -310,13 +309,13 @@ function closePiPWindow() {
 function openPiPWindow() {
   const devtools = devtoolsEl.value
   if (!devtools || !devtools.shadowRoot) {
-    throw new Error('No devtools elemnt found for Pinia Colada devtools')
+    throw diagnostics.PCD_R0003({ target: 'devtools element' })
   }
 
   const devtoolsRootEl = devtools.shadowRoot.getElementById('root')
 
   if (!devtoolsRootEl) {
-    throw new Error('No devtools root element found for Pinia Colada devtools')
+    throw diagnostics.PCD_R0003({ target: 'devtools root element' })
   }
 
   const windowWidth = Math.max(devtoolsRootEl.offsetWidth, 400)
@@ -330,7 +329,7 @@ function openPiPWindow() {
   )
 
   if (!pip) {
-    throw new Error('Failed to open PiP window for Pinia Colada devtools')
+    throw diagnostics.PCD_R0004()
   }
 
   pipWindow.value = pip
@@ -361,7 +360,7 @@ function openPiPWindow() {
 
 function attachCssPropertyRules(el: HTMLElement, doc: Document = document) {
   if (!el || !el.shadowRoot) {
-    throw new Error('No devtools element found for Pinia Colada devtools')
+    throw diagnostics.PCD_R0003({ target: 'devtools element' })
   }
 
   const style = doc.getElementById('__pc-tw-properties') ?? doc.createElement('style')
@@ -388,7 +387,7 @@ let tries = 0
 async function devtoolsOnReady() {
   if (!devtoolsEl.value) {
     if (++tries > 100) {
-      throw new Error('Failed to find devtools element for Pinia Colada devtools')
+      throw diagnostics.PCD_R0005()
     }
     setTimeout(() => {
       devtoolsOnReady()

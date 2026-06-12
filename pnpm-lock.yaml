@@ -123,6 +123,10 @@ importers:
         version: 3.5.33(typescript@6.0.3)
 
   devtools:
+    dependencies:
+      nostics:
+        specifier: ^0.4.0
+        version: 0.4.0
     devDependencies:
       '@iconify-json/lucide':
         specifier: ^1.2.104

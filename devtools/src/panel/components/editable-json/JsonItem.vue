@@ -9,6 +9,7 @@ import {
   isNonSerializableValue,
 } from '@pinia/colada-devtools/shared'
 import UButton from '../UButton.ce.vue'
+import { diagnostics } from '../../../diagnostics'
 import ILucideChevronRight from '~icons/lucide/chevron-right'
 import ILucidePencil from '~icons/lucide/pencil'
 import ILucideSquare from '~icons/lucide/square'
@@ -124,7 +125,7 @@ function saveEdit() {
       }
     } catch (error) {
       // TODO: display a warning and stay in edit mode
-      console.error('Invalid JSON:', error)
+      diagnostics.PCD_R0013({ cause: error }, { method: 'error' })
       // cancelEdit()
       return
     }
@@ -134,7 +135,7 @@ function saveEdit() {
         try {
           newValue = BigInt(editValue.value)
         } catch (error) {
-          console.error('Invalid BigInt:', error)
+          diagnostics.PCD_R0014({ cause: error }, { method: 'error' })
           // TODO: display a warning
           return
         }
@@ -142,7 +143,7 @@ function saveEdit() {
       case 'number':
         newValue = Number(editValue.value)
         if (Number.isNaN(newValue)) {
-          console.error('Invalid number')
+          diagnostics.PCD_R0015({}, { method: 'error' })
           // TODO: display a warning
           return
         }
