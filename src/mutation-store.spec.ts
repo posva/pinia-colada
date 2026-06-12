@@ -114,7 +114,7 @@ describe('Mutation Cache store', () => {
     it('errors if the user tries to directly set tha cache', () => {
       const mutationCache = useMutationCache()
       mutationCache.caches = {} as any
-      expect('mutation cache instance cannot be set directly').toHaveBeenErroredTimes(1)
+      expect('The mutation cache cannot be directly set').toHaveBeenErroredTimes(1)
     })
 
     it('errors when mutating an entry that was not ensured', () => {

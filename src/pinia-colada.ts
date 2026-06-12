@@ -6,6 +6,7 @@ import { useQueryCache } from './query-store'
 import type { PiniaColadaPlugin } from './plugins'
 import { USE_MUTATION_DEFAULTS, USE_MUTATION_OPTIONS_KEY } from './mutation-options'
 import type { UseMutationOptionsGlobal } from './mutation-options'
+import { diagnostics } from './diagnostics'
 
 /**
  * Options for the Pinia Colada plugin.
@@ -62,9 +63,7 @@ export const PiniaColada: Plugin<[options?: PiniaColadaOptions]> = (
   })
 
   if (process.env.NODE_ENV !== 'production' && !pinia) {
-    throw new Error(
-      '[@pinia/colada] root pinia plugin not detected. Make sure you install pinia before installing the "PiniaColada" plugin or to manually pass the pinia instance.',
-    )
+    throw diagnostics.PC_C0001()
   }
 
   // install plugins
