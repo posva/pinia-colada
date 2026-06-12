@@ -77,8 +77,19 @@ Report-only calls must stay bare expression statements (`DEV && diagnostics.LIB_
 
 Dropping diagnostics from production builds takes two pieces: `/*#__PURE__*/` annotations on the catalog (`defineDiagnostics(...)` and each reporter factory call inside it) so an unused catalog tree-shakes away, and a `DEV` guard on every report-only call site. Both can be written manually in source, or the `nosticsStrip` build plugin adds them at build time (`import { nosticsStrip } from 'nostics/unplugin/strip-transform'`, then the matching unplugin adapter: `nosticsStrip.rolldown()`, `.vite()`, `.rollup()`, ...). Decide from context: when every report-only site is already dev-guarded, manual annotations in the catalog file are enough and avoid a build transform; reach for the plugin when call sites are unguarded and stripping is wanted. Either way the behavior rule holds: if the library deliberately reports unguarded in production, do not silence it with a guard or the plugin; ask the maintainer.
 
+## Documentation pages (optional)
+
+Only when the repo already has a documentation site (a `docs/` folder with VitePress, Docusaurus, or similar): create one page per code and make `docsBase` resolve to them. No docs site → skip pages entirely; just propose a `docsBase` URL scheme and surface it to the maintainer.
+
+- Derive the directory and URL shape from the existing site, not from preference: pages live where `docsBase` resolves (`docsBase` → `https://example.com/errors/<code>` means `docs/errors/<code>.md`), and the URL must match the site's link style (clean URLs vs `.html`) so every reported `see:` link actually lands.
+- One file per code, lowercase (`docs/errors/lib_r0001.md`), plus an `index.md` listing all codes grouped by area with one-line summaries. Register the section in the site's sidebar/nav.
+- Fixed page template: title `CODE: short summary`; level line (warn/error, dev-only or also production); **What happened**; **How to fix it** with a short wrong/right code example; **Common causes**; **Example output** showing the exact formatter output including the `see:` link.
+- Write for the user who just hit the message: name the user-code mistake and the next action. A page that only restates `why` is not worth a click — pull in context the one-line message could not carry (recovery behavior, related options, links to relevant guides).
+- Document only user-facing codes. Internal assertions and companion tooling (devtools panels, debug plugins) do not get public error pages.
+
 ## Verify
 
 - Tests for warnings, throws, guards, and error shapes still pass; tests asserting exact message text are updated consciously, not accidentally.
 - Dev-only gates are still present everywhere the source had them, and no new gates were added.
 - Report-only diagnostics remain strippable expression statements. Thrown/returned diagnostics keep their message text in production by design: they are behavior, not reports.
+- If doc pages were created, the docs site builds and the sidebar/index links resolve.
