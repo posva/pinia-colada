@@ -8,7 +8,7 @@ import { createConsoleReporter, defineDiagnostics } from 'nostics'
  * Categories: `R` runtime, `C` config, `B` build, `D` deprecation.
  */
 export const diagnostics = /*#__PURE__*/ defineDiagnostics({
-  docsBase: (code) => `https://pinia-colada.esm.dev/errors/${code.toLowerCase()}.html`,
+  docsBase: (code) => `https://pinia-colada.esm.dev/errors/${code.toLowerCase()}.md`,
   reporters: [/*#__PURE__*/ createConsoleReporter()],
   codes: {
     PC_C0001: {
