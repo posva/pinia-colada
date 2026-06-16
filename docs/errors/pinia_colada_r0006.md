@@ -1,4 +1,4 @@
-# PC_R0006: mutation entry reused
+# PINIA_COLADA_R0006: mutation entry reused
 
 - Level: error (logged, dev only)
 

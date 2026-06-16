@@ -75,7 +75,7 @@ export function defineMutation(
         }
       })
     } else if (process.env.NODE_ENV !== 'production') {
-      diagnostics.PC_R0007()
+      diagnostics.PINIA_COLADA_R0007()
     }
 
     return ret

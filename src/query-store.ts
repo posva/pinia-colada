@@ -248,7 +248,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       () => caches.value !== cachesRaw,
       (isDifferent) => {
         if (isDifferent) {
-          diagnostics.PC_R0002({ cache: 'query' }, { method: 'error' })
+          diagnostics.PINIA_COLADA_R0002({ cache: 'query' }, { method: 'error' })
         }
       },
     )
@@ -264,7 +264,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
 
   if (process.env.NODE_ENV !== 'production') {
     if (!hasInjectionContext() && shouldWarnOnce('useQueryCache-injection-context')) {
-      diagnostics.PC_R0001({ composable: 'useQueryCache' })
+      diagnostics.PINIA_COLADA_R0001({ composable: 'useQueryCache' })
     }
   }
 
@@ -513,7 +513,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       const keyHash = toCacheKey(key)
 
       if (process.env.NODE_ENV !== 'production' && keyHash === '[]') {
-        throw diagnostics.PC_R0003()
+        throw diagnostics.PINIA_COLADA_R0003()
       }
 
       // do not reinitialize the entry
@@ -642,7 +642,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       options = entry.options,
     ): Promise<DataState<TData, TError, TDataInitial>> => {
       if (process.env.NODE_ENV !== 'production' && !options) {
-        throw diagnostics.PC_R0004({ method: 'refresh' })
+        throw diagnostics.PINIA_COLADA_R0004({ method: 'refresh' })
       }
 
       if (entry.state.value.error || entry.stale) {
@@ -665,7 +665,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       options = entry.options,
     ): Promise<DataState<TData, TError, TDataInitial>> => {
       if (process.env.NODE_ENV !== 'production' && !options) {
-        throw diagnostics.PC_R0004({ method: 'fetch' })
+        throw diagnostics.PINIA_COLADA_R0004({ method: 'fetch' })
       }
 
       entry.asyncStatus.value = 'loading'

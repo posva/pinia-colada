@@ -427,7 +427,7 @@ export function useInfiniteQuery<
             if (process.env.NODE_ENV !== 'production') {
               if (position === 0 && !opts.getPreviousPageParam) {
                 // calling the diagnostic reports it (console.warn) before throwing
-                throw diagnostics.PC_R0008()
+                throw diagnostics.PINIA_COLADA_R0008()
               }
             }
 
@@ -527,7 +527,7 @@ export function useInfiniteQuery<
     const entry = queryCache.get(toValue(opts.key))
     if (!entry) {
       if (process.env.NODE_ENV !== 'production') {
-        diagnostics.PC_R0009({ direction: page === -1 ? 'previous' : 'next' })
+        diagnostics.PINIA_COLADA_R0009({ direction: page === -1 ? 'previous' : 'next' })
       }
       return null
     }

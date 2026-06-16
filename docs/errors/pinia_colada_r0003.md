@@ -1,4 +1,4 @@
-# PC_R0003: useQuery() was called with an empty key
+# PINIA_COLADA_R0003: useQuery() was called with an empty key
 
 - Level: error (thrown, dev only)
 

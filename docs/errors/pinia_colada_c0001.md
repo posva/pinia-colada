@@ -1,4 +1,4 @@
-# PC_C0001: root pinia plugin not detected
+# PINIA_COLADA_C0001: root pinia plugin not detected
 
 - Level: error (thrown, dev only)
 
@@ -36,7 +36,7 @@ const queryCache = useQueryCache(pinia)
 
 ## In a Nuxt plugin
 
-A Nuxt plugin commonly registers callbacks (hooks, watchers, navigation guards) that run later. Composables that rely on injection — including `useQueryCache()` — must be called synchronously in the plugin's main context, exactly like any other composable, and the resolved instance used inside the callback. Calling them lazily from within the callback loses the injection context (and may pick up the wrong Pinia), triggering [PC_R0001](./pc_r0001.md).
+A Nuxt plugin commonly registers callbacks (hooks, watchers, navigation guards) that run later. Composables that rely on injection — including `useQueryCache()` — must be called synchronously in the plugin's main context, exactly like any other composable, and the resolved instance used inside the callback. Calling them lazily from within the callback loses the injection context (and may pick up the wrong Pinia), triggering [PINIA_COLADA_R0001](./pinia_colada_r0001.md).
 
 ```ts
 // plugins/refresh-on-auth.ts
@@ -62,7 +62,7 @@ export default defineNuxtPlugin(() => {
   watch(
     () => auth.user,
     () => {
-      // ❌ no injection context here → PC_R0001, and the wrong Pinia may be used
+      // ❌ no injection context here → PINIA_COLADA_R0001, and the wrong Pinia may be used
       const queryCache = useQueryCache()
       queryCache.invalidateQueries({ key: ['todos'] })
     },

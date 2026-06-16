@@ -1,4 +1,4 @@
-# PC_R0004: entry has no options
+# PINIA_COLADA_R0004: entry has no options
 
 - Level: error (thrown, dev only)
 

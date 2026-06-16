@@ -1,4 +1,4 @@
-# PC_R0007: defineMutation() called outside of a component or effect scope
+# PINIA_COLADA_R0007: defineMutation() called outside of a component or effect scope
 
 - Level: warning (dev only)
 

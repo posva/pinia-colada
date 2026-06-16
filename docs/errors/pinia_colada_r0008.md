@@ -1,4 +1,4 @@
-# PC_R0008: missing getPreviousPageParam
+# PINIA_COLADA_R0008: missing getPreviousPageParam
 
 - Level: error (thrown, dev only)
 

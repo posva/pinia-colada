@@ -1,4 +1,4 @@
-# PC_R0002: the cache cannot be directly set
+# PINIA_COLADA_R0002: the cache cannot be directly set
 
 - Level: error (logged, dev only)
 

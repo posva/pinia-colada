@@ -138,7 +138,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
           set:
             process.env.NODE_ENV !== 'production'
               ? () => {
-                  diagnostics.PC_R0002({ cache: 'mutation' }, { method: 'error' })
+                  diagnostics.PINIA_COLADA_R0002({ cache: 'mutation' }, { method: 'error' })
                 }
               : noop,
         },
@@ -150,7 +150,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
 
   if (process.env.NODE_ENV !== 'production') {
     if (!hasInjectionContext() && shouldWarnOnce('useMutationCache-injection-context')) {
-      diagnostics.PC_R0001({ composable: 'useMutationCache' })
+      diagnostics.PINIA_COLADA_R0001({ composable: 'useMutationCache' })
     }
   }
 
@@ -393,14 +393,14 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     if (process.env.NODE_ENV !== 'production') {
       const key = entry.key?.join('/')
       if (entry.id === 0) {
-        diagnostics.PC_R0005({ key }, { method: 'error' })
+        diagnostics.PINIA_COLADA_R0005({ key }, { method: 'error' })
       }
       if (
         // the entry has already an ongoing request
         entry.state.value.status !== 'pending' ||
         entry.asyncStatus.value === 'loading'
       ) {
-        diagnostics.PC_R0006({ key }, { method: 'error' })
+        diagnostics.PINIA_COLADA_R0006({ key }, { method: 'error' })
       }
     }
 

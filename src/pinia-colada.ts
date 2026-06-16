@@ -63,7 +63,7 @@ export const PiniaColada: Plugin<[options?: PiniaColadaOptions]> = (
   })
 
   if (process.env.NODE_ENV !== 'production' && !pinia) {
-    throw diagnostics.PC_C0001()
+    throw diagnostics.PINIA_COLADA_C0001()
   }
 
   // install plugins

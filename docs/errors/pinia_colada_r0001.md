@@ -1,4 +1,4 @@
-# PC_R0001: cache composable called outside of an injection context
+# PINIA_COLADA_R0001: cache composable called outside of an injection context
 
 - Level: warning (dev only, reported once)
 
