@@ -6,6 +6,7 @@ import Vue from '@vitejs/plugin-vue'
 import VueRouter from 'vue-router/vite'
 import VueDevTools from 'vite-plugin-vue-devtools'
 import TailwindCSS from '@tailwindcss/vite'
+import { nosticsCollector } from '@nostics/unplugin/dev-server-collector'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -25,6 +26,7 @@ export default defineConfig({
     }),
     VueDevTools(),
     TailwindCSS(),
+    nosticsCollector.vite({ debug: true }),
   ],
   resolve: {
     alias: {
