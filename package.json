@@ -105,7 +105,7 @@
     "vue": "^3.5.33"
   },
   "dependencies": {
-    "nostics": "^0.5.0"
+    "nostics": "^1.1.4"
   },
   "peerDependencies": {
     "pinia": "^2.2.6 || ^3.0.0",

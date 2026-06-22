@@ -13,8 +13,8 @@ importers:
   .:
     dependencies:
       nostics:
-        specifier: ^0.5.0
-        version: 0.5.0
+        specifier: ^1.1.4
+        version: 1.1.4
     devDependencies:
       '@ast-grep/cli':
         specifier: ^0.42.1
@@ -259,8 +259,8 @@ importers:
         version: 2.1.1
     devDependencies:
       '@nostics/unplugin':
-        specifier: ^1.0.0
-        version: 1.0.0(nostics@0.5.0)
+        specifier: ^1.1.0
+        version: 1.1.0(nostics@1.1.4)
       '@pinia/colada-devtools':
         specifier: workspace:^
         version: link:../devtools
@@ -1504,10 +1504,10 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@nostics/unplugin@1.0.0':
-    resolution: {integrity: sha512-UB2mfIm9uMDUIMBjWqwusHjcn11wo5scMHLMzcbDdWbO8K1Vh/WD1UmywLqd3nAk0ShbUbzuyim5IkslU11alg==}
+  '@nostics/unplugin@1.1.0':
+    resolution: {integrity: sha512-wxSqKHvA6oVemZnL2QcS5E6VHcR9Dhabm4UKk0EDyxvPpaOx4Hkye5Pc9Kr+D+IQkocsMWEU94NWWm52g0irCg==}
     peerDependencies:
-      nostics: ^1.0.0
+      nostics: ^1.1.0
 
   '@nuxt/cli@3.34.0':
     resolution: {integrity: sha512-KVI4xSo96UtUUbmxr9ouWTytbj1LzTw5alsM4vC/gSY/l8kPMRAlq0XpNSAVTDJyALzLY70WhaIMX24LJLpdFw==}
@@ -5979,8 +5979,8 @@ packages:
     resolution: {integrity: sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==}
     engines: {node: '>=0.10.0'}
 
-  nostics@0.5.0:
-    resolution: {integrity: sha512-FHWQm0hZ33n0MbyPVeE3wfYywdrFDc6gZhar4oTBF7Z5IQomsuQKhdtPC0NgjC9+w8WXw8LELeQUZYgKyCnFtA==}
+  nostics@1.1.4:
+    resolution: {integrity: sha512-U4FApICSLCQ0dYiN59pxUCEZC053palQXi57yLaNdMaL6TBY4C4q3qZrJKUGcor2dGv8EhEwt8y5KvU2bo2kFg==}
 
   npm-normalize-package-bin@6.0.0:
     resolution: {integrity: sha512-tdt4aFn9QamlhdN3HV2D2ccpBwO5/fyjjbXUxYA6uBjyekMZcZvDq0aSj9t5Jo+tih6AYFnt/cuIRn9013e0Uw==}
@@ -8873,10 +8873,10 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.19.1
 
-  '@nostics/unplugin@1.0.0(nostics@0.5.0)':
+  '@nostics/unplugin@1.1.0(nostics@1.1.4)':
     dependencies:
       magic-string: 0.30.21
-      nostics: 0.5.0
+      nostics: 1.1.4
       oxc-parser: 0.135.0
       unplugin: 3.0.0
 
@@ -13399,7 +13399,7 @@ snapshots:
 
   normalize-path@3.0.0: {}
 
-  nostics@0.5.0: {}
+  nostics@1.1.4: {}
 
   npm-normalize-package-bin@6.0.0: {}
 
