@@ -12,9 +12,8 @@ export const diagnostics = /*#__PURE__*/ defineDiagnostics({
   docsBase: (code) => `https://pinia-colada.esm.dev/errors/${code.toLowerCase()}.md`,
   reporters: [
     /*#__PURE__*/ createConsoleReporter(),
-    // The dev reporter forwards diagnostics to the Vite dev server (collected by
-    // `nosticsCollector`). It is dev-only so it tree-shakes out of production builds.
-    ...(process.env.NODE_ENV !== 'production' ? [/*#__PURE__*/ createDevReporter()] : []),
+    // Forward diagnostics to the Vite dev server during dev
+    ...(process.env.NODE_ENV === 'development' ? [/*#__PURE__*/ createDevReporter()] : []),
   ],
   codes: {
     PINIA_COLADA_C0001: {
