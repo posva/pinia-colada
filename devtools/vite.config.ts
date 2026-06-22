@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import Vue from '@vitejs/plugin-vue'
 import VueDevtools from 'vite-plugin-vue-devtools'
-import Dts from 'vite-plugin-dts'
+import Dts from 'unplugin-dts/vite'
 import VueRouter from 'vue-router/vite'
 import TailwindCSS from '@tailwindcss/vite'
 import IconsResolver from 'unplugin-icons/resolver'
@@ -119,7 +119,9 @@ export default defineConfig({
         }),
       ],
     }),
-    Dts({ rollupTypes: true }),
+    Dts({
+      bundleTypes: true,
+    }),
     TailwindCSS(),
   ],
 })

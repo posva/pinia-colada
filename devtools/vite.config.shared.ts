@@ -2,7 +2,7 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import Vue from '@vitejs/plugin-vue'
-import Dts from 'vite-plugin-dts'
+import Dts from 'unplugin-dts/vite'
 
 import baseConfig from './vite.config'
 
@@ -44,6 +44,8 @@ export default defineConfig({
         },
       },
     }),
-    Dts({ rollupTypes: true }),
+    Dts({
+      bundleTypes: true,
+    }),
   ],
 })
