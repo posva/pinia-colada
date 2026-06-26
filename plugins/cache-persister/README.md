@@ -27,6 +27,8 @@ app.use(PiniaColada, {
       key: 'pinia-colada-cache', // Storage key
       storage: localStorage, // Storage backend
       debounce: 1000, // Persist delay in ms
+      serialize: JSON.stringify, // Convert cache to a string
+      deserialize: JSON.parse, // Restore cache from a string
     }),
   ],
 })
@@ -51,12 +53,31 @@ useQuery({
 
 ## Options
 
-| Option     | Type                            | Default                | Description                     |
-| ---------- | ------------------------------- | ---------------------- | ------------------------------- |
-| `key`      | `string`                        | `'pinia-colada-cache'` | Storage key                     |
-| `storage`  | `Storage \| PiniaColadaStorage` | `localStorage`         | Storage backend (sync or async) |
-| `filter`   | `UseQueryEntryFilter`           | -                      | Filter which queries to persist |
-| `debounce` | `number`                        | `1000`                 | Debounce time in ms             |
+| Option        | Type                            | Default                | Description                        |
+| ------------- | ------------------------------- | ---------------------- | ---------------------------------- |
+| `key`         | `string`                        | `'pinia-colada-cache'` | Storage key                        |
+| `storage`     | `Storage \| PiniaColadaStorage` | `localStorage`         | Storage backend (sync or async)    |
+| `filter`      | `UseQueryEntryFilter`           | -                      | Filter which queries to persist    |
+| `debounce`    | `number`                        | `1000`                 | Debounce time in ms                |
+| `serialize`   | `(cache) => string`             | `JSON.stringify`       | Serializes the cache for storage   |
+| `deserialize` | `(stored) => cache`             | `JSON.parse`           | Deserializes the cache from string |
+
+## Custom Serialization
+
+By default, the plugin uses `JSON.stringify` and `JSON.parse`. If your query data contains values that JSON cannot restore, such as `Date` instances, pass your app's serializer instead:
+
+```ts
+PiniaColadaCachePersister({
+  serialize: (cache) => mySerializer.stringify(cache),
+  deserialize: (stored) => mySerializer.parse(stored),
+})
+```
+
+The callbacks receive the whole persisted cache object, not individual query results.
+`PersistedQueryCache` is part of the plugin's public serializer contract and follows
+Pinia Colada's semver guarantees. Custom codecs may need updates on major version changes.
+
+If serialization, deserialization, or storage fails, the plugin ignores the error and continues with an empty or stale cache.
 
 ## Filtering Queries
 
