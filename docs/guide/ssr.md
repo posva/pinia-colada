@@ -8,7 +8,7 @@ You can check the [source code of the Nuxt module](https://github.com/posva/pini
 
 ## Serialization
 
-If you use [devalue](https://github.com/Rich-Harris/devalue), you can follow their documentation [for custom types](https://github.com/Rich-Harris/devalue#custom-types). It should look something like this:
+If you use [devalue](https://github.com/sveltejs/devalue), you can follow their documentation [for custom types](https://github.com/sveltejs/devalue#custom-types). It should look something like this:
 
 ```ts
 import devalue from 'devalue'

@@ -2,6 +2,7 @@ import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent } from 'vue'
 import { createPinia } from 'pinia'
+import { parse, stringify } from 'devalue'
 import { PiniaColada, useQuery, useQueryCache } from '@pinia/colada'
 import type { UseQueryOptions } from '@pinia/colada'
 import { PiniaColadaCachePersister, resetCacheReady, isCacheReady } from './cache-persister'
@@ -206,6 +207,20 @@ describe('PiniaColadaCachePersister', () => {
       expect(vi.mocked(storage.setItem).mock.calls.length).toBeGreaterThanOrEqual(2)
     })
 
+    it('persists the cache through a custom stringify', async () => {
+      const storage = createMockStorage()
+      const stringify = vi.fn(() => 'custom-serialized')
+
+      factory({ key: ['test'], query: async () => 'data' }, { storage, debounce: 0, stringify })
+
+      await flushPromises()
+      vi.advanceTimersByTime(0)
+      await flushPromises()
+
+      expect(stringify).toHaveBeenCalledTimes(1)
+      expect(storage.setItem).toHaveBeenCalledWith('pinia-colada-cache', 'custom-serialized')
+    })
+
     it('persists on setQueryData', async () => {
       const storage = createMockStorage()
       const query = vi.fn(async () => 'initial')
@@ -290,6 +305,53 @@ describe('PiniaColadaCachePersister', () => {
 
       await flushPromises()
       expect(query).toHaveBeenCalled()
+    })
+
+    it('restores non-JSON values through a custom parse', async () => {
+      const storage = createMockStorage()
+      storage.data['pinia-colada-cache'] = 'custom-serialized'
+      const date = new Date('2026-06-26T12:00:00.000Z')
+      const parse = vi.fn(
+        (): Record<string, [Date, null, number, Record<string, never>]> => ({
+          '["date"]': [date, null, 0, {}],
+        }),
+      )
+
+      factory({ key: ['date'], query: async () => 'fresh', staleTime: 60_000 }, { storage, parse })
+
+      await flushPromises()
+
+      expect(parse).toHaveBeenCalledWith('custom-serialized')
+      const restored = useQueryCache().getQueryData(['date'])
+      expect(restored).toBeInstanceOf(Date)
+      expect((restored as Date).getTime()).toBe(date.getTime())
+    })
+
+    it('round-trips Date values end to end with devalue', async () => {
+      // mirrors the `{ stringify, parse }` devalue example from the docs
+      const storage = createMockStorage()
+      const date = new Date('2026-06-26T12:00:00.000Z')
+
+      // persist a query whose data holds a Date that JSON cannot restore
+      const { wrapper } = factory(
+        { key: ['event'], query: async () => ({ at: date }) },
+        { storage, debounce: 0, stringify, parse },
+      )
+      await flushPromises()
+      vi.advanceTimersByTime(0)
+      await flushPromises()
+      wrapper.unmount()
+
+      // restore into a fresh app from the same storage
+      factory(
+        { key: ['event'], query: async () => ({ at: new Date(0) }), staleTime: 60_000 },
+        { storage, stringify, parse },
+      )
+      await flushPromises()
+
+      const restored = useQueryCache().getQueryData(['event']) as { at: Date }
+      expect(restored.at).toBeInstanceOf(Date)
+      expect(restored.at.getTime()).toBe(date.getTime())
     })
 
     it('resolves isCacheReady when no storage is provided (SSR)', async () => {

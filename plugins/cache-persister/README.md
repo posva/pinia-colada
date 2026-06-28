@@ -27,6 +27,8 @@ app.use(PiniaColada, {
       key: 'pinia-colada-cache', // Storage key
       storage: localStorage, // Storage backend
       debounce: 1000, // Persist delay in ms
+      stringify: JSON.stringify, // Convert cache to a string
+      parse: JSON.parse, // Restore cache from a string
     }),
   ],
 })
@@ -51,12 +53,29 @@ useQuery({
 
 ## Options
 
-| Option     | Type                            | Default                | Description                     |
-| ---------- | ------------------------------- | ---------------------- | ------------------------------- |
-| `key`      | `string`                        | `'pinia-colada-cache'` | Storage key                     |
-| `storage`  | `Storage \| PiniaColadaStorage` | `localStorage`         | Storage backend (sync or async) |
-| `filter`   | `UseQueryEntryFilter`           | -                      | Filter which queries to persist |
-| `debounce` | `number`                        | `1000`                 | Debounce time in ms             |
+| Option      | Type                            | Default                | Description                     |
+| ----------- | ------------------------------- | ---------------------- | ------------------------------- |
+| `key`       | `string`                        | `'pinia-colada-cache'` | Storage key                     |
+| `storage`   | `Storage \| PiniaColadaStorage` | `localStorage`         | Storage backend (sync or async) |
+| `filter`    | `UseQueryEntryFilter`           | -                      | Filter which queries to persist |
+| `debounce`  | `number`                        | `1000`                 | Debounce time in ms             |
+| `stringify` | `(cache) => string`             | `JSON.stringify`       | Stringify the cache for storage |
+| `parse`     | `(stored) => cache`             | `JSON.parse`           | Parse the cache from storage    |
+
+## Custom Serialization
+
+By default the plugin uses `JSON.stringify`/`JSON.parse`. To persist values JSON cannot restore (`Date`, `Map`, custom classes…), pass a codec like [devalue](https://github.com/sveltejs/devalue):
+
+```ts
+import { parse, stringify } from 'devalue'
+
+PiniaColadaCachePersister({
+  stringify,
+  parse,
+})
+```
+
+Persistence is best-effort: if serializing or restoring the cache throws, the plugin skips that write or read instead of crashing.
 
 ## Filtering Queries
 
