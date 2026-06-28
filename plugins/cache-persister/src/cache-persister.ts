@@ -15,8 +15,8 @@ import { hydrateQueryCache, _queryEntry_toJSON } from '@pinia/colada'
 type MaybePromise<T> = T | Promise<T>
 
 /**
- * Public persisted query cache shape passed to custom serializers.
- * Changes to this shape follow Pinia Colada's semver guarantees.
+ * Plain object the query cache is reduced to before being persisted. This is what custom
+ * {@link CachePersisterOptions.stringify} and {@link CachePersisterOptions.parse} receive.
  */
 export type PersistedQueryCache = Record<string, _UseQueryEntryNodeValueSerialized>
 
@@ -77,16 +77,18 @@ export interface CachePersisterOptions {
   debounce?: number
 
   /**
-   * Serializes the query cache before storing it.
+   * Stringifies the query cache before storing it. Defaults to `JSON.stringify`. Pass a codec like
+   * [devalue](https://github.com/sveltejs/devalue) to preserve `Date`, `Map`, custom classes, etc.
    * @default JSON.stringify
    */
-  serialize?: (cache: PersistedQueryCache) => string
+  stringify?: (cache: PersistedQueryCache) => string
 
   /**
-   * Deserializes the stored query cache before hydrating it.
+   * Parses the stored query cache before hydrating it. Must be the counterpart of
+   * {@link CachePersisterOptions.stringify}.
    * @default JSON.parse
    */
-  deserialize?: (stored: string) => PersistedQueryCache
+  parse?: (stored: string) => PersistedQueryCache
 }
 
 const DEFAULT_OPTIONS = {
@@ -141,8 +143,8 @@ export function PiniaColadaCachePersister(
     storage = typeof localStorage !== 'undefined' ? localStorage : undefined,
     filter,
     debounce = DEFAULT_OPTIONS.debounce,
-    serialize = JSON.stringify,
-    deserialize = JSON.parse,
+    stringify = JSON.stringify,
+    parse = JSON.parse,
   } = options
 
   return ({ queryCache }) => {
@@ -175,14 +177,12 @@ export function PiniaColadaCachePersister(
 
       throttleTimeout = setTimeout(() => {
         try {
-          const serialized = serializeCache()
-          const stored = serialize(serialized)
           // Handle both sync and async storage errors
-          Promise.resolve(storage.setItem(key, stored)).catch(() => {
+          Promise.resolve(storage.setItem(key, stringify(serializeCache()))).catch(() => {
             // Ignore storage errors (quota exceeded, etc.)
           })
         } catch {
-          // Ignore serialization and sync storage errors
+          // Ignore serialization errors, the cache is best-effort
         }
 
         throttleTimeout = undefined
@@ -205,8 +205,7 @@ export function PiniaColadaCachePersister(
         // avoid one extra await if storage is sync
         const stored = storedPromise instanceof Promise ? await storedPromise : storedPromise
         if (stored) {
-          const parsed = deserialize(stored)
-          hydrateQueryCache(queryCache, parsed)
+          hydrateQueryCache(queryCache, parse(stored))
         }
       } catch {
         // Ignore parse errors, start fresh

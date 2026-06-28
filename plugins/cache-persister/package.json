@@ -53,6 +53,7 @@
     "@pinia/colada": "workspace:>="
   },
   "devDependencies": {
-    "@pinia/colada": "workspace:^"
+    "@pinia/colada": "workspace:^",
+    "devalue": "^5.6.4"
   }
 }

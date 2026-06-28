@@ -56,20 +56,29 @@ PiniaColadaCachePersister({
 
 ## Custom Serialization
 
-The plugin uses `JSON.stringify` and `JSON.parse` by default. Provide custom `serialize` and `deserialize` functions when your query data contains values that need an app-specific codec, such as `Date` instances:
+The plugin stores the cache with `JSON.stringify` and restores it with `JSON.parse`. JSON cannot represent values like `Date`, `Map`, or `Set`, so they come back as plain strings or objects after a reload. The `stringify` and `parse` options swap in a codec that preserves them, like [devalue](https://github.com/sveltejs/devalue), which you can pass as-is:
 
 ```ts
+import { parse, stringify } from 'devalue'
+
 PiniaColadaCachePersister({
-  serialize: (cache) => mySerializer.stringify(cache),
-  deserialize: (stored) => mySerializer.parse(stored),
+  stringify,
+  parse,
 })
 ```
 
-These functions operate on the whole persisted cache object before it is written to storage and after it is read back.
-`PersistedQueryCache` is part of the plugin's public serializer contract and follows
-Pinia Colada's semver guarantees. Custom codecs may need updates on major version changes.
+`devalue` handles `Date`, `Map`, `Set`, and friends out of the box. For your own classes, register a reducer and the matching reviver:
 
-If serialization, deserialization, or storage fails, the plugin ignores the error and continues with an empty or stale cache.
+```ts
+import * as devalue from 'devalue'
+
+PiniaColadaCachePersister({
+  stringify: (cache) => devalue.stringify(cache, { Money: (v) => v instanceof Money && [v.amount, v.currency] }),
+  parse: (stored) => devalue.parse(stored, { Money: ([amount, currency]) => new Money(amount, currency) }),
+})
+```
+
+Persistence is best-effort: if serializing or restoring the cache throws, the plugin skips that write or read and continues with a stale or empty cache instead of crashing.
 
 ## Custom Storage
 
@@ -113,5 +122,5 @@ main()
 | `storage`     | `Storage \| PiniaColadaStorage` | `localStorage`         | Storage backend (sync or async)                        |
 | `filter`      | `UseQueryEntryFilter`           | -                      | Filter which queries to persist                        |
 | `debounce`    | `number`                        | `1000`                 | Debounce time in ms before persisting                  |
-| `serialize`   | `(cache) => string`             | `JSON.stringify`       | Convert the persisted cache object to a string         |
-| `deserialize` | `(stored) => cache`             | `JSON.parse`           | Restore the persisted cache object from a string       |
+| `stringify`   | `(cache) => string`             | `JSON.stringify`       | Convert the persisted cache object to a string         |
+| `parse`       | `(stored) => cache`             | `JSON.parse`           | Restore the persisted cache object from a string       |
