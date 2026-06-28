@@ -70,11 +70,11 @@ PiniaColadaCachePersister({
 `devalue` handles `Date`, `Map`, `Set`, and friends out of the box. For your own classes, register a reducer and the matching reviver:
 
 ```ts
-import * as devalue from 'devalue'
+import { parse, stringify } from 'devalue'
 
 PiniaColadaCachePersister({
-  stringify: (cache) => devalue.stringify(cache, { Money: (v) => v instanceof Money && [v.amount, v.currency] }),
-  parse: (stored) => devalue.parse(stored, { Money: ([amount, currency]) => new Money(amount, currency) }),
+  stringify: (cache) => stringify(cache, { Money: (v) => v instanceof Money && [v.amount, v.currency] }),
+  parse: (stored) => parse(stored, { Money: ([amount, currency]) => new Money(amount, currency) }),
 })
 ```
 
