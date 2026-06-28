@@ -53,14 +53,16 @@ useQuery({
 
 ## Options
 
-| Option      | Type                            | Default                | Description                     |
-| ----------- | ------------------------------- | ---------------------- | ------------------------------- |
-| `key`       | `string`                        | `'pinia-colada-cache'` | Storage key                     |
-| `storage`   | `Storage \| PiniaColadaStorage` | `localStorage`         | Storage backend (sync or async) |
-| `filter`    | `UseQueryEntryFilter`           | -                      | Filter which queries to persist |
-| `debounce`  | `number`                        | `1000`                 | Debounce time in ms             |
-| `stringify` | `(cache) => string`             | `JSON.stringify`       | Stringify the cache for storage |
-| `parse`     | `(stored) => cache`             | `JSON.parse`           | Parse the cache from storage    |
+| Option             | Type                            | Default                | Description                     |
+| ------------------ | ------------------------------- | ---------------------- | ------------------------------- |
+| `key`              | `string`                        | `'pinia-colada-cache'` | Storage key                     |
+| `storage`          | `Storage \| PiniaColadaStorage` | `localStorage`         | Storage backend (sync or async) |
+| `filter`           | `UseQueryEntryFilter`           | -                      | Filter which queries to persist |
+| `debounce`         | `number`                        | `1000`                 | Debounce time in ms             |
+| `stringify`        | `(cache) => string`             | `JSON.stringify`       | Stringify the cache for storage |
+| `parse`            | `(stored) => cache`             | `JSON.parse`           | Parse the cache from storage    |
+| `onStringifyError` | `(error) => void`               | `console.error` (dev)  | Called when `stringify` throws  |
+| `onParseError`     | `(error) => void`               | `console.error` (dev)  | Called when `parse` throws      |
 
 ## Custom Serialization
 
@@ -75,7 +77,7 @@ PiniaColadaCachePersister({
 })
 ```
 
-Persistence is best-effort: if serializing or restoring the cache throws, the plugin skips that write or read instead of crashing.
+Persistence is best-effort: if serializing or restoring the cache throws, the plugin skips that write or read instead of crashing. Pass `onStringifyError`/`onParseError` to observe those failures.
 
 ## Filtering Queries
 
@@ -111,6 +113,24 @@ PiniaColadaCachePersister({
   },
 })
 ```
+
+## Handling Errors
+
+Two errors can happen and are recoverable:
+
+- `onStringifyError` — `JSON.stringify` failed while persisting, e.g. on non-serializable data. The cache is not persisted this time.
+- `onParseError` — `JSON.parse` failed while restoring, e.g. on corrupt data. The cache starts fresh and is overwritten on the next successful persist.
+
+A handler you pass is always called, in development and production. With no handler, the error is logged with `console.error` in development only. Pass a handler to report them yourself:
+
+```ts
+PiniaColadaCachePersister({
+  onStringifyError: (error) => reportToErrorTracker(error),
+  onParseError: (error) => reportToErrorTracker(error),
+})
+```
+
+Storage write errors (e.g. `QuotaExceededError`) are always ignored.
 
 ## License
 
