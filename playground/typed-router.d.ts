@@ -20,8 +20,9 @@ import type {
 
 declare module 'vue-router' {
   interface TypesConfig {
-    ParamParsers:
-      | never
+    _ParamParsers: {}
+    RouteNamedMap: import('vue-router/auto-routes').RouteNamedMap
+    _RouteFileInfoMap: import('vue-router/auto-routes')._RouteFileInfoMap
   }
 }
 
@@ -216,11 +217,15 @@ declare module 'vue-router/auto-routes' {
         | '/(home)'
       views:
         | never
+      pathParamNames:
+        | never
     }
     'src/pages/bug-reports/(bug-reports).vue': {
       routes:
         | '/bug-reports/(bug-reports)'
       views:
+        | never
+      pathParamNames:
         | never
     }
     'src/pages/bug-reports/issue-154.vue': {
@@ -228,11 +233,15 @@ declare module 'vue-router/auto-routes' {
         | '/bug-reports/issue-154'
       views:
         | never
+      pathParamNames:
+        | never
     }
     'src/pages/bug-reports/issue-155.vue': {
       routes:
         | '/bug-reports/issue-155'
       views:
+        | never
+      pathParamNames:
         | never
     }
     'src/pages/bug-reports/issue-174.vue': {
@@ -241,17 +250,23 @@ declare module 'vue-router/auto-routes' {
         | '/bug-reports/issue-174/[slug]'
       views:
         | 'default'
+      pathParamNames:
+        | never
     }
     'src/pages/bug-reports/issue-174/[slug].vue': {
       routes:
         | '/bug-reports/issue-174/[slug]'
       views:
         | never
+      pathParamNames:
+        | 'slug'
     }
     'src/pages/bug-reports/issue-267.vue': {
       routes:
         | '/bug-reports/issue-267'
       views:
+        | never
+      pathParamNames:
         | never
     }
     'src/pages/bug-reports/issue-290.vue': {
@@ -259,11 +274,15 @@ declare module 'vue-router/auto-routes' {
         | '/bug-reports/issue-290'
       views:
         | never
+      pathParamNames:
+        | never
     }
     'src/pages/bug-reports/issue-436.vue': {
       routes:
         | '/bug-reports/issue-436'
       views:
+        | never
+      pathParamNames:
         | never
     }
     'src/pages/bug-reports/issue-460.vue': {
@@ -271,11 +290,15 @@ declare module 'vue-router/auto-routes' {
         | '/bug-reports/issue-460'
       views:
         | never
+      pathParamNames:
+        | never
     }
     'src/pages/cat-facts.vue': {
       routes:
         | '/cat-facts'
       views:
+        | never
+      pathParamNames:
         | never
     }
     'src/pages/contacts.vue': {
@@ -284,17 +307,23 @@ declare module 'vue-router/auto-routes' {
         | '/contacts/[id]'
       views:
         | 'default'
+      pathParamNames:
+        | never
     }
     'src/pages/contacts/[id].vue': {
       routes:
         | '/contacts/[id]'
       views:
         | never
+      pathParamNames:
+        | 'id'
     }
     'src/pages/ecom/index.vue': {
       routes:
         | '/ecom/'
       views:
+        | never
+      pathParamNames:
         | never
     }
     'src/pages/ecom/item/[id].vue': {
@@ -302,11 +331,15 @@ declare module 'vue-router/auto-routes' {
         | '/ecom/item/[id]'
       views:
         | never
+      pathParamNames:
+        | 'id'
     }
     'src/pages/hmr-tests/(hmr-tests).vue': {
       routes:
         | '/hmr-tests/(hmr-tests)'
       views:
+        | never
+      pathParamNames:
         | never
     }
     'src/pages/hmr-tests/defined-query.vue': {
@@ -314,11 +347,15 @@ declare module 'vue-router/auto-routes' {
         | '/hmr-tests/defined-query'
       views:
         | never
+      pathParamNames:
+        | never
     }
     'src/pages/hmr-tests/local-use-query.vue': {
       routes:
         | '/hmr-tests/local-use-query'
       views:
+        | never
+      pathParamNames:
         | never
     }
     'src/pages/suspense/contacts.vue': {
@@ -327,17 +364,23 @@ declare module 'vue-router/auto-routes' {
         | '/suspense/contacts/[id]'
       views:
         | 'default'
+      pathParamNames:
+        | never
     }
     'src/pages/suspense/contacts/[id].vue': {
       routes:
         | '/suspense/contacts/[id]'
       views:
         | never
+      pathParamNames:
+        | 'id'
     }
     'src/pages/warnings/(warnings).vue': {
       routes:
         | '/warnings/(warnings)'
       views:
+        | never
+      pathParamNames:
         | never
     }
     'src/pages/warnings/duped-[contactId].vue': {
@@ -345,18 +388,24 @@ declare module 'vue-router/auto-routes' {
         | '/warnings/duped-[contactId]'
       views:
         | never
+      pathParamNames:
+        | 'contactId'
     }
     'src/pages/warnings/usage-one-[contactId].vue': {
       routes:
         | '/warnings/usage-one-[contactId]'
       views:
         | never
+      pathParamNames:
+        | 'contactId'
     }
     'src/pages/warnings/usage-two-[contactId].vue': {
       routes:
         | '/warnings/usage-two-[contactId]'
       views:
         | never
+      pathParamNames:
+        | 'contactId'
     }
   }
 

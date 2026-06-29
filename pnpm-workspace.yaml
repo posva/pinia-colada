@@ -13,7 +13,7 @@ allowBuilds:
   '@tailwindcss/oxide': true
 overrides:
   twoslash-vue: 0.3.7
-  vue-router: ^5.0.4
+  vue-router: ^5.1.0
 ignoreWorkspaceRootCheck: true
 shamefullyHoist: true
 strictPeerDependencies: false

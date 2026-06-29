@@ -20,8 +20,9 @@ import type {
 
 declare module 'vue-router' {
   interface TypesConfig {
-    ParamParsers:
-      | never
+    _ParamParsers: {}
+    RouteNamedMap: import('vue-router/auto-routes').RouteNamedMap
+    _RouteFileInfoMap: import('vue-router/auto-routes')._RouteFileInfoMap
   }
 }
 
@@ -106,6 +107,8 @@ declare module 'vue-router/auto-routes' {
         | '/'
       views:
         | never
+      pathParamNames:
+        | never
     }
     'src/panel/pages/mutations.vue': {
       routes:
@@ -114,11 +117,15 @@ declare module 'vue-router/auto-routes' {
         | '/mutations/[mutationId=int]'
       views:
         | 'default'
+      pathParamNames:
+        | never
     }
     'src/panel/pages/mutations/(unselected).vue': {
       routes:
         | '/mutations/(unselected)'
       views:
+        | never
+      pathParamNames:
         | never
     }
     'src/panel/pages/mutations/[mutationId=int].vue': {
@@ -126,6 +133,8 @@ declare module 'vue-router/auto-routes' {
         | '/mutations/[mutationId=int]'
       views:
         | never
+      pathParamNames:
+        | 'mutationId'
     }
     'src/panel/pages/queries.vue': {
       routes:
@@ -134,11 +143,15 @@ declare module 'vue-router/auto-routes' {
         | '/queries/[queryId]'
       views:
         | 'default'
+      pathParamNames:
+        | never
     }
     'src/panel/pages/queries/(unselected).vue': {
       routes:
         | '/queries/(unselected)'
       views:
+        | never
+      pathParamNames:
         | never
     }
     'src/panel/pages/queries/[queryId].vue': {
@@ -146,11 +159,15 @@ declare module 'vue-router/auto-routes' {
         | '/queries/[queryId]'
       views:
         | never
+      pathParamNames:
+        | 'queryId'
     }
     'src/panel/pages/settings.vue': {
       routes:
         | '/settings'
       views:
+        | never
+      pathParamNames:
         | never
     }
   }
