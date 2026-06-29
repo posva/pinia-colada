@@ -60,12 +60,8 @@ export default defineConfig({
       external: [
         'vue',
         '@pinia/colada',
-        'vue-router',
-        'pinia',
         '@pinia/colada-devtools/shared',
         '@pinia/colada-devtools/panel',
-        // TODO: check if needed
-        '@pinia/colada-devtools/panel/index.css',
       ],
     },
   },
