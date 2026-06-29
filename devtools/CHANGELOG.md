@@ -1,3 +1,15 @@
+# [1.1.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@1.0.0...@pinia/colada-devtools@1.1.0) (2026-06-29)
+
+### Bug Fixes
+
+- prod removal of devtools ([60dc8fa](https://github.com/posva/pinia-colada/commit/60dc8fab371a647e4206d258ea31c7b2fcb47428))
+
+### Features
+
+- drag button devtools ([6580b69](https://github.com/posva/pinia-colada/commit/6580b6906c4e78c91d0e0c4d38d7e0bd6f71092c)), closes [#598](https://github.com/posva/pinia-colada/issues/598)
+- subtle rotation animation in devtools button ([06d1058](https://github.com/posva/pinia-colada/commit/06d1058c371c92e35390e9bc56c1c7ccf662b945))
+- upgrade types ([efc8d5f](https://github.com/posva/pinia-colada/commit/efc8d5fbab9a42aedaf0d397a3ec516431ea5ed5))
+
 # [1.0.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@0.4.5...@pinia/colada-devtools@1.0.0) (2026-04-20)
 
 No code changes in this release.
