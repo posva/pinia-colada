@@ -1,6 +1,6 @@
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { defineConfig } from 'vite'
+import { defineConfig, normalizePath } from 'vite'
 import Vue from '@vitejs/plugin-vue'
 import VueDevtools from 'vite-plugin-vue-devtools'
 import Dts from 'unplugin-dts/vite'
@@ -104,7 +104,11 @@ export default defineConfig({
           if (UiComponentRe.test(componentName)) {
             return {
               name: `default`,
-              from: resolve(__dirname, `./src/panel/components/${componentName}.ce.vue`),
+              // normalizePath: on Windows resolve() yields backslash paths that
+              // Vite's import-analysis can't resolve as an import specifier.
+              from: normalizePath(
+                resolve(__dirname, `./src/panel/components/${componentName}.ce.vue`),
+              ),
             }
           }
         },
