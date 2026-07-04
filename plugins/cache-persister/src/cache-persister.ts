@@ -91,22 +91,22 @@ export interface CachePersisterOptions {
   parse?: (stored: string) => PersistedQueryCache
 
   /**
-   * Called when serializing the cache with {@link CachePersisterOptions.stringify} throws, e.g. on
-   * non-serializable data. In development, defaults to `console.error`.
+   * Called when persisting the cache fails, either because serializing it with
+   * {@link CachePersisterOptions.stringify} throws (e.g. non-serializable data) or because the
+   * storage write fails (e.g. quota exceeded). In development, defaults to `console.error`.
+   * The handler must not throw: errors it throws are only caught and logged in development,
+   * in production they break cache persistence.
    */
   onStringifyError?: (error: unknown) => void
 
   /**
    * Called when parsing the stored cache with {@link CachePersisterOptions.parse} throws, e.g. on
    * corrupt data. In development, defaults to `console.error`.
+   * The handler must not throw: errors it throws are only caught and logged in development,
+   * in production they prevent {@link isCacheReady} from resolving.
    */
   onParseError?: (error: unknown) => void
 }
-
-const DEFAULT_OPTIONS = {
-  key: 'pinia-colada-cache',
-  debounce: 1000,
-} as const satisfies CachePersisterOptions
 
 // Module-level state for cache ready promise
 let readyResolve: () => void
@@ -151,10 +151,10 @@ export function PiniaColadaCachePersister(
   options: CachePersisterOptions = {},
 ): (context: PiniaColadaPluginContext) => void {
   const {
-    key = DEFAULT_OPTIONS.key,
+    key = 'pinia-colada-cache',
     storage = typeof localStorage !== 'undefined' ? localStorage : undefined,
     filter,
-    debounce = DEFAULT_OPTIONS.debounce,
+    debounce = 1000,
     stringify = JSON.stringify,
     parse = JSON.parse,
     onStringifyError,
@@ -162,93 +162,112 @@ export function PiniaColadaCachePersister(
   } = options
 
   return ({ queryCache }) => {
+    // nothing to restore or persist without a storage (e.g. SSR)
+    if (!storage) {
+      readyResolve()
+      return
+    }
+
     let throttleTimeout: ReturnType<typeof setTimeout> | undefined
     let pendingPersist = false
 
-    // Serialize filtered entries (excluding error entries)
-    function serializeCache(): PersistedQueryCache {
-      return Object.fromEntries(
-        // TODO: 2028: directly use .map on the iterator
-        queryCache
-          .getEntries({
-            ...filter,
-            // we only care about entries with data
-            status: 'success',
-          })
-          .map((entry) => [entry.keyHash, _queryEntry_toJSON(entry)]),
-      )
+    async function persist(): Promise<void> {
+      try {
+        // serialize or storage write may throw (non-serializable data, quota exceeded, …)
+        await storage!.setItem(
+          key,
+          stringify(
+            Object.fromEntries(
+              queryCache
+                // we only care about entries with data
+                .getEntries({ ...filter, status: 'success' })
+                .map((entry) => [entry.keyHash, _queryEntry_toJSON(entry)]),
+            ),
+          ),
+        )
+      } catch (error) {
+        if (onStringifyError) {
+          if (process.env.NODE_ENV !== 'production') {
+            // in production the handler error is not caught and breaks the throttle,
+            // stopping any further persistence, so surface it loudly in dev
+            try {
+              onStringifyError(error)
+            } catch (handlerError) {
+              console.error(
+                '[@pinia/colada-plugin-cache-persister] The `onStringifyError` handler threw an error. This must be fixed: in production, it is not caught and will break cache persistence.',
+                handlerError,
+              )
+            }
+          } else {
+            onStringifyError(error)
+          }
+        } else if (process.env.NODE_ENV !== 'production') {
+          console.error(
+            '[@pinia/colada-plugin-cache-persister] Failed to persist the cache to storage. Pass `onStringifyError` to handle this.',
+            error,
+          )
+        }
+      }
+      // reset the throttle so a later change can persist again
+      throttleTimeout = undefined
+      if (pendingPersist) {
+        pendingPersist = false
+        schedulePersist()
+      }
     }
 
     // Persist to storage (throttled with trailing)
     function schedulePersist(): void {
-      if (!storage) return
-
       if (throttleTimeout) {
         // Already scheduled, mark pending for trailing call
         pendingPersist = true
-        return
+      } else {
+        throttleTimeout = setTimeout(persist, debounce)
       }
-
-      throttleTimeout = setTimeout(() => {
-        try {
-          const serialized = stringify(serializeCache())
-          // storage write errors (quota, etc.) are ignored
-          Promise.resolve()
-            .then(() => storage.setItem(key, serialized))
-            .catch(() => {})
-        } catch (error) {
-          onStringifyError?.(error)
-          if (process.env.NODE_ENV !== 'production' && !onStringifyError) {
-            console.error(
-              '[@pinia/colada-plugin-cache-persister] Failed to serialize the cache for persistence. Pass `onStringifyError` to handle this.',
-              error,
-            )
-          }
-        } finally {
-          // always reset the throttle so a later change can persist again
-          throttleTimeout = undefined
-          if (pendingPersist) {
-            pendingPersist = false
-            schedulePersist()
-          }
-        }
-      }, debounce)
     }
 
-    // Restore from storage
-    async function restoreCache(): Promise<void> {
+    async function restore(): Promise<void> {
       try {
-        const storedPromise = storage?.getItem(key)
-        // avoid one extra await if storage is sync
-        const stored = storedPromise instanceof Promise ? await storedPromise : storedPromise
+        const raw = storage!.getItem(key)
+        // hydrate synchronously with sync storages like localStorage so entries
+        // exist before queries created in the same tick fetch
+        const stored = raw instanceof Promise ? await raw : raw
         if (stored) {
           hydrateQueryCache(queryCache, parse(stored))
         }
       } catch (error) {
         // corrupt data, start fresh
-        onParseError?.(error)
-        if (process.env.NODE_ENV !== 'production' && !onParseError) {
+        if (onParseError) {
+          if (process.env.NODE_ENV !== 'production') {
+            // in production the handler error is not caught and prevents `isCacheReady()`
+            // from resolving, so surface it loudly in dev
+            try {
+              onParseError(error)
+            } catch (handlerError) {
+              console.error(
+                '[@pinia/colada-plugin-cache-persister] The `onParseError` handler threw an error. This must be fixed: in production, it is not caught and will prevent `isCacheReady()` from resolving.',
+                handlerError,
+              )
+            }
+          } else {
+            onParseError(error)
+          }
+        } else if (process.env.NODE_ENV !== 'production') {
           console.error(
             '[@pinia/colada-plugin-cache-persister] Failed to parse the persisted cache, starting fresh. Pass `onParseError` to handle this.',
             error,
           )
         }
-      } finally {
-        // always mark the cache ready so `isCacheReady()` never hangs
-        readyResolve()
       }
+      readyResolve()
     }
 
-    // Start restoration immediately. The cache is already marked ready inside,
-    // so a throwing onParseError must not surface as an unhandled rejection.
-    restoreCache().catch(() => {})
+    restore()
 
     // Hook into cache actions to trigger persistence
     queryCache.$onAction(({ name, after }) => {
       if (name === 'setEntryState' || name === 'setQueryData' || name === 'remove') {
-        after(() => {
-          schedulePersist()
-        })
+        after(schedulePersist)
       }
     })
   }

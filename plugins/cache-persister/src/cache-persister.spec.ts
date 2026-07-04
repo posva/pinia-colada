@@ -7,7 +7,7 @@ import { PiniaColada, useQuery, useQueryCache } from '@pinia/colada'
 import type { UseQueryOptions } from '@pinia/colada'
 import { mockConsoleError } from '@posva/test-utils'
 import { PiniaColadaCachePersister, resetCacheReady, isCacheReady } from './cache-persister'
-import type { PiniaColadaStorage } from './cache-persister'
+import type { CachePersisterOptions, PiniaColadaStorage } from './cache-persister'
 
 // Helper to find entry by data value in object format
 function findEntryByData(stored: Record<string, unknown[]>, data: unknown) {
@@ -81,14 +81,17 @@ describe('PiniaColadaCachePersister', () => {
   }
 
   function factory(
-    queryOptions: UseQueryOptions,
-    persisterOptions: Parameters<typeof PiniaColadaCachePersister>[0] = {},
+    queryOptions: UseQueryOptions | UseQueryOptions[],
+    persisterOptions: CachePersisterOptions = {},
   ) {
     const wrapper = mount(
       defineComponent({
         template: '<div></div>',
         setup() {
-          return useQuery(queryOptions)
+          for (const options of Array.isArray(queryOptions) ? queryOptions : [queryOptions]) {
+            useQuery(options)
+          }
+          return {}
         },
       }),
       {
@@ -102,6 +105,17 @@ describe('PiniaColadaCachePersister', () => {
     )
 
     return { wrapper }
+  }
+
+  // lets queries settle, then runs the persist timer
+  async function runPersist(ms = 0) {
+    await flushPromises()
+    vi.advanceTimersByTime(ms)
+    await flushPromises()
+  }
+
+  function readCache(storage: { data: Record<string, string> }): Record<string, unknown[]> {
+    return JSON.parse(storage.data['pinia-colada-cache']!)
   }
 
   describe('persistence', () => {
@@ -121,30 +135,28 @@ describe('PiniaColadaCachePersister', () => {
       vi.advanceTimersByTime(100)
       await flushPromises()
 
-      expect(storage.setItem).toHaveBeenCalled()
-      const stored = JSON.parse(storage.data['pinia-colada-cache']!)
+      const stored = readCache(storage)
       expect(Object.keys(stored)).toHaveLength(1)
       expect(getEntryData(stored, ['test'])).toBe('test-data')
     })
 
     it('uses custom storage key', async () => {
       const storage = createMockStorage()
-      const query = vi.fn(async () => 'data')
 
-      factory({ key: ['k'], query }, { storage, key: 'my-custom-key', debounce: 0 })
+      factory(
+        { key: ['k'], query: async () => 'data' },
+        { storage, key: 'my-custom-key', debounce: 0 },
+      )
 
-      await flushPromises()
-      vi.advanceTimersByTime(0)
-      await flushPromises()
+      await runPersist()
 
       expect(storage.setItem).toHaveBeenCalledWith('my-custom-key', expect.any(String))
     })
 
     it('throttles multiple changes with trailing call', async () => {
       const storage = createMockStorage()
-      const query = vi.fn(async () => 'data')
 
-      factory({ key: ['test'], query }, { storage, debounce: 100 })
+      factory({ key: ['test'], query: async () => 'data' }, { storage, debounce: 100 })
 
       await flushPromises()
       const queryCache = useQueryCache()
@@ -164,8 +176,7 @@ describe('PiniaColadaCachePersister', () => {
       await flushPromises()
 
       expect(storage.setItem).toHaveBeenCalledTimes(1)
-      let stored = JSON.parse(storage.data['pinia-colada-cache']!)
-      expect(getEntryData(stored, ['test'])).toBe('update-3')
+      expect(getEntryData(readCache(storage), ['test'])).toBe('update-3')
 
       // Trailing call was scheduled, advance to complete it
       vi.advanceTimersByTime(100)
@@ -177,9 +188,8 @@ describe('PiniaColadaCachePersister', () => {
 
     it('persists periodically during continuous activity', async () => {
       const storage = createMockStorage()
-      const query = vi.fn(async () => 'data')
 
-      factory({ key: ['test'], query }, { storage, debounce: 50 })
+      factory({ key: ['test'], query: async () => 'data' }, { storage, debounce: 50 })
 
       await flushPromises()
       const queryCache = useQueryCache()
@@ -216,32 +226,10 @@ describe('PiniaColadaCachePersister', () => {
 
       factory({ key: ['test'], query: async () => 'data' }, { storage, debounce: 0, stringify })
 
-      await flushPromises()
-      vi.advanceTimersByTime(0)
-      await flushPromises()
+      await runPersist()
 
       expect(stringify).toHaveBeenCalledTimes(1)
       expect(storage.setItem).toHaveBeenCalledWith('pinia-colada-cache', 'custom-serialized')
-    })
-
-    it('persists on setQueryData', async () => {
-      const storage = createMockStorage()
-      const query = vi.fn(async () => 'initial')
-
-      factory({ key: ['test'], query }, { storage, debounce: 0 })
-
-      await flushPromises()
-      vi.advanceTimersByTime(0)
-      await flushPromises()
-
-      const queryCache = useQueryCache()
-      queryCache.setQueryData(['test'], 'updated')
-      await flushPromises()
-      vi.advanceTimersByTime(0)
-      await flushPromises()
-
-      const stored = JSON.parse(storage.data['pinia-colada-cache']!)
-      expect(getEntryData(stored, ['test'])).toBe('updated')
     })
   })
 
@@ -260,8 +248,7 @@ describe('PiniaColadaCachePersister', () => {
       await flushPromises()
 
       // Data should be restored, query should not be called (not stale)
-      const queryCache = useQueryCache()
-      expect(queryCache.getQueryData(['restored'])).toBe('restored-data')
+      expect(useQueryCache().getQueryData(['restored'])).toBe('restored-data')
     })
 
     it('isCacheReady resolves after restore', async () => {
@@ -297,20 +284,6 @@ describe('PiniaColadaCachePersister', () => {
       expect(ready).toBe(true)
     })
 
-    it('handles corrupt storage data gracefully', async () => {
-      const storage = createMockStorage()
-      storage.data['pinia-colada-cache'] = 'not valid json {'
-
-      const query = vi.fn(async () => 'fresh')
-
-      // Should not throw
-      factory({ key: ['test'], query }, { storage })
-
-      await flushPromises()
-      expect(query).toHaveBeenCalledTimes(1)
-      expect(/Failed to parse the persisted cache/).toHaveBeenErroredTimes(1)
-    })
-
     it('restores non-JSON values through a custom parse', async () => {
       const storage = createMockStorage()
       storage.data['pinia-colada-cache'] = 'custom-serialized'
@@ -341,9 +314,7 @@ describe('PiniaColadaCachePersister', () => {
         { key: ['event'], query: async () => ({ at: date }) },
         { storage, debounce: 0, stringify, parse },
       )
-      await flushPromises()
-      vi.advanceTimersByTime(0)
-      await flushPromises()
+      await runPersist()
       wrapper.unmount()
 
       // restore into a fresh app from the same storage
@@ -376,104 +347,74 @@ describe('PiniaColadaCachePersister', () => {
     it('only persists queries matching filter', async () => {
       const storage = createMockStorage()
 
-      const wrapper = mount(
-        defineComponent({
-          template: '<div></div>',
-          setup() {
-            useQuery({ key: ['users', 1], query: async () => 'user-1' })
-            useQuery({ key: ['posts', 1], query: async () => 'post-1' })
-            return {}
-          },
-        }),
-        {
-          global: {
-            plugins: [
-              createPinia(),
-              [
-                PiniaColada,
-                {
-                  plugins: [
-                    PiniaColadaCachePersister({
-                      storage,
-                      filter: { key: ['users'] },
-                      debounce: 0,
-                    }),
-                  ],
-                },
-              ],
-            ],
-          },
-        },
+      factory(
+        [
+          { key: ['users', 1], query: async () => 'user-1' },
+          { key: ['posts', 1], query: async () => 'post-1' },
+        ],
+        { storage, filter: { key: ['users'] }, debounce: 0 },
       )
 
-      await flushPromises()
-      vi.advanceTimersByTime(0)
-      await flushPromises()
+      await runPersist()
 
-      const stored = JSON.parse(storage.data['pinia-colada-cache']!)
+      const stored = readCache(storage)
       expect(findEntryByData(stored, 'user-1')).toBeDefined()
       expect(findEntryByData(stored, 'post-1')).toBeUndefined()
-
-      wrapper.unmount()
     })
 
     it('uses predicate filter', async () => {
       const storage = createMockStorage()
 
-      const wrapper = mount(
-        defineComponent({
-          template: '<div></div>',
-          setup() {
-            useQuery({ key: ['a'], query: async () => 'a-data' })
-            useQuery({ key: ['b'], query: async () => 'b-data' })
-            return {}
-          },
-        }),
+      factory(
+        [
+          { key: ['a'], query: async () => 'a-data' },
+          { key: ['b'], query: async () => 'b-data' },
+        ],
         {
-          global: {
-            plugins: [
-              createPinia(),
-              [
-                PiniaColada,
-                {
-                  plugins: [
-                    PiniaColadaCachePersister({
-                      storage,
-                      filter: {
-                        predicate: (entry) => entry.key[0] === 'a',
-                      },
-                      debounce: 0,
-                    }),
-                  ],
-                },
-              ],
-            ],
-          },
+          storage,
+          filter: { predicate: (entry) => entry.key[0] === 'a' },
+          debounce: 0,
         },
       )
 
-      await flushPromises()
-      vi.advanceTimersByTime(0)
-      await flushPromises()
+      await runPersist()
 
-      const stored = JSON.parse(storage.data['pinia-colada-cache']!)
+      const stored = readCache(storage)
       expect(findEntryByData(stored, 'a-data')).toBeDefined()
       expect(findEntryByData(stored, 'b-data')).toBeUndefined()
+    })
 
-      wrapper.unmount()
+    it('persists successful entries but not error entries', async () => {
+      const storage = createMockStorage()
+
+      factory(
+        [
+          { key: ['success'], query: async () => 'success-data' },
+          {
+            key: ['error'],
+            query: async () => {
+              throw new Error('Failed')
+            },
+          },
+        ],
+        { storage, debounce: 0 },
+      )
+
+      await runPersist()
+
+      const stored = readCache(storage)
+      expect(Object.keys(stored)).toHaveLength(1)
+      expect(findEntryByData(stored, 'success-data')).toBeDefined()
     })
   })
 
   describe('async storage', () => {
     it('works with async storage', async () => {
       const storage = createAsyncStorage()
-      const query = vi.fn(async () => 'async-data')
 
-      factory({ key: ['async-test'], query }, { storage, debounce: 0 })
+      factory({ key: ['async-test'], query: async () => 'async-data' }, { storage, debounce: 0 })
 
-      await flushPromises()
-      vi.advanceTimersByTime(0)
-      await flushPromises()
+      await runPersist()
 
       expect(storage.setItem).toHaveBeenCalled()
       expect(storage.data['pinia-colada-cache']).toBeDefined()
@@ -492,8 +433,7 @@ describe('PiniaColadaCachePersister', () => {
 
       await flushPromises()
 
-      const queryCache = useQueryCache()
-      expect(queryCache.getQueryData(['async-restored'])).toBe('async-cached')
+      expect(useQueryCache().getQueryData(['async-restored'])).toBe('async-cached')
     })
 
     it('calls getItem once when restoring from async storage', async () => {
@@ -528,86 +468,6 @@ describe('PiniaColadaCachePersister', () => {
 
       await flushPromises()
       expect(ready).toBe(true)
-    })
-
-    it('handles async storage setItem rejection gracefully', async () => {
-      const storage = createAsyncStorage()
-      // Make setItem reject
-      storage.setItem = vi.fn(async () => {
-        throw new Error('Quota exceeded')
-      })
-
-      const query = vi.fn(async () => 'data')
-
-      // Should not throw
-      factory({ key: ['test'], query }, { storage, debounce: 0 })
-
-      await flushPromises()
-      vi.advanceTimersByTime(0)
-      await flushPromises()
-
-      // setItem was called but error was swallowed
-      expect(storage.setItem).toHaveBeenCalledTimes(1)
-    })
-  })
-
-  describe('error handling', () => {
-    it('does not persist entries with errors', async () => {
-      const storage = createMockStorage()
-      const query = vi.fn(async () => {
-        throw new Error('Query failed')
-      })
-
-      factory({ key: ['failing'], query }, { storage, debounce: 0 })
-
-      await flushPromises()
-      vi.advanceTimersByTime(0)
-      await flushPromises()
-
-      // Should not persist error entries - object should be empty
-      const storedRaw = storage.data['pinia-colada-cache']
-      if (storedRaw) {
-        const stored = JSON.parse(storedRaw)
-        expect(Object.keys(stored)).toHaveLength(0)
-      }
-    })
-
-    it('persists successful entries but not error entries', async () => {
-      const storage = createMockStorage()
-
-      const wrapper = mount(
-        defineComponent({
-          template: '<div></div>',
-          setup() {
-            useQuery({ key: ['success'], query: async () => 'success-data' })
-            useQuery({
-              key: ['error'],
-              query: async () => {
-                throw new Error('Failed')
-              },
-            })
-            return {}
-          },
-        }),
-        {
-          global: {
-            plugins: [
-              createPinia(),
-              [PiniaColada, { plugins: [PiniaColadaCachePersister({ storage, debounce: 0 })] }],
-            ],
-          },
-        },
-      )
-
-      await flushPromises()
-      vi.advanceTimersByTime(0)
-      await flushPromises()
-
-      const stored = JSON.parse(storage.data['pinia-colada-cache']!)
-      expect(Object.keys(stored)).toHaveLength(1)
-      expect(findEntryByData(stored, 'success-data')).toBeDefined()
-
-      wrapper.unmount()
     })
   })
 
@@ -660,7 +520,7 @@ describe('PiniaColadaCachePersister', () => {
       expect(/Failed to parse the persisted cache/).toHaveBeenErroredTimes(0)
     })
 
-    it('still resolves isCacheReady when the error handler throws', async () => {
+    it('contains and logs a throwing handler in dev', async () => {
       const storage = createMockStorage()
       storage.data['pinia-colada-cache'] = 'corrupt {'
       const onParseError = vi.fn(() => {
@@ -677,30 +537,25 @@ describe('PiniaColadaCachePersister', () => {
       await flushPromises()
 
       expect(onParseError).toHaveBeenCalledTimes(1)
-      // a throwing handler must not leave the app hanging on isCacheReady()
+      expect(/`onParseError` handler threw/).toHaveBeenErroredTimes(1)
+      // contained in dev, so isCacheReady still resolves
       expect(ready).toBe(true)
     })
   })
 
   describe('onStringifyError', () => {
     // store a value that cannot be serialized by JSON.stringify
-    async function persistUnserializable(
-      persisterOptions: Parameters<typeof PiniaColadaCachePersister>[0],
-    ) {
+    async function persistUnserializable(persisterOptions: CachePersisterOptions) {
       const storage = createMockStorage()
       factory(
         { key: ['test'], query: async () => 'ok' },
         { storage, debounce: 0, ...persisterOptions },
       )
 
-      await flushPromises()
-      vi.advanceTimersByTime(0)
-      await flushPromises()
+      await runPersist()
 
       useQueryCache().setQueryData(['test'], 10n)
-      await flushPromises()
-      vi.advanceTimersByTime(0)
-      await flushPromises()
+      await runPersist()
     }
 
     it('calls onStringifyError when serialization fails', async () => {
@@ -712,13 +567,58 @@ describe('PiniaColadaCachePersister', () => {
       expect(onStringifyError).toHaveBeenCalledWith(expect.any(TypeError))
     })
 
+    it('reports a synchronous storage write error', async () => {
+      const storage = createMockStorage()
+      storage.setItem = vi.fn(() => {
+        throw new Error('Quota exceeded')
+      })
+      const onStringifyError = vi.fn()
+
+      // a sync quota throw must not bubble and must reach the handler
+      factory(
+        { key: ['test'], query: async () => 'data' },
+        { storage, debounce: 0, onStringifyError },
+      )
+
+      await runPersist()
+
+      expect(storage.setItem).toHaveBeenCalledTimes(1)
+      expect(onStringifyError).toHaveBeenCalledTimes(1)
+      expect(onStringifyError).toHaveBeenCalledWith(expect.any(Error))
+    })
+
+    it('reports an async storage setItem rejection', async () => {
+      const storage = createAsyncStorage()
+      storage.setItem = vi.fn(async () => {
+        throw new Error('Quota exceeded')
+      })
+      const onStringifyError = vi.fn()
+
+      factory(
+        { key: ['test'], query: async () => 'data' },
+        { storage, debounce: 0, onStringifyError },
+      )
+
+      await runPersist()
+
+      expect(storage.setItem).toHaveBeenCalledTimes(1)
+      expect(onStringifyError).toHaveBeenCalledTimes(1)
+      expect(onStringifyError).toHaveBeenCalledWith(expect.any(Error))
+    })
+
     it('logs to console.error in dev when no handler is provided', async () => {
       await persistUnserializable({})
 
-      expect(/Failed to serialize the cache/).toHaveBeenErroredTimes(1)
+      expect(/Failed to persist the cache/).toHaveBeenErroredTimes(1)
     })
 
-    it('keeps persisting after the error handler throws', async () => {
+    it('does not log to console.error when a handler is provided', async () => {
+      await persistUnserializable({ onStringifyError: vi.fn() })
+
+      expect(/Failed to persist the cache/).toHaveBeenErroredTimes(0)
+    })
+
+    it('contains and logs a throwing handler in dev', async () => {
       const storage = createMockStorage()
       const onStringifyError = vi.fn(() => {
         throw new Error('handler boom')
@@ -735,51 +635,37 @@ describe('PiniaColadaCachePersister', () => {
         vi.runOnlyPendingTimers()
         await flushPromises()
       }
-      expect(getEntryData(JSON.parse(storage.data['pinia-colada-cache']!), ['test'])).toBe('ok')
+      expect(getEntryData(readCache(storage), ['test'])).toBe('ok')
 
       const queryCache = useQueryCache()
-      // unserializable value: stringify throws and the handler throws too
+      // stringify throws, then the handler throws too
       queryCache.setQueryData(['test'], 10n)
       await flushPromises()
-      expect(() => vi.runOnlyPendingTimers()).toThrow('handler boom')
+      vi.runOnlyPendingTimers()
       await flushPromises()
-      expect(onStringifyError).toHaveBeenCalledTimes(1)
 
-      // the throttle must reset cleanly so a later serializable change persists
+      expect(onStringifyError).toHaveBeenCalledTimes(1)
+      expect(/`onStringifyError` handler threw/).toHaveBeenErroredTimes(1)
+
+      // contained in dev, so a later serializable change still persists
       queryCache.setQueryData(['test'], 'recovered')
       await flushPromises()
       vi.runOnlyPendingTimers()
       await flushPromises()
-      expect(getEntryData(JSON.parse(storage.data['pinia-colada-cache']!), ['test'])).toBe(
-        'recovered',
-      )
+      expect(getEntryData(readCache(storage), ['test'])).toBe('recovered')
     })
 
-    it('does not log to console.error when a handler is provided', async () => {
-      await persistUnserializable({ onStringifyError: vi.fn() })
-
-      expect(/Failed to serialize the cache/).toHaveBeenErroredTimes(0)
-    })
-
-    it('ignores storage write errors', async () => {
+    it('logs to console.error in dev when a storage write fails without a handler', async () => {
       const storage = createMockStorage()
       storage.setItem = vi.fn(() => {
         throw new Error('Quota exceeded')
       })
-      const onStringifyError = vi.fn()
 
-      // should not throw and should not call onStringifyError (write != stringify)
-      factory(
-        { key: ['test'], query: async () => 'data' },
-        { storage, debounce: 0, onStringifyError },
-      )
+      factory({ key: ['test'], query: async () => 'data' }, { storage, debounce: 0 })
 
-      await flushPromises()
-      vi.advanceTimersByTime(0)
-      await flushPromises()
+      await runPersist()
 
-      expect(storage.setItem).toHaveBeenCalledTimes(1)
-      expect(onStringifyError).toHaveBeenCalledTimes(0)
+      expect(/Failed to persist the cache/).toHaveBeenErroredTimes(1)
     })
   })
 
@@ -787,33 +673,16 @@ describe('PiniaColadaCachePersister', () => {
     it('updates storage when entry is removed', async () => {
       const storage = createMockStorage()
 
-      const wrapper = mount(
-        defineComponent({
-          template: '<div></div>',
-          setup() {
-            // gcTime: 1 (not 0) because 0 is falsy and disables GC
-            useQuery({ key: ['to-remove'], query: async () => 'data', gcTime: 1 })
-            return {}
-          },
-        }),
-        {
-          global: {
-            plugins: [
-              createPinia(),
-              [PiniaColada, { plugins: [PiniaColadaCachePersister({ storage, debounce: 1 })] }],
-            ],
-          },
-        },
+      const { wrapper } = factory(
+        // gcTime: 1 (not 0) because 0 is falsy and disables GC
+        { key: ['to-remove'], query: async () => 'data', gcTime: 1 },
+        { storage, debounce: 1 },
       )
 
-      await flushPromises()
-      vi.advanceTimersByTime(1)
-      await flushPromises()
+      await runPersist(1)
 
       // Verify initial persistence
-      let stored = JSON.parse(storage.data['pinia-colada-cache']!)
-      expect(Object.keys(stored)).toHaveLength(1)
-      expect(findEntryByData(stored, 'data')).toBeDefined()
+      expect(Object.keys(readCache(storage))).toHaveLength(1)
 
       // Unmount to trigger GC after gcTime
       wrapper.unmount()
@@ -824,8 +693,7 @@ describe('PiniaColadaCachePersister', () => {
       vi.advanceTimersByTime(1)
       await flushPromises()
 
-      stored = JSON.parse(storage.data['pinia-colada-cache']!)
-      expect(Object.keys(stored)).toHaveLength(0)
+      expect(Object.keys(readCache(storage))).toHaveLength(0)
     })
   })
 })
