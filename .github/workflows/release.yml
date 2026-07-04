@@ -146,4 +146,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.resolve.outputs.TAG }}
-          FROM_TAG: ${{ steps.resolve.PREVIOUS_TAG }}
+          FROM_TAG: ${{ steps.resolve.outputs.PREVIOUS_TAG }}
