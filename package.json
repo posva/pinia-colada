@@ -78,7 +78,7 @@
     "@size-limit/preset-small-lib": "^12.1.0",
     "@types/node": "^26.1.1",
     "@types/semver": "^7.7.1",
-    "@typescript/native-preview": "7.0.0-dev.20260628.1",
+    "@typescript/native-preview": "7.0.0-dev.20260707.2",
     "@vitejs/plugin-vue": "^6.0.7",
     "@vitest/coverage-v8": "^4.1.10",
     "@vitest/ui": "^4.1.10",
