@@ -186,26 +186,19 @@ export function PiniaColadaCachePersister(
           ),
         )
       } catch (error) {
-        if (onStringifyError) {
-          if (process.env.NODE_ENV !== 'production') {
-            // in production the handler error is not caught and breaks the throttle,
-            // stopping any further persistence, so surface it loudly in dev
-            try {
-              onStringifyError(error)
-            } catch (handlerError) {
-              console.error(
-                '[@pinia/colada-plugin-cache-persister] The `onStringifyError` handler threw an error. This must be fixed: in production, it is not caught and will break cache persistence.',
-                handlerError,
-              )
-            }
-          } else {
-            onStringifyError(error)
+        if (process.env.NODE_ENV !== 'production') {
+          // in production the handler error is not caught and breaks the throttle,
+          // stopping any further persistence, so surface it loudly in dev
+          try {
+            onStringifyError?.(error)
+          } catch (handlerError) {
+            console.error(
+              '[@pinia/colada-plugin-cache-persister] The `onStringifyError` handler threw an error. This must be fixed: in production, it is not caught and will break cache persistence.',
+              handlerError,
+            )
           }
-        } else if (process.env.NODE_ENV !== 'production') {
-          console.error(
-            '[@pinia/colada-plugin-cache-persister] Failed to persist the cache to storage. Pass `onStringifyError` to handle this.',
-            error,
-          )
+        } else {
+          ;(onStringifyError ?? console.error)(error)
         }
       }
       // reset the throttle so a later change can persist again
@@ -237,26 +230,19 @@ export function PiniaColadaCachePersister(
         }
       } catch (error) {
         // corrupt data, start fresh
-        if (onParseError) {
-          if (process.env.NODE_ENV !== 'production') {
-            // in production the handler error is not caught and prevents `isCacheReady()`
-            // from resolving, so surface it loudly in dev
-            try {
-              onParseError(error)
-            } catch (handlerError) {
-              console.error(
-                '[@pinia/colada-plugin-cache-persister] The `onParseError` handler threw an error. This must be fixed: in production, it is not caught and will prevent `isCacheReady()` from resolving.',
-                handlerError,
-              )
-            }
-          } else {
-            onParseError(error)
+        if (process.env.NODE_ENV !== 'production') {
+          // in production the handler error is not caught and prevents `isCacheReady()`
+          // from resolving, so surface it loudly in dev
+          try {
+            onParseError?.(error)
+          } catch (handlerError) {
+            console.error(
+              '[@pinia/colada-plugin-cache-persister] The `onParseError` handler threw an error. This must be fixed: in production, it is not caught and will prevent `isCacheReady()` from resolving.',
+              handlerError,
+            )
           }
-        } else if (process.env.NODE_ENV !== 'production') {
-          console.error(
-            '[@pinia/colada-plugin-cache-persister] Failed to parse the persisted cache, starting fresh. Pass `onParseError` to handle this.',
-            error,
-          )
+        } else {
+          ;(onParseError ?? console.error)(error)
         }
       }
       readyResolve()
