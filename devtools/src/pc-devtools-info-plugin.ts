@@ -64,7 +64,7 @@ function addDevtoolsQueryInfo(queryCache: QueryCache): void {
     const info = ensureQueryDevtoolsInfo(entry)
 
     // add any entry that was added with SSR or without a fetch
-    if (entry.when > 0 && !info.history.length) {
+    if (entry.when > 0) {
       info.history.push({
         id: 0,
         key: entry.key,
