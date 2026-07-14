@@ -13,6 +13,39 @@ import type {
 
 const now = () => performance.timeOrigin + performance.now()
 
+/**
+ * Lazily initializes the devtools info of a query entry. Entries can be
+ * created without going through the tracked cache actions (e.g. mutations not
+ * yet ensured, entries created before the devtools are installed), so every
+ * read must go through here instead of accessing the key directly.
+ * https://github.com/posva/pinia-colada/issues/618
+ */
+export function ensureQueryDevtoolsInfo(entry: UseQueryEntry) {
+  return (entry[DEVTOOLS_INFO_KEY] ??= {
+    count: {
+      total: 0,
+      succeed: 0,
+      errored: 0,
+      cancelled: 0,
+    },
+    updatedAt: entry.when > 0 ? entry.when : now(),
+    inactiveAt: 0,
+    simulate: null,
+    history: [],
+  })
+}
+
+/**
+ * Same as {@link ensureQueryDevtoolsInfo} but for mutation entries.
+ */
+export function ensureMutationDevtoolsInfo(entry: UseMutationEntry) {
+  return (entry[DEVTOOLS_INFO_KEY] ??= {
+    updatedAt: entry.when > 0 ? entry.when : now(),
+    inactiveAt: 0,
+    simulate: null,
+  })
+}
+
 const installationMap = new WeakMap<object, boolean>()
 
 export function addDevtoolsInfo(queryCache: QueryCache, mutationCache: MutationCache): void {
@@ -28,22 +61,11 @@ export function addDevtoolsInfo(queryCache: QueryCache, mutationCache: MutationC
 function addDevtoolsQueryInfo(queryCache: QueryCache): void {
   // apply initialization to any existing entries
   for (const entry of queryCache.getEntries()) {
-    entry[DEVTOOLS_INFO_KEY] ??= {
-      count: {
-        total: 0,
-        succeed: 0,
-        errored: 0,
-        cancelled: 0,
-      },
-      updatedAt: entry.when > 0 ? entry.when : now(),
-      inactiveAt: 0,
-      simulate: null,
-      history: [],
-    }
+    const info = ensureQueryDevtoolsInfo(entry)
 
     // add any entry that was added with SSR or without a fetch
     if (entry.when > 0) {
-      entry[DEVTOOLS_INFO_KEY].history.push({
+      info.history.push({
         id: 0,
         key: entry.key,
         state: entry.state.value,
@@ -57,26 +79,16 @@ function addDevtoolsQueryInfo(queryCache: QueryCache): void {
   queryCache.$onAction(({ name, args, after, onError }) => {
     if (name === 'create') {
       after((entry) => {
-        entry[DEVTOOLS_INFO_KEY] = {
-          count: {
-            total: 0,
-            succeed: 0,
-            errored: 0,
-            cancelled: 0,
-          },
-          updatedAt: now(),
-          inactiveAt: 0,
-          simulate: null,
-          history: [],
-        }
+        ensureQueryDevtoolsInfo(entry)
       })
     } else if (name === 'fetch') {
       const [entry] = args
-      entry[DEVTOOLS_INFO_KEY].count.total++
-      entry[DEVTOOLS_INFO_KEY].updatedAt = now()
+      const info = ensureQueryDevtoolsInfo(entry)
+      info.count.total++
+      info.updatedAt = now()
       const createdAt = now()
       const historyEntry: UseQueryEntryHistoryEntry = {
-        id: (entry[DEVTOOLS_INFO_KEY].history.at(0)?.id ?? -1) + 1,
+        id: (info.history.at(0)?.id ?? -1) + 1,
         key: entry.key,
         state: entry.state.value,
         updatedAt: createdAt,
@@ -92,16 +104,15 @@ function addDevtoolsQueryInfo(queryCache: QueryCache): void {
         }
       }
 
-      entry[DEVTOOLS_INFO_KEY].history.unshift(historyEntry)
+      info.history.unshift(historyEntry)
       // limit history to 10 entries
-      entry[DEVTOOLS_INFO_KEY].history = entry[DEVTOOLS_INFO_KEY].history.slice(0, 10)
+      info.history = info.history.slice(0, 10)
 
       after(() => {
         if (isEnabled) {
           historyEntry.fetchTime!.end = now()
-          entry[DEVTOOLS_INFO_KEY].count.succeed++
-          // set by the setEntryState
-          // entry[DEVTOOLS_INFO_KEY].updatedAt = now()
+          info.count.succeed++
+          // updatedAt is set by the setEntryState
           historyEntry.state = entry.state.value
           historyEntry.updatedAt = now()
         }
@@ -109,9 +120,8 @@ function addDevtoolsQueryInfo(queryCache: QueryCache): void {
       onError(() => {
         if (isEnabled) {
           historyEntry.fetchTime!.end = now()
-          entry[DEVTOOLS_INFO_KEY].count.errored++
-          // set by the setEntryState
-          // entry[DEVTOOLS_INFO_KEY].updatedAt = now()
+          info.count.errored++
+          // updatedAt is set by the setEntryState
           historyEntry.state = entry.state.value
           historyEntry.updatedAt = now()
         }
@@ -119,14 +129,15 @@ function addDevtoolsQueryInfo(queryCache: QueryCache): void {
     } else if (name === 'cancel') {
       const [entry] = args
       if (entry.pending) {
-        entry[DEVTOOLS_INFO_KEY].count.cancelled++
+        ensureQueryDevtoolsInfo(entry).count.cancelled++
       }
     } else if (name === 'setEntryState') {
       const [entry] = args
-      let lastHistoryEntry = entry[DEVTOOLS_INFO_KEY].history[0]
+      const info = ensureQueryDevtoolsInfo(entry)
+      let lastHistoryEntry = info.history[0]
       after(() => {
-        entry[DEVTOOLS_INFO_KEY].updatedAt = now()
-        lastHistoryEntry ??= entry[DEVTOOLS_INFO_KEY].history[0]
+        info.updatedAt = now()
+        lastHistoryEntry ??= info.history[0]
         if (lastHistoryEntry) {
           lastHistoryEntry.state = entry.state.value
           lastHistoryEntry.updatedAt = now()
@@ -134,14 +145,14 @@ function addDevtoolsQueryInfo(queryCache: QueryCache): void {
         // set inactiveAt for prefetched queries to start GC timing
         // both prefetch methods (setQueryData and refresh) call setEntryState when they complete
         if (!entry.active) {
-          entry[DEVTOOLS_INFO_KEY].inactiveAt = now()
+          info.inactiveAt = now()
         }
       })
     } else if (name === 'untrack') {
       const [entry] = args
       after(() => {
         if (!entry.active) {
-          entry[DEVTOOLS_INFO_KEY].inactiveAt = now()
+          ensureQueryDevtoolsInfo(entry).inactiveAt = now()
         }
       })
     }
@@ -181,7 +192,7 @@ export function createQueryEntryPayload(entry: UseQueryEntry): UseQueryEntryPayl
     ),
     gcTimeout: typeof entry.gcTimeout === 'number' ? (entry.gcTimeout as number) : null,
 
-    devtools: entry[DEVTOOLS_INFO_KEY],
+    devtools: ensureQueryDevtoolsInfo(entry),
     plugins: Object.fromEntries(
       Object.entries(entry.ext).filter(([, v]) => v !== null && typeof v === 'object' && !isRef(v)),
     ),
@@ -191,52 +202,41 @@ export function createQueryEntryPayload(entry: UseQueryEntry): UseQueryEntryPayl
 export function addDevtoolsInfoForMutations(mutationCache: MutationCache): void {
   // apply initialization to any existing entries
   for (const entry of mutationCache.getEntries()) {
-    entry[DEVTOOLS_INFO_KEY] ??= {
-      updatedAt: entry.when > 0 ? entry.when : now(),
-      inactiveAt: 0,
-      simulate: null,
-    }
+    ensureMutationDevtoolsInfo(entry)
   }
 
   mutationCache.$onAction(({ name, args, after }) => {
     if (name === 'create') {
       after((entry) => {
-        entry[DEVTOOLS_INFO_KEY] = {
-          updatedAt: now(),
-          inactiveAt: 0,
-          simulate: null,
-        }
+        ensureMutationDevtoolsInfo(entry)
       })
     } else if (name === 'ensure') {
       // mutations can create entries before the devtools
       // and then get an id assigned later
       // https://github.com/posva/pinia-colada/issues/469
       const [entry] = args
-      entry[DEVTOOLS_INFO_KEY] ??= {
-        updatedAt: now(),
-        inactiveAt: 0,
-        simulate: null,
-      }
+      ensureMutationDevtoolsInfo(entry)
     } else if (name === 'mutate') {
       const [entry] = args
-      entry[DEVTOOLS_INFO_KEY].updatedAt = now()
+      ensureMutationDevtoolsInfo(entry).updatedAt = now()
     } else if (name === 'setEntryState') {
       const [entry] = args
       after(() => {
-        entry[DEVTOOLS_INFO_KEY].updatedAt = now()
+        ensureMutationDevtoolsInfo(entry).updatedAt = now()
       })
     } else if (name === 'untrack') {
       const [entry] = args
       after(() => {
         // differently from queries, mutations are inactive if untracked
         // because they can only be tracked once
-        entry[DEVTOOLS_INFO_KEY].inactiveAt = now()
+        ensureMutationDevtoolsInfo(entry).inactiveAt = now()
       })
     }
   })
 }
 
 export function createMutationEntryPayload(entry: UseMutationEntry): UseMutationEntryPayload {
+  const devtools = ensureMutationDevtoolsInfo(entry)
   return {
     id: entry.id,
     key: entry.key,
@@ -248,7 +248,7 @@ export function createMutationEntryPayload(entry: UseMutationEntry): UseMutation
       gcTime: entry.options.gcTime,
     },
     gcTimeout: typeof entry.gcTimeout === 'number' ? (entry.gcTimeout as number) : null,
-    active: entry[DEVTOOLS_INFO_KEY].inactiveAt === 0,
-    devtools: entry[DEVTOOLS_INFO_KEY],
+    active: devtools.inactiveAt === 0,
+    devtools,
   }
 }
