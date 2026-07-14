@@ -69,6 +69,24 @@ export default defineConfig({
           execArgv: ['--expose-gc'],
         },
       },
+      {
+        extends: true,
+        resolve: {
+          alias: {
+            '@pinia/colada-devtools/shared': fileURLToPath(
+              new URL('./devtools/src/shared/index.ts', import.meta.url),
+            ),
+          },
+        },
+        test: {
+          name: {
+            label: '🔍 @pinia/colada-devtools',
+            color: 'yellow',
+          },
+          root: './devtools',
+          include: ['src/**/*.{test,spec}.ts'],
+        },
+      },
       ...pluginsProjects,
       // TODO: once they upgrade to vitest 4
       // './nuxt',

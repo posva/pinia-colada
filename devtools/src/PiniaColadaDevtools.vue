@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { onBeforeUnmount, shallowRef, useTemplateRef, watch } from 'vue'
 import { useQueryCache, useMutationCache } from '@pinia/colada'
-import { DuplexChannel, DEVTOOLS_INFO_KEY } from '@pinia/colada-devtools/shared'
+import { DuplexChannel } from '@pinia/colada-devtools/shared'
 import type { AppEmits, DevtoolsEmits } from '@pinia/colada-devtools/shared'
-import { createQueryEntryPayload, createMutationEntryPayload } from './pc-devtools-info-plugin'
+import {
+  createQueryEntryPayload,
+  createMutationEntryPayload,
+  ensureQueryDevtoolsInfo,
+  ensureMutationDevtoolsInfo,
+} from './pc-devtools-info-plugin'
 // use dependency free simple useEventListener because this component is used directly in the app
 import { useEventListener } from './use-event-listener'
 
@@ -40,7 +45,7 @@ queryCache.$onAction(({ name, after, onError, args }) => {
 
     // TODO: throttle
     after(() => {
-      entry[DEVTOOLS_INFO_KEY].simulate = null
+      ensureQueryDevtoolsInfo(entry).simulate = null
       transmitter.emit('queries:update', createQueryEntryPayload(entry))
 
       // emit an update when the data becomes stale
@@ -151,15 +156,15 @@ transmitter.on('queries:simulate:loading', (key) => {
   const entry = queryCache.getEntries({ key, exact: true })[0]
   if (entry) {
     entry.asyncStatus.value = 'loading'
-    entry[DEVTOOLS_INFO_KEY].simulate = 'loading'
+    ensureQueryDevtoolsInfo(entry).simulate = 'loading'
     transmitter.emit('queries:update', createQueryEntryPayload(entry))
   }
 })
 transmitter.on('queries:simulate:loading:stop', (key) => {
   const entry = queryCache.getEntries({ key, exact: true })[0]
-  if (entry && entry[DEVTOOLS_INFO_KEY].simulate === 'loading') {
+  if (entry && ensureQueryDevtoolsInfo(entry).simulate === 'loading') {
     entry.asyncStatus.value = 'idle'
-    entry[DEVTOOLS_INFO_KEY].simulate = null
+    ensureQueryDevtoolsInfo(entry).simulate = null
     transmitter.emit('queries:update', createQueryEntryPayload(entry))
   }
 })
@@ -174,21 +179,21 @@ transmitter.on('queries:simulate:error', (key) => {
       error: new Error('Simulated error'),
     })
     // we set after because setting the entry state resets the simulation
-    entry[DEVTOOLS_INFO_KEY].simulate = 'error'
+    ensureQueryDevtoolsInfo(entry).simulate = 'error'
     transmitter.emit('queries:update', createQueryEntryPayload(entry))
   }
 })
 
 transmitter.on('queries:simulate:error:stop', (key) => {
   const entry = queryCache.getEntries({ key, exact: true })[0]
-  if (entry && entry[DEVTOOLS_INFO_KEY].simulate === 'error') {
+  if (entry && ensureQueryDevtoolsInfo(entry).simulate === 'error') {
     queryCache.cancel(entry)
     queryCache.setEntryState(entry, {
       ...entry.state.value,
       status: entry.state.value.data !== undefined ? 'success' : 'pending',
       error: null,
     })
-    entry[DEVTOOLS_INFO_KEY].simulate = null
+    ensureQueryDevtoolsInfo(entry).simulate = null
     transmitter.emit('queries:update', createQueryEntryPayload(entry))
   }
 })
@@ -209,16 +214,16 @@ transmitter.on('mutations:simulate:loading', (id) => {
   const entry = mutationCache.get(id)
   if (entry) {
     entry.asyncStatus.value = 'loading'
-    entry[DEVTOOLS_INFO_KEY].simulate = 'loading'
+    ensureMutationDevtoolsInfo(entry).simulate = 'loading'
     transmitter.emit('mutations:update', createMutationEntryPayload(entry))
   }
 })
 
 transmitter.on('mutations:simulate:loading:stop', (id) => {
   const entry = mutationCache.get(id)
-  if (entry && entry[DEVTOOLS_INFO_KEY].simulate === 'loading') {
+  if (entry && ensureMutationDevtoolsInfo(entry).simulate === 'loading') {
     entry.asyncStatus.value = 'idle'
-    entry[DEVTOOLS_INFO_KEY].simulate = null
+    ensureMutationDevtoolsInfo(entry).simulate = null
     transmitter.emit('mutations:update', createMutationEntryPayload(entry))
   }
 })
@@ -232,14 +237,14 @@ transmitter.on('mutations:simulate:error', (id) => {
       error: new Error('Simulated error'),
     })
     // we set after because setting the entry state resets the simulation
-    entry[DEVTOOLS_INFO_KEY].simulate = 'error'
+    ensureMutationDevtoolsInfo(entry).simulate = 'error'
     transmitter.emit('mutations:update', createMutationEntryPayload(entry))
   }
 })
 
 transmitter.on('mutations:simulate:error:stop', (id) => {
   const entry = mutationCache.get(id)
-  if (entry && entry[DEVTOOLS_INFO_KEY].simulate === 'error') {
+  if (entry && ensureMutationDevtoolsInfo(entry).simulate === 'error') {
     const state = entry.state.value
     mutationCache.setEntryState(
       entry,
@@ -251,7 +256,7 @@ transmitter.on('mutations:simulate:error:stop', (id) => {
           }
         : { data: state.data, status: 'success', error: null },
     )
-    entry[DEVTOOLS_INFO_KEY].simulate = null
+    ensureMutationDevtoolsInfo(entry).simulate = null
     transmitter.emit('mutations:update', createMutationEntryPayload(entry))
   }
 })
