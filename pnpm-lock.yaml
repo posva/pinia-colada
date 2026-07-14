@@ -314,6 +314,10 @@ importers:
         version: link:../../test-utils
 
   plugins/cache-persister:
+    dependencies:
+      nostics:
+        specifier: ^1.1.4
+        version: 1.1.4
     devDependencies:
       '@pinia/colada':
         specifier: workspace:^

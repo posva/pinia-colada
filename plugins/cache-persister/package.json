@@ -52,6 +52,9 @@
   "peerDependencies": {
     "@pinia/colada": "workspace:>="
   },
+  "dependencies": {
+    "nostics": "^1.1.4"
+  },
   "devDependencies": {
     "@pinia/colada": "workspace:^",
     "devalue": "^5.8.1"

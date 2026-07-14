@@ -11,6 +11,7 @@ import type {
   _UseQueryEntryNodeValueSerialized,
 } from '@pinia/colada'
 import { hydrateQueryCache, _queryEntry_toJSON } from '@pinia/colada'
+import { diagnostics } from './diagnostics'
 
 type MaybePromise<T> = T | Promise<T>
 
@@ -189,13 +190,17 @@ export function PiniaColadaCachePersister(
         if (process.env.NODE_ENV !== 'production') {
           // in production the handler error is not caught and breaks the throttle,
           // stopping any further persistence, so surface it loudly in dev
-          try {
-            onStringifyError?.(error)
-          } catch (handlerError) {
-            console.error(
-              '[@pinia/colada-plugin-cache-persister] The `onStringifyError` handler threw an error. This must be fixed: in production, it is not caught and will break cache persistence.',
-              handlerError,
-            )
+          if (onStringifyError) {
+            try {
+              onStringifyError(error)
+            } catch (handlerError) {
+              diagnostics.PINIA_COLADA_CACHE_PERSISTER_R0002(
+                { cause: handlerError },
+                { method: 'error' },
+              )
+            }
+          } else {
+            diagnostics.PINIA_COLADA_CACHE_PERSISTER_R0001({ cause: error }, { method: 'error' })
           }
         } else {
           ;(onStringifyError ?? console.error)(error)
@@ -233,13 +238,17 @@ export function PiniaColadaCachePersister(
         if (process.env.NODE_ENV !== 'production') {
           // in production the handler error is not caught and prevents `isCacheReady()`
           // from resolving, so surface it loudly in dev
-          try {
-            onParseError?.(error)
-          } catch (handlerError) {
-            console.error(
-              '[@pinia/colada-plugin-cache-persister] The `onParseError` handler threw an error. This must be fixed: in production, it is not caught and will prevent `isCacheReady()` from resolving.',
-              handlerError,
-            )
+          if (onParseError) {
+            try {
+              onParseError(error)
+            } catch (handlerError) {
+              diagnostics.PINIA_COLADA_CACHE_PERSISTER_R0004(
+                { cause: handlerError },
+                { method: 'error' },
+              )
+            }
+          } else {
+            diagnostics.PINIA_COLADA_CACHE_PERSISTER_R0003({ cause: error }, { method: 'error' })
           }
         } else {
           ;(onParseError ?? console.error)(error)
