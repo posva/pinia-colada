@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/posva/pinia-colada/compare/%40pinia%2Fcolada-devtools%401.1.0...%40pinia%2Fcolada-devtools%401.1.1) (2026-07-14)
+
+### Bug Fixes
+
+- **devtools:** lazily initialize devtools info of entries ([#619](https://github.com/posva/pinia-colada/issues/619)) ([10d1ec1](https://github.com/posva/pinia-colada/commit/10d1ec16ca771e5f677d02551edecaba99862a8c)), closes [#618](https://github.com/posva/pinia-colada/issues/618)
+- **devtools:** normalize component resolver path on Windows ([#615](https://github.com/posva/pinia-colada/issues/615)) ([88c9ee6](https://github.com/posva/pinia-colada/commit/88c9ee66a5f47ce64a65e32eb40772c8dae4a47e))
+
 # [1.1.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-devtools@1.0.0...@pinia/colada-devtools@1.1.0) (2026-06-29)
 
 ### Bug Fixes

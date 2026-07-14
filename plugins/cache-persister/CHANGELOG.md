@@ -1,3 +1,11 @@
+# [1.1.0](https://github.com/posva/pinia-colada/compare/%40pinia%2Fcolada-plugin-cache-persister%401.0.0...%40pinia%2Fcolada-plugin-cache-persister%401.1.0) (2026-07-14)
+
+### Features
+
+- **cache-persister:** allow custom cache serialization ([#611](https://github.com/posva/pinia-colada/issues/611)) ([cc52aa6](https://github.com/posva/pinia-colada/commit/cc52aa695d80e9208f9f5f22e66a212a63644e3d))
+- onError handlers for writnig and reading ([8f93e1c](https://github.com/posva/pinia-colada/commit/8f93e1c37abe039d85364520b4e81b0ca48b36b3))
+- use nostics for better errors ([aa8c8a3](https://github.com/posva/pinia-colada/commit/aa8c8a3601ca6d70f43c154bbbd6c5795bb8927e))
+
 # [1.0.0](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-cache-persister@0.1.4...@pinia/colada-plugin-cache-persister@1.0.0) (2026-04-20)
 
 ### Bug Fixes

@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Persists Pinia Colada's cache in the client",
   "author": {
     "name": "Eduardo San Martin Morote",

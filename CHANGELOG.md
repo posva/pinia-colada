@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/posva/pinia-colada/compare/v1.3.1...v1.4.0) (2026-07-14)
+
+### Features
+
+- add dev reporter ([3fbc3cc](https://github.com/posva/pinia-colada/commit/3fbc3ccb74ffdc0bf67741741e42adbccef0b78d))
+- nostics migration ([#606](https://github.com/posva/pinia-colada/issues/606)) ([be88353](https://github.com/posva/pinia-colada/commit/be88353658139f12a291a29e3358c69a098a44ac))
+
 ## [1.3.1](https://github.com/posva/pinia-colada/compare/v1.3.0...v1.3.1) (2026-05-20)
 
 ### Bug Fixes
