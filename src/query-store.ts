@@ -710,8 +710,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
             // NOTE: other options included returning an ongoing request if the error was a cancellation but it seems not worth it
           })
           .finally(() => {
-            entry.asyncStatus.value = 'idle'
             if (pendingCall === entry.pending) {
+              entry.asyncStatus.value = 'idle'
               entry.pending = null
               // there are cases when the result is ignored, in that case, we still
               // do not have a real result so we keep the placeholder data

@@ -303,6 +303,39 @@ describe('Query Cache store', () => {
     expect(queryCache.getEntries({ key: ['prefetch-gc'] })).toHaveLength(0)
   })
 
+  // https://github.com/posva/pinia-colada/issues/620
+  it('keeps asyncStatus loading when a canceled request settles after a refetch', async () => {
+    const queryCache = useQueryCache()
+
+    const firstDefer = Promise.withResolvers<string>()
+    const secondDefer = Promise.withResolvers<string>()
+    const querySpy = vi.fn(async () => 'NEVER REACHED')
+    const entry = queryCache.ensure<string>({
+      ...USE_QUERY_DEFAULTS,
+      key: ['refetch-async-status'],
+      query: querySpy,
+    })
+
+    querySpy.mockImplementationOnce(() => firstDefer.promise)
+    const firstCall = queryCache.fetch(entry).catch(() => {})
+    expect(entry.asyncStatus.value).toBe('loading')
+
+    // refetch cancels the first request and starts a second one
+    querySpy.mockImplementationOnce(() => secondDefer.promise)
+    const secondCall = queryCache.fetch(entry)
+    expect(entry.asyncStatus.value).toBe('loading')
+
+    // the canceled first request settles late, it must not reset the status
+    firstDefer.resolve('first')
+    await firstCall
+    expect(entry.asyncStatus.value).toBe('loading')
+
+    secondDefer.resolve('second')
+    await secondCall
+    expect(entry.asyncStatus.value).toBe('idle')
+    expect(entry.state.value.data).toBe('second')
+  })
+
   // https://github.com/posva/pinia-colada/issues/461
   it('does not abort settled queries during garbage collection', async () => {
     const queryCache = useQueryCache()
