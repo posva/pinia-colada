@@ -1,3 +1,9 @@
+## [1.4.2](https://github.com/posva/pinia-colada/compare/v1.4.1...v1.4.2) (2026-07-15)
+
+### Bug Fixes
+
+- keep asyncStatus loading when canceled request settles after refetch ([4208a6b](https://github.com/posva/pinia-colada/commit/4208a6bec05a7f1b4958caf8359b8a2200a29752)), closes [#620](https://github.com/posva/pinia-colada/issues/620)
+
 ## [1.4.1](https://github.com/posva/pinia-colada/compare/v1.4.0...v1.4.1) (2026-07-15)
 
 - Add pinia 4 to valid peerDeps
