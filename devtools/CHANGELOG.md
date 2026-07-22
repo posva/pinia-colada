@@ -1,3 +1,9 @@
+## [1.1.2](https://github.com/posva/pinia-colada/compare/%40pinia%2Fcolada-devtools%401.1.1...%40pinia%2Fcolada-devtools%401.1.2) (2026-07-22)
+
+### Bug Fixes
+
+- **types:** avoid types pollution ([5d56318](https://github.com/posva/pinia-colada/commit/5d56318a973ba28c47a712f590dd3aadd80527c3)), closes [#622](https://github.com/posva/pinia-colada/issues/622)
+
 ## [1.1.1](https://github.com/posva/pinia-colada/compare/%40pinia%2Fcolada-devtools%401.1.0...%40pinia%2Fcolada-devtools%401.1.1) (2026-07-14)
 
 ### Bug Fixes
