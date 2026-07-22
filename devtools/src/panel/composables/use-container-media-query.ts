@@ -30,7 +30,7 @@ class ContainerQueryListEvent extends Event {
   }
 }
 
-class ContainerQueryList extends EventTarget {
+export class ContainerQueryList extends EventTarget {
   #observedElement: HTMLElement
   #abortController = new AbortController()
   container: string
@@ -141,13 +141,6 @@ if (typeof window !== 'undefined') {
     ) {
       return new ContainerQueryList(this, containerQueryString)
     }
-  }
-}
-
-// For some reason, the types are not being picked up from the package
-declare global {
-  interface HTMLElement {
-    matchContainer: (containerQueryString: string) => ContainerQueryList
   }
 }
 

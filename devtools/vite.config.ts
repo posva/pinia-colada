@@ -121,6 +121,8 @@ export default defineConfig({
     }),
     Dts({
       bundleTypes: true,
+      // keep these out from dist/ to avoid pollution
+      exclude: ['node_modules/**', 'components.d.ts', 'typed-router.d.ts', 'vite.config.*'],
     }),
     TailwindCSS(),
   ],

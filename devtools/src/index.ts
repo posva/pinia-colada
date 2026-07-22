@@ -27,7 +27,3 @@ export {
    */
   default as PiniaColadaProdDevtools,
 } from './PCDevtoolsWrapper.vue'
-
-declare global {
-  const NODE_ENV: string
-}
