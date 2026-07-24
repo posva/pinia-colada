@@ -22,27 +22,27 @@
     "@vueuse/core": "^14.3.0",
     "@vueuse/integrations": "^14.3.0",
     "@vueuse/router": "^14.3.0",
-    "fuse.js": "^7.4.2",
+    "fuse.js": "^7.5.0",
     "mande": "^2.0.10",
     "pinia": "^3.0.4",
-    "vue": "^3.5.39",
-    "vue-router": "^5.1.0",
+    "vue": "^3.5.40",
+    "vue-router": "^5.2.0",
     "water.css": "^2.1.1"
   },
   "devDependencies": {
     "@nostics/unplugin": "^1.1.0",
     "@pinia/colada-devtools": "workspace:^",
-    "@tailwindcss/vite": "^4.3.2",
+    "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^26.1.1",
-    "@vitejs/plugin-vue": "^6.0.7",
+    "@vitejs/plugin-vue": "^6.0.8",
     "@vue/tsconfig": "^0.9.1",
-    "autoprefixer": "^10.5.2",
+    "autoprefixer": "^10.5.4",
     "json-server": "0.17.4",
     "npm-run-all2": "^9.0.2",
-    "tailwindcss": "^4.3.2",
+    "tailwindcss": "^4.3.3",
     "typescript": "~6.0.3",
-    "vite": "^8.1.4",
+    "vite": "^8.1.5",
     "vite-plugin-vue-devtools": "^8.1.5",
-    "vue-tsc": "^3.3.7"
+    "vue-tsc": "^3.3.8"
   }
 }
