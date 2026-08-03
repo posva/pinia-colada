@@ -61,7 +61,7 @@
     "@vueuse/core": "^14.3.0",
     "mande": "^2.0.10",
     "match-container": "^0.1.4",
-    "pinia": "^3.0.4",
+    "pinia": "^4.0.2",
     "tailwindcss": "^4.3.2",
     "unplugin-dts": "^1.0.3",
     "unplugin-icons": "^23.0.1",
