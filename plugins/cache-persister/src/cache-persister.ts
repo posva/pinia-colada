@@ -182,7 +182,17 @@ export function PiniaColadaCachePersister(
               queryCache
                 // we only care about entries with data
                 .getEntries({ ...filter, status: 'success' })
-                .map((entry) => [entry.keyHash, _queryEntry_toJSON(entry)]),
+                .map((entry) => {
+                  const serialized = _queryEntry_toJSON(entry)
+                  // Persist an absolute fetch timestamp. _queryEntry_toJSON stores
+                  // the entry age relative to serialize time, which only holds
+                  // while serialize and hydrate run in the same tick (SSR). For
+                  // long-lived storage the wall-clock time the snapshot spends in
+                  // storage would otherwise be lost and restored entries would be
+                  // treated as fresh no matter how old they are (see restore()).
+                  if (entry.when) serialized[2] = entry.when
+                  return [entry.keyHash, serialized]
+                }),
             ),
           ),
         )
@@ -231,7 +241,22 @@ export function PiniaColadaCachePersister(
         // exist before queries created in the same tick fetch
         const stored = raw instanceof Promise ? await raw : raw
         if (stored) {
-          hydrateQueryCache(queryCache, parse(stored))
+          const serializedCache = parse(stored)
+          // _queryEntry_toJSON stores the entry age relative to serialize time,
+          // which loses the wall-clock time the snapshot spends in storage. We
+          // persist an absolute fetch timestamp instead, so recompute the
+          // relative age hydrateQueryCache expects from the time elapsed since
+          // the snapshot was written. Absolute ms timestamps are >= 1e12 (post
+          // 2001), while snapshots persisted by older versions stored a much
+          // smaller relative age and are hydrated unchanged (backward compatible).
+          for (const keyHash in serializedCache) {
+            const entry = serializedCache[keyHash]
+            const when = entry?.[2]
+            if (typeof when === 'number' && when >= 1e12) {
+              entry[2] = Date.now() - when
+            }
+          }
+          hydrateQueryCache(queryCache, serializedCache)
         }
       } catch (error) {
         // corrupt data, start fresh

@@ -251,6 +251,33 @@ describe('PiniaColadaCachePersister', () => {
       expect(useQueryCache().getQueryData(['restored'])).toBe('restored-data')
     })
 
+    it('treats restored entries as stale by the time they spent in storage', async () => {
+      const storage = createMockStorage()
+      const staleTime = 60_000
+      const query = vi.fn(async () => 'cached')
+
+      // session 1: fetch and persist at T0
+      vi.setSystemTime(new Date(2026, 0, 1, 0, 0, 0))
+      const { wrapper: app1 } = factory(
+        { key: ['weekend'], query, staleTime },
+        { storage, debounce: 0 },
+      )
+      await runPersist()
+      expect(query).toHaveBeenCalledTimes(1)
+      app1.unmount()
+
+      // the snapshot sits in storage well past staleTime; only the clock moves
+      vi.setSystemTime(new Date(2026, 0, 4, 0, 0, 0))
+
+      // session 2: restore — the entry is days old, so it must refetch on mount
+      resetCacheReady()
+      factory({ key: ['weekend'], query, staleTime }, { storage })
+      await flushPromises()
+      await flushPromises()
+
+      expect(query).toHaveBeenCalledTimes(2)
+    })
+
     it('isCacheReady resolves after restore', async () => {
       const storage = createMockStorage()
       storage.data['pinia-colada-cache'] = JSON.stringify({
