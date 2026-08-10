@@ -118,6 +118,13 @@ describe('PiniaColadaCachePersister', () => {
     return JSON.parse(storage.data['pinia-colada-cache']!)
   }
 
+  function writeCache(
+    storage: { data: Record<string, string> },
+    entries: Record<string, unknown[]>,
+  ) {
+    storage.data['pinia-colada-cache'] = JSON.stringify(entries)
+  }
+
   describe('persistence', () => {
     it('persists cache to storage after debounce', async () => {
       const storage = createMockStorage()
@@ -237,9 +244,7 @@ describe('PiniaColadaCachePersister', () => {
     it('restores cache from storage on init', async () => {
       const storage = createMockStorage()
       // Pre-populate storage with cached data
-      storage.data['pinia-colada-cache'] = JSON.stringify({
-        '["restored"]': ['restored-data', null, 0, {}],
-      })
+      writeCache(storage, { '["restored"]': ['restored-data', null, Date.now(), {}] })
 
       const query = vi.fn(async () => 'fresh-data')
 
@@ -253,9 +258,7 @@ describe('PiniaColadaCachePersister', () => {
 
     it('isCacheReady resolves after restore', async () => {
       const storage = createMockStorage()
-      storage.data['pinia-colada-cache'] = JSON.stringify({
-        '["test"]': ['cached', null, 0, {}],
-      })
+      writeCache(storage, { '["test"]': ['cached', null, Date.now(), {}] })
 
       let ready = false
       isCacheReady().then(() => {
@@ -288,9 +291,11 @@ describe('PiniaColadaCachePersister', () => {
       const storage = createMockStorage()
       storage.data['pinia-colada-cache'] = 'custom-serialized'
       const date = new Date('2026-06-26T12:00:00.000Z')
-      const parse = vi.fn((): Record<string, [Date, null, number, Record<string, never>]> => ({
-        '["date"]': [date, null, 0, {}],
-      }))
+      const parse = vi.fn(
+        (): Record<string, [Date, null, number, Record<string, never>]> => ({
+          '["date"]': [date, null, Date.now(), {}],
+        }),
+      )
 
       factory({ key: ['date'], query: async () => 'fresh', staleTime: 60_000 }, { storage, parse })
 
@@ -338,6 +343,108 @@ describe('PiniaColadaCachePersister', () => {
 
       await flushPromises()
       expect(ready).toBe(true)
+    })
+  })
+
+  describe('staleness', () => {
+    it('stores an absolute timestamp on each entry', async () => {
+      const storage = createMockStorage()
+
+      factory({ key: ['a'], query: async () => 'a-data' }, { storage, debounce: 0 })
+      await runPersist()
+      const fetchedAt = Date.now()
+
+      // a second query fetches later and must keep its own timestamp
+      vi.setSystemTime(fetchedAt + 5000)
+      useQueryCache().setQueryData(['b'], 'b-data')
+      await runPersist()
+
+      const stored = readCache(storage)
+      expect(stored['["a"]']?.[2]).toBe(fetchedAt)
+      expect(stored['["b"]']?.[2]).toBe(fetchedAt + 5000)
+    })
+
+    it('ages each entry independently on restore', async () => {
+      const storage = createMockStorage()
+      writeCache(storage, {
+        '["old"]': ['old-data', null, Date.now() - 120_000, {}],
+        '["recent"]': ['recent-data', null, Date.now() - 1000, {}],
+      })
+
+      const oldQuery = vi.fn(async () => 'old-fresh')
+      const recentQuery = vi.fn(async () => 'recent-fresh')
+      factory(
+        [
+          { key: ['old'], query: oldQuery, staleTime: 60_000 },
+          { key: ['recent'], query: recentQuery, staleTime: 60_000 },
+        ],
+        { storage },
+      )
+
+      await flushPromises()
+
+      expect(oldQuery).toHaveBeenCalledTimes(1)
+      expect(recentQuery).toHaveBeenCalledTimes(0)
+    })
+
+    it('restores entries as stale after they sat in storage', async () => {
+      const storage = createMockStorage()
+
+      const { wrapper } = factory(
+        { key: ['test'], query: async () => 'persisted', staleTime: 600_000 },
+        { storage, debounce: 0 },
+      )
+      await runPersist()
+      wrapper.unmount()
+
+      // a weekend goes by with the app closed
+      vi.setSystemTime(Date.now() + 3 * 24 * 60 * 60 * 1000)
+
+      resetCacheReady()
+      const query = vi.fn(async () => 'fresh')
+      factory({ key: ['test'], query, staleTime: 600_000 }, { storage })
+      await isCacheReady()
+      await flushPromises()
+
+      // data is still hydrated for an instant first paint but it's stale, so it refetches
+      expect(query).toHaveBeenCalledTimes(1)
+      expect(useQueryCache().getQueryData(['test'])).toBe('fresh')
+    })
+
+    it('keeps restored entries fresh within the stale time', async () => {
+      const storage = createMockStorage()
+
+      const { wrapper } = factory(
+        { key: ['test'], query: async () => 'persisted', staleTime: 600_000 },
+        { storage, debounce: 0 },
+      )
+      await runPersist()
+      wrapper.unmount()
+
+      vi.setSystemTime(Date.now() + 1000)
+
+      resetCacheReady()
+      const query = vi.fn(async () => 'fresh')
+      factory({ key: ['test'], query, staleTime: 600_000 }, { storage })
+      await isCacheReady()
+      await flushPromises()
+
+      expect(query).toHaveBeenCalledTimes(0)
+      expect(useQueryCache().getQueryData(['test'])).toBe('persisted')
+    })
+
+    it('ignores a timestamp in the future', async () => {
+      const storage = createMockStorage()
+      // the device clock went backwards since the entry was persisted
+      writeCache(storage, { '["test"]': ['cached', null, Date.now() + 60_000, {}] })
+
+      const query = vi.fn(async () => 'fresh')
+      factory({ key: ['test'], query, staleTime: 30_000 }, { storage })
+
+      await flushPromises()
+
+      expect(query).toHaveBeenCalledTimes(0)
+      expect(useQueryCache().getQueryData(['test'])).toBe('cached')
     })
   })
 
@@ -420,9 +527,7 @@ describe('PiniaColadaCachePersister', () => {
 
     it('restores from async storage', async () => {
       const storage = createAsyncStorage()
-      storage.data['pinia-colada-cache'] = JSON.stringify({
-        '["async-restored"]': ['async-cached', null, 0, {}],
-      })
+      writeCache(storage, { '["async-restored"]': ['async-cached', null, Date.now(), {}] })
 
       factory(
         { key: ['async-restored'], query: async () => 'fresh', staleTime: 60_000 },
@@ -436,9 +541,7 @@ describe('PiniaColadaCachePersister', () => {
 
     it('calls getItem once when restoring from async storage', async () => {
       const storage = createAsyncStorage()
-      storage.data['pinia-colada-cache'] = JSON.stringify({
-        '["once"]': ['cached', null, 0, {}],
-      })
+      writeCache(storage, { '["once"]': ['cached', null, Date.now(), {}] })
 
       factory({ key: ['once'], query: async () => 'fresh' }, { storage })
 
@@ -449,9 +552,7 @@ describe('PiniaColadaCachePersister', () => {
 
     it('isCacheReady waits for async restore', async () => {
       const storage = createAsyncStorage()
-      storage.data['pinia-colada-cache'] = JSON.stringify({
-        '["wait"]': ['waited', null, 0, {}],
-      })
+      writeCache(storage, { '["wait"]': ['waited', null, Date.now(), {}] })
 
       let ready = false
 
