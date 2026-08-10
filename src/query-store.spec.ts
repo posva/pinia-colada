@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, getActivePinia, setActivePinia } from 'pinia'
-import type { UseQueryEntry, UseQueryEntryNodeValueSerializd } from './query-store'
+import type { UseQueryEntry, UseQueryEntryNodeValueSerialized } from './query-store'
 import { useQueryCache } from './query-store'
 import { USE_QUERY_DEFAULTS } from './query-options'
 import { flushPromises, mount } from '@vue/test-utils'

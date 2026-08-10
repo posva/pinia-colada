@@ -10,7 +10,7 @@ import type { PropType } from 'vue'
 import { delay, isSpy, mockConsoleError, mockWarn, promiseWithResolvers } from '@posva/test-utils'
 import { PiniaColada } from './pinia-colada'
 import { hydrateQueryCache, QUERY_STORE_ID, useQueryCache } from './query-store'
-import type { UseQueryEntry, UseQueryEntryNodeValueSerializd } from './query-store'
+import type { UseQueryEntry, UseQueryEntryNodeValueSerialized } from './query-store'
 import { useQuery } from './use-query'
 
 describe('useQuery', () => {
@@ -2220,7 +2220,9 @@ describe('useQuery', () => {
   })
 
   describe('hydration', () => {
-    function createPiniawithHydratedCache(caches: Record<string, UseQueryEntryNodeValueSerializd>) {
+    function createPiniawithHydratedCache(
+      caches: Record<string, UseQueryEntryNodeValueSerialized>,
+    ) {
       const pinia = createPinia()
       const app = createApp({})
       app.use(pinia)

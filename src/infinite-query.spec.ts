@@ -18,7 +18,7 @@ import {
   serializeQueryCache,
   useQueryCache,
 } from './query-store'
-import type { UseQueryEntryNodeValueSerializd } from './query-store'
+import type { UseQueryEntryNodeValueSerialized } from './query-store'
 
 describe('useInfiniteQuery', () => {
   beforeEach(() => {
@@ -1315,7 +1315,9 @@ describe('useInfiniteQuery', () => {
 
   // https://github.com/posva/pinia-colada/issues/486
   describe('hydration', () => {
-    function createPiniawithHydratedCache(caches: Record<string, UseQueryEntryNodeValueSerializd>) {
+    function createPiniawithHydratedCache(
+      caches: Record<string, UseQueryEntryNodeValueSerialized>,
+    ) {
       const pinia = createPinia()
       const app = createApp({})
       app.use(pinia)
