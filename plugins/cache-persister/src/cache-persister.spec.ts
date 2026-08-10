@@ -288,11 +288,9 @@ describe('PiniaColadaCachePersister', () => {
       const storage = createMockStorage()
       storage.data['pinia-colada-cache'] = 'custom-serialized'
       const date = new Date('2026-06-26T12:00:00.000Z')
-      const parse = vi.fn(
-        (): Record<string, [Date, null, number, Record<string, never>]> => ({
-          '["date"]': [date, null, 0, {}],
-        }),
-      )
+      const parse = vi.fn((): Record<string, [Date, null, number, Record<string, never>]> => ({
+        '["date"]': [date, null, 0, {}],
+      }))
 
       factory({ key: ['date'], query: async () => 'fresh', staleTime: 60_000 }, { storage, parse })
 

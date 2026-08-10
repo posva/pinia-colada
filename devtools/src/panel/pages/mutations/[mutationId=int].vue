@@ -248,8 +248,7 @@ watch(
           <pre
             v-if="selectedMutation.state.error"
             class="rounded p-1 overflow-auto max-h-[1200px]"
-            >{{ selectedMutation.state.error }}</pre
-          >
+            >{{ selectedMutation.state.error }}</pre>
           <p v-else class="text-neutral-500/50">No error</p>
         </div>
       </UCollapse>

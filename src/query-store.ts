@@ -258,9 +258,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   // and plugins won't be able to hook into entry creation and fetching
   // this allows use to attach reactive effects to the scope later on
   const scope = getCurrentScope()!
-  const app: App<unknown> =
-    // @ts-expect-error: internal
-    getActivePinia()!._a
+  const app: App<unknown> = getActivePinia()!._a
 
   if (process.env.NODE_ENV !== 'production') {
     if (!hasInjectionContext() && shouldWarnOnce('useQueryCache-injection-context')) {

@@ -10,6 +10,7 @@
 
 - [✨ &nbsp;Release Notes](/nuxt/CHANGELOG.md)
 - [📚 &nbsp;Documentation](https://pinia-colada.esm.dev/nuxt.html)
+
 <!-- - [🏀 Online playground](https://stackblitz.com/github/your-org/@pinia/colada-nuxt?file=playground%2Fapp.vue) -->
 
 Add the Pinia Colada Module to handle SSR and install Pinia Colada in your Nuxt application.

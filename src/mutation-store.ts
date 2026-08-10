@@ -154,9 +154,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     }
   }
 
-  const app: App<unknown> =
-    // @ts-expect-error: internal
-    getActivePinia()!._a
+  const app: App<unknown> = getActivePinia()!._a
 
   const globalOptions = useMutationOptions()
   const defineMutationMap = new WeakMap<() => unknown, DefineMutationEntry>()
@@ -409,8 +407,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     // TODO: AbortSignal that is aborted when the mutation is called again so we can throw in pending
     let currentData: TData | undefined
     let currentError: TError | undefined
-    type OnMutateContext =
-      /* Parameters<
+    type OnMutateContext = /* Parameters<
       Required<UseMutationOptions<TData, TVars, TError, TContext>>['onMutate']
     >['1'] */ UseMutationContextCommon<TData, TVars, TError, TContext>
     type OnSuccessContext = Parameters<
