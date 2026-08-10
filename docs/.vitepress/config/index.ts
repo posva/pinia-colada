@@ -1,9 +1,9 @@
 import { defineConfig } from 'vitepress'
 import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
 import llmstxt from 'vitepress-plugin-llms'
-import { extraFiles, readSnippets } from '../twoslash/files'
+import { extraFiles, readSnippets } from '../twoslash/files.ts'
 import { ModuleKind, ModuleResolutionKind, ScriptTarget } from 'typescript'
-import typedocSidebar from '../../api/typedoc-sidebar.json'
+import typedocSidebar from '../../api/typedoc-sidebar.json' with { type: 'json' }
 
 export const META_IMAGE = 'https://pinia-colada.esm.dev/social.png'
 export const META_URL = 'https://pinia-colada.esm.dev'
@@ -78,8 +78,8 @@ On top of that Pinia Colada is highly extensible. You can create your own plugin
     },
 
     attrs: {
-      leftDelimiter: '%{',
-      rightDelimiter: '}%',
+      left: '%{',
+      right: '}%',
     },
 
     anchor: {
