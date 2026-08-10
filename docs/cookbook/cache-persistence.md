@@ -78,6 +78,8 @@ PiniaColadaCachePersister({
 })
 ```
 
+The object handed to `stringify`, and expected back from `parse`, maps each query key hash to a `[data, error, when, meta]` tuple, where `when` is the local time (`Date.now()`) of its last fetch. Because that timestamp is absolute, an entry restored days later is correctly stale and refetches on mount instead of being served as fresh.
+
 Persistence is best-effort: if serializing or restoring the cache throws, the plugin skips that write or read and continues with a stale or empty cache instead of crashing.
 
 ## Custom Storage

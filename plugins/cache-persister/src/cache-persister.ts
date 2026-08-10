@@ -7,10 +7,11 @@
  */
 import type {
   PiniaColadaPluginContext,
+  QueryCache,
+  UseQueryEntry,
   UseQueryEntryFilter,
   _UseQueryEntryNodeValueSerialized,
 } from '@pinia/colada'
-import { hydrateQueryCache, _queryEntry_toJSON } from '@pinia/colada'
 import { diagnostics } from './diagnostics'
 
 type MaybePromise<T> = T | Promise<T>
@@ -18,8 +19,48 @@ type MaybePromise<T> = T | Promise<T>
 /**
  * Plain object the query cache is reduced to before being persisted. This is what custom
  * {@link CachePersisterOptions.stringify} and {@link CachePersisterOptions.parse} receive.
+ * Entries have the same shape as the SSR ones but hold an absolute `when` timestamp: a persisted
+ * entry is restored long after it was written, when an age would make it look freshly fetched.
  */
 export type PersistedQueryCache = Record<string, _UseQueryEntryNodeValueSerialized>
+
+/**
+ * Serializes an entry for storage. Adapted from `_queryEntry_toJSON()` to store `when` as an
+ * absolute time instead of an age.
+ *
+ * @param entry - entry to serialize
+ */
+const persistedEntry_toJSON = ({
+  state: { value },
+  when,
+  meta,
+}: UseQueryEntry): _UseQueryEntryNodeValueSerialized => [value.data, value.error, when, meta]
+
+/**
+ * Hydrates the query cache with persisted entries. Adapted from `hydrateQueryCache()`, which
+ * expects ages, to turn each entry's absolute `when` back into one at restore time.
+ *
+ * @param queryCache - query cache
+ * @param entries - persisted entries
+ */
+function hydratePersistedCache(queryCache: QueryCache, entries: PersistedQueryCache): void {
+  const now = Date.now()
+  for (const keyHash in entries) {
+    const [data, error, when, meta] = entries[keyHash]!
+    queryCache.caches.set(
+      keyHash,
+      queryCache.create(
+        JSON.parse(keyHash),
+        undefined,
+        data,
+        error,
+        // `create()` takes an age; clamped so a clock going backwards cannot make data fresher
+        when == null ? 0 : Math.max(0, now - when),
+        meta,
+      ),
+    )
+  }
+}
 
 /**
  * Async storage interface for storage backends that return promises.
@@ -182,7 +223,7 @@ export function PiniaColadaCachePersister(
               queryCache
                 // we only care about entries with data
                 .getEntries({ ...filter, status: 'success' })
-                .map((entry) => [entry.keyHash, _queryEntry_toJSON(entry)]),
+                .map((entry) => [entry.keyHash, persistedEntry_toJSON(entry)]),
             ),
           ),
         )
@@ -231,7 +272,7 @@ export function PiniaColadaCachePersister(
         // exist before queries created in the same tick fetch
         const stored = raw instanceof Promise ? await raw : raw
         if (stored) {
-          hydrateQueryCache(queryCache, parse(stored))
+          hydratePersistedCache(queryCache, parse(stored))
         }
       } catch (error) {
         // corrupt data, start fresh
