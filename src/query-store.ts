@@ -195,7 +195,7 @@ export type UseQueryEntryFilter = EntryFilter<UseQueryEntry>
  */
 export const queryEntry_toJSON: <TData, TError>(
   entry: UseQueryEntry<TData, TError>,
-) => UseQueryEntryNodeValueSerializd<TData, TError> = ({ state: { value }, when, meta }) => [
+) => UseQueryEntryNodeValueSerialized<TData, TError> = ({ state: { value }, when, meta }) => [
   value.data,
   value.error,
   // because of time zones, we create a relative time
@@ -951,7 +951,7 @@ export function isQueryCache(cache: unknown): cache is QueryCache {
  *
  * @internal
  */
-export type UseQueryEntryNodeValueSerializd<TData = unknown, TError = unknown> = [
+export type UseQueryEntryNodeValueSerialized<TData = unknown, TError = unknown> = [
   /**
    * The data returned by the query.
    */
@@ -981,7 +981,7 @@ export type UseQueryEntryNodeValueSerializd<TData = unknown, TError = unknown> =
  */
 export function hydrateQueryCache(
   queryCache: QueryCache,
-  serializedCache: Record<string, UseQueryEntryNodeValueSerializd>,
+  serializedCache: Record<string, UseQueryEntryNodeValueSerialized>,
 ) {
   for (const keyHash in serializedCache) {
     queryCache.caches.set(
@@ -1003,7 +1003,7 @@ export function hydrateQueryCache(
  */
 export function serializeQueryCache(
   queryCache: QueryCache,
-): Record<string, UseQueryEntryNodeValueSerializd> {
+): Record<string, UseQueryEntryNodeValueSerialized> {
   return Object.fromEntries(
     // TODO: 2028: directly use .map on the iterator
     [...queryCache.caches.entries()].map(([keyHash, entry]) => [keyHash, queryEntry_toJSON(entry)]),

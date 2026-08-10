@@ -112,7 +112,7 @@ export type {
 } from './entry-filter'
 export {
   queryEntry_toJSON as _queryEntry_toJSON,
-  type UseQueryEntryNodeValueSerializd as _UseQueryEntryNodeValueSerialized,
+  type UseQueryEntryNodeValueSerialized as _UseQueryEntryNodeValueSerialized,
 } from './query-store'
 
 export type {
