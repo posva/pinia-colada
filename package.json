@@ -73,7 +73,7 @@
     "@pinia/colada": "workspace:*",
     "@playwright/test": "^1.62.1",
     "@posva/test-utils": "workspace:*",
-    "@shikijs/vitepress-twoslash": "^4.4.2",
+    "@shikijs/vitepress-twoslash": "^4.4.3",
     "@size-limit/esbuild-why": "^13.0.3",
     "@size-limit/preset-small-lib": "^13.0.3",
     "@types/node": "^26.2.0",
@@ -83,12 +83,12 @@
     "@vitest/coverage-v8": "^4.1.10",
     "@vitest/ui": "^4.1.10",
     "@vue/test-utils": "^2.4.11",
-    "conventional-changelog": "^8.1.1",
-    "conventional-changelog-angular": "^9.2.1",
+    "conventional-changelog": "^8.1.2",
+    "conventional-changelog-angular": "^9.3.0",
     "happy-dom": "^20.11.2",
     "lint-staged": "^17.3.0",
-    "oxfmt": "^0.62.0",
-    "oxlint": "^1.77.0",
+    "oxfmt": "^0.63.0",
+    "oxlint": "^1.78.0",
     "oxlint-plugin-posva": "0.0.2",
     "pinia": "^4.0.2",
     "semver": "^7.8.5",
@@ -151,5 +151,5 @@
       ]
     }
   ],
-  "packageManager": "pnpm@11.9.0+sha512.bd682d5d03fe525ef7c9fd6780c6884d1e756ac4c9c9fe00c538782824310dcf90e3ddc4f53835f06dfaebd5085e41855e0bcbb3b60de2ac5bbab89e5036f03b"
+  "packageManager": "pnpm@11.21.0+sha512.521705bce689924eac72f5a3587122f362689ef6571e55ba80076fd637c11132ecffada26fad4ea79c485bfddbfd3d5a2a5b05805a77e893de71ec8a6cca3bb1"
 }
