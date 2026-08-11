@@ -113,6 +113,8 @@ export default defineConfig({
         // we are not event sure to keep them because we have
         // our own devtools
         'src/devtools',
+        // FIXME: devtools should have high level tests
+        'devtools',
         // just for show, so better not include in coverage
         // as it has no tests
         'plugins/debug',
