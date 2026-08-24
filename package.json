@@ -21,7 +21,10 @@
     "name": "Eduardo San Martin Morote",
     "email": "posva13@gmail.com"
   },
-  "repository": "posva/pinia-colada",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/posva/pinia-colada.git"
+  },
   "funding": "https://github.com/sponsors/posva",
   "files": [
     "dist",
