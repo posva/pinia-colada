@@ -53,8 +53,8 @@
     "build": "pnpm run --stream '/^build:/'"
   },
   "devDependencies": {
-    "@iconify-json/lucide": "^1.2.124",
-    "@microsoft/api-extractor": "^7.58.12",
+    "@iconify-json/lucide": "^1.2.125",
+    "@microsoft/api-extractor": "^7.59.0",
     "@pinia/colada": "workspace:^*",
     "@posva/splitpanes": "^4.0.6",
     "@tailwindcss/vite": "^4.3.3",
@@ -68,6 +68,6 @@
     "unplugin-vue-components": "^32.1.0",
     "vue": "^3.5.41",
     "vue-router": "^5.2.0",
-    "vue-tsc": "^3.3.10"
+    "vue-tsc": "^3.3.11"
   }
 }
