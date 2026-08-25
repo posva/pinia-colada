@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "paths": {
+      "@pinia/colada-devtools/panel": ["../devtools/src/panel/index.ts"],
+      "@pinia/colada-devtools/shared": ["../devtools/src/shared/index.ts"],
+      "@pinia/colada-devtools/app-bridge": ["../devtools/src/app-bridge.ts"]
+    },
+    "verbatimModuleSyntax": true,
+    "types": ["vite/client"]
+  },
+  "include": ["env.d.ts", "src", "client/src", "client/vite.config.ts"]
+}

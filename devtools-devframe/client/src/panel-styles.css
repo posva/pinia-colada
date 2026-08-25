@@ -1,0 +1,4 @@
+/* The devtools sources live outside this package's vite root, so tailwind's
+   automatic source detection misses them — scan them explicitly. */
+@source '../../../devtools/src/panel';
+@import '../../../devtools/src/panel/styles.css';
