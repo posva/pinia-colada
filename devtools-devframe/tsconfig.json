@@ -17,5 +17,5 @@
     "verbatimModuleSyntax": true,
     "types": ["vite/client"]
   },
-  "include": ["env.d.ts", "src", "client/src", "client/vite.config.ts"]
+  "include": ["src", "client/src", "client/vite.config.ts"]
 }
