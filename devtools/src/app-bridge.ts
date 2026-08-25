@@ -155,7 +155,11 @@ export function setupDevtoolsAppBridge(
     if (entry) {
       entry.asyncStatus.value = 'loading'
       ensureQueryDevtoolsInfo(entry).simulate = 'loading'
-      transmitter.emit('queries:update', createQueryEntryPayload(entry))
+      const payload = createQueryEntryPayload(entry)
+      // plugins may defer the ref write (e.g. the delay plugin), but the
+      // devtools must reflect the simulation immediately
+      payload.asyncStatus = 'loading'
+      transmitter.emit('queries:update', payload)
     }
   })
   transmitter.on('queries:simulate:loading:stop', (key) => {
@@ -163,7 +167,9 @@ export function setupDevtoolsAppBridge(
     if (entry && ensureQueryDevtoolsInfo(entry).simulate === 'loading') {
       entry.asyncStatus.value = 'idle'
       ensureQueryDevtoolsInfo(entry).simulate = null
-      transmitter.emit('queries:update', createQueryEntryPayload(entry))
+      const payload = createQueryEntryPayload(entry)
+      payload.asyncStatus = 'idle'
+      transmitter.emit('queries:update', payload)
     }
   })
 
@@ -213,7 +219,11 @@ export function setupDevtoolsAppBridge(
     if (entry) {
       entry.asyncStatus.value = 'loading'
       ensureMutationDevtoolsInfo(entry).simulate = 'loading'
-      transmitter.emit('mutations:update', createMutationEntryPayload(entry))
+      const payload = createMutationEntryPayload(entry)
+      // plugins may defer the ref write (e.g. the delay plugin), but the
+      // devtools must reflect the simulation immediately
+      payload.asyncStatus = 'loading'
+      transmitter.emit('mutations:update', payload)
     }
   })
 
@@ -222,7 +232,9 @@ export function setupDevtoolsAppBridge(
     if (entry && ensureMutationDevtoolsInfo(entry).simulate === 'loading') {
       entry.asyncStatus.value = 'idle'
       ensureMutationDevtoolsInfo(entry).simulate = null
-      transmitter.emit('mutations:update', createMutationEntryPayload(entry))
+      const payload = createMutationEntryPayload(entry)
+      payload.asyncStatus = 'idle'
+      transmitter.emit('mutations:update', payload)
     }
   })
 
