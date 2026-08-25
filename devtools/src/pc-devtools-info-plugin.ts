@@ -160,11 +160,14 @@ function addDevtoolsQueryInfo(queryCache: QueryCache): void {
 }
 
 export function createQueryEntryPayload(entry: UseQueryEntry): UseQueryEntryPayload {
+  const devtools = ensureQueryDevtoolsInfo(entry)
   return {
     keyHash: entry.keyHash,
     key: entry.key,
     state: entry.state.value,
-    asyncStatus: entry.asyncStatus.value,
+    // plugins may defer the ref write (e.g. the delay plugin), but the
+    // devtools must reflect a simulated loading immediately
+    asyncStatus: devtools.simulate === 'loading' ? 'loading' : entry.asyncStatus.value,
 
     active: entry.active,
     stale: entry.stale,
@@ -192,7 +195,7 @@ export function createQueryEntryPayload(entry: UseQueryEntry): UseQueryEntryPayl
     ),
     gcTimeout: typeof entry.gcTimeout === 'number' ? (entry.gcTimeout as number) : null,
 
-    devtools: ensureQueryDevtoolsInfo(entry),
+    devtools,
     plugins: Object.fromEntries(
       Object.entries(entry.ext).filter(([, v]) => v !== null && typeof v === 'object' && !isRef(v)),
     ),
@@ -241,7 +244,8 @@ export function createMutationEntryPayload(entry: UseMutationEntry): UseMutation
     id: entry.id,
     key: entry.key,
     state: entry.state.value,
-    asyncStatus: entry.asyncStatus.value,
+    // see createQueryEntryPayload
+    asyncStatus: devtools.simulate === 'loading' ? 'loading' : entry.asyncStatus.value,
     when: entry.when,
     vars: entry.vars,
     options: entry.options && {
