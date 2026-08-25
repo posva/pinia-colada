@@ -1,0 +1,45 @@
+{
+  "name": "@pinia/colada-devtools-devframe",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Devtools for Pinia Colada built on devframe",
+  "author": {
+    "name": "Eduardo San Martin Morote",
+    "email": "posva13@gmail.com"
+  },
+  "license": "MIT",
+  "homepage": "https://pinia-colada.esm.dev",
+  "repository": "posva/pinia-colada",
+  "exports": {
+    ".": "./src/devframe.ts",
+    "./vite": "./src/vite.ts",
+    "./client-script": "./src/client-script/index.ts"
+  },
+  "scripts": {
+    "dev": "vite build client --watch",
+    "build": "vite build client",
+    "test:types": "vue-tsc --noEmit"
+  },
+  "dependencies": {
+    "devframe": "^0.9.5"
+  },
+  "devDependencies": {
+    "@iconify-json/lucide": "^1.2.125",
+    "@pinia/colada": "workspace:^*",
+    "@posva/splitpanes": "^4.0.6",
+    "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/devtools-kit": "^0.6.0",
+    "@vitejs/plugin-vue": "^6.0.8",
+    "@vueuse/core": "^14.4.0",
+    "pinia": "^4.0.3",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~6.0.3",
+    "unplugin-icons": "^23.0.1",
+    "unplugin-vue-components": "^32.1.0",
+    "vite": "^8.2.2",
+    "vue": "^3.5.41",
+    "vue-router": "^5.2.0",
+    "vue-tsc": "^3.3.11"
+  }
+}

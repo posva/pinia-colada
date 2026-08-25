@@ -3,6 +3,7 @@ packages:
   - plugins/*
   - nuxt
   - devtools
+  - devtools-devframe
   - test-utils
 allowBuilds:
   '@ast-grep/cli': true
