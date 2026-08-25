@@ -7,10 +7,12 @@ import TailwindCSS from '@tailwindcss/vite'
 import IconsResolver from 'unplugin-icons/resolver'
 import Icons from 'unplugin-icons/vite'
 import Components from 'unplugin-vue-components/vite'
+// reuse the devtools aliases (they are absolute paths); the plugins are
+// declared here instead of reused because this build must not run the
+// devtools' Dts/VueDevtools plugins
+import devtoolsConfig from '../../devtools/vite.config'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-// build the panel host against the devtools sources — same toolchain as
-// devtools/vite.config.ts, pointed at the workspace files
 const devtoolsDir = resolve(__dirname, '../../devtools')
 const UiComponentRe = /^U[A-Z][a-z]/
 
@@ -20,26 +22,16 @@ export default defineConfig({
   resolve: {
     alias: [
       {
-        find: /^@pinia\/colada$/,
-        replacement: resolve(__dirname, '../../src/index.ts'),
-      },
-      {
-        find: /^@pinia\/colada-devtools\/panel$/,
-        replacement: resolve(devtoolsDir, './src/panel/index.ts'),
-      },
-      {
-        find: /^@pinia\/colada-devtools\/shared$/,
-        replacement: resolve(devtoolsDir, './src/shared/index.ts'),
+        find: /^@pinia\/colada-devtools\/panel\/index\.css$/,
+        // must come before the devtools alias for the same specifier: wrapper
+        // adding an explicit tailwind @source for the devtools files
+        replacement: resolve(__dirname, './src/panel-styles.css'),
       },
       {
         find: /^@pinia\/colada-devtools\/app-bridge$/,
         replacement: resolve(devtoolsDir, './src/app-bridge.ts'),
       },
-      {
-        find: /^@pinia\/colada-devtools\/panel\/index\.css$/,
-        // wrapper adding an explicit tailwind @source for the devtools files
-        replacement: resolve(__dirname, './src/panel-styles.css'),
-      },
+      ...(devtoolsConfig.resolve!.alias as { find: RegExp; replacement: string }[]),
     ],
   },
   plugins: [
@@ -94,8 +86,4 @@ export default defineConfig({
     }),
     TailwindCSS(),
   ],
-  build: {
-    outDir: 'dist',
-    emptyOutDir: true,
-  },
 })
