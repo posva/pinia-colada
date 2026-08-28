@@ -1,26 +1,26 @@
 /**
- * Dock client script: runs inside the inspected app page (same Vite module
- * graph as the app, so `pinia` / `@pinia/colada` and the devtools sources
- * resolve to the app's own instances). Reuses the app-side wiring from
- * `@pinia/colada-devtools` (`setupDevtoolsAppBridge`) over a local
- * `MessageChannel` and relays the raw `{ id, data }` envelopes through
- * devframe, one cache event per message. The envelopes are forwarded without
- * decoding: the payloads are already serialization-safe (`DuplexChannel.emit`
- * ran them through `toRawDeep`) and only the panel end restores them.
+ * Dock client script, a.k.a. the in-page channel's **page script**: runs
+ * inside the inspected app page (same Vite module graph as the app, so
+ * `pinia` / `@pinia/colada` and the devtools sources resolve to the app's own
+ * instances). Reuses the app-side wiring from `@pinia/colada-devtools`
+ * (`setupDevtoolsAppBridge`) over a local `MessageChannel` and relays the raw
+ * `{ id, args }` envelopes to the panels through the channel.
+ *
+ * It is the authority of the channel: panels handshake with it directly, so no
+ * devframe server round-trip (and no auth) is involved, and a panel that
+ * connects — or reconnects after a reload — gets a full replay, the same
+ * `ready → sendAll` handshake the in-app devtools do on the element's `ready`
+ * event.
  */
-import type { DevframeRpcClient } from 'devframe/client'
+import { createPageScriptChannel, defineChannelFunction } from 'devframe/in-page-channel'
 import type { QueryCache, MutationCache } from '@pinia/colada'
 import { getActivePinia } from 'pinia'
 import type { Pinia } from 'pinia'
 import { DuplexChannel } from '@pinia/colada-devtools/shared'
 import type { AppEmits, DevtoolsEmits } from '@pinia/colada-devtools/shared'
 import { setupDevtoolsAppBridge } from '@pinia/colada-devtools/app-bridge'
-
-// structural subset of the kit's DockClientScriptContext — importing the kit's
-// client types would pull a second devframe type instance into the program
-interface DockClientScriptContext {
-  rpc: DevframeRpcClient
-}
+import { PINIA_COLADA_CHANNEL } from '../channel.ts'
+import type { PiniaColadaChannelProtocol } from '../channel.ts'
 
 const PINIA_WAIT_TIMEOUT = 15_000
 
@@ -35,10 +35,12 @@ async function waitForActivePinia(): Promise<Pinia | null> {
   return null
 }
 
-export default async function setupPiniaColadaBridge(ctx: DockClientScriptContext) {
+export default async function setupPiniaColadaBridge() {
   const pinia = await waitForActivePinia()
   if (!pinia) {
-    // standalone viewer or an app without pinia: nothing to inspect here
+    // standalone viewer or an app without pinia: nothing to inspect here, so
+    // never answer a handshake — panels stay `connecting` and show their empty
+    // state
     return
   }
 
@@ -46,33 +48,34 @@ export default async function setupPiniaColadaBridge(ctx: DockClientScriptContex
   const queryCache: QueryCache = useQueryCache(pinia)
   const mutationCache: MutationCache = useMutationCache(pinia)
 
-  const my = ctx.rpc.scope('pinia-colada')
-
   const mc = new MessageChannel()
   const transmitter = new DuplexChannel<AppEmits, DevtoolsEmits>(mc.port1)
   const bridge = setupDevtoolsAppBridge(queryCache, mutationCache, transmitter)
 
-  // AppEmits → panels
+  const channel = createPageScriptChannel<PiniaColadaChannelProtocol>({
+    name: PINIA_COLADA_CHANNEL,
+    functions: [
+      // DevtoolsEmits ← panels
+      defineChannelFunction({
+        name: 'devtools-emit',
+        type: 'event',
+        handler: (id: string, args: unknown[]) => {
+          mc.port2.postMessage({ id, data: args })
+        },
+      }),
+    ],
+  })
+
+  // AppEmits → every connected panel
   mc.port2.addEventListener('message', (event) => {
     const { id, data } = event.data as { id: string; data: unknown[] }
-    my.rpc.callEvent('panel-event', id, data)
+    channel.callEvent('app-emit', id, data)
   })
   mc.port2.start()
 
-  // DevtoolsEmits ← panels, relayed by the server as broadcasts
-  my.rpc.register({
-    name: 'app-event',
-    type: 'action',
-    handler: (id: string, data: unknown[]) => {
-      // a (re)connecting panel asks for the current entries
-      if (id === 'devtools:ready') {
-        bridge.sendAll()
-        return
-      }
-      mc.port2.postMessage({ id, data })
-    },
+  // a panel that just connected has an empty UI; this also covers reconnects
+  // after a panel or app reload, since those are just a new handshake
+  channel.events.on('panel:connected', () => {
+    bridge.sendAll()
   })
-
-  // panels that connected before this page load
-  bridge.sendAll()
 }
