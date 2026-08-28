@@ -15,7 +15,7 @@
  */
 import { connectPanelChannel, defineChannelFunction } from 'devframe/in-page-channel'
 import { DevtoolsPanel } from '@pinia/colada-devtools/panel'
-import { attachCssPropertyRules } from '@pinia/colada-devtools/app-bridge'
+import { attachCssPropertyRules } from '../../../src/app-bridge.ts'
 import { PINIA_COLADA_CHANNEL } from '../../src/channel.ts'
 import type { PiniaColadaChannelProtocol } from '../../src/channel.ts'
 
@@ -65,11 +65,13 @@ channel.whenConnected(PAGE_SCRIPT_TIMEOUT).catch(() => {
 const el = document.createElement('pinia-colada-devtools-panel') as HTMLElement & {
   port: MessagePort
   isPip: boolean
+  isDevframe: boolean
   channel: typeof channel
 }
 el.port = mc.port2
 // PiP layout = fill the window, which is exactly what the iframe dock needs
 el.isPip = true
+el.isDevframe = true
 el.channel = channel
 el.style.display = 'block'
 el.style.height = '100%'

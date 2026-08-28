@@ -65,7 +65,7 @@
     "test:cov": "vitest run --coverage",
     "test:e2e:hmr": "playwright test",
     "build": "tsdown",
-    "build:all": "pnpm run --stream --parallel --filter './plugins/*' --filter './nuxt' --filter './devtools' --filter './devtools-devframe' build",
+    "build:all": "pnpm run --stream --parallel --filter './plugins/*' --filter './nuxt' --filter './devtools' build",
     "size": "size-limit",
     "codemods:test": "ast-grep test",
     "prepare": "simple-git-hooks"

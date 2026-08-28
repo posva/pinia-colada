@@ -39,15 +39,11 @@
     "@nuxt/schema": "^4.5.2",
     "@nuxt/test-utils": "^4.1.0",
     "@pinia/colada": "workspace:*",
+    "@pinia/colada-devtools": "workspace:^",
     "@pinia/nuxt": "^1.0.2",
     "nuxi": "^3.37.0",
     "nuxt": "^4.5.2",
     "typescript": "~6.0.3",
     "vue-tsc": "^3.3.11"
-  },
-  "pnpm": {
-    "overrides": {
-      "@nuxt/devtools": "npm:@nuxt/devtools-nightly@latest"
-    }
   }
 }

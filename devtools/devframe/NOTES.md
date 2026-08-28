@@ -1,4 +1,4 @@
-# devtools-devframe — implementation notes
+# devtools/devframe — implementation notes
 
 Port of the Pinia Colada devtools to [Vite DevTools](https://devtools.vite.dev/)
 through [devframe](https://devfra.me/). Written down while it's fresh: the
@@ -86,10 +86,11 @@ type), imported by both endpoints.
   and only the receiving `DuplexChannel` restores them. Hence no
   `jsonSerializable: true`: the envelopes legitimately carry values JSON
   cannot round-trip.
-- **Workspace-only wiring.** The package resolves `devtools/` sources by
-  relative path (vite aliases + tsconfig `paths`). Fine while private; a
-  publishable version would need real `exports` on `@pinia/colada-devtools`
-  for `app-bridge`/`shared` source (or built) entry points.
+- **Bundle the internal bridge.** The client-script build aliases the internal
+  shared entry to the package source and bundles it together with the app
+  bridge. Vue, Pinia, and Pinia Colada stay external so the inspected app's
+  instances are used. This keeps implementation-only entry points private
+  while making the published client script self-contained.
 
 ## Bug found and fixed (pre-existing upstream)
 
@@ -136,7 +137,7 @@ in-app devtools too. Fix: the payload creators derive `asyncStatus` from
   natively with Node, so everything reachable from the plugin entry needs
   explicit `.ts` extensions, JSON import attributes, and must not import the
   `devtools/` sources (extensionless internal imports). That's why
-  `src/vite.ts` / `src/devframe.ts` import with explicit `.ts`, and why
+  `src/vite.ts` / `src/index.ts` import with explicit `.ts`, and why
   `src/channel.ts` stays dependency-free (loose `unknown[]` envelopes instead
   of the `AppEmits` / `DevtoolsEmits` types) — it is shared with the page
   script, which is reachable from the plugin entry only as a bare specifier
@@ -173,9 +174,12 @@ d.ts/dist or trial and error:
   `importMetaUrl` (DF0008). Absolute path via `fileURLToPath` required.
 - **Dock icons**: accept a served URL (or `{ light, dark }`), documented only
   in `DevframeDockEntryIcon`'s jsdoc.
-- **DF8111 is a false positive** when the Vite host _does_ advertise
-  `clientModuleResolution` — the warning fires at registration time, before
-  the template is known.
+- **Nuxt's Vite base applies to `/@fs/`.** Standalone Vite serves the bundled
+  page script at `/@fs//absolute/path`, while Nuxt DevTools 4's Vite server is
+  mounted at `/_nuxt/`. The Vite adapter updates the synthesized dock after
+  installation using `ctx.viteConfig.base`, yielding
+  `/_nuxt/@fs//absolute/path` under Nuxt. Supplying an absolute Vite URL also
+  avoids DF8111 on hosts that do not advertise bare-module resolution.
 - **The kit plugin owns a `config` hook** — spreading
   `{ ...createPluginFromDevframe(...), config }` clobbers it; return an array
   of plugins instead.
@@ -209,10 +213,8 @@ d.ts/dist or trial and error:
   only signal a user gets that the app is not instrumented (the panel itself
   looks identical to one with an empty cache). A real empty state would want
   `channel.events.on('status:updated')` wired into the panel element.
-- The alias for `@pinia/colada-devtools/app-bridge` is what makes the import
-  resolve (the package has no such export); a publishable version needs a
-  real subpath export. The alias is also app-global — an app that mounts the
-  in-app `<PiniaColadaDevtools />` _and_ this dock would get two bridge
+- The client script bundles its own app bridge. An app that mounts the in-app
+  `<PiniaColadaDevtools />` _and_ this dock would therefore get two bridge
   copies with two distinct `DEVTOOLS_INFO_KEY` symbols.
 - The `srvx` peer split (two devframe type instances) should be reported
   upstream to `@vitejs/devtools-kit` / devframe.

@@ -52,5 +52,5 @@ const containerClasses = computed(() => {
   >
     <slot />
   </aside>
-  <ResizablePanel v-model:translate="pipContainerHeight" />
+  <ResizablePanel v-if="!isPip" v-model:translate="pipContainerHeight" />
 </template>

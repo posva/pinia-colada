@@ -13,6 +13,7 @@ import coladaOptions from '#build/colada.options'
 export default defineNuxtPlugin({
   name: 'Pinia Colada',
   // makes this plugin run after the Pinia plugin
+  // @ts-expect-error @pinia/nuxt may register its plugin after Nuxt generates the plugin-name union
   dependsOn: ['pinia'],
   setup(nuxtApp) {
     nuxtApp.vueApp.use(PiniaColada, {
@@ -39,7 +40,10 @@ export default defineNuxtPlugin({
       })
     } else if (nuxtApp.payload && nuxtApp.payload.pinia_colada) {
       // we are inside of an injectable context so `useQueryCache()` works
-      hydrateQueryCache(queryCache, nuxtApp.payload.pinia_colada)
+      hydrateQueryCache(
+        queryCache,
+        nuxtApp.payload.pinia_colada as ReturnType<typeof serializeQueryCache>,
+      )
     }
   },
 })
