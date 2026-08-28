@@ -10,23 +10,32 @@ The package **reuses** the `devtools/` sources instead of forking them. The
 only thing replaced is the transport: the original devtools talk over a
 `DuplexChannel` (a typed wrapper around a `MessagePort` pair) between the app
 and the panel custom element. Here, both sides still speak `DuplexChannel` —
-each side gets a local `MessageChannel`, and devframe relays the raw
+each side gets a local `MessageChannel`, and devframe's
+[in-page channel](https://devfra.me/guide/in-page-channel) carries the raw
 `{ id, data }` envelopes between the two pages, one cache event per message:
-two mirrored server actions (`panel-event` for `AppEmits`, `app-event` for
-`DevtoolsEmits`) each **broadcast** to the other side. Full sync happens on
-demand: the bridge sends everything when it starts, and a panel asks with a
-`devtools:ready` event when it connects — the same `ready → sendAll`
-handshake the in-app devtools use.
+`app-emit` (`AppEmits`, page script → every panel) and `devtools-emit`
+(`DevtoolsEmits`, panel → page script). No server is involved — the panel
+finds the page script through a same-origin `postMessage` handshake, so there
+is nothing to authenticate and the transport behaves the same in a dev server
+and in a static build. Full sync is the page script's own doing: it replays
+everything on `panel:connected`, the analogue of the `ready → sendAll`
+handshake the in-app devtools do on the element's `ready` event, and it fires
+again on every re-handshake (panel or app reload).
 
 ```
-app page                          devframe server           panel iframe
-────────                          ───────────────           ────────────
-setupDevtoolsAppBridge                                      <pinia-colada-devtools-panel>
-  ⇅ DuplexChannel (port pair)                                 ⇅ DuplexChannel (port pair)
-client script relays:                                       panel host relays:
-  AppEmits ─────────────────▶ 'panel-event' ──broadcast──▶  → panel port
-  DevtoolsEmits ◀──broadcast── 'app-event' ◀──────────────  ← panel emits (+ 'devtools:ready')
+app page (page script = authority)                    panel iframe
+──────────────────────────────────                    ────────────
+setupDevtoolsAppBridge                    <pinia-colada-devtools-panel>
+  ⇅ DuplexChannel (port pair)               ⇅ DuplexChannel (port pair)
+createPageScriptChannel relays:           connectPanelChannel relays:
+  AppEmits ──────────▶ 'app-emit' ─────────────────────▶ panel port
+  DevtoolsEmits ◀───── 'devtools-emit' ◀───────────────── panel emits
+       ▲
+       └─ 'panel:connected' → bridge.sendAll()
 ```
+
+The contract lives in `src/channel.ts` (the channel name plus the protocol
+type), imported by both endpoints.
 
 ## Choices made
 
@@ -42,23 +51,41 @@ client script relays:                                       panel host relays:
   client script can run it outside a component. Also fixed a real bug there
   (see below).
 - **Keep `DuplexChannel` as the seam.** Rather than teaching the panel and the
-  bridge about devframe, both keep their `MessagePort` contract and ~40 lines
-  of relay glue on each side translate to devframe primitives. The panel and
-  bridge code stay byte-identical with the in-app devtools.
-- **Granular broadcasts, not shared state.** A first version mirrored the
-  caches into devframe shared state (nice replay-on-connect semantics), but
-  devframe syncs shared state as the **full object on every mutation** (no
-  patches by default), so each cache event shipped the entire cache over the
-  socket up to three times and forced the panel to rebuild every row. The
-  final version relays the original granular `queries:update`/`delete` events
-  as broadcasts — O(one entry) per event — and reuses the devtools' own
-  `ready → sendAll` handshake for late joiners. Less code _and_ less traffic.
+  bridge about devframe, both keep their `MessagePort` contract and ~30 lines
+  of relay glue on each side translate to in-page channel primitives. The
+  panel and bridge code stay byte-identical with the in-app devtools.
+- **In-page channel, not the server RPC.** The first working version relayed
+  every envelope through two mirrored server actions that re-broadcast to the
+  other side, so each cache event made a round trip over the websocket to
+  Node and back to a page next to the one that sent it. The in-page channel is
+  the direct link for exactly this shape of traffic, and swapping to it
+  deleted the whole server surface: no `defineRpcFunction`s, no
+  `DevframeRpcServerFunctions` augmentation, no `connectDevframe()` /
+  `ensureTrusted()` in the panel, no synthetic `devtools:ready` id (that is
+  `panel:connected` now). Reconnects come for free — a dead port re-handshakes
+  and the page script replays — which retires the "events missed while the
+  socket was down are only recovered by reopening the dock" edge. It also
+  narrows the reach: see the rough edges below.
+- **Granular events, not shared state.** A first version mirrored the caches
+  into devframe shared state (nice replay-on-connect semantics), but the node
+  and client hosts construct their stores without `enablePatches`, so each
+  cache event shipped the entire cache up to three times and forced the panel
+  to rebuild every row. The final version relays the original granular
+  `queries:update`/`delete` events — O(one entry) per event — and lets the
+  bridge's own `sendAll` cover late joiners. Less code _and_ less traffic.
+  (The in-page channel's shared state _does_ send patches, but per-entry
+  events are still the better fit and keep both sides on `DuplexChannel`.)
 - **`isPip = true` for the panel.** The custom element has two layouts:
   bottom-docked overlay (in-app) and fill-the-window (PiP). An iframe dock is
   semantically the PiP case.
-- **Generic `app-event(name, args)` relay** instead of one typed RPC per
-  devtools action. 17 actions exist and they all follow the same shape; the
-  typed contract already lives in `DevtoolsEmits`.
+- **Two generic `(id, args)` channel functions** instead of one typed function
+  per devtools action. 17 actions exist and they all follow the same shape;
+  the typed contract already lives in `AppEmits` / `DevtoolsEmits`, and the
+  relay never decodes an envelope — the payloads are already
+  structured-clone-safe (`DuplexChannel.emit` ran them through `toRawDeep`)
+  and only the receiving `DuplexChannel` restores them. Hence no
+  `jsonSerializable: true`: the envelopes legitimately carry values JSON
+  cannot round-trip.
 - **Workspace-only wiring.** The package resolves `devtools/` sources by
   relative path (vite aliases + tsconfig `paths`). Fine while private; a
   publishable version would need real `exports` on `@pinia/colada-devtools`
@@ -85,13 +112,22 @@ in-app devtools too. Fix: the payload creators derive `asyncStatus` from
   had the theme but no utilities. Fix: `client/src/panel-styles.css` wraps the
   real stylesheet with an explicit `@source '../../../devtools/src/panel'`.
   Diagnosed by inspecting `shadowRoot.adoptedStyleSheets` in the browser.
-- **Duplicated devframe type identity.** pnpm materializes two `devframe`
-  instances (with/without the `srvx` peer that `@vitejs/devtools-kit` brings),
-  so `declare module 'devframe'` augmentations merged into only one of them —
+- **Duplicated devframe type identity** (historical — the in-page channel
+  swap removed it). pnpm materializes two `devframe` instances (with/without
+  the `srvx` peer that `@vitejs/devtools-kit` brings), so
+  `declare module 'devframe'` augmentations merged into only one of them —
   and _which one_ depended on program file order, making `vue-tsc` fail
-  nondeterministically. Worked around by not importing the kit's client types
-  (a structural `{ rpc: DevframeRpcClient }` subset instead) and calling
-  `broadcast` through a structural type. Upstream packaging issue.
+  nondeterministically. Now that the package augments nothing and imports no
+  client RPC types, there is nothing to merge; the `srvx` split is still there
+  and still an upstream packaging issue.
+- **Version skew is a hard type error at the kit boundary.** `devframe@0.9.6`
+  against a `@vitejs/devtools-kit` whose own `devframe` was still pinned to
+  `0.9.5` makes `createPluginFromDevframe(createPiniaColadaDevframe())` fail
+  with a 30-line structural mismatch bottoming out at
+  `'hub:docks:activate' is not assignable to keyof DevframeRpcServerFunctions`
+  — i.e. the two copies disagree on the hub protocol, not on anything this
+  package wrote. Fixed by bumping the kit so its `devframe: ^0.9.5` re-resolves
+  to the same 0.9.6.
 - **The impossible snapshot.** Debugging the simulate-loading bug: the payload
   had `asyncStatus: 'idle'` _and_ `devtools.simulate: 'loading'`, which cannot
   coexist as a synchronous snapshot given the handler's write order — the tell
@@ -100,11 +136,16 @@ in-app devtools too. Fix: the payload creators derive `asyncStatus` from
   natively with Node, so everything reachable from the plugin entry needs
   explicit `.ts` extensions, JSON import attributes, and must not import the
   `devtools/` sources (extensionless internal imports). That's why
-  `src/state.ts` keeps loose types and the payload types stay browser-side.
-- **Auth ergonomics under automation.** devframe tokens live in
-  `sessionStorage` (per tab) and OTP codes expire in 5 minutes, so every fresh
-  browser context needs the magic-link fragment on a _hard_ navigation
-  (fragment-only URL changes don't reload, the OTP is never read).
+  `src/vite.ts` / `src/devframe.ts` import with explicit `.ts`, and why
+  `src/channel.ts` stays dependency-free (loose `unknown[]` envelopes instead
+  of the `AppEmits` / `DevtoolsEmits` types) — it is shared with the page
+  script, which is reachable from the plugin entry only as a bare specifier
+  string.
+- **Auth ergonomics under automation.** The panel no longer needs a devframe
+  connection, but the _hub_ still does before it will mount a dock: devframe
+  tokens live in `sessionStorage` (per tab) and OTP codes expire in 5 minutes,
+  so every fresh browser context needs the magic-link fragment on a _hard_
+  navigation (fragment-only URL changes don't reload, the OTP is never read).
 
 ## What required extra research (not in the devframe skill)
 
@@ -117,13 +158,17 @@ d.ts/dist or trial and error:
   (`configs.dock.clientModuleResolution`), and the crucial detail that
   **hub-ui runs an iframe dock's client script lazily on first activation**,
   not at page load (`createDevframeClientHost` loads them eagerly — the
-  embedded viewer doesn't). Consequence: the bridge starts when the dock is
-  first opened; the full re-sync on start covers the gap.
-- **Shared state syncs the full object per mutation** — `enablePatches`
-  exists on `SharedStateOptions` but the client and node hosts construct
-  their stores without it, so `on('updated')` always ships the whole value.
-  Fine for settings-sized state, wrong for a per-entry cache mirror; that's
-  why this package relays events instead.
+  embedded viewer doesn't). Consequence: the page script starts when the dock
+  is first opened, which the channel's retrying handshake plus the
+  `panel:connected` replay make invisible.
+- **Shared state syncs the full object per mutation** (server RPC flavour) —
+  `enablePatches` exists on `SharedStateOptions` but the client and node hosts
+  construct their stores without it, so `on('updated')` always ships the whole
+  value. Fine for settings-sized state, wrong for a per-entry cache mirror.
+  The in-page channel's own shared state does converge by patches, but this
+  package relays events either way.
+- **`in-page-channel` is 0.9.6+**: `devframe@0.9.5` has no such export, so the
+  subpath simply does not resolve on the older version.
 - **`clientAssets` resolution**: a relative string resolved against cwd, not
   `importMetaUrl` (DF0008). Absolute path via `fileURLToPath` required.
 - **Dock icons**: accept a served URL (or `{ light, dark }`), documented only
@@ -147,11 +192,23 @@ d.ts/dist or trial and error:
 
 - Panel header still shows the PiP and close buttons (inert in the iframe) —
   hide behind a prop or wire close to the dock host.
-- Bridge starts on first dock activation (see above); an eager variant would
-  need a host that loads client scripts at boot.
-- Events missed while the websocket is down are only recovered by reopening
-  the dock or reloading — the panel could re-send `devtools:ready` on the
-  client's `connection:status` reconnect event.
+- Page script starts on first dock activation (see above); an eager variant
+  would need a host that loads client scripts at boot. Harmless now — the
+  panel keeps retrying its hello with backoff until the page script shows up.
+- **Same-tab only.** The in-page channel reaches the page script through the
+  panel's ancestor chain plus its `opener`, so a panel opened as an unrelated
+  top-level tab (rather than embedded in the app page, popped out, or
+  `window.open`ed from it) can never connect — where the old server relay
+  would have worked from anywhere. Fine for the embedded iframe dock, which is
+  the only way this package is mounted today; a remote or external viewer
+  would have to keep an RPC path alongside.
+- An app open in several tabs means several page scripts on one origin. Each
+  carries a per-tab instance id and handshakes are targeted, so a dock pairs
+  with its own tab; pinning would need `connectPanelChannel({ instanceId })`.
+- The panel logs a console warning after 10s with no page script, which is the
+  only signal a user gets that the app is not instrumented (the panel itself
+  looks identical to one with an empty cache). A real empty state would want
+  `channel.events.on('status:updated')` wired into the panel element.
 - The alias for `@pinia/colada-devtools/app-bridge` is what makes the import
   resolve (the package has no such export); a publishable version needs a
   real subpath export. The alias is also app-global — an app that mounts the
@@ -159,3 +216,8 @@ d.ts/dist or trial and error:
   copies with two distinct `DEVTOOLS_INFO_KEY` symbols.
 - The `srvx` peer split (two devframe type instances) should be reported
   upstream to `@vitejs/devtools-kit` / devframe.
+- `@devframes/hub` and `@devframes/json-render` pin `devframe` to an _exact_
+  version, so while the workspace runs `devframe@0.9.6` against the hub
+  packages still at `0.9.5` (held back by the release-age policy on the
+  lockfile), `pnpm peers check` reports an unmet peer. It resolves itself on
+  the next install once 0.9.6 ages past the gate.
