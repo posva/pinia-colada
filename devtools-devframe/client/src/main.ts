@@ -28,21 +28,6 @@ if (!customElements.get('pinia-colada-devtools-panel')) {
 
 const mc = new MessageChannel()
 
-const el = document.createElement('pinia-colada-devtools-panel') as HTMLElement & {
-  port: MessagePort
-  isPip: boolean
-}
-el.port = mc.port2
-// PiP layout = fill the window, which is exactly what the iframe dock needs
-el.isPip = true
-el.style.display = 'block'
-el.style.height = '100%'
-el.addEventListener('ready', () => {
-  // @property rules are ignored inside shadow DOM
-  attachCssPropertyRules(el)
-})
-document.getElementById('app')!.appendChild(el)
-
 const channel = connectPanelChannel<PiniaColadaChannelProtocol>({
   name: PINIA_COLADA_CHANNEL,
   functions: [
@@ -56,6 +41,8 @@ const channel = connectPanelChannel<PiniaColadaChannelProtocol>({
     }),
   ],
 })
+
+export type PanelChannel = typeof channel
 
 // DevtoolsEmits: panel → app page. Buffered by the channel while it is still
 // handshaking, so the panel is usable before the page script answers
@@ -74,3 +61,20 @@ channel.whenConnected(PAGE_SCRIPT_TIMEOUT).catch(() => {
       `running the devtools plugin. Still listening.`,
   )
 })
+
+const el = document.createElement('pinia-colada-devtools-panel') as HTMLElement & {
+  port: MessagePort
+  isPip: boolean
+  channel: typeof channel
+}
+el.port = mc.port2
+// PiP layout = fill the window, which is exactly what the iframe dock needs
+el.isPip = true
+el.channel = channel
+el.style.display = 'block'
+el.style.height = '100%'
+el.addEventListener('ready', () => {
+  // @property rules are ignored inside shadow DOM
+  attachCssPropertyRules(el)
+})
+document.getElementById('app')!.appendChild(el)

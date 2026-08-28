@@ -20,14 +20,23 @@ import type { InPageChannelProtocol } from 'devframe/in-page-channel'
 export const PINIA_COLADA_CHANNEL = 'pinia-colada:devtools'
 
 export interface PiniaColadaChannelProtocol extends InPageChannelProtocol {
-  /** Implemented by the page script (the inspected app), called by panels. */
+  /**
+   * Implemented by the page script (the inspected app), called by panels.
+   */
   pageScript: {
-    /** One `DevtoolsEmits` envelope: panel → app. */
+    /**
+     * One `DevtoolsEmits` envelope: panel → app.
+     */
     'devtools-emit': (id: string, args: unknown[]) => void
   }
-  /** Implemented by every panel, called by the page script. */
+
+  /**
+   * Implemented by every panel, called by the page script.
+   */
   panel: {
-    /** One `AppEmits` envelope: app → panel. */
+    /**
+     * One `AppEmits` envelope: app → panel.
+     */
     'app-emit': (id: string, args: unknown[]) => void
   }
 }
