@@ -13,38 +13,36 @@ const {
   strokeWidth?: number
 }>()
 
-const valuePercentage = computed(() => Math.round(((value - min) / (max - min)) * 100))
+const valuePercentage = computed(() =>
+  Math.min(100, Math.max(0, Math.round(((value - min) / (max - min)) * 100))),
+)
 </script>
 
 <template>
   <div class="progress-bar" aria-hidden>
-    <svg>
-      <circle class="bg" />
-      <circle class="fg" />
+    <svg viewBox="0 0 10 10">
+      <circle class="bg" cx="5" cy="5" r="4" :stroke-width />
+      <circle
+        class="fg"
+        cx="5"
+        cy="5"
+        r="4"
+        pathLength="100"
+        :stroke-width
+        :stroke-dasharray="`${valuePercentage} ${100 - valuePercentage}`"
+      />
     </svg>
   </div>
 </template>
 
 <style scoped>
 .progress-bar > svg {
-  --progress-value: v-bind(valuePercentage);
-  --size: 1em;
-  --half-size: calc(var(--size) / 2);
-  --stroke-width: calc(v-bind(strokeWidth) * var(--size) / 10);
-  --radius: calc((var(--size) - var(--stroke-width)) / 2);
-  --circumference: calc(var(--radius) * pi * 2);
-  --dash: calc((var(--progress-value) * var(--circumference)) / 100);
-  animation: progress-animation 100s linear 0s 1 forwards;
-
-  width: var(--size);
-  height: var(--size);
+  display: block;
+  width: 1em;
+  height: 1em;
 }
 
 .progress-bar circle {
-  cx: var(--half-size);
-  cy: var(--half-size);
-  r: var(--radius);
-  stroke-width: var(--stroke-width);
   fill: none;
   stroke-linecap: butt;
 }
@@ -55,8 +53,7 @@ const valuePercentage = computed(() => Math.round(((value - min) / (max - min)) 
 
 .progress-bar circle.fg {
   transform: rotate(-90deg);
-  transform-origin: var(--half-size) var(--half-size);
-  stroke-dasharray: var(--dash) calc(var(--circumference) - var(--dash));
+  transform-origin: center;
   transition: stroke-dasharray 0.3s linear 0s;
   stroke: currentColor;
 }

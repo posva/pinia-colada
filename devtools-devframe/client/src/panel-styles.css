@@ -1,4 +1,6 @@
 /* The devtools sources live outside this package's vite root, so tailwind's
-   automatic source detection misses them — scan them explicitly. */
+   automatic source detection misses them — scan them explicitly. The shared
+   sources contain the dynamic JSON value color classes. */
 @source '../../../devtools/src/panel';
+@source '../../../devtools/src/shared';
 @import '../../../devtools/src/panel/styles.css';
