@@ -13,17 +13,26 @@
     "paths": {
       "@pinia/colada-devtools/panel": ["./src/panel/index.ts"],
       "@pinia/colada-devtools/shared": ["./src/shared/index.ts"],
+      "@pinia/colada-devtools/devframe": ["./devframe/src/index.ts"],
+      "@pinia/colada-devtools/devframe/vite": ["./devframe/src/vite.ts"],
+      "@pinia/colada-devtools/devframe/nuxt": ["./devframe/src/nuxt.ts"],
+      "@pinia/colada-devtools/devframe/client-script": ["./devframe/src/client-script/index.ts"],
       "@pinia/colada-devtools": ["./src/index.ts"]
     },
     "types": ["unplugin-icons/types/vue"]
   },
   "include": [
     "./src/**/*",
+    "./devframe/src/**/*",
+    "./devframe/client/src/**/*",
+    "./devframe/*.config.ts",
+    "./devframe/client/*.config.ts",
     "./env.d.ts",
     "./auto-imports.d.ts",
     "./components.d.ts",
     "./typed-router.d.ts",
-    "./vite.config.*"
+    "./vite.config.*",
+    "./package.json"
   ],
   "vueCompilerOptions": {
     "plugins": ["vue-router/volar/sfc-route-blocks", "vue-router/volar/sfc-typed-router"]

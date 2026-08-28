@@ -18,7 +18,7 @@ import { getActivePinia } from 'pinia'
 import type { Pinia } from 'pinia'
 import { DuplexChannel } from '@pinia/colada-devtools/shared'
 import type { AppEmits, DevtoolsEmits } from '@pinia/colada-devtools/shared'
-import { setupDevtoolsAppBridge } from '@pinia/colada-devtools/app-bridge'
+import { setupDevtoolsAppBridge } from '../../../src/app-bridge.ts'
 import { PINIA_COLADA_CHANNEL } from '../channel.ts'
 import type { PiniaColadaChannelProtocol } from '../channel.ts'
 

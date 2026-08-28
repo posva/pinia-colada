@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { addImports, addPlugin, addTemplate, createResolver, defineNuxtModule } from '@nuxt/kit'
 
-export default defineNuxtModule<never>({
+export default defineNuxtModule<Record<string, never>>({
   meta: {
     name: 'pinia-colada',
     // NOTE: there is no config in nuxtConfig

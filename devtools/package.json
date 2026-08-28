@@ -31,7 +31,11 @@
   "exports": {
     ".": "./dist/index.js",
     "./panel": "./dist-panel/index.js",
-    "./shared": "./dist-shared/index.js"
+    "./shared": "./dist-shared/index.js",
+    "./devframe": "./dist-devframe/index.js",
+    "./devframe/vite": "./dist-devframe/vite.js",
+    "./devframe/nuxt": "./dist-devframe/nuxt.js",
+    "./devframe/client-script": "./dist-devframe/client-script.js"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -40,7 +44,8 @@
     "README.md",
     "dist",
     "dist-panel",
-    "dist-shared"
+    "dist-shared",
+    "dist-devframe"
   ],
   "scripts": {
     "dev:app": "vite",
@@ -50,22 +55,42 @@
     "build:main": "vite build --config vite.config.ts",
     "build:shared": "vite build --config vite.config.shared.ts",
     "build:panel": "vite build --config vite.config.panel.ts",
-    "build": "pnpm run --stream '/^build:/'"
+    "build:devframe": "tsdown --config devframe/tsdown.config.ts && vite build --config devframe/client/vite.config.ts",
+    "build": "pnpm run --stream '/^build:(main|shared|panel)$/' && pnpm run build:devframe"
+  },
+  "dependencies": {
+    "devframe": "^0.9.6"
+  },
+  "peerDependencies": {
+    "@nuxt/kit": "^4.0.0",
+    "@vitejs/devtools-kit": "^0.5.2 || ^0.6.0"
+  },
+  "peerDependenciesMeta": {
+    "@nuxt/kit": {
+      "optional": true
+    },
+    "@vitejs/devtools-kit": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.125",
     "@microsoft/api-extractor": "^7.59.0",
+    "@nuxt/kit": "^4.5.2",
     "@pinia/colada": "workspace:^*",
     "@posva/splitpanes": "^4.0.6",
     "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/devtools-kit": "^0.6.1",
     "@vueuse/core": "^14.4.0",
     "mande": "^2.0.10",
     "match-container": "^0.1.4",
     "pinia": "^4.0.3",
     "tailwindcss": "^4.3.3",
+    "tsdown": "^0.22.14",
     "unplugin-dts": "^1.0.3",
     "unplugin-icons": "^23.0.1",
     "unplugin-vue-components": "^32.1.0",
+    "vite": "^8.2.2",
     "vue": "^3.5.41",
     "vue-router": "^5.2.0",
     "vue-tsc": "^3.3.11"

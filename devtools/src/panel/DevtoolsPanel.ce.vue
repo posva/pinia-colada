@@ -12,6 +12,7 @@ import { DUPLEX_CHANNEL_KEY, QUERIES_KEY, MUTATIONS_KEY } from './composables/du
 const { port, isPip } = defineProps<{
   port: MessagePort
   isPip: boolean
+  isDevframe: boolean
 }>()
 
 const emit = defineEmits<{
@@ -119,7 +120,7 @@ channel.on('mutations:delete', (m) => {
         <div class="grow" />
 
         <!-- PiP toggle button -->
-        <div class="flex items-center py-1 gap-1 pr-1">
+        <div class="flex items-center py-1 gap-1 pr-1" v-if="!isDevframe">
           <UButton
             class="variant-ghost theme-neutral"
             :title="isPip ? 'Restore window' : 'Open in a new window'"
