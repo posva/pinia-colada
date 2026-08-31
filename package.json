@@ -120,7 +120,7 @@
   },
   "lint-staged": {
     "*": "oxfmt --no-error-on-unmatched-pattern",
-    "*.{js,jsx,ts,tsx,mjs,cjs}": "oxlint --fix"
+    "*.{js,jsx,ts,tsx,mjs,cjs}": "oxlint --fix --no-error-on-unmatched-pattern"
   },
   "size-limit": [
     {
