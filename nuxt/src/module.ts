@@ -8,7 +8,7 @@ export default defineNuxtModule<never>({
     // NOTE: there is no config in nuxtConfig
     configKey: 'colada',
     compatibility: {
-      nuxt: '^3.17.7 || ^4.0.0',
+      nuxt: '^3.17.7 || ^4.0.0 || ^5.0.0',
     },
   },
   // Default configuration options of the Nuxt module
