@@ -1,3 +1,9 @@
+# [1.1.0](https://github.com/posva/pinia-colada/compare/%40pinia%2Fcolada-nuxt%401.0.2...%40pinia%2Fcolada-nuxt%401.1.0) (2026-08-31)
+
+### Bug Fixes
+
+- compat nuxt 5 ([592a8f0](https://github.com/posva/pinia-colada/commit/592a8f00777d1944206fad5ce6b6680d529a54d7)), closes [#634](https://github.com/posva/pinia-colada/issues/634)
+
 ## [1.0.2](https://github.com/posva/pinia-colada/compare/%40pinia%2Fcolada-nuxt%401.0.1...%40pinia%2Fcolada-nuxt%401.0.2) (2026-07-14)
 
 ## [1.0.1](https://github.com/posva/pinia-colada/compare/@pinia/colada-nuxt@1.0.0...@pinia/colada-nuxt@1.0.1) (2026-05-08)

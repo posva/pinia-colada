@@ -1,3 +1,7 @@
+## [1.4.3](https://github.com/posva/pinia-colada/compare/v1.4.2...v1.4.3) (2026-08-31)
+
+Typo fix in type: `UseQueryEntryNodeValueSerializd` -> `UseQueryEntryNodeValueSerialized`
+
 ## [1.4.2](https://github.com/posva/pinia-colada/compare/v1.4.1...v1.4.2) (2026-07-15)
 
 ### Bug Fixes
