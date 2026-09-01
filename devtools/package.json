@@ -40,7 +40,7 @@
     "dist-devframe"
   ],
   "scripts": {
-    "dev": "vite --config devframe/client/vite.config.ts",
+    "dev": "vite --config vite.config.ts",
     "test:types": "vue-tsc --noEmit",
     "build:devframe": "tsdown --config devframe/tsdown.config.ts && vite build --config devframe/client/vite.config.ts",
     "build": "pnpm run build:devframe"
@@ -64,7 +64,9 @@
     "@pinia/colada": "workspace:^*",
     "@posva/splitpanes": "^4.0.6",
     "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/devtools": "^0.6.3",
     "@vitejs/devtools-kit": "^0.6.3",
+    "@vitejs/plugin-vue": "^6.0.8",
     "@vueuse/core": "^14.4.0",
     "pinia": "^4.0.3",
     "tailwindcss": "^4.3.3",
