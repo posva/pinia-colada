@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useQuery, useQueryCache } from '@pinia/colada'
+import { miniJsonStringify } from '../../shared/query-serialized'
 import { createValueFixture, delay } from '../fixtures.ts'
 
 const revision = ref(0)
@@ -67,7 +68,7 @@ function refetchWithError() {
         <button class="danger" @click="refetchWithError">Fail next refetch</button>
         <button @click="updateCachedValue">Edit cached data</button>
       </div>
-      <pre>{{ valuesQuery.data.value }}</pre>
+      <pre>{{ miniJsonStringify(valuesQuery.data.value) }}</pre>
     </section>
 
     <section>
