@@ -1,5 +1,4 @@
 dist
-dist-panel
-dist-shared
-dist-devframe
+dist-app
+dist-client
 .env

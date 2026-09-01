@@ -23,9 +23,9 @@ import {
   serializeDevtoolsValue,
 } from '@pinia/colada-devtools/shared'
 import type { UseMutationEntryPayload, UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
-import { setupDevtoolsAppBridge } from '../../../src/app-bridge.ts'
-import { PINIA_COLADA_CHANNEL } from '../channel.ts'
-import type { PiniaColadaChannelProtocol } from '../channel.ts'
+import { setupDevtoolsAppBridge } from './app-bridge.ts'
+import { PINIA_COLADA_CHANNEL } from './channel.ts'
+import type { PiniaColadaChannelProtocol } from './channel.ts'
 
 const PINIA_WAIT_TIMEOUT = 15_000
 
@@ -53,7 +53,7 @@ export default async function setupPiniaColadaBridge() {
   const queryCache: QueryCache = useQueryCache(pinia)
   const mutationCache: MutationCache = useMutationCache(pinia)
 
-  let mutateCache: (mutator: (cache: import('../channel.ts').PiniaColadaCacheState) => void) => void
+  let mutateCache: (mutator: (cache: import('./channel.ts').PiniaColadaCacheState) => void) => void
 
   const bridge = setupDevtoolsAppBridge(queryCache, mutationCache, (event, payload) => {
     const serializedPayload = serializeDevtoolsValue(payload)

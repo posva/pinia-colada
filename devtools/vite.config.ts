@@ -15,7 +15,7 @@ import pkg from './package.json' with { type: 'json' }
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const UiComponentRe = /^U[A-Z][a-z]/
 const panelUrl = '/pinia-colada-devtools.html'
-const clientScriptPath = normalizePath(resolve(__dirname, './devframe/src/client-script/index.ts'))
+const clientScriptPath = normalizePath(resolve(__dirname, './src/client-script.ts'))
 
 function PiniaColadaDevtoolsFixture() {
   return createPluginFromDevframe(
@@ -27,7 +27,7 @@ function PiniaColadaDevtoolsFixture() {
       importMetaUrl: import.meta.url,
       homepage: pkg.homepage,
       description: pkg.description,
-      icon: '/devframe/client/public/logo.svg',
+      icon: '/src/client/logo.svg',
       setup() {},
     }),
     {
@@ -48,6 +48,9 @@ function PiniaColadaDevtoolsFixture() {
 
 export default defineConfig({
   root: __dirname,
+  build: {
+    outDir: 'dist-app',
+  },
   resolve: {
     alias: [
       {
