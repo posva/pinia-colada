@@ -1,2 +1,48 @@
 @import 'tailwindcss';
 @source '../../devtools/src/panel';
+
+:root {
+  color-scheme: light dark;
+
+  --playground-surface: light-dark(#ffffff, #161f27);
+  --playground-surface-muted: light-dark(#f9fafb, #1a242f);
+  --playground-surface-hover: light-dark(#f3f4f6, #202b38);
+  --playground-text-strong: light-dark(#111827, #f9fafb);
+  --playground-text-muted: light-dark(#6b7280, #9ca3af);
+  --playground-border: light-dark(#e5e7eb, #526980);
+}
+
+body {
+  background-color: var(--background-body);
+  color: var(--text-main);
+}
+
+.bg-white {
+  background-color: var(--playground-surface);
+}
+
+.bg-gray-50 {
+  background-color: var(--playground-surface-muted);
+}
+
+.hover\:bg-gray-50:hover,
+.hover\:bg-gray-100:hover {
+  background-color: var(--playground-surface-hover);
+}
+
+.text-gray-900,
+.text-gray-800,
+.text-gray-700 {
+  color: var(--playground-text-strong);
+}
+
+.text-gray-600,
+.text-gray-500,
+.text-gray-400,
+.text-gray-300 {
+  color: var(--playground-text-muted);
+}
+
+.border-gray-200 {
+  border-color: var(--playground-border);
+}
