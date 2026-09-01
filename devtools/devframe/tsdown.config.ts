@@ -17,6 +17,9 @@ export default defineConfig({
   target: 'esnext',
   sourcemap: true,
   dts: true,
+  loader: {
+    '.svg': 'dataurl',
+  },
   alias: {
     '@pinia/colada-devtools/shared': fromDevtools('src/shared/index.ts'),
   },

@@ -7,17 +7,10 @@ import { createPiniaColadaDevframe } from './index.ts'
 
 export function PiniaColadaDevtoolsHub(): Plugin {
   const clientScript = normalizePath(fileURLToPath(new URL('./client-script.js', import.meta.url)))
-  const devframe = {
-    ...createPiniaColadaDevframe(),
-    // The standalone hub mounts devframe assets below its own base
-    // (`/__devframes/pinia-colada/` by default). Resolve from the hub's
-    // connection metadata instead of the Vite DevTools-specific hosted path.
-    icon: './pinia-colada/logo.svg',
-  }
 
   return viteDevframeHub({
     quiet: true,
-    devframes: [devframe],
+    devframes: [createPiniaColadaDevframe()],
     clientScripts: {
       'pinia-colada': { importFrom: `/@fs/${clientScript}` },
     },
