@@ -7,8 +7,8 @@ export default defineConfig({
   entry: {
     index: 'src/index.ts',
     vite: 'src/vite.ts',
-    nuxt: 'src/nuxt.ts',
     'client-script': 'src/client-script/index.ts',
+    'vite-hub': 'src/vite-hub.ts',
   },
   outDir: '../dist-devframe',
   clean: true,
@@ -26,7 +26,8 @@ export default defineConfig({
     },
     onlyBundle: false,
     neverBundle: [
-      '@nuxt/kit',
+      '@devframes/hub-ui',
+      '@devframes/vite',
       '@pinia/colada',
       '@vitejs/devtools-kit',
       'devframe',

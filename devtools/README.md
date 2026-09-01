@@ -3,7 +3,7 @@
 ## DevFrame
 
 The package includes a portable [DevFrame](https://devfra.me/) definition and
-adapters for Vite DevTools and Nuxt DevTools 4.
+adapters for Vite DevTools and a standalone Vite hub.
 
 For a raw DevFrame hub, install the definition together with its dock options:
 
@@ -27,12 +27,13 @@ export default defineConfig({
 })
 ```
 
-Or add the Nuxt adapter to a Nuxt 4 project with DevTools enabled:
+Or mount a standalone Devframe hub with its default UI:
 
 ```ts
-export default defineNuxtConfig({
-  modules: ['@pinia/colada-devtools/devframe/nuxt'],
-  devtools: { enabled: true },
+import { PiniaColadaDevtoolsHub } from '@pinia/colada-devtools/devframe/vite-hub'
+
+export default defineConfig({
+  plugins: [PiniaColadaDevtoolsHub()],
 })
 ```
 

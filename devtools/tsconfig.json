@@ -15,7 +15,7 @@
       "@pinia/colada-devtools/shared": ["./src/shared/index.ts"],
       "@pinia/colada-devtools/devframe": ["./devframe/src/index.ts"],
       "@pinia/colada-devtools/devframe/vite": ["./devframe/src/vite.ts"],
-      "@pinia/colada-devtools/devframe/nuxt": ["./devframe/src/nuxt.ts"],
+      "@pinia/colada-devtools/devframe/vite-hub": ["./devframe/src/vite-hub.ts"],
       "@pinia/colada-devtools/devframe/client-script": ["./devframe/src/client-script/index.ts"],
       "@pinia/colada-devtools": ["./src/index.ts"]
     },
