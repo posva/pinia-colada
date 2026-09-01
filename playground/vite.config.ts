@@ -7,7 +7,8 @@ import VueRouter from 'vue-router/vite'
 // import VueDevTools from 'vite-plugin-vue-devtools'
 import TailwindCSS from '@tailwindcss/vite'
 import { nosticsCollector } from '@nostics/unplugin/dev-server-collector'
-import { PiniaColadaDevtoolsHub } from '@pinia/colada-devtools/devframe/vite-hub'
+import { DevTools } from '@vitejs/devtools'
+import { PiniaColadaDevtools } from '@pinia/colada-devtools/devframe/vite'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -26,7 +27,8 @@ export default defineConfig({
       },
     }),
     // VueDevTools(),
-    PiniaColadaDevtoolsHub(),
+    DevTools(),
+    PiniaColadaDevtools(),
     TailwindCSS(),
     nosticsCollector.vite({ debug: true }),
   ],
