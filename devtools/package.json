@@ -56,7 +56,7 @@
     "build:shared": "vite build --config vite.config.shared.ts",
     "build:panel": "vite build --config vite.config.panel.ts",
     "build:devframe": "tsdown --config devframe/tsdown.config.ts && vite build --config devframe/client/vite.config.ts",
-    "build": "pnpm run --stream '/^build:(main|shared|panel)$/' && pnpm run build:devframe"
+    "build": "pnpm run build:main && pnpm run build:shared && pnpm run build:panel && pnpm run build:devframe"
   },
   "dependencies": {
     "@devframes/hub": "^0.9.8",
