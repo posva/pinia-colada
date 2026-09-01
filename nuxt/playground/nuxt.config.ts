@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url'
 
 export default defineNuxtConfig({
-  modules: ['@pinia/nuxt', '../src/module', '@pinia/colada-devtools/devframe/nuxt'],
+  modules: ['@pinia/nuxt', '../src/module'],
   devtools: {
     enabled: true,
   },

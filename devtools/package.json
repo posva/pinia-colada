@@ -34,7 +34,7 @@
     "./shared": "./dist-shared/index.js",
     "./devframe": "./dist-devframe/index.js",
     "./devframe/vite": "./dist-devframe/vite.js",
-    "./devframe/nuxt": "./dist-devframe/nuxt.js",
+    "./devframe/vite-hub": "./dist-devframe/vite-hub.js",
     "./devframe/client-script": "./dist-devframe/client-script.js"
   },
   "main": "./dist/index.js",
@@ -59,17 +59,15 @@
     "build": "pnpm run --stream '/^build:(main|shared|panel)$/' && pnpm run build:devframe"
   },
   "dependencies": {
+    "@devframes/hub-ui": "^0.9.7",
+    "@devframes/vite": "^0.9.7",
     "@modelcontextprotocol/server": "^2.0.0",
     "devframe": "^0.9.8"
   },
   "peerDependencies": {
-    "@nuxt/kit": "^4.0.0",
     "@vitejs/devtools-kit": "^0.5.2 || ^0.6.0"
   },
   "peerDependenciesMeta": {
-    "@nuxt/kit": {
-      "optional": true
-    },
     "@vitejs/devtools-kit": {
       "optional": true
     }
@@ -77,7 +75,6 @@
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.125",
     "@microsoft/api-extractor": "^7.59.0",
-    "@nuxt/kit": "^4.5.2",
     "@pinia/colada": "workspace:^*",
     "@posva/splitpanes": "^4.0.6",
     "@tailwindcss/vite": "^4.3.3",
