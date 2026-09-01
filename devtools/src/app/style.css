@@ -1,6 +1,23 @@
 :root {
-  color: #172033;
-  background: #f4f7fb;
+  color-scheme: dark;
+
+  --fixture-background: #0d1422;
+  --fixture-surface: #141e2f;
+  --fixture-border: #344156;
+  --fixture-text: #dbe5f5;
+  --fixture-text-muted: #9ca9be;
+  --fixture-header: #101827;
+  --fixture-header-text: #ffffff;
+  --fixture-nav-text: #cbd5e1;
+  --fixture-nav-active-background: #84e6d3;
+  --fixture-nav-active-text: #101827;
+  --fixture-input-border: #59677c;
+  --fixture-code-background: #080f1d;
+  --fixture-code-text: #dbe8ff;
+  --fixture-shadow: 0 3px 12px rgb(0 0 0 / 20%);
+
+  color: var(--fixture-text);
+  background: var(--fixture-background);
   font-family:
     Inter,
     ui-sans-serif,
@@ -12,12 +29,30 @@
   font-synthesis: none;
 }
 
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+
+    --fixture-background: #f4f7fb;
+    --fixture-surface: #ffffff;
+    --fixture-border: #d7dfeb;
+    --fixture-text: #172033;
+    --fixture-text-muted: #9ca9be;
+    --fixture-input-border: #aab6c8;
+    --fixture-code-background: #152033;
+    --fixture-code-text: #dbe8ff;
+    --fixture-shadow: 0 3px 12px rgb(15 23 42 / 5%);
+  }
+}
+
 * {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
+  color: var(--fixture-text);
+  background: var(--fixture-background);
 }
 
 body > #app > header {
@@ -26,8 +61,8 @@ body > #app > header {
   justify-content: space-between;
   gap: 2rem;
   padding: 1rem 2rem;
-  color: white;
-  background: #101827;
+  color: var(--fixture-header-text);
+  background: var(--fixture-header);
 }
 
 header > div,
@@ -39,20 +74,20 @@ nav,
 }
 
 header span {
-  color: #9ca9be;
+  color: var(--fixture-text-muted);
   font-size: 0.875rem;
 }
 
 nav a {
   padding: 0.45rem 0.7rem;
   border-radius: 0.4rem;
-  color: #cbd5e1;
+  color: var(--fixture-nav-text);
   text-decoration: none;
 }
 
 nav a.router-link-active {
-  color: #101827;
-  background: #84e6d3;
+  color: var(--fixture-nav-active-text);
+  background: var(--fixture-nav-active-background);
 }
 
 main {
@@ -63,10 +98,10 @@ main {
 section {
   margin-block: 1rem;
   padding: 1.25rem;
-  border: 1px solid #d7dfeb;
+  border: 1px solid var(--fixture-border);
   border-radius: 0.75rem;
-  background: white;
-  box-shadow: 0 3px 12px rgb(15 23 42 / 5%);
+  background: var(--fixture-surface);
+  box-shadow: var(--fixture-shadow);
 }
 
 .fixture-grid {
@@ -94,7 +129,7 @@ h2 {
 
 button,
 input {
-  border: 1px solid #aab6c8;
+  border: 1px solid var(--fixture-input-border);
   border-radius: 0.4rem;
   padding: 0.55rem 0.75rem;
   font: inherit;
@@ -132,8 +167,8 @@ pre {
   overflow: auto;
   padding: 1rem;
   border-radius: 0.5rem;
-  color: #dbe8ff;
-  background: #152033;
+  color: var(--fixture-code-text);
+  background: var(--fixture-code-background);
 }
 
 @media (max-width: 700px) {
