@@ -10,10 +10,6 @@ const props = defineProps<{
   mutations: UseMutationEntryPayload[]
 }>()
 
-const emit = defineEmits<{
-  close: []
-}>()
-
 provide(DEVTOOLS_ACTIONS_KEY, props.actions)
 provide(QUERIES_KEY, toRef(props, 'queries'))
 provide(MUTATIONS_KEY, toRef(props, 'mutations'))
@@ -53,18 +49,6 @@ provide(MUTATIONS_KEY, toRef(props, 'mutations'))
             }}
           </a>
         </RouterLink>
-
-        <div class="grow" />
-
-        <div class="flex items-center py-1 gap-1 pr-1">
-          <UButton
-            class="variant-ghost theme-neutral"
-            title="Close devtools"
-            @click="emit('close')"
-          >
-            <i-lucide-x class="w-5 h-5" />
-          </UButton>
-        </div>
       </div>
 
       <RouterView />
