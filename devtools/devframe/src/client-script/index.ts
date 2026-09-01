@@ -2,15 +2,13 @@
  * Dock client script, a.k.a. the in-page channel's **page script**: runs
  * inside the inspected app page (same Vite module graph as the app, so
  * `pinia` / `@pinia/colada` and the devtools sources resolve to the app's own
- * instances). Reuses the app-side wiring from `@pinia/colada-devtools`
- * (`setupDevtoolsAppBridge`) over a local `MessageChannel` and relays the raw
- * `{ id, args }` envelopes to the panels through the channel.
+ * instances). It reuses the app-side cache wiring and exposes each devtools
+ * action directly as a typed channel event.
  *
  * It is the authority of the channel: panels handshake with it directly, so no
  * devframe server round-trip (and no auth) is involved, and a panel that
- * connects — or reconnects after a reload — gets a full replay, the same
- * `ready → sendAll` handshake the in-app devtools do on the element's `ready`
- * event.
+ * connects — or reconnects after a reload — receives the authoritative cache
+ * shared state.
  */
 import { createPageScriptChannel } from 'devframe/in-page-channel'
 import type { QueryCache, MutationCache } from '@pinia/colada'
@@ -31,16 +29,6 @@ import type { PiniaColadaChannelProtocol } from '../channel.ts'
 
 const PINIA_WAIT_TIMEOUT = 15_000
 
-interface DockClientScriptContext {
-  rpc: {
-    scope: (namespace: string) => {
-      rpc: {
-        callEvent: (method: string, ...args: unknown[]) => void
-      }
-    }
-  }
-}
-
 // the app might create its pinia after this script loads
 async function waitForActivePinia(): Promise<Pinia | null> {
   const start = Date.now()
@@ -52,7 +40,7 @@ async function waitForActivePinia(): Promise<Pinia | null> {
   return null
 }
 
-export default async function setupPiniaColadaBridge(ctx: DockClientScriptContext) {
+export default async function setupPiniaColadaBridge() {
   const pinia = await waitForActivePinia()
   if (!pinia) {
     // standalone viewer or an app without pinia: nothing to inspect here, so
@@ -65,22 +53,20 @@ export default async function setupPiniaColadaBridge(ctx: DockClientScriptContex
   const queryCache: QueryCache = useQueryCache(pinia)
   const mutationCache: MutationCache = useMutationCache(pinia)
 
-  const agentRpc = ctx.rpc.scope('pinia-colada').rpc
   let mutateCache: (mutator: (cache: import('../channel.ts').PiniaColadaCacheState) => void) => void
 
   const bridge = setupDevtoolsAppBridge(queryCache, mutationCache, (event, payload) => {
     mutateCache((cache) => {
       if (event === 'queries:all') cache.queries = payload as UseQueryEntryPayload[]
-      else if (event === 'queries:update')
-        {replaceQueryEntry(cache.queries, payload as UseQueryEntryPayload)}
-      else if (event === 'queries:delete')
-        {removeQueryEntry(cache.queries, payload as UseQueryEntryPayload)}
-      else if (event === 'mutations:all') cache.mutations = payload as UseMutationEntryPayload[]
-      else if (event === 'mutations:update')
-        {replaceMutationEntry(cache.mutations, payload as UseMutationEntryPayload)}
-      else removeMutationEntry(cache.mutations, payload as UseMutationEntryPayload)
+      else if (event === 'queries:update') {
+        replaceQueryEntry(cache.queries, payload as UseQueryEntryPayload)
+      } else if (event === 'queries:delete') {
+        removeQueryEntry(cache.queries, payload as UseQueryEntryPayload)
+      } else if (event === 'mutations:all') cache.mutations = payload as UseMutationEntryPayload[]
+      else if (event === 'mutations:update') {
+        replaceMutationEntry(cache.mutations, payload as UseMutationEntryPayload)
+      } else removeMutationEntry(cache.mutations, payload as UseMutationEntryPayload)
     })
-    agentRpc.callEvent('cache-event', event, [payload])
   })
 
   const channel = createPageScriptChannel<PiniaColadaChannelProtocol>({
@@ -146,9 +132,6 @@ export default async function setupPiniaColadaBridge(ctx: DockClientScriptContex
   })
   mutateCache = (mutator) => cacheState.mutate(mutator)
 
-  // Populate the MCP cache even when no visual panel has connected yet.
+  // Seed the authoritative cache before a panel connects.
   bridge.sendAll()
-
-  // a panel that just connected has an empty UI; this also covers reconnects
-  // after a panel or app reload, since those are just a new handshake
 }

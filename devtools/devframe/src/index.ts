@@ -2,7 +2,6 @@ import { fileURLToPath } from 'node:url'
 import { defineDevframe } from 'devframe'
 import type { DevframeDefinition } from 'devframe'
 import pkg from '../../package.json' with { type: 'json' }
-import { setupPiniaColadaMcp } from './mcp.ts'
 
 /** Dock options required when installing the raw devframe in a hub. */
 export const piniaColadaDevframeDock = {
@@ -23,7 +22,7 @@ export function createPiniaColadaDevframe(): DevframeDefinition {
     // served from the SPA's own static assets at the default mount base
     icon: '/__pinia-colada/logo.svg',
     clientAssets: fileURLToPath(new URL('./client', import.meta.url)),
-    setup: setupPiniaColadaMcp,
+    setup() {},
   })
 }
 
