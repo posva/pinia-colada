@@ -98,20 +98,13 @@ function safeSerializeRecursive(value: unknown): unknown {
     return value.map((item) => safeSerializeRecursive(item))
   }
   if (isPlainObject(value)) {
-    // Try to serialize with safeSerialize first
-    const serialized = safeSerialize(value)
-    if (serialized !== value) {
-      // It was a non-serializable value, return the serialized version
-      return serialized
-    }
-    // It's a regular object, recursively serialize its properties
     const result: Record<string, unknown> = {}
     for (const [key, val] of Object.entries(value)) {
       result[key] = safeSerializeRecursive(val)
     }
     return result
   }
-  return value
+  return safeSerialize(value)
 }
 
 // Custom error for serialization issues
@@ -279,7 +272,10 @@ export function isNonSerializableValue(value: unknown): value is NonSerializable
 
 function restoreClonedValue(value: NonSerializableValue) {
   if (value.__type === 'function') {
-    return () => {}
+    const restoredFunction = () => {}
+    const name = /^\[Function: (.*)]$/.exec(value.value)?.[1]
+    if (name) Object.defineProperty(restoredFunction, 'name', { value: name })
+    return restoredFunction
   } else if (value.__type === 'symbol') {
     return Symbol(value.value)
   } else if (value.__type === 'bigint') {
@@ -329,9 +325,12 @@ function restoreClonedValue(value: NonSerializableValue) {
     return error
   } else if (value.__type === 'object') {
     const properties = restoreClonedDeep(value.value.properties)
-    return typeof properties === 'object' && properties !== null
-      ? { ...properties, __constructorName: value.value.constructorName }
-      : { __constructorName: value.value.constructorName }
+    const restoredObject =
+      typeof properties === 'object' && properties !== null ? { ...properties } : {}
+    Object.defineProperty(restoredObject, '__constructorName', {
+      value: value.value.constructorName,
+    })
+    return restoredObject
   }
   // @ts-expect-error: type of value is never
   return new SerializationError(`Unknown non-serializable value type: ${value.__type}`)

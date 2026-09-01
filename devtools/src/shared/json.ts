@@ -77,9 +77,15 @@ export function formatValue(value: unknown) {
   if (isObject(value)) {
     if (value instanceof Date) return `Date(${value.toISOString()})`
     if (value instanceof RegExp) return value.toString()
-    if (value instanceof Error) return `Error(${value.message})`
+    if (value instanceof Error) return `${value.name}(${value.message})`
     if (isCollection(value)) return formatCollection(value)
-    if (isPlainObject(value)) return `Object${Object.keys(value).length === 0 ? ' (empty)' : ''}`
+    if (isPlainObject(value)) {
+      if ('__constructorName' in value && typeof value.__constructorName === 'string') {
+        return value.__constructorName
+      }
+      return `Object${Object.keys(value).length === 0 ? ' (empty)' : ''}`
+    }
+    if (value.toString !== Object.prototype.toString) return String(value)
     return `[${value.constructor.name}]`
   }
   return String(value)
