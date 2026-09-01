@@ -46,7 +46,13 @@ export interface UseQueryEntryPayloadOptions extends Pick<
   refetchOnWindowFocus: RefetchOnControl
 }
 
-function stringifyBigInt(_key: string, value: unknown): unknown {
+function stringifyDisplayValue(
+  this: Record<string, unknown>,
+  key: string,
+  value: unknown,
+): unknown {
+  const originalValue = this[key]
+  if (originalValue instanceof Date) return `Date(${originalValue.toISOString()})`
   return typeof value === 'bigint' ? `${value}n` : value
 }
 
@@ -85,7 +91,7 @@ function serializeMiniJson(value: unknown): string {
  * @internal
  */
 export function miniJsonStringify(value: unknown): string {
-  return JSON.stringify(value, stringifyBigInt, 2) ?? String(value)
+  return JSON.stringify(value, stringifyDisplayValue, 2) ?? String(value)
 }
 
 /**

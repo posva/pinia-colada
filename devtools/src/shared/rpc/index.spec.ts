@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { reactive } from 'vue'
 import { formatValue } from '../json'
 import { restoreClonedDeep, serializeDevtoolsValue } from './index'
 
@@ -33,6 +34,7 @@ describe('serializeDevtoolsValue', () => {
     const restored = restoreClonedDeep(serializeDevtoolsValue(values))
 
     expect(restored.date).toEqual(values.date)
+    expect(formatValue(reactive(restored).date)).toBe('Date(2026-09-01T12:00:00.000Z)')
     expect(formatValue(restored.fn)).toBe('[Function fixtureFunction]')
     expect(restored.symbol).toBeTypeOf('symbol')
     expect(restored.bigint).toBe(12_345n)
