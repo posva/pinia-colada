@@ -192,4 +192,74 @@ describe('app bridge', () => {
     expect(payload.asyncStatus).toBe('loading')
     expect(payload.devtools.simulate).toBe('loading')
   })
+
+  it('reports idle after a mutation that started before the bridge settles', async () => {
+    const { mutationCache, devtools, installBridge, mountComponent } = factory(false)
+    let mutateAsync!: () => Promise<string>
+    let resolveMutation!: (value: string) => void
+
+    mountComponent(
+      () =>
+        ({ mutateAsync } = useMutation({
+          mutation: () =>
+            new Promise<string>((resolve) => {
+              resolveMutation = resolve
+            }),
+        })),
+    )
+    const mutationPromise = mutateAsync()
+    await flushPromises()
+
+    const entry = mutationCache.getEntries()[0]!
+    expect(entry.asyncStatus.value).toBe('loading')
+
+    installBridge()
+    const settledUpdate = new Promise<AppEmits['mutations:update'][0]>((resolve) => {
+      const off = devtools.on('mutations:update', (payload) => {
+        if (payload.id === entry.id && payload.asyncStatus === 'idle') {
+          off()
+          resolve(payload)
+        }
+      })
+    })
+
+    resolveMutation('done')
+    await mutationPromise
+    const payload = await settledUpdate
+    expect(payload.state).toEqual({ data: 'done', error: null, status: 'success' })
+  })
+
+  it('reports idle after an existing mutation fails', async () => {
+    const { mutationCache, devtools, installBridge, mountComponent } = factory(false)
+    let mutateAsync!: () => Promise<string>
+    let rejectMutation!: (reason: Error) => void
+
+    mountComponent(
+      () =>
+        ({ mutateAsync } = useMutation({
+          mutation: () =>
+            new Promise<string>((_, reject) => {
+              rejectMutation = reject
+            }),
+        })),
+    )
+    const mutationPromise = mutateAsync()
+    await flushPromises()
+
+    const entry = mutationCache.getEntries()[0]!
+    installBridge()
+    const settledUpdate = new Promise<AppEmits['mutations:update'][0]>((resolve) => {
+      const off = devtools.on('mutations:update', (payload) => {
+        if (payload.id === entry.id && payload.asyncStatus === 'idle') {
+          off()
+          resolve(payload)
+        }
+      })
+    })
+
+    rejectMutation(new Error('failed'))
+    await expect(mutationPromise).rejects.toThrow('failed')
+    const payload = await settledUpdate
+    expect(payload.state.status).toBe('error')
+  })
 })

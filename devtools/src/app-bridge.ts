@@ -3,6 +3,7 @@
  * executes `DevtoolsEmits` actions against them for the Devframe client script.
  */
 import type { QueryCache, MutationCache } from '@pinia/colada'
+import { watch } from 'vue'
 import type { AppEmits, DevtoolsEmits } from '@pinia/colada-devtools/shared'
 import {
   addDevtoolsInfo,
@@ -39,6 +40,18 @@ export function setupDevtoolsAppBridge(
     if (refreshCall) {
       const syncSettledEntry = () => emit('queries:update', createQueryEntryPayload(entry))
       void refreshCall.then(syncSettledEntry, syncSettledEntry)
+    }
+  }
+
+  // Do the same for mutations, which do not expose their pending promise.
+  for (const entry of mutationCache.getEntries()) {
+    if (entry.asyncStatus.value === 'loading') {
+      const stop = watch(entry.asyncStatus, (asyncStatus) => {
+        if (asyncStatus === 'idle') {
+          stop()
+          emit('mutations:update', createMutationEntryPayload(entry))
+        }
+      })
     }
   }
 
