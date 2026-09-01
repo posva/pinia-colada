@@ -76,6 +76,9 @@ export default defineConfig({
           src: resolve(__dirname, './src/panel/pages'),
         },
       ],
+      // Library builds only need the generated routes once. Keeping a
+      // chokidar watcher alive makes Vite wait indefinitely after building.
+      watch: process.env.NODE_ENV !== 'production',
       experimental: {
         paramParsers: {
           dir: 'src/params',

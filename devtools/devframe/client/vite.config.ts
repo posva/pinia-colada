@@ -58,6 +58,7 @@ export default defineConfig({
           src: resolve(devtoolsDir, './src/panel/pages'),
         },
       ],
+      watch: false,
       experimental: {
         paramParsers: {
           dir: resolve(devtoolsDir, './src/params'),
