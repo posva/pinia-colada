@@ -6,7 +6,13 @@ import type {
   DevtoolsEmits,
   AppEmits,
 } from '@pinia/colada-devtools/shared'
-import { DuplexChannel } from '@pinia/colada-devtools/shared'
+import {
+  DuplexChannel,
+  removeMutationEntry,
+  removeQueryEntry,
+  replaceMutationEntry,
+  replaceQueryEntry,
+} from '@pinia/colada-devtools/shared'
 import { DUPLEX_CHANNEL_KEY, QUERIES_KEY, MUTATIONS_KEY } from './composables/duplex-channel'
 
 const { port, isPip } = defineProps<{
@@ -47,18 +53,10 @@ channel.on('queries:all', (q) => {
   queries.value = q
 })
 channel.on('queries:update', (q) => {
-  const index = queries.value.findIndex((entry) => entry.keyHash === q.keyHash)
-  if (index !== -1) {
-    queries.value.splice(index, 1, q)
-  } else {
-    queries.value.push(q)
-  }
+  replaceQueryEntry(queries.value, q)
 })
 channel.on('queries:delete', (q) => {
-  const index = queries.value.findIndex((entry) => entry.keyHash === q.keyHash)
-  if (index !== -1) {
-    queries.value.splice(index, 1)
-  }
+  removeQueryEntry(queries.value, q)
 })
 
 const mutations = ref<UseMutationEntryPayload[]>([])
@@ -67,18 +65,10 @@ channel.on('mutations:all', (m) => {
   mutations.value = m
 })
 channel.on('mutations:update', (m) => {
-  const index = mutations.value.findIndex((entry) => entry.id === m.id)
-  if (index !== -1) {
-    mutations.value.splice(index, 1, m)
-  } else {
-    mutations.value.push(m)
-  }
+  replaceMutationEntry(mutations.value, m)
 })
 channel.on('mutations:delete', (m) => {
-  const index = mutations.value.findIndex((entry) => entry.id === m.id)
-  if (index !== -1) {
-    mutations.value.splice(index, 1)
-  }
+  removeMutationEntry(mutations.value, m)
 })
 </script>
 

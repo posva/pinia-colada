@@ -24,6 +24,16 @@ import type { PiniaColadaChannelProtocol } from '../channel.ts'
 
 const PINIA_WAIT_TIMEOUT = 15_000
 
+interface DockClientScriptContext {
+  rpc: {
+    scope: (namespace: string) => {
+      rpc: {
+        callEvent: (method: string, ...args: unknown[]) => void
+      }
+    }
+  }
+}
+
 // the app might create its pinia after this script loads
 async function waitForActivePinia(): Promise<Pinia | null> {
   const start = Date.now()
@@ -35,7 +45,7 @@ async function waitForActivePinia(): Promise<Pinia | null> {
   return null
 }
 
-export default async function setupPiniaColadaBridge() {
+export default async function setupPiniaColadaBridge(ctx: DockClientScriptContext) {
   const pinia = await waitForActivePinia()
   if (!pinia) {
     // standalone viewer or an app without pinia: nothing to inspect here, so
@@ -51,6 +61,7 @@ export default async function setupPiniaColadaBridge() {
   const mc = new MessageChannel()
   const transmitter = new DuplexChannel<AppEmits, DevtoolsEmits>(mc.port1)
   const bridge = setupDevtoolsAppBridge(queryCache, mutationCache, transmitter)
+  const agentRpc = ctx.rpc.scope('pinia-colada').rpc
 
   const channel = createPageScriptChannel<PiniaColadaChannelProtocol>({
     name: PINIA_COLADA_CHANNEL,
@@ -70,8 +81,12 @@ export default async function setupPiniaColadaBridge() {
   mc.port2.addEventListener('message', (event) => {
     const { id, data } = event.data as { id: string; data: unknown[] }
     channel.callEvent('app-emit', id, data)
+    agentRpc.callEvent('cache-event', id, data)
   })
   mc.port2.start()
+
+  // Populate the MCP cache even when no visual panel has connected yet.
+  bridge.sendAll()
 
   // a panel that just connected has an empty UI; this also covers reconnects
   // after a panel or app reload, since those are just a new handshake
