@@ -85,23 +85,13 @@ export default defineConfig({
         },
       },
     }),
-    Vue({
-      template: {
-        compilerOptions: {
-          isCustomElement: (tag) => {
-            return tag.startsWith('pinia-colada-')
-          },
-        },
-      },
-    }),
+    Vue(),
     Icons({ compiler: 'vue3' }),
     VueDevtools(),
     Components({
       dirs: [resolve(__dirname, './src/panel/components')],
       // to avoid erasing the generated dts file during dev
       dts: process.env.NODE_ENV !== 'production',
-      // avoid declaring the .ce components twice
-      globsExclude: ['**/*.ce.vue'],
       resolvers: [
         (componentName) => {
           if (UiComponentRe.test(componentName)) {
@@ -110,7 +100,7 @@ export default defineConfig({
               // normalizePath: on Windows resolve() yields backslash paths that
               // Vite's import-analysis can't resolve as an import specifier.
               from: normalizePath(
-                resolve(__dirname, `./src/panel/components/${componentName}.ce.vue`),
+                resolve(__dirname, `./src/panel/components/${componentName}.vue`),
               ),
             }
           }

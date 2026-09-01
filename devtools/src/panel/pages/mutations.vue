@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef } from 'vue'
 import { Pane, Splitpanes } from '@posva/splitpanes'
-import { useMutationEntries } from '../composables/duplex-channel'
+import { useMutationEntries } from '../composables/devtools-context'
 import { getMutationStatus, STATUS_COLOR_CLASSES } from '../utils/mutation-state'
 import type { UseMutationEntryPayloadStatus } from '../utils/mutation-state'
 import type { UseMutationEntryPayload } from '@pinia/colada-devtools/shared'
