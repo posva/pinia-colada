@@ -9,7 +9,7 @@ export function PiniaColadaDevtools(): Plugin {
     fileURLToPath(new URL('./client-script.js', import.meta.url)),
   )
 
-  return createPluginFromDevframe(createPiniaColadaDevframe() as never, {
+  return createPluginFromDevframe(createPiniaColadaDevframe(), {
     dock: {
       ...piniaColadaDevframeDock,
       // Nuxt DevTools 4 doesn't advertise bare client-module resolution yet.
