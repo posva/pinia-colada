@@ -50,7 +50,6 @@ export default defineConfig({
     VueRouter({
       root: __dirname,
       routesFolder: [{ src: resolve(__dirname, './src/panel/pages') }],
-      watch: false,
       experimental: {
         paramParsers: {
           dir: resolve(__dirname, './src/params'),
