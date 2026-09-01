@@ -1,10 +1,12 @@
 import { connectPanelChannel } from 'devframe/in-page-channel'
 import { createApp, reactive } from 'vue'
 import { restoreClonedDeep, serializeDevtoolsValue } from '@pinia/colada-devtools/shared'
-import { configureApp, DevtoolsPanel } from '@pinia/colada-devtools/panel'
 import type { DevtoolsActions } from '../../../src/panel/composables/devtools-context.ts'
+import { configureApp } from '../../../src/panel/configure-app.ts'
+import DevtoolsPanel from '../../../src/panel/DevtoolsPanel.vue'
 import { PINIA_COLADA_CHANNEL } from '../../src/channel.ts'
 import type { PiniaColadaCacheState, PiniaColadaChannelProtocol } from '../../src/channel.ts'
+import './panel-styles.css'
 
 const channel = connectPanelChannel<PiniaColadaChannelProtocol>({
   name: PINIA_COLADA_CHANNEL,

@@ -1,8 +1,6 @@
 /**
  * App-side devtools wiring: mirrors the caches into `AppEmits` messages and
- * executes `DevtoolsEmits` actions against them. Extracted from
- * `PiniaColadaDevtools.vue` so other transports (e.g. the devframe-based
- * devtools) can reuse it outside of a component.
+ * executes `DevtoolsEmits` actions against them for the Devframe client script.
  */
 import type { QueryCache, MutationCache } from '@pinia/colada'
 import type { AppEmits, DevtoolsEmits } from '@pinia/colada-devtools/shared'

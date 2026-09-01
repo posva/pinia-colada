@@ -23,26 +23,8 @@ export default defineConfig({
   resolve: {
     alias: [
       {
-        find: /^@pinia\/colada-devtools\/panel\/index\.css$/,
-        // must come before the devtools alias for the same specifier: wrapper
-        // adding an explicit tailwind @source for the devtools files
-        replacement: resolve(__dirname, './src/panel-styles.css'),
-      },
-      {
-        find: /^@pinia\/colada-devtools\/app-bridge$/,
-        replacement: resolve(devtoolsDir, './src/app-bridge.ts'),
-      },
-      {
         find: /^@pinia\/colada$/,
         replacement: resolve(devtoolsDir, '../src/index.ts'),
-      },
-      {
-        find: /^@pinia\/colada-devtools$/,
-        replacement: resolve(devtoolsDir, './src/index.ts'),
-      },
-      {
-        find: /^@pinia\/colada-devtools\/panel$/,
-        replacement: resolve(devtoolsDir, './src/panel/index.ts'),
       },
       {
         find: /^@pinia\/colada-devtools\/shared$/,
@@ -68,7 +50,6 @@ export default defineConfig({
     Icons({ compiler: 'vue3' }),
     Components({
       dirs: [resolve(devtoolsDir, './src/panel/components')],
-      // the devtools package owns the generated components.d.ts
       dts: false,
       resolvers: [
         (componentName) => {
