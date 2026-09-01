@@ -10,10 +10,10 @@ export function PiniaColadaDevtoolsHub(): Plugin {
 
   return viteDevframeHub({
     quiet: true,
-    devframes: [createPiniaColadaDevframe() as never],
+    devframes: [createPiniaColadaDevframe()],
     clientScripts: {
       'pinia-colada': { importFrom: `/@fs/${clientScript}` },
     },
-    ui: createUi() as never,
+    ui: createUi(),
   })
 }
