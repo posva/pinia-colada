@@ -11,13 +11,11 @@
     "lib": ["esnext", "dom"],
     "moduleResolution": "Bundler",
     "paths": {
-      "@pinia/colada-devtools/panel": ["./src/panel/index.ts"],
       "@pinia/colada-devtools/shared": ["./src/shared/index.ts"],
       "@pinia/colada-devtools/devframe": ["./devframe/src/index.ts"],
       "@pinia/colada-devtools/devframe/vite": ["./devframe/src/vite.ts"],
       "@pinia/colada-devtools/devframe/vite-hub": ["./devframe/src/vite-hub.ts"],
-      "@pinia/colada-devtools/devframe/client-script": ["./devframe/src/client-script/index.ts"],
-      "@pinia/colada-devtools": ["./src/index.ts"]
+      "@pinia/colada-devtools/devframe/client-script": ["./devframe/src/client-script/index.ts"]
     },
     "types": ["unplugin-icons/types/vue"]
   },
@@ -28,7 +26,6 @@
     "./devframe/*.config.ts",
     "./devframe/client/*.config.ts",
     "./env.d.ts",
-    "./auto-imports.d.ts",
     "./components.d.ts",
     "./typed-router.d.ts",
     "./vite.config.*",

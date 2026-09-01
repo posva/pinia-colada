@@ -75,5 +75,4 @@ provide(MUTATIONS_KEY, toRef(props, 'mutations'))
 <style>
 @import '@posva/splitpanes/dist/splitpanes.css';
 @import './splitpanes.css';
-@import '@pinia/colada-devtools/panel/index.css';
 </style>
