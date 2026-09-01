@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { UseMutationEntryPayload } from '@pinia/colada-devtools/shared'
 import { computed, ref, watch } from 'vue'
-import { useDuplexChannel, useMutationEntries } from '../../composables/duplex-channel'
+import { useDevtoolsChannel, useMutationEntries } from '../../composables/duplex-channel'
 import { useRoute, useRouter } from 'vue-router'
 import type { DataStateStatus } from '@pinia/colada'
 
@@ -34,7 +34,7 @@ const lastUpdate = useTimeAgo(() => selectedMutation.value?.devtools.updatedAt ?
   updateInterval: 3000,
 })
 
-const channel = useDuplexChannel()
+const channel = useDevtoolsChannel()
 
 // Track when we're replaying to auto-navigate to new mutation
 let justReplayed = false

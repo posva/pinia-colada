@@ -64,15 +64,7 @@ export default defineConfig({
         },
       },
     }),
-    Vue({
-      template: {
-        compilerOptions: {
-          isCustomElement: (tag) => {
-            return tag.startsWith('pinia-colada-')
-          },
-        },
-      },
-    }),
+    Vue(),
     Icons({ compiler: 'vue3' }),
     Components({
       dirs: [resolve(devtoolsDir, './src/panel/components')],

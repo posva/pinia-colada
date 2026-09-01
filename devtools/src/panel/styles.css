@@ -2,7 +2,7 @@
 
 /* @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *)); */
 
-:host {
+:root {
   font-family: sans-serif;
   color-scheme: light dark;
 
@@ -73,11 +73,11 @@
   }
 }
 
-:host:has(.dark) {
+:root:has(.dark) {
   color-scheme: dark;
 }
 
-:host:has(.light) {
+:root:has(.light) {
   color-scheme: light;
 }
 

@@ -1,21 +1,24 @@
 import type {
   AppEmits,
   DevtoolsEmits,
-  DuplexChannel,
   UseQueryEntryPayload,
   UseMutationEntryPayload,
 } from '@pinia/colada-devtools/shared'
 import { inject } from 'vue'
 import type { InjectionKey, Ref } from 'vue'
 
-export const DUPLEX_CHANNEL_KEY: InjectionKey<DuplexChannel<DevtoolsEmits, AppEmits>> =
-  Symbol('duplex-channel')
+export interface DevtoolsChannel {
+  emit<K extends keyof DevtoolsEmits>(event: K, ...args: DevtoolsEmits[K]): void
+  on<K extends keyof AppEmits>(event: K, callback: (...args: AppEmits[K]) => void): () => void
+}
 
-export function useDuplexChannel() {
-  const channel = inject(DUPLEX_CHANNEL_KEY)
+export const DEVTOOLS_CHANNEL_KEY: InjectionKey<DevtoolsChannel> = Symbol('devtools-channel')
+
+export function useDevtoolsChannel() {
+  const channel = inject(DEVTOOLS_CHANNEL_KEY)
   if (!channel) {
     throw new Error(
-      'The duplex channel is not provided. Make sure to use it inside the context of a component that provides it.',
+      'The devtools channel is not provided. Make sure to use it inside the context of a component that provides it.',
     )
   }
   return channel

@@ -1,11 +1,21 @@
 <script setup lang="ts">
-import { onBeforeUnmount, shallowRef, useTemplateRef, watch } from 'vue'
+import { ref } from 'vue'
 import { useQueryCache, useMutationCache } from '@pinia/colada'
-import { DuplexChannel } from '@pinia/colada-devtools/shared'
-import type { AppEmits, DevtoolsEmits } from '@pinia/colada-devtools/shared'
-import { setupDevtoolsAppBridge, attachCssPropertyRules } from './app-bridge'
-// use dependency free simple useEventListener because this component is used directly in the app
-import { useEventListener } from './use-event-listener'
+import type {
+  AppEmits,
+  DevtoolsEmits,
+  UseMutationEntryPayload,
+  UseQueryEntryPayload,
+} from '@pinia/colada-devtools/shared'
+import {
+  removeMutationEntry,
+  removeQueryEntry,
+  replaceMutationEntry,
+  replaceQueryEntry,
+} from '@pinia/colada-devtools/shared'
+import type { DevtoolsChannel } from './panel/composables/duplex-channel'
+import { setupDevtoolsAppBridge } from './app-bridge'
+import { DevtoolsPanel } from './panel'
 
 const emit = defineEmits<{
   close: []
@@ -14,133 +24,47 @@ const emit = defineEmits<{
 const queryCache = useQueryCache()
 const mutationCache = useMutationCache()
 
-const devtoolsEl = useTemplateRef<HTMLElement>('devtools')
-
-const mc = shallowRef(new MessageChannel())
-const transmitter = new DuplexChannel<AppEmits, DevtoolsEmits>(mc.value.port1)
-watch(
-  mc,
-  (mc) => {
-    transmitter.setPort(mc.port1)
+const listeners = new Map<keyof AppEmits, Set<(...args: any[]) => void>>()
+const channel: DevtoolsChannel = {
+  emit(event, ...args) {
+    const handler = bridge.actions[event] as (...args: DevtoolsEmits[typeof event]) => void
+    handler(...args)
   },
-  { flush: 'sync' },
-)
+  on(event, callback) {
+    let eventListeners = listeners.get(event)
+    if (!eventListeners) listeners.set(event, (eventListeners = new Set()))
+    eventListeners.add(callback)
+    return () => eventListeners.delete(callback)
+  },
+}
 
-const bridge = setupDevtoolsAppBridge(queryCache, mutationCache, transmitter)
+function publish<K extends keyof AppEmits>(event: K, ...args: AppEmits[K]) {
+  for (const listener of listeners.get(event) ?? []) listener(...args)
+}
 
-// PiP window handling
-const pipWindow = shallowRef<Window | null>(null)
-
-// when the element is moved into a window, the port is automatically closed
-watch(pipWindow, () => {
-  // console.info('🗺️ Recreating MessageChannel...')
-  mc.value = new MessageChannel()
+const queries = ref<UseQueryEntryPayload[]>([])
+const mutations = ref<UseMutationEntryPayload[]>([])
+const bridge = setupDevtoolsAppBridge(queryCache, mutationCache, (event, payload) => {
+  if (event === 'queries:all') queries.value = payload as UseQueryEntryPayload[]
+  else if (event === 'queries:update')
+    replaceQueryEntry(queries.value, payload as UseQueryEntryPayload)
+  else if (event === 'queries:delete')
+    removeQueryEntry(queries.value, payload as UseQueryEntryPayload)
+  else if (event === 'mutations:all') mutations.value = payload as UseMutationEntryPayload[]
+  else if (event === 'mutations:update')
+    replaceMutationEntry(mutations.value, payload as UseMutationEntryPayload)
+  else removeMutationEntry(mutations.value, payload as UseMutationEntryPayload)
+  publish(event, payload as any)
 })
 
-useEventListener(
-  window,
-  'unload',
-  () => {
-    pipWindow.value?.close()
-  },
-  { passive: true },
-)
-onBeforeUnmount(() => {
-  pipWindow.value?.close()
-})
-
-function closePiPWindow() {
-  pipWindow.value?.close()
-  pipWindow.value = null
-}
-
-function openPiPWindow() {
-  const devtools = devtoolsEl.value
-  if (!devtools || !devtools.shadowRoot) {
-    throw new Error('No devtools elemnt found for Pinia Colada devtools')
-  }
-
-  const devtoolsRootEl = devtools.shadowRoot.getElementById('root')
-
-  if (!devtoolsRootEl) {
-    throw new Error('No devtools root element found for Pinia Colada devtools')
-  }
-
-  const windowWidth = Math.max(devtoolsRootEl.offsetWidth, 400)
-  const windowHeight = Math.max(devtoolsRootEl.offsetHeight, 400)
-  // console.info(`Opening PiP window ${windowWidth}x${windowHeight}`)
-
-  const pip = window.open(
-    '',
-    'pinia-colada-devtools',
-    `popup,width=${windowWidth},height=${windowHeight}`,
-  )
-
-  if (!pip) {
-    throw new Error('Failed to open PiP window for Pinia Colada devtools')
-  }
-
-  pipWindow.value = pip
-
-  pip.document.head.innerHTML = ''
-  // Remove existing body
-  pip.document.body.innerHTML = ''
-
-  pip.document.title = '🍹 Pinia Colada Devtools'
-  pip.document.body.style.margin = '0'
-
-  // TODO:
-  // pip.addEventListener('pagehide', () => {
-  //   setLocalStore('pip_open', 'false')
-  //   setPipWindow(null)
-  // })
-  //
-  attachCssPropertyRules(devtools, pip.document)
-
-  pip.addEventListener(
-    'unload',
-    () => {
-      pipWindow.value = null
-    },
-    { passive: true },
-  )
-}
-
-function togglePiPWindow() {
-  if (pipWindow.value) {
-    closePiPWindow()
-  } else {
-    openPiPWindow()
-  }
-}
-
-let tries = 0
-async function devtoolsOnReady() {
-  if (!devtoolsEl.value) {
-    if (++tries > 100) {
-      throw new Error('Failed to find devtools element for Pinia Colada devtools')
-    }
-    setTimeout(() => {
-      devtoolsOnReady()
-    }, 100)
-    return
-  }
-  attachCssPropertyRules(devtoolsEl.value)
-  bridge.sendAll()
-}
+bridge.sendAll()
 </script>
 
 <template>
-  <!--
-      NOTE:we need to keep the pinia-colada-devtools-panel component as the root without wrappers so it is reused
-    -->
-  <Teleport :to="pipWindow ? pipWindow.document.body : 'body'">
-    <pinia-colada-devtools-panel
-      ref="devtools"
-      :isPip.prop="!!pipWindow"
-      :port.prop="mc.port2"
-      @toggle-pip="togglePiPWindow()"
-      @ready="devtoolsOnReady()"
+  <Teleport to="body">
+    <DevtoolsPanel
+      :channel
+      class="fixed inset-x-0 bottom-0 h-[50vh] z-9999"
       @close="emit('close')"
     />
   </Teleport>

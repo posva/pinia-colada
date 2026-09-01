@@ -12,12 +12,19 @@
  * `ready → sendAll` handshake the in-app devtools do on the element's `ready`
  * event.
  */
-import { createPageScriptChannel, defineChannelFunction } from 'devframe/in-page-channel'
+import { createPageScriptChannel } from 'devframe/in-page-channel'
 import type { QueryCache, MutationCache } from '@pinia/colada'
 import { getActivePinia } from 'pinia'
 import type { Pinia } from 'pinia'
-import { DuplexChannel } from '@pinia/colada-devtools/shared'
-import type { AppEmits, DevtoolsEmits } from '@pinia/colada-devtools/shared'
+import {
+  removeMutationEntry,
+  removeQueryEntry,
+  replaceMutationEntry,
+  replaceQueryEntry,
+  restoreClonedDeep,
+  serializeDevtoolsValue,
+} from '@pinia/colada-devtools/shared'
+import type { UseMutationEntryPayload, UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
 import { setupDevtoolsAppBridge } from '../../../src/app-bridge.ts'
 import { PINIA_COLADA_CHANNEL } from '../channel.ts'
 import type { PiniaColadaChannelProtocol } from '../channel.ts'
@@ -58,39 +65,90 @@ export default async function setupPiniaColadaBridge(ctx: DockClientScriptContex
   const queryCache: QueryCache = useQueryCache(pinia)
   const mutationCache: MutationCache = useMutationCache(pinia)
 
-  const mc = new MessageChannel()
-  const transmitter = new DuplexChannel<AppEmits, DevtoolsEmits>(mc.port1)
-  const bridge = setupDevtoolsAppBridge(queryCache, mutationCache, transmitter)
   const agentRpc = ctx.rpc.scope('pinia-colada').rpc
+  let mutateCache: (mutator: (cache: import('../channel.ts').PiniaColadaCacheState) => void) => void
+
+  const bridge = setupDevtoolsAppBridge(queryCache, mutationCache, (event, payload) => {
+    mutateCache((cache) => {
+      if (event === 'queries:all') cache.queries = payload as UseQueryEntryPayload[]
+      else if (event === 'queries:update')
+        {replaceQueryEntry(cache.queries, payload as UseQueryEntryPayload)}
+      else if (event === 'queries:delete')
+        {removeQueryEntry(cache.queries, payload as UseQueryEntryPayload)}
+      else if (event === 'mutations:all') cache.mutations = payload as UseMutationEntryPayload[]
+      else if (event === 'mutations:update')
+        {replaceMutationEntry(cache.mutations, payload as UseMutationEntryPayload)}
+      else removeMutationEntry(cache.mutations, payload as UseMutationEntryPayload)
+    })
+    agentRpc.callEvent('cache-event', event, [payload])
+  })
 
   const channel = createPageScriptChannel<PiniaColadaChannelProtocol>({
     name: PINIA_COLADA_CHANNEL,
-    functions: [
-      // DevtoolsEmits ← panels
-      defineChannelFunction({
-        name: 'devtools-emit',
+    serialize: serializeDevtoolsValue,
+    deserialize: restoreClonedDeep,
+    functions: {
+      'queries:clear': {
         type: 'event',
-        handler: (id: string, args: unknown[]) => {
-          mc.port2.postMessage({ id, data: args })
-        },
-      }),
-    ],
+        handler: (filters) =>
+          filters ? bridge.actions['queries:clear'](filters) : bridge.actions['queries:clear'](),
+      },
+      'queries:refetch': { type: 'event', handler: bridge.actions['queries:refetch'] },
+      'queries:invalidate': { type: 'event', handler: bridge.actions['queries:invalidate'] },
+      'queries:reset': { type: 'event', handler: bridge.actions['queries:reset'] },
+      'queries:set:state': { type: 'event', handler: bridge.actions['queries:set:state'] },
+      'queries:simulate:loading': {
+        type: 'event',
+        handler: bridge.actions['queries:simulate:loading'],
+      },
+      'queries:simulate:loading:stop': {
+        type: 'event',
+        handler: bridge.actions['queries:simulate:loading:stop'],
+      },
+      'queries:simulate:error': {
+        type: 'event',
+        handler: bridge.actions['queries:simulate:error'],
+      },
+      'queries:simulate:error:stop': {
+        type: 'event',
+        handler: bridge.actions['queries:simulate:error:stop'],
+      },
+      'mutations:clear': {
+        type: 'event',
+        handler: (filters) =>
+          filters
+            ? bridge.actions['mutations:clear'](filters)
+            : bridge.actions['mutations:clear'](),
+      },
+      'mutations:remove': { type: 'event', handler: bridge.actions['mutations:remove'] },
+      'mutations:simulate:loading': {
+        type: 'event',
+        handler: bridge.actions['mutations:simulate:loading'],
+      },
+      'mutations:simulate:loading:stop': {
+        type: 'event',
+        handler: bridge.actions['mutations:simulate:loading:stop'],
+      },
+      'mutations:simulate:error': {
+        type: 'event',
+        handler: bridge.actions['mutations:simulate:error'],
+      },
+      'mutations:simulate:error:stop': {
+        type: 'event',
+        handler: bridge.actions['mutations:simulate:error:stop'],
+      },
+      'mutations:replay': { type: 'event', handler: bridge.actions['mutations:replay'] },
+    },
   })
 
-  // AppEmits → every connected panel
-  mc.port2.addEventListener('message', (event) => {
-    const { id, data } = event.data as { id: string; data: unknown[] }
-    channel.callEvent('app-emit', id, data)
-    agentRpc.callEvent('cache-event', id, data)
+  const cacheState = await channel.sharedState.get('cache', {
+    initialValue: { queries: [], mutations: [] },
   })
-  mc.port2.start()
+  mutateCache = (mutator) => cacheState.mutate(mutator)
 
   // Populate the MCP cache even when no visual panel has connected yet.
   bridge.sendAll()
 
   // a panel that just connected has an empty UI; this also covers reconnects
   // after a panel or app reload, since those are just a new handshake
-  channel.events.on('panel:connected', () => {
-    bridge.sendAll()
-  })
 }

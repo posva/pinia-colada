@@ -5,7 +5,6 @@ import type { ShallowRef } from 'vue'
 import { createPinia } from 'pinia'
 import { PiniaColada, useMutation, useMutationCache, useQueryCache } from '@pinia/colada'
 import type { AsyncStatus } from '@pinia/colada'
-import { DuplexChannel } from '@pinia/colada-devtools/shared'
 import type { AppEmits, DevtoolsEmits } from '@pinia/colada-devtools/shared'
 import { setupDevtoolsAppBridge } from './app-bridge'
 
@@ -19,11 +18,22 @@ describe('app bridge', () => {
     const queryCache = useQueryCache(pinia)
     const mutationCache = useMutationCache(pinia)
 
-    const mc = new MessageChannel()
-    const transmitter = new DuplexChannel<AppEmits, DevtoolsEmits>(mc.port1)
-    setupDevtoolsAppBridge(queryCache, mutationCache, transmitter)
-    // the devtools end of the channel
-    const devtools = new DuplexChannel<DevtoolsEmits, AppEmits>(mc.port2)
+    const listeners = new Map<keyof AppEmits, Set<(...args: any[]) => void>>()
+    const bridge = setupDevtoolsAppBridge(queryCache, mutationCache, (event, ...args) => {
+      for (const listener of listeners.get(event) ?? []) listener(...args)
+    })
+    const devtools = {
+      emit<K extends keyof DevtoolsEmits>(event: K, ...args: DevtoolsEmits[K]) {
+        const handler = bridge.actions[event] as (...args: DevtoolsEmits[K]) => void
+        handler(...args)
+      },
+      on<K extends keyof AppEmits>(event: K, callback: (...args: AppEmits[K]) => void) {
+        let eventListeners = listeners.get(event)
+        if (!eventListeners) listeners.set(event, (eventListeners = new Set()))
+        eventListeners.add(callback)
+        return () => eventListeners.delete(callback)
+      },
+    }
 
     return {
       queryCache,
@@ -45,7 +55,7 @@ describe('app bridge', () => {
   }
 
   function nextEmission<K extends keyof AppEmits>(
-    devtools: DuplexChannel<DevtoolsEmits, AppEmits>,
+    devtools: ReturnType<typeof factory>['devtools'],
     event: K,
   ) {
     return new Promise<AppEmits[K]>((resolve) => {
@@ -59,7 +69,7 @@ describe('app bridge', () => {
   // waits until no emission of the given event arrives for a quiet window, so
   // updates queued by previous cache operations don't leak into assertions
   function drainEmissions<K extends keyof AppEmits>(
-    devtools: DuplexChannel<DevtoolsEmits, AppEmits>,
+    devtools: ReturnType<typeof factory>['devtools'],
     event: K,
     quiet = 50,
   ) {

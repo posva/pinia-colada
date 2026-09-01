@@ -1,82 +1,48 @@
-/**
- * Panel host: mounts the existing devtools panel (the same custom element the
- * in-app devtools use) and bridges its `MessagePort` to the app page over the
- * devframe in-page channel. Raw `{ id, args }` envelopes are relayed
- * unchanged, one cache event per message:
- *
- * - `AppEmits` arrive as `app-emit` events from the app's page script and are
- *   pushed into the panel's port.
- * - `DevtoolsEmits` from the panel are sent to the page script's
- *   `devtools-emit`.
- *
- * The channel handshakes straight with the page script, so this SPA opens no
- * devframe connection at all: nothing to authenticate, and no full sync to ask
- * for — the page script replays everything when the handshake completes.
- */
-import { connectPanelChannel, defineChannelFunction } from 'devframe/in-page-channel'
-import { DevtoolsPanel } from '@pinia/colada-devtools/panel'
-import { attachCssPropertyRules } from '../../../src/app-bridge.ts'
+import { connectPanelChannel } from 'devframe/in-page-channel'
+import { createApp } from 'vue'
+import type { AppEmits } from '@pinia/colada-devtools/shared'
+import { restoreClonedDeep, serializeDevtoolsValue } from '@pinia/colada-devtools/shared'
+import { configureApp, DevtoolsPanel } from '@pinia/colada-devtools/panel'
+import type { DevtoolsChannel } from '../../../src/panel/composables/duplex-channel.ts'
 import { PINIA_COLADA_CHANNEL } from '../../src/channel.ts'
 import type { PiniaColadaChannelProtocol } from '../../src/channel.ts'
 
-/** how long to wait for the app's page script before saying it's missing */
-const PAGE_SCRIPT_TIMEOUT = 10_000
-
-if (!customElements.get('pinia-colada-devtools-panel')) {
-  customElements.define('pinia-colada-devtools-panel', DevtoolsPanel)
-}
-
-const mc = new MessageChannel()
-
 const channel = connectPanelChannel<PiniaColadaChannelProtocol>({
   name: PINIA_COLADA_CHANNEL,
-  functions: [
-    // AppEmits: app → panel
-    defineChannelFunction({
-      name: 'app-emit',
-      type: 'event',
-      handler: (id: string, args: unknown[]) => {
-        mc.port1.postMessage({ id, data: args })
-      },
-    }),
-  ],
+  serialize: serializeDevtoolsValue,
+  deserialize: restoreClonedDeep,
+  functions: {},
 })
 
-export type PanelChannel = typeof channel
-
-// DevtoolsEmits: panel → app page. Buffered by the channel while it is still
-// handshaking, so the panel is usable before the page script answers
-mc.port1.addEventListener('message', (event) => {
-  const { id, data } = event.data as { id: string; data: unknown[] }
-  channel.callEvent('devtools-emit', id, data)
-})
-mc.port1.start()
-
-// the page script only exists in an app running the devtools plugin, and the
-// panel is otherwise indistinguishable from one that simply has no entries
-channel.whenConnected(PAGE_SCRIPT_TIMEOUT).catch(() => {
-  console.warn(
-    `[pinia-colada-devtools] no Pinia Colada page script answered on "${PINIA_COLADA_CHANNEL}" ` +
-      `after ${PAGE_SCRIPT_TIMEOUT}ms: the inspected app has no active pinia, or it is not ` +
-      `running the devtools plugin. Still listening.`,
-  )
-})
-
-const el = document.createElement('pinia-colada-devtools-panel') as HTMLElement & {
-  port: MessagePort
-  isPip: boolean
-  isDevframe: boolean
-  channel: typeof channel
+const callEvent = channel.callEvent as unknown as DevtoolsChannel['emit']
+const listeners = new Map<keyof AppEmits, Set<(...args: any[]) => void>>()
+const panelChannel: DevtoolsChannel = {
+  emit(event, ...args) {
+    callEvent(event, ...args)
+  },
+  on(event, callback) {
+    let eventListeners = listeners.get(event)
+    if (!eventListeners) listeners.set(event, (eventListeners = new Set()))
+    eventListeners.add(callback)
+    return () => eventListeners.delete(callback)
+  },
 }
-el.port = mc.port2
-// PiP layout = fill the window, which is exactly what the iframe dock needs
-el.isPip = true
-el.isDevframe = true
-el.channel = channel
-el.style.display = 'block'
-el.style.height = '100%'
-el.addEventListener('ready', () => {
-  // @property rules are ignored inside shadow DOM
-  attachCssPropertyRules(el)
-})
-document.getElementById('app')!.appendChild(el)
+
+const cache = await channel.sharedState.get('cache')
+
+function publish<K extends keyof AppEmits>(event: K, ...args: AppEmits[K]) {
+  for (const listener of listeners.get(event) ?? []) listener(...args)
+}
+
+function applyCache() {
+  const value = cache.value()
+  publish('queries:all', value.queries as unknown as AppEmits['queries:all'][0])
+  publish('mutations:all', value.mutations as unknown as AppEmits['mutations:all'][0])
+}
+
+cache.on('updated', applyCache)
+
+const app = createApp(DevtoolsPanel, { channel: panelChannel })
+configureApp(app)
+app.mount('#app')
+applyCache()

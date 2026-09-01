@@ -1,51 +1,24 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, provide } from 'vue'
-import type {
-  UseQueryEntryPayload,
-  UseMutationEntryPayload,
-  DevtoolsEmits,
-  AppEmits,
-} from '@pinia/colada-devtools/shared'
+import { ref, provide } from 'vue'
+import type { UseQueryEntryPayload, UseMutationEntryPayload } from '@pinia/colada-devtools/shared'
 import {
-  DuplexChannel,
   removeMutationEntry,
   removeQueryEntry,
   replaceMutationEntry,
   replaceQueryEntry,
 } from '@pinia/colada-devtools/shared'
-import { DUPLEX_CHANNEL_KEY, QUERIES_KEY, MUTATIONS_KEY } from './composables/duplex-channel'
+import type { DevtoolsChannel } from './composables/duplex-channel'
+import { DEVTOOLS_CHANNEL_KEY, QUERIES_KEY, MUTATIONS_KEY } from './composables/duplex-channel'
 
-const { port, isPip } = defineProps<{
-  port: MessagePort
-  isPip: boolean
-  isDevframe: boolean
+const { channel } = defineProps<{
+  channel: DevtoolsChannel
 }>()
 
 const emit = defineEmits<{
-  togglePip: []
-  closePip: []
-  ready: []
   close: []
 }>()
 
-const channel = new DuplexChannel<DevtoolsEmits, AppEmits>(port)
-provide(DUPLEX_CHANNEL_KEY, channel)
-
-watch(
-  () => port,
-  (port, _old) => {
-    channel.setPort(port)
-  },
-)
-onUnmounted(() => {
-  channel.stop()
-})
-
-onMounted(() => {
-  requestAnimationFrame(() => {
-    emit('ready')
-  })
-})
+provide(DEVTOOLS_CHANNEL_KEY, channel)
 
 const queries = ref<UseQueryEntryPayload[]>([])
 provide(QUERIES_KEY, queries)
@@ -73,7 +46,7 @@ channel.on('mutations:delete', (m) => {
 </script>
 
 <template>
-  <PiPContainer id="root" :is-pip>
+  <div id="root" class="w-full h-full">
     <main class="w-full h-full grid grid-rows-[auto_1fr] bg-ui-bg text-ui-text font-sans">
       <!-- Merged Header with Tabs Navigation -->
       <div class="flex items-center border-b border-(--ui-border) select-none">
@@ -109,16 +82,7 @@ channel.on('mutations:delete', (m) => {
 
         <div class="grow" />
 
-        <!-- PiP toggle button -->
-        <div class="flex items-center py-1 gap-1 pr-1" v-if="!isDevframe">
-          <UButton
-            class="variant-ghost theme-neutral"
-            :title="isPip ? 'Restore window' : 'Open in a new window'"
-            @click="emit('togglePip')"
-          >
-            <i-lucide-picture-in-picture v-if="!isPip" class="w-5 h-5" />
-            <i-lucide-minimize-2 v-else class="w-5 h-5" />
-          </UButton>
+        <div class="flex items-center py-1 gap-1 pr-1">
           <UButton
             class="variant-ghost theme-neutral"
             title="Close devtools"
@@ -131,7 +95,7 @@ channel.on('mutations:delete', (m) => {
 
       <RouterView />
     </main>
-  </PiPContainer>
+  </div>
 </template>
 
 <style>
