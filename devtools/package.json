@@ -59,6 +59,7 @@
     "build": "pnpm run --stream '/^build:(main|shared|panel)$/' && pnpm run build:devframe"
   },
   "dependencies": {
+    "@modelcontextprotocol/server": "^2.0.0",
     "devframe": "^0.9.6"
   },
   "peerDependencies": {

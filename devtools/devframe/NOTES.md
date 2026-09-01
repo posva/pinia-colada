@@ -20,7 +20,10 @@ is nothing to authenticate and the transport behaves the same in a dev server
 and in a static build. Full sync is the page script's own doing: it replays
 everything on `panel:connected`, the analogue of the `ready → sendAll`
 handshake the in-app devtools do on the element's `ready` event, and it fires
-again on every re-handshake (panel or app reload).
+again on every re-handshake (panel or app reload). In parallel, the page script
+mirrors those already-serialized app events into node-side shared state. That
+copy is not part of the panel transport; it backs the read-only agent/MCP
+surface (`list-queries`, `list-mutations`, and the cache resource).
 
 ```
 app page (page script = authority)                    panel iframe
@@ -54,18 +57,19 @@ type), imported by both endpoints.
   bridge about devframe, both keep their `MessagePort` contract and ~30 lines
   of relay glue on each side translate to in-page channel primitives. The
   panel and bridge code stay byte-identical with the in-app devtools.
-- **In-page channel, not the server RPC.** The first working version relayed
+- **In-page channel for the panel, not the server RPC.** The first working version relayed
   every envelope through two mirrored server actions that re-broadcast to the
   other side, so each cache event made a round trip over the websocket to
   Node and back to a page next to the one that sent it. The in-page channel is
   the direct link for exactly this shape of traffic, and swapping to it
-  deleted the whole server surface: no `defineRpcFunction`s, no
-  `DevframeRpcServerFunctions` augmentation, no `connectDevframe()` /
+  deleted the server relay: no `DevframeRpcServerFunctions` augmentation, no `connectDevframe()` /
   `ensureTrusted()` in the panel, no synthetic `devtools:ready` id (that is
   `panel:connected` now). Reconnects come for free — a dead port re-handshakes
   and the page script replays — which retires the "events missed while the
   socket was down are only recovered by reopening the dock" edge. It also
-  narrows the reach: see the rough edges below.
+  narrows the reach: see the rough edges below. The later MCP integration adds
+  one one-way `cache-event` RPC, but panel traffic still takes the direct
+  in-page path and server state is only an agent-readable mirror.
 - **Granular events, not shared state.** A first version mirrored the caches
   into devframe shared state (nice replay-on-connect semantics), but the node
   and client hosts construct their stores without `enablePatches`, so each
