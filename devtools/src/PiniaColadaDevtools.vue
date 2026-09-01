@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useQueryCache, useMutationCache } from '@pinia/colada'
 import type {
   AppEmits,
@@ -57,7 +57,7 @@ const bridge = setupDevtoolsAppBridge(queryCache, mutationCache, (event, payload
   publish(event, payload as any)
 })
 
-bridge.sendAll()
+onMounted(() => bridge.sendAll())
 </script>
 
 <template>
