@@ -9,7 +9,6 @@ import buttonStyles from './button-style.css?inline'
 import { useMutationCache, useQueryCache } from '@pinia/colada'
 import { addDevtoolsInfo } from './pc-devtools-info-plugin'
 
-const isCEDefined = ref(false)
 const areDevtoolsOpen = useLocalStorage('pinia-colada-devtools-open', false)
 
 // keep this in sync with the `width`/`height` in button-style.css
@@ -86,15 +85,6 @@ useEventListener('resize', () => {
   buttonX.value = clampButtonX(buttonX.value)
 })
 
-async function ensureCEDefined() {
-  if (isCEDefined.value) return
-  isCEDefined.value = true
-  if (!customElements.get('pinia-colada-devtools-panel')) {
-    const { DevtoolsPanel } = await import('@pinia/colada-devtools/panel')
-    customElements.define('pinia-colada-devtools-panel', DevtoolsPanel)
-  }
-}
-
 // add the info here so it is available right away
 const queryCache = useQueryCache()
 const mutationCache = useMutationCache()
@@ -106,7 +96,6 @@ async function openDevtools() {
     didDrag = false
     return
   }
-  await ensureCEDefined()
   areDevtoolsOpen.value = true
 }
 
@@ -120,7 +109,7 @@ onMounted(() => {
   if (areDevtoolsOpen.value) {
     openDevtools()
   } else {
-    // prefetch the custom element
+    // prefetch the panel
     // FIXME: it would be nice to do some prefetching in vite
     // https://github.com/vitejs/vite/issues/10600
     const idleCallback =
@@ -147,6 +136,6 @@ onMounted(() => {
     >
       <img :src="logoURL" alt="Pinia Colada Devtools Logo" />
     </button>
-    <PiniaColadaDevtools v-if="isCEDefined && areDevtoolsOpen" @close="areDevtoolsOpen = false" />
+    <PiniaColadaDevtools v-if="areDevtoolsOpen" @close="areDevtoolsOpen = false" />
   </ClientOnly>
 </template>

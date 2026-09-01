@@ -1,42 +1,41 @@
-/**
- * The in-page channel contract shared by the app's page script and the
- * devtools panels — see https://devfra.me/guide/in-page-channel.
- *
- * Both sides keep speaking the devtools `DuplexChannel` protocol; the channel
- * only carries the raw `{ id, args }` envelopes between them, one cache event
- * per message. The payloads are already serialization-safe
- * (`DuplexChannel.emit` ran them through `toRawDeep`) and only the receiving
- * `DuplexChannel` restores them, so the relay never decodes anything — hence
- * the loose `unknown[]`; the typed contract lives in `AppEmits` /
- * `DevtoolsEmits` in `@pinia/colada-devtools/shared`.
- *
- * No server is involved: the panel finds the page script through a
- * same-origin `postMessage` handshake, which also means the transport behaves
- * the same in a dev server and in a static build, and needs no devframe auth.
- */
 import type { InPageChannelProtocol } from 'devframe/in-page-channel'
+import type {
+  DataState,
+  EntryKey,
+  UseMutationEntryFilter,
+  UseQueryEntryFilter,
+} from '@pinia/colada'
+import type { UseMutationEntryPayload, UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
 
 /** Channel name, namespaced with the devframe id. */
 export const PINIA_COLADA_CHANNEL = 'pinia-colada:devtools'
 
-export interface PiniaColadaChannelProtocol extends InPageChannelProtocol {
-  /**
-   * Implemented by the page script (the inspected app), called by panels.
-   */
-  pageScript: {
-    /**
-     * One `DevtoolsEmits` envelope: panel → app.
-     */
-    'devtools-emit': (id: string, args: unknown[]) => void
-  }
+export interface PiniaColadaCacheState {
+  queries: UseQueryEntryPayload[]
+  mutations: UseMutationEntryPayload[]
+}
 
-  /**
-   * Implemented by every panel, called by the page script.
-   */
-  panel: {
-    /**
-     * One `AppEmits` envelope: app → panel.
-     */
-    'app-emit': (id: string, args: unknown[]) => void
+export interface PiniaColadaChannelProtocol extends InPageChannelProtocol {
+  pageScript: {
+    'queries:clear': (filters?: UseQueryEntryFilter) => void
+    'queries:refetch': (key: EntryKey) => void
+    'queries:invalidate': (key: EntryKey) => void
+    'queries:reset': (key: EntryKey) => void
+    'queries:set:state': (key: EntryKey, state: DataState<unknown, unknown, unknown>) => void
+    'queries:simulate:loading': (key: EntryKey) => void
+    'queries:simulate:loading:stop': (key: EntryKey) => void
+    'queries:simulate:error': (key: EntryKey) => void
+    'queries:simulate:error:stop': (key: EntryKey) => void
+    'mutations:clear': (filters?: UseMutationEntryFilter) => void
+    'mutations:remove': (id: number) => void
+    'mutations:simulate:loading': (id: number) => void
+    'mutations:simulate:loading:stop': (id: number) => void
+    'mutations:simulate:error': (id: number) => void
+    'mutations:simulate:error:stop': (id: number) => void
+    'mutations:replay': (id: number) => void
+  }
+  panel: Record<string, never>
+  sharedStates: {
+    cache: PiniaColadaCacheState
   }
 }

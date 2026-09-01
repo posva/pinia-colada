@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
 import { computed, watch } from 'vue'
-import { useDuplexChannel, useQueryEntries } from '../../composables/duplex-channel'
+import { useDevtoolsChannel, useQueryEntries } from '../../composables/duplex-channel'
 import { formatDuration } from '../../utils/time'
 import { useRoute } from 'vue-router'
 import type { DataStateStatus } from '@pinia/colada'
@@ -53,7 +53,7 @@ const lastUpdate = useTimeAgo(() => selectedQuery.value?.devtools.updatedAt ?? 0
 //   },
 // )
 
-const channel = useDuplexChannel()
+const channel = useDevtoolsChannel()
 
 const isDataOpen = useLocalStorage<boolean>('pc:query:details:data:open', false, {})
 let wasDataOpen = isDataOpen.value
