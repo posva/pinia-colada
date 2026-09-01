@@ -3,15 +3,16 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { createApp, customRef, defineComponent } from 'vue'
 import type { ShallowRef } from 'vue'
 import { createPinia } from 'pinia'
-import { PiniaColada, useMutation, useMutationCache, useQueryCache } from '@pinia/colada'
+import { PiniaColada, useMutation, useMutationCache, useQuery, useQueryCache } from '@pinia/colada'
 import type { AsyncStatus } from '@pinia/colada'
 import type { AppEmits, DevtoolsEmits } from '@pinia/colada-devtools/shared'
 import { setupDevtoolsAppBridge } from './app-bridge'
+import type { DevtoolsAppBridge } from './app-bridge'
 
 describe('app bridge', () => {
   enableAutoUnmount(afterEach)
 
-  function factory() {
+  function factory(installImmediately = true) {
     const pinia = createPinia()
     // create the caches within an app context to avoid inject() warnings
     createApp({}).use(pinia).use(PiniaColada, {})
@@ -19,12 +20,15 @@ describe('app bridge', () => {
     const mutationCache = useMutationCache(pinia)
 
     const listeners = new Map<keyof AppEmits, Set<(...args: any[]) => void>>()
-    const bridge = setupDevtoolsAppBridge(queryCache, mutationCache, (event, ...args) => {
-      for (const listener of listeners.get(event) ?? []) listener(...args)
-    })
+    let bridge: DevtoolsAppBridge | undefined
+    const installBridge = () =>
+      (bridge ??= setupDevtoolsAppBridge(queryCache, mutationCache, (event, ...args) => {
+        for (const listener of listeners.get(event) ?? []) listener(...args)
+      }))
+    if (installImmediately) installBridge()
     const devtools = {
       emit<K extends keyof DevtoolsEmits>(event: K, ...args: DevtoolsEmits[K]) {
-        const handler = bridge.actions[event] as (...args: DevtoolsEmits[K]) => void
+        const handler = installBridge().actions[event] as (...args: DevtoolsEmits[K]) => void
         handler(...args)
       },
       on<K extends keyof AppEmits>(event: K, callback: (...args: AppEmits[K]) => void) {
@@ -39,6 +43,7 @@ describe('app bridge', () => {
       queryCache,
       mutationCache,
       devtools,
+      installBridge,
       // mounts a component that uses pinia colada composables
       mountComponent: (setup: () => unknown) =>
         mount(
@@ -134,6 +139,39 @@ describe('app bridge', () => {
     const [stopPayload] = await stopUpdate
     expect(stopPayload.asyncStatus).toBe('idle')
     expect(stopPayload.devtools.simulate).toBe(null)
+  })
+
+  it('reports idle after a query that started before the bridge settles', async () => {
+    const { queryCache, devtools, installBridge, mountComponent } = factory(false)
+    let resolveQuery!: (value: string) => void
+
+    mountComponent(() =>
+      useQuery({
+        key: ['started-before-devtools'],
+        query: () =>
+          new Promise<string>((resolve) => {
+            resolveQuery = resolve
+          }),
+      }),
+    )
+    await flushPromises()
+
+    const entry = queryCache.getEntries({ key: ['started-before-devtools'], exact: true })[0]!
+    expect(entry.asyncStatus.value).toBe('loading')
+
+    installBridge()
+    const settledUpdate = new Promise<AppEmits['queries:update'][0]>((resolve) => {
+      const off = devtools.on('queries:update', (payload) => {
+        if (payload.keyHash === entry.keyHash && payload.asyncStatus === 'idle') {
+          off()
+          resolve(payload)
+        }
+      })
+    })
+
+    resolveQuery('done')
+    const payload = await settledUpdate
+    expect(payload.state).toEqual({ data: 'done', error: null, status: 'success' })
   })
 
   it('reports loading right away on mutation simulate even if a plugin delays asyncStatus', async () => {

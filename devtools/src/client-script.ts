@@ -53,9 +53,14 @@ export default async function setupPiniaColadaBridge() {
   const queryCache: QueryCache = useQueryCache(pinia)
   const mutationCache: MutationCache = useMutationCache(pinia)
 
-  let mutateCache: (mutator: (cache: import('./channel.ts').PiniaColadaCacheState) => void) => void
+  let mutateCache:
+    | ((mutator: (cache: import('./channel.ts').PiniaColadaCacheState) => void) => void)
+    | undefined
 
   const bridge = setupDevtoolsAppBridge(queryCache, mutationCache, (event, payload) => {
+    // sharedState.get() yields once. sendAll() below provides an authoritative
+    // snapshot for any cache event that settles during that initialization.
+    if (!mutateCache) return
     const serializedPayload = serializeDevtoolsValue(payload)
     mutateCache((cache) => {
       if (event === 'queries:all') cache.queries = serializedPayload as UseQueryEntryPayload[]
