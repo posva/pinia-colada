@@ -61,7 +61,6 @@
   "dependencies": {
     "@devframes/hub-ui": "^0.9.7",
     "@devframes/vite": "^0.9.7",
-    "@modelcontextprotocol/server": "^2.0.0",
     "devframe": "^0.9.8"
   },
   "peerDependencies": {

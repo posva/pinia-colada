@@ -37,18 +37,6 @@ export default defineConfig({
 })
 ```
 
-### MCP
-
-The devframe exposes read-only agent tools for listing the inspected app's
-queries and mutations, plus a resource containing the latest cache snapshot.
-Standalone devframe servers publish these at their standard `__mcp` endpoint.
-When the definition is mounted in a hub, the tools are included in the hub's
-aggregate MCP endpoint when MCP is enabled by that host.
-
-The inspected-page bridge synchronizes the cache when its dock client script
-loads. In hosts that load client scripts lazily, open the Pinia Colada dock once
-before querying it through MCP.
-
 ## Development
 
 ```sh
