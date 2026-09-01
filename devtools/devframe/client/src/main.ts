@@ -36,14 +36,19 @@ const actions = {
 } satisfies DevtoolsActions
 
 const cache = await channel.sharedState.get('cache')
-const initialCache = cache.value() as unknown as PiniaColadaCacheState
+
+function readCache(): PiniaColadaCacheState {
+  return restoreClonedDeep(cache.value()) as unknown as PiniaColadaCacheState
+}
+
+const initialCache = readCache()
 const cacheState = reactive<PiniaColadaCacheState>({
   queries: [...initialCache.queries],
   mutations: [...initialCache.mutations],
 })
 
 function applyCache() {
-  const value = cache.value() as unknown as PiniaColadaCacheState
+  const value = readCache()
   cacheState.queries.splice(0, cacheState.queries.length, ...value.queries)
   cacheState.mutations.splice(0, cacheState.mutations.length, ...value.mutations)
 }
