@@ -9,15 +9,15 @@ import Icons from 'unplugin-icons/vite'
 import Components from 'unplugin-vue-components/vite'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const devtoolsDir = resolve(__dirname, '../..')
+const devtoolsDir = __dirname
 const UiComponentRe = /^U[A-Z][a-z]/
 
 // SPA mounted at an arbitrary base by the devframe host
 export default defineConfig({
-  root: __dirname,
+  root: resolve(devtoolsDir, './src/client'),
   base: './',
   build: {
-    outDir: resolve(devtoolsDir, './dist-devframe/client'),
+    outDir: resolve(devtoolsDir, './dist-client'),
     emptyOutDir: true,
   },
   resolve: {

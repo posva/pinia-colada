@@ -29,21 +29,21 @@
   ],
   "sideEffects": false,
   "exports": {
-    "./devframe": "./dist-devframe/index.js",
-    "./devframe/vite": "./dist-devframe/vite.js",
-    "./devframe/vite-hub": "./dist-devframe/vite-hub.js",
-    "./devframe/client-script": "./dist-devframe/client-script.js"
+    "./devframe": "./dist/index.js",
+    "./devframe/vite": "./dist/vite.js",
+    "./devframe/vite-hub": "./dist/vite-hub.js",
+    "./devframe/client-script": "./dist/client-script.js"
   },
   "files": [
     "LICENSE",
     "README.md",
-    "dist-devframe"
+    "dist",
+    "dist-client"
   ],
   "scripts": {
     "dev": "vite --config vite.config.ts",
     "test:types": "vue-tsc --noEmit",
-    "build:devframe": "tsdown --config devframe/tsdown.config.ts && vite build --config devframe/client/vite.config.ts",
-    "build": "pnpm run build:devframe"
+    "build": "tsdown && vite build --config client.vite.config.ts"
   },
   "dependencies": {
     "@devframes/hub": "^0.9.8",
