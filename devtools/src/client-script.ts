@@ -58,8 +58,7 @@ export default async function setupPiniaColadaBridge() {
     | undefined
 
   const bridge = setupDevtoolsAppBridge(queryCache, mutationCache, (event, payload) => {
-    // sharedState.get() yields once. sendAll() below provides an authoritative
-    // snapshot for any cache event that settles during that initialization.
+    // The initial sync includes any updates missed during setup.
     if (!mutateCache) return
     const serializedPayload = serializeDevtoolsValue(payload)
     mutateCache((cache) => {

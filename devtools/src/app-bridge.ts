@@ -32,11 +32,8 @@ export function setupDevtoolsAppBridge(
 ): DevtoolsAppBridge {
   addDevtoolsInfo(queryCache, mutationCache)
 
-  // The page script can load after the app has already started its queries.
-  // In that case $onAction cannot observe the existing fetch action, so its
-  // `after` callback below will never run. The setEntryState action still
-  // reports the resolved data while asyncStatus is loading; sync once more
-  // after the complete refresh chain settles and has restored it to idle.
+  // Sync queries started before the bridge once they settle because their
+  // fetch lifecycle was not observed by $onAction.
   for (const entry of queryCache.getEntries()) {
     const refreshCall = entry.pending?.refreshCall
     if (refreshCall) {
