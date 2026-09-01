@@ -8,7 +8,7 @@ import {
   getValueType,
   isNonSerializableValue,
 } from '@pinia/colada-devtools/shared'
-import UButton from '../UButton.ce.vue'
+import UButton from '../UButton.vue'
 import ILucideChevronRight from '~icons/lucide/chevron-right'
 import ILucidePencil from '~icons/lucide/pencil'
 import ILucideSquare from '~icons/lucide/square'

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef } from 'vue'
 import { Pane, Splitpanes } from '@posva/splitpanes'
-import { useQueryEntries } from '../composables/duplex-channel'
+import { useQueryEntries } from '../composables/devtools-context'
 import { getQueryStatus, STATUS_COLOR_CLASSES } from '../utils/query-state'
 import type { UseQueryEntryPayloadStatus } from '../utils/query-state'
 import type { UseQueryEntryPayload } from '@pinia/colada-devtools/shared'

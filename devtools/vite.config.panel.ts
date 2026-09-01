@@ -62,14 +62,13 @@ export default defineConfig({
     Components({
       dirs: [resolve(__dirname, './src/panel/components')],
       dts: false,
-      globsExclude: ['**/*.ce.vue'],
       resolvers: [
         (componentName) => {
           if (UiComponentRe.test(componentName)) {
             return {
               name: 'default',
               from: normalizePath(
-                resolve(__dirname, `./src/panel/components/${componentName}.ce.vue`),
+                resolve(__dirname, `./src/panel/components/${componentName}.vue`),
               ),
             }
           }

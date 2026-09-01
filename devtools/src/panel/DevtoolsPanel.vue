@@ -1,53 +1,22 @@
 <script setup lang="ts">
-import { onUnmounted, ref, provide } from 'vue'
+import { provide, toRef } from 'vue'
 import type { UseQueryEntryPayload, UseMutationEntryPayload } from '@pinia/colada-devtools/shared'
-import {
-  removeMutationEntry,
-  removeQueryEntry,
-  replaceMutationEntry,
-  replaceQueryEntry,
-} from '@pinia/colada-devtools/shared'
-import type { DevtoolsChannel } from './composables/duplex-channel'
-import { DEVTOOLS_CHANNEL_KEY, QUERIES_KEY, MUTATIONS_KEY } from './composables/duplex-channel'
+import type { DevtoolsActions } from './composables/devtools-context'
+import { DEVTOOLS_ACTIONS_KEY, MUTATIONS_KEY, QUERIES_KEY } from './composables/devtools-context'
 
-const { channel } = defineProps<{
-  channel: DevtoolsChannel
+const props = defineProps<{
+  actions: DevtoolsActions
+  queries: UseQueryEntryPayload[]
+  mutations: UseMutationEntryPayload[]
 }>()
 
 const emit = defineEmits<{
   close: []
 }>()
 
-provide(DEVTOOLS_CHANNEL_KEY, channel)
-
-const queries = ref<UseQueryEntryPayload[]>([])
-provide(QUERIES_KEY, queries)
-
-const mutations = ref<UseMutationEntryPayload[]>([])
-provide(MUTATIONS_KEY, mutations)
-
-const stopListening = [
-  channel.on('queries:all', (q) => {
-    queries.value = q
-  }),
-  channel.on('queries:update', (q) => {
-    replaceQueryEntry(queries.value, q)
-  }),
-  channel.on('queries:delete', (q) => {
-    removeQueryEntry(queries.value, q)
-  }),
-  channel.on('mutations:all', (m) => {
-    mutations.value = m
-  }),
-  channel.on('mutations:update', (m) => {
-    replaceMutationEntry(mutations.value, m)
-  }),
-  channel.on('mutations:delete', (m) => {
-    removeMutationEntry(mutations.value, m)
-  }),
-]
-
-onUnmounted(() => stopListening.forEach((stop) => stop()))
+provide(DEVTOOLS_ACTIONS_KEY, props.actions)
+provide(QUERIES_KEY, toRef(props, 'queries'))
+provide(MUTATIONS_KEY, toRef(props, 'mutations'))
 </script>
 
 <template>
