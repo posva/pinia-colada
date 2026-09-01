@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, provide } from 'vue'
+import { onUnmounted, ref, provide } from 'vue'
 import type { UseQueryEntryPayload, UseMutationEntryPayload } from '@pinia/colada-devtools/shared'
 import {
   removeMutationEntry,
@@ -22,27 +22,32 @@ provide(DEVTOOLS_CHANNEL_KEY, channel)
 
 const queries = ref<UseQueryEntryPayload[]>([])
 provide(QUERIES_KEY, queries)
-channel.on('queries:all', (q) => {
-  queries.value = q
-})
-channel.on('queries:update', (q) => {
-  replaceQueryEntry(queries.value, q)
-})
-channel.on('queries:delete', (q) => {
-  removeQueryEntry(queries.value, q)
-})
 
 const mutations = ref<UseMutationEntryPayload[]>([])
 provide(MUTATIONS_KEY, mutations)
-channel.on('mutations:all', (m) => {
-  mutations.value = m
-})
-channel.on('mutations:update', (m) => {
-  replaceMutationEntry(mutations.value, m)
-})
-channel.on('mutations:delete', (m) => {
-  removeMutationEntry(mutations.value, m)
-})
+
+const stopListening = [
+  channel.on('queries:all', (q) => {
+    queries.value = q
+  }),
+  channel.on('queries:update', (q) => {
+    replaceQueryEntry(queries.value, q)
+  }),
+  channel.on('queries:delete', (q) => {
+    removeQueryEntry(queries.value, q)
+  }),
+  channel.on('mutations:all', (m) => {
+    mutations.value = m
+  }),
+  channel.on('mutations:update', (m) => {
+    replaceMutationEntry(mutations.value, m)
+  }),
+  channel.on('mutations:delete', (m) => {
+    removeMutationEntry(mutations.value, m)
+  }),
+]
+
+onUnmounted(() => stopListening.forEach((stop) => stop()))
 </script>
 
 <template>
