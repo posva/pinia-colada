@@ -2,7 +2,25 @@
 @source '../../devtools/src/panel';
 
 :root {
-  color-scheme: light dark;
+  color-scheme: dark light;
+
+  --background-body: light-dark(#ffffff, #202b38);
+  --background: light-dark(#efefef, #161f27);
+  --background-alt: light-dark(#f7f7f7, #1a242f);
+  --selection: light-dark(#9e9e9e, #1c76c5);
+  --text-main: light-dark(#363636, #dbdbdb);
+  --text-bright: light-dark(#000000, #ffffff);
+  --text-muted: light-dark(#70777f, #a9b1ba);
+  --links: light-dark(#0076d1, #41adff);
+  --border: light-dark(#dbdbdb, #526980);
+  --code: light-dark(#000000, #ffbe85);
+  --button-base: light-dark(#d0cfcf, #0c151c);
+  --button-hover: light-dark(#9b9b9b, #040a0f);
+  --scrollbar-thumb: light-dark(#aaaaaa, #040a0f);
+  --form-placeholder: light-dark(#949494, #a9a9a9);
+  --form-text: light-dark(#1d1d1d, #ffffff);
+  --variable: light-dark(#39a33c, #d941e2);
+  --highlight: light-dark(#ffff00, #efdb43);
 
   --playground-surface: light-dark(#ffffff, #161f27);
   --playground-surface-muted: light-dark(#f9fafb, #1a242f);
