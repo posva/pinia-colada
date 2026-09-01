@@ -56,16 +56,20 @@ export default async function setupPiniaColadaBridge() {
   let mutateCache: (mutator: (cache: import('../channel.ts').PiniaColadaCacheState) => void) => void
 
   const bridge = setupDevtoolsAppBridge(queryCache, mutationCache, (event, payload) => {
+    const serializedPayload = serializeDevtoolsValue(payload)
     mutateCache((cache) => {
-      if (event === 'queries:all') cache.queries = payload as UseQueryEntryPayload[]
+      if (event === 'queries:all') cache.queries = serializedPayload as UseQueryEntryPayload[]
       else if (event === 'queries:update') {
-        replaceQueryEntry(cache.queries, payload as UseQueryEntryPayload)
+        replaceQueryEntry(cache.queries, serializedPayload as UseQueryEntryPayload)
       } else if (event === 'queries:delete') {
-        removeQueryEntry(cache.queries, payload as UseQueryEntryPayload)
-      } else if (event === 'mutations:all') cache.mutations = payload as UseMutationEntryPayload[]
-      else if (event === 'mutations:update') {
-        replaceMutationEntry(cache.mutations, payload as UseMutationEntryPayload)
-      } else removeMutationEntry(cache.mutations, payload as UseMutationEntryPayload)
+        removeQueryEntry(cache.queries, serializedPayload as UseQueryEntryPayload)
+      } else if (event === 'mutations:all') {
+        cache.mutations = serializedPayload as UseMutationEntryPayload[]
+      } else if (event === 'mutations:update') {
+        replaceMutationEntry(cache.mutations, serializedPayload as UseMutationEntryPayload)
+      } else {
+        removeMutationEntry(cache.mutations, serializedPayload as UseMutationEntryPayload)
+      }
     })
   })
 
