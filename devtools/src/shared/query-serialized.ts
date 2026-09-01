@@ -46,6 +46,19 @@ export interface UseQueryEntryPayloadOptions extends Pick<
   refetchOnWindowFocus: RefetchOnControl
 }
 
+function stringifyBigInt(_key: string, value: unknown): unknown {
+  return typeof value === 'bigint' ? `${value}n` : value
+}
+
+/**
+ * Stringifies a value for display while preserving BigInts.
+ *
+ * @internal
+ */
+export function miniJsonStringify(value: unknown): string {
+  return JSON.stringify(value, stringifyBigInt, 2) ?? String(value)
+}
+
 export function miniJsonParse(value: unknown): string {
   const isValidIdentifier = (key: string): boolean => /^[A-Z_$][\w$]*$/i.test(key)
 
