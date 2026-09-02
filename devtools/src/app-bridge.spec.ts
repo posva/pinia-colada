@@ -1,6 +1,6 @@
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
-import { createApp, customRef, defineComponent } from 'vue'
+import { createApp, customRef, defineComponent, nextTick, watch } from 'vue'
 import type { ShallowRef } from 'vue'
 import { createPinia } from 'pinia'
 import { PiniaColada, useMutation, useMutationCache, useQuery, useQueryCache } from '@pinia/colada'
@@ -173,12 +173,20 @@ describe('app bridge', () => {
     }
     queryCache.setQueryData(['rich-values'], data)
     const entry = queryCache.getEntries({ key: ['rich-values'], exact: true })[0]!
+    let renderedCount = 0
+    watch(
+      () => queryCache.getQueryData<typeof data>(['rich-values'])?.count,
+      (count) => (renderedCount = count ?? 0),
+      { immediate: true },
+    )
     const editedState = restoreClonedDeep(serializeDevtoolsValue(entry.state.value))
     ;(editedState.data as typeof data).count = 2
 
     devtools.emit('queries:set:state', ['rich-values'], editedState)
+    await nextTick()
 
     const updatedData = entry.state.value.data as typeof data
+    expect(renderedCount).toBe(2)
     expect(updatedData.count).toBe(2)
     expect(updatedData.url).toBe(url)
     expect(updatedData.urlSearchParams).toBe(urlSearchParams)
