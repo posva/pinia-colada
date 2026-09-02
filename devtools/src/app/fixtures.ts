@@ -31,6 +31,7 @@ export function createValueFixture(revision: number) {
     bigint: 12_345_678_901_234_567_890n,
     regexp: /pinia-colada/gi,
     url: new URL('https://pinia-colada.esm.dev/guide/?fixture=url#example'),
+    urlSearchParams: new URLSearchParams({ fixture: 'search params', revision: String(revision) }),
     map: new Map<unknown, unknown>([
       ['revision', revision],
       [{ objectKey: true }, new Date()],

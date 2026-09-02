@@ -31,6 +31,11 @@ export interface NonSerializableValue_URL extends NonSerializableValue_Base {
   value: string
 }
 
+export interface NonSerializableValue_URLSearchParams extends NonSerializableValue_Base {
+  __type: 'urlsearchparams'
+  value: string
+}
+
 export interface NonSerializableValue_Map extends NonSerializableValue_Base {
   __type: 'map'
   value: Array<[unknown, unknown]>
@@ -87,6 +92,7 @@ export type NonSerializableValue =
   | NonSerializableValue_BigInt
   | NonSerializableValue_RegExp
   | NonSerializableValue_URL
+  | NonSerializableValue_URLSearchParams
   | NonSerializableValue_Map
   | NonSerializableValue_Set
   | NonSerializableValue_WeakMap
@@ -145,6 +151,7 @@ export function safeSerialize(value: symbol): NonSerializableValue_Symbol
 export function safeSerialize(value: bigint): NonSerializableValue_BigInt
 export function safeSerialize(value: RegExp): NonSerializableValue_RegExp
 export function safeSerialize(value: URL): NonSerializableValue_URL
+export function safeSerialize(value: URLSearchParams): NonSerializableValue_URLSearchParams
 export function safeSerialize(value: Map<unknown, unknown>): NonSerializableValue_Map
 export function safeSerialize(value: Set<unknown>): NonSerializableValue_Set
 export function safeSerialize(value: WeakMap<object, unknown>): NonSerializableValue_WeakMap
@@ -186,6 +193,12 @@ export function safeSerialize(value: unknown) {
       __type: 'url',
       value: value.href,
     } satisfies NonSerializableValue_URL
+  } else if (value instanceof URLSearchParams) {
+    return {
+      __custom: '@@pc-non-serializable',
+      __type: 'urlsearchparams',
+      value: value.toString(),
+    } satisfies NonSerializableValue_URLSearchParams
   } else if (value instanceof Map) {
     return {
       __custom: '@@pc-non-serializable',
@@ -311,6 +324,8 @@ function restoreClonedValue(value: NonSerializableValue) {
     } catch (err) {
       return new SerializationError(`Invalid URL value: ${value.value}`, err)
     }
+  } else if (value.__type === 'urlsearchparams') {
+    return new URLSearchParams(value.value)
   } else if (value.__type === 'map') {
     const entries = value.value.map(
       ([k, v]) => [restoreClonedDeep(k), restoreClonedDeep(v)] as const,
