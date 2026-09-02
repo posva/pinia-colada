@@ -29,6 +29,10 @@ export default defineConfig({
 
 Or mount a standalone Devframe hub with its default UI:
 
+```sh
+pnpm add -D @devframes/hub @devframes/hub-ui @devframes/vite
+```
+
 ```ts
 import { PiniaColadaDevtoolsStandalone } from '@pinia/colada-devtools/standalone'
 
