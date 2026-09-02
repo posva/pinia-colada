@@ -46,14 +46,28 @@ export interface UseQueryEntryPayloadOptions extends Pick<
   refetchOnWindowFocus: RefetchOnControl
 }
 
-function stringifyDisplayValue(
-  this: Record<string, unknown>,
-  key: string,
-  value: unknown,
-): unknown {
-  const originalValue = this[key]
-  if (originalValue instanceof Date) return `Date(${originalValue.toISOString()})`
-  return typeof value === 'bigint' ? `${value}n` : value
+function createDisplayReplacer() {
+  const ancestors: object[] = []
+
+  return function stringifyDisplayValue(
+    this: Record<string, unknown>,
+    key: string,
+    value: unknown,
+  ): unknown {
+    const originalValue = this[key]
+    if (originalValue instanceof Date) {
+      return Number.isNaN(originalValue.getTime())
+        ? 'Invalid Date'
+        : `Date(${originalValue.toISOString()})`
+    }
+    if (typeof value === 'bigint') return `${value}n`
+    if (!value || typeof value !== 'object') return value
+
+    while (ancestors.length > 0 && ancestors.at(-1) !== this) ancestors.pop()
+    if (ancestors.includes(value)) return '[Circular]'
+    ancestors.push(value)
+    return value
+  }
 }
 
 const VALID_IDENTIFIER_RE = /^[A-Z_$][\w$]*$/i
@@ -91,7 +105,7 @@ function serializeMiniJson(value: unknown): string {
  * @internal
  */
 export function miniJsonStringify(value: unknown): string {
-  return JSON.stringify(value, stringifyDisplayValue, 2) ?? String(value)
+  return JSON.stringify(value, createDisplayReplacer(), 2) ?? String(value)
 }
 
 /**
