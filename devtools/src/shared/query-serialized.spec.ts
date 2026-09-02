@@ -11,4 +11,33 @@ describe('miniJsonStringify', () => {
       `{\n  "date": "Date(2026-09-01T12:00:00.000Z)"\n}`,
     )
   })
+
+  it('stringifies invalid dates for display', () => {
+    expect(miniJsonStringify({ date: new Date(Number.NaN) })).toBe(`{
+  "date": "Invalid Date"
+}`)
+  })
+
+  it('stringifies circular references for display', () => {
+    const circular: Record<string, unknown> = { label: 'circular' }
+    circular.self = circular
+
+    expect(miniJsonStringify(circular)).toBe(`{
+  "label": "circular",
+  "self": "[Circular]"
+}`)
+  })
+
+  it('does not treat shared references as circular', () => {
+    const shared = { label: 'shared' }
+
+    expect(miniJsonStringify({ first: shared, second: shared })).toBe(`{
+  "first": {
+    "label": "shared"
+  },
+  "second": {
+    "label": "shared"
+  }
+}`)
+  })
 })
