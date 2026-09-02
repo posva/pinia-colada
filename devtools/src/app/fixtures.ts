@@ -38,6 +38,7 @@ export function createValueFixture(revision: number) {
     sharedReferences: { first: sharedObject, second: sharedObject },
     circularObject,
     date: new Date(),
+    invalidDate: new Date(Number.NaN),
     fn: function fixtureFunction() {
       return revision
     },

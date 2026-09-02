@@ -68,7 +68,7 @@ export interface NonSerializableValue_WeakSet extends NonSerializableValue_Base 
 
 export interface NonSerializableValue_Date extends NonSerializableValue_Base {
   __type: 'date'
-  value: string
+  value: string | null
 }
 
 export interface NonSerializableValue_ArrayBuffer extends NonSerializableValue_Base {
@@ -310,7 +310,7 @@ export function safeSerialize(value: unknown) {
     return {
       __custom: '@@pc-non-serializable',
       __type: 'date',
-      value: value.toISOString(),
+      value: Number.isNaN(value.getTime()) ? null : value.toISOString(),
     } satisfies NonSerializableValue_Date
   } else if (value instanceof ArrayBuffer) {
     return {
@@ -450,6 +450,7 @@ function restoreClonedValue(value: NonSerializableValue) {
   } else if (value.__type === 'weakset') {
     return new WeakSet()
   } else if (value.__type === 'date') {
+    if (value.value === null) return new Date(Number.NaN)
     try {
       return new Date(value.value)
     } catch (err) {
