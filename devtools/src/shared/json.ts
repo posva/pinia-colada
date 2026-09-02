@@ -74,10 +74,10 @@ export function formatValue(value: unknown) {
   if (typeof value === 'string') return `"${value}"`
   if (Object.is(value, -0)) return '-0'
   if (typeof value === 'bigint') return `${value}n`
-  if (typeof value === 'function') return `ƒ ${value.name || 'anonymous'}`
+  if (typeof value === 'function') return `ƒ ${value.name || 'anonymous'}()`
   if (isObject(value)) {
-    if (value instanceof Number) return `Number(${value.valueOf()})`
-    if (value instanceof String) return `String("${value.valueOf()}")`
+    if (value instanceof Number) return `Number {${value.valueOf()}}`
+    if (value instanceof String) return `String {"${value.valueOf()}"}`
     if (value instanceof Date) {
       return Number.isNaN(value.getTime()) ? 'Invalid Date' : `Date(${value.toISOString()})`
     }
@@ -162,16 +162,23 @@ export function getValueDisplayTokens(value: unknown): ValueDisplayToken[] {
   if (typeof value === 'function') {
     return [
       { text: 'ƒ', class: SYNTAX_CLASS.purple },
-      { text: ` ${value.name || 'anonymous'}`, class: SYNTAX_CLASS.sapphire },
+      { text: ` ${value.name || 'anonymous'}()`, class: SYNTAX_CLASS.sapphire },
     ]
   }
 
   if (value instanceof Number) {
-    return objectCallTokens('Number', String(value.valueOf()), SYNTAX_CLASS.orange)
+    return objectBraceTokens('Number', String(value.valueOf()), SYNTAX_CLASS.orange)
   }
 
   if (value instanceof String) {
-    return objectCallTokens('String', `"${value.valueOf()}"`, SYNTAX_CLASS.green)
+    return objectBraceTokens('String', `"${value.valueOf()}"`, SYNTAX_CLASS.green)
+  }
+
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) {
+      return [{ text: 'Invalid Date', class: SYNTAX_CLASS.red }]
+    }
+    return objectCallTokens('Date', value.toISOString(), SYNTAX_CLASS.green)
   }
 
   if (typeof value === 'symbol') {
@@ -220,6 +227,15 @@ function objectCallTokens(type: string, value: string, valueClass: string): Valu
     { text: '(', class: SYNTAX_CLASS.gray },
     { text: value, class: valueClass },
     { text: ')', class: SYNTAX_CLASS.gray },
+  ]
+}
+
+function objectBraceTokens(type: string, value: string, valueClass: string): ValueDisplayToken[] {
+  return [
+    { text: type, class: SYNTAX_CLASS.objectBlue },
+    { text: ' {', class: SYNTAX_CLASS.gray },
+    { text: value, class: valueClass },
+    { text: '}', class: SYNTAX_CLASS.gray },
   ]
 }
 
