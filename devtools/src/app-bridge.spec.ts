@@ -1,6 +1,6 @@
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
-import { createApp, customRef, defineComponent, nextTick, watch } from 'vue'
+import { createApp, customRef, defineComponent, nextTick } from 'vue'
 import type { ShallowRef } from 'vue'
 import { createPinia } from 'pinia'
 import { PiniaColada, useMutation, useMutationCache, useQuery, useQueryCache } from '@pinia/colada'
@@ -50,13 +50,13 @@ describe('app bridge', () => {
       devtools,
       installBridge,
       // mounts a component that uses pinia colada composables
-      mountComponent: (setup: () => unknown) =>
+      mountComponent: (setup: () => unknown, template = '<div></div>') =>
         mount(
           defineComponent({
-            template: '<div></div>',
+            template,
             setup: () => {
-              setup()
-              return {}
+              const result = setup()
+              return result && typeof result === 'object' ? result : {}
             },
           }),
           { global: { plugins: [pinia, [PiniaColada, {}]] } },
@@ -147,7 +147,7 @@ describe('app bridge', () => {
   })
 
   it('keeps native values when editing query data', async () => {
-    const { queryCache, devtools } = factory()
+    const { queryCache, devtools, mountComponent } = factory()
     const url = new URL('https://pinia-colada.esm.dev/guide/')
     const urlSearchParams = new URLSearchParams({ fixture: 'params' })
     const buffer = new Uint8Array([1, 2, 3]).buffer
@@ -173,12 +173,15 @@ describe('app bridge', () => {
     }
     queryCache.setQueryData(['rich-values'], data)
     const entry = queryCache.getEntries({ key: ['rich-values'], exact: true })[0]!
-    let renderedCount = 0
-    watch(
-      () => queryCache.getQueryData<typeof data>(['rich-values'])?.count,
-      (count) => (renderedCount = count ?? 0),
-      { immediate: true },
-    )
+    const wrapper = mountComponent(() => {
+      const queryData = useQuery({
+        key: ['rich-values'],
+        query: async () => data,
+        staleTime: Infinity,
+      }).data
+      return { queryData }
+    }, '<div data-testid="count">{{ queryData?.count }}</div>')
+    expect(wrapper.get('[data-testid="count"]').text()).toBe('1')
     const editedState = restoreClonedDeep(serializeDevtoolsValue(entry.state.value))
     ;(editedState.data as typeof data).count = 2
 
@@ -186,7 +189,8 @@ describe('app bridge', () => {
     await nextTick()
 
     const updatedData = entry.state.value.data as typeof data
-    expect(renderedCount).toBe(2)
+    expect(wrapper.get('[data-testid="count"]').text()).toBe('2')
+    expect(updatedData).not.toBe(data)
     expect(updatedData.count).toBe(2)
     expect(updatedData.url).toBe(url)
     expect(updatedData.urlSearchParams).toBe(urlSearchParams)
