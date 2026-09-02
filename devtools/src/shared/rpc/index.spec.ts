@@ -160,9 +160,10 @@ describe('serializeDevtoolsValue', () => {
       { text: 'Invalid Date', class: 'text-(--devtools-syntax-red)' },
     ])
     expect(formatValue(restored.fn)).toBe('ƒ fixtureFunction()')
-    expect(getValueDisplayTokens(restored.fn).map((token) => token.text)).toEqual([
-      'ƒ',
-      ' fixtureFunction()',
+    expect(getValueDisplayTokens(restored.fn)).toEqual([
+      { text: 'ƒ', class: 'text-(--devtools-syntax-purple)' },
+      { text: ' fixtureFunction', class: 'text-(--devtools-syntax-sapphire)' },
+      { text: '()', class: 'text-(--devtools-syntax-gray)' },
     ])
     expect(restored.symbol).toBeTypeOf('symbol')
     expect(restored.bigint).toBe(12_345n)
