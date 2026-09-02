@@ -21,6 +21,11 @@ export interface NonSerializableValue_BigInt extends NonSerializableValue_Base {
   value: string
 }
 
+export interface NonSerializableValue_BoxedNumber extends NonSerializableValue_Base {
+  __type: 'boxednumber'
+  value: number
+}
+
 export interface NonSerializableValue_RegExp extends NonSerializableValue_Base {
   __type: 'regexp'
   value: { source: string; flags: string }
@@ -100,6 +105,7 @@ export type NonSerializableValue =
   | NonSerializableValue_Function
   | NonSerializableValue_Symbol
   | NonSerializableValue_BigInt
+  | NonSerializableValue_BoxedNumber
   | NonSerializableValue_RegExp
   | NonSerializableValue_URL
   | NonSerializableValue_URLSearchParams
@@ -169,6 +175,7 @@ class BinaryDataPlaceholder {
 export function safeSerialize(value: (...args: unknown[]) => unknown): NonSerializableValue_Function
 export function safeSerialize(value: symbol): NonSerializableValue_Symbol
 export function safeSerialize(value: bigint): NonSerializableValue_BigInt
+export function safeSerialize(value: number): NonSerializableValue_BoxedNumber
 export function safeSerialize(value: RegExp): NonSerializableValue_RegExp
 export function safeSerialize(value: URL): NonSerializableValue_URL
 export function safeSerialize(value: URLSearchParams): NonSerializableValue_URLSearchParams
@@ -203,6 +210,12 @@ export function safeSerialize(value: unknown) {
       __type: 'bigint',
       value: String(value),
     } satisfies NonSerializableValue_BigInt
+  } else if (value instanceof Number) {
+    return {
+      __custom: '@@pc-non-serializable',
+      __type: 'boxednumber',
+      value: value.valueOf(),
+    } satisfies NonSerializableValue_BoxedNumber
   } else if (value instanceof RegExp) {
     return {
       __custom: '@@pc-non-serializable',
@@ -354,6 +367,8 @@ function restoreClonedValue(value: NonSerializableValue) {
     } catch (err) {
       return new SerializationError(`Invalid bigint value: ${value.value}`, err)
     }
+  } else if (value.__type === 'boxednumber') {
+    return Object(value.value)
   } else if (value.__type === 'regexp') {
     try {
       const { source, flags } = value.value

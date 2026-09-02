@@ -12,6 +12,7 @@ export function createValueFixture(revision: number) {
     infinity: Number.POSITIVE_INFINITY,
     negativeInfinity: Number.NEGATIVE_INFINITY,
     negativeZero: -0,
+    boxedNumber: Object(42) as number,
     boolean: true,
     nullValue: null,
     undefinedValue: undefined,
