@@ -162,6 +162,20 @@ export type NonSerializableValue =
   | NonSerializableValue_NullPrototypeObject
   | NonSerializableValue_Reference
 
+const CUSTOM_VALUE_SERIALIZE = Symbol.for('@pinia/colada-devtools/custom-value-serialize')
+
+interface RestoredCustomValue {
+  [CUSTOM_VALUE_SERIALIZE](): NonSerializableValue
+}
+
+export function isRestoredCustomValue(value: unknown): value is RestoredCustomValue {
+  return (
+    !!value &&
+    (typeof value === 'object' || typeof value === 'function') &&
+    CUSTOM_VALUE_SERIALIZE in value
+  )
+}
+
 // Helper function to recursively serialize values that might contain non-serializable data
 function safeSerializeRecursive(value: unknown): unknown {
   if (Array.isArray(value)) {
@@ -197,6 +211,9 @@ class BinaryDataPlaceholder {
     public readonly type: string,
     public readonly byteLength: number,
     private readonly details?: Record<string, unknown>,
+    private readonly serialized?:
+      | NonSerializableValue_ArrayBuffer
+      | NonSerializableValue_TypedArray,
   ) {}
 
   toString() {
@@ -209,6 +226,10 @@ class BinaryDataPlaceholder {
 
   [VALUE_DETAILS]() {
     return this.details
+  }
+
+  [CUSTOM_VALUE_SERIALIZE]() {
+    return this.serialized!
   }
 }
 
@@ -225,6 +246,10 @@ class BlobPlaceholder {
 
   [VALUE_DETAILS]() {
     return { size: this.metadata.size, type: this.metadata.type }
+  }
+
+  [CUSTOM_VALUE_SERIALIZE](): NonSerializableValue_Blob {
+    return { __custom: '@@pc-non-serializable', __type: 'blob', value: this.metadata }
   }
 }
 
@@ -254,6 +279,10 @@ class FilePlaceholder {
       lastModifiedDate: new Date(this.metadata.lastModified),
       webkitRelativePath: this.metadata.webkitRelativePath,
     }
+  }
+
+  [CUSTOM_VALUE_SERIALIZE](): NonSerializableValue_File {
+    return { __custom: '@@pc-non-serializable', __type: 'file', value: this.metadata }
   }
 }
 
@@ -315,6 +344,10 @@ class PromisePlaceholder {
     }
     return { status: this.state.status }
   }
+
+  [CUSTOM_VALUE_SERIALIZE](): NonSerializableValue_Promise {
+    return { __custom: '@@pc-non-serializable', __type: 'promise', value: this.state }
+  }
 }
 
 class URLPlaceholder {
@@ -348,6 +381,10 @@ class URLPlaceholder {
       hash: this.url.hash,
     }
   }
+
+  [CUSTOM_VALUE_SERIALIZE](): NonSerializableValue_URL {
+    return { __custom: '@@pc-non-serializable', __type: 'url', value: this.url.href }
+  }
 }
 
 class URLSearchParamsPlaceholder {
@@ -369,6 +406,14 @@ class URLSearchParamsPlaceholder {
     return {
       size: this.params.size,
       entries: Array.from(this.params.entries()),
+    }
+  }
+
+  [CUSTOM_VALUE_SERIALIZE](): NonSerializableValue_URLSearchParams {
+    return {
+      __custom: '@@pc-non-serializable',
+      __type: 'urlsearchparams',
+      value: this.params.toString(),
     }
   }
 }
@@ -402,7 +447,16 @@ function getArrayBufferMetadata(value: ArrayBuffer): ArrayBufferMetadata {
 }
 
 function restoreArrayBufferPlaceholder(value: ArrayBufferMetadata) {
-  return new BinaryDataPlaceholder('ArrayBuffer', value.byteLength, { ...value })
+  return new BinaryDataPlaceholder(
+    'ArrayBuffer',
+    value.byteLength,
+    { ...value },
+    {
+      __custom: '@@pc-non-serializable',
+      __type: 'arraybuffer',
+      value,
+    },
+  )
 }
 
 class ReferencePlaceholder {
@@ -413,6 +467,10 @@ class ReferencePlaceholder {
 
   toString() {
     return `[${this.circular ? 'Circular' : 'Reference'} *${this.id}]`
+  }
+
+  [CUSTOM_VALUE_SERIALIZE](): NonSerializableValue_Reference {
+    return serializeReference(this.id, this.circular)
   }
 }
 
@@ -443,7 +501,9 @@ export function safeSerialize(value: Promise<unknown>): NonSerializableValue_Pro
 export function safeSerialize(value: Error): NonSerializableValue_Error
 export function safeSerialize<T>(value: T): T
 export function safeSerialize(value: unknown) {
-  if (typeof value === 'function') {
+  if (isRestoredCustomValue(value)) {
+    return value[CUSTOM_VALUE_SERIALIZE]()
+  } else if (typeof value === 'function') {
     return {
       __custom: '@@pc-non-serializable',
       __type: 'function',
@@ -596,6 +656,19 @@ export function safeSerialize(value: unknown) {
       value: { properties: safeSerializeRecursive({ ...value }) },
     } satisfies NonSerializableValue_NullPrototypeObject
   } else if (
+    isPlainObject(value) &&
+    '__constructorName' in value &&
+    typeof value.__constructorName === 'string'
+  ) {
+    return {
+      __custom: '@@pc-non-serializable',
+      __type: 'object',
+      value: {
+        constructorName: value.__constructorName,
+        properties: safeSerializeRecursive({ ...value }),
+      },
+    } satisfies NonSerializableValue_Object
+  } else if (
     value &&
     typeof value === 'object' &&
     value.constructor &&
@@ -689,12 +762,17 @@ function restoreClonedValue(value: NonSerializableValue) {
   } else if (value.__type === 'file') {
     return new FilePlaceholder(value.value)
   } else if (value.__type === 'typedarray') {
-    return new BinaryDataPlaceholder(value.value.arrayType, value.value.byteLength, {
-      buffer: restoreArrayBufferPlaceholder(value.value.buffer),
-      byteLength: value.value.byteLength,
-      byteOffset: value.value.byteOffset,
-      ...('length' in value.value && { length: value.value.length }),
-    })
+    return new BinaryDataPlaceholder(
+      value.value.arrayType,
+      value.value.byteLength,
+      {
+        buffer: restoreArrayBufferPlaceholder(value.value.buffer),
+        byteLength: value.value.byteLength,
+        byteOffset: value.value.byteOffset,
+        ...('length' in value.value && { length: value.value.length }),
+      },
+      value,
+    )
   } else if (value.__type === 'promise') {
     return new PromisePlaceholder(value.value)
   } else if (value.__type === 'error') {

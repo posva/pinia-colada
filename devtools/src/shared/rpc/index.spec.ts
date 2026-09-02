@@ -69,6 +69,45 @@ describe('serializeDevtoolsValue', () => {
     })
   })
 
+  it('preserves restored custom values across an edited-data round trip', async () => {
+    const fulfilled = trackPromise(Promise.resolve({ message: 'done' }))
+    await Promise.resolve()
+    const values = {
+      edited: false,
+      arrayBuffer: new ArrayBuffer(16),
+      typedArray: new Uint16Array([1, 2, 3]),
+      dataView: new DataView(new ArrayBuffer(8)),
+      blob: new Blob(['fixture'], { type: 'text/plain' }),
+      file: new File(['fixture'], 'fixture.txt', { type: 'text/plain', lastModified: 123 }),
+      promise: fulfilled,
+      url: new URL('https://pinia-colada.esm.dev/guide/'),
+      urlSearchParams: new URLSearchParams({ fixture: 'params' }),
+      instance: new (class FixtureClass {
+        label = 'fixture'
+      })(),
+    }
+
+    const restored = restoreClonedDeep(serializeDevtoolsValue(values))
+    restored.edited = true
+    const roundTripped = restoreClonedDeep(serializeDevtoolsValue(restored))
+
+    expect(roundTripped.edited).toBe(true)
+    expect(formatValue(roundTripped.arrayBuffer)).toBe('[ArrayBuffer 16 bytes]')
+    expect(formatValue(roundTripped.typedArray)).toBe('[Uint16Array 6 bytes]')
+    expect(formatValue(roundTripped.dataView)).toBe('[DataView 8 bytes]')
+    expect(formatValue(roundTripped.blob)).toBe('[Blob 7 bytes]')
+    expect(formatValue(roundTripped.file)).toBe('[File fixture.txt 7 bytes]')
+    expect(formatValue(roundTripped.promise)).toBe('[Promise fulfilled]')
+    expect(getValueDetails(roundTripped.promise)).toEqual({
+      status: 'fulfilled',
+      value: { message: 'done' },
+    })
+    expect(formatValue(roundTripped.url)).toBe('URL(https://pinia-colada.esm.dev/guide/)')
+    expect(formatValue(roundTripped.urlSearchParams)).toBe('URLSearchParams(fixture=params)')
+    expect(formatValue(roundTripped.instance)).toBe('FixtureClass')
+    expect(Object.keys(roundTripped.instance)).toEqual(['label'])
+  })
+
   it('restores displayable values from their wire representation', () => {
     const values = {
       date: new Date('2026-09-01T12:00:00.000Z'),
