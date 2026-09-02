@@ -6,6 +6,7 @@ import { MUTATIONS_KEY, QUERIES_KEY } from './composables/devtools-context'
 const props = defineProps<{
   queries: UseQueryEntryPayload[]
   mutations: UseMutationEntryPayload[]
+  status: 'loading' | 'ready' | 'not-found'
 }>()
 
 provide(QUERIES_KEY, toRef(props, 'queries'))
@@ -14,7 +15,10 @@ provide(MUTATIONS_KEY, toRef(props, 'mutations'))
 
 <template>
   <div id="root" class="w-full h-full">
-    <main class="w-full h-full grid grid-rows-[auto_1fr] bg-ui-bg text-ui-text font-sans">
+    <main
+      v-if="status === 'ready'"
+      class="w-full h-full grid grid-rows-[auto_1fr] bg-ui-bg text-ui-text font-sans"
+    >
       <!-- Merged Header with Tabs Navigation -->
       <div class="flex items-center border-b border-(--ui-border) select-none">
         <!-- Logo -->
@@ -49,6 +53,21 @@ provide(MUTATIONS_KEY, toRef(props, 'mutations'))
       </div>
 
       <RouterView />
+    </main>
+    <main
+      v-else
+      class="w-full h-full grid place-items-center bg-ui-bg text-ui-text font-sans text-center"
+    >
+      <div class="grid gap-3 justify-items-center p-6">
+        <span class="text-3xl" :class="{ 'animate-pulse': status === 'loading' }">🍹</span>
+        <p class="text-sm text-(--ui-text-muted)">
+          {{
+            status === 'loading'
+              ? 'Looking for Pinia Colada…'
+              : 'No Pinia Colada instance was found.'
+          }}
+        </p>
+      </div>
     </main>
   </div>
 </template>
