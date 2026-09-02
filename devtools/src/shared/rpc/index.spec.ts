@@ -52,6 +52,7 @@ describe('serializeDevtoolsValue', () => {
   it('restores displayable values from their wire representation', () => {
     const values = {
       date: new Date('2026-09-01T12:00:00.000Z'),
+      invalidDate: new Date(Number.NaN),
       fn: function fixtureFunction() {},
       symbol: Symbol('fixture'),
       bigint: 12_345n,
@@ -86,6 +87,8 @@ describe('serializeDevtoolsValue', () => {
 
     expect(restored.date).toEqual(values.date)
     expect(formatValue(reactive(restored).date)).toBe('Date(2026-09-01T12:00:00.000Z)')
+    expect(Number.isNaN(restored.invalidDate.getTime())).toBe(true)
+    expect(formatValue(restored.invalidDate)).toBe('Invalid Date')
     expect(formatValue(restored.fn)).toBe('[Function fixtureFunction]')
     expect(restored.symbol).toBeTypeOf('symbol')
     expect(restored.bigint).toBe(12_345n)
