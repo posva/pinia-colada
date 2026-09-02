@@ -10,6 +10,7 @@ export function createValueFixture(revision: number) {
     number: 42,
     nan: Number.NaN,
     infinity: Number.POSITIVE_INFINITY,
+    negativeInfinity: Number.NEGATIVE_INFINITY,
     boolean: true,
     nullValue: null,
     undefinedValue: undefined,
