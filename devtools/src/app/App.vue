@@ -1,8 +1,7 @@
 <template>
   <header>
     <div>
-      <strong>Pinia Colada Devtools fixtures</strong>
-      <span>Local data only</span>
+      <strong>Pinia Colada Devtools playground</strong>
     </div>
 
     <nav aria-label="Fixture pages">
