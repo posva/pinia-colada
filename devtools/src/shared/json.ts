@@ -1,5 +1,5 @@
 // NOTE: copied from pinia colada src/utils.ts
-import { colorizeRegExp } from './regex-colorizer-adapter'
+import { colorizeRegExp } from './regex-colorizer'
 
 /**
  * Valid primitives that can be stringified with `JSON.stringify`.

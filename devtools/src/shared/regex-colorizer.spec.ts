@@ -1,9 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { adaptRegexColorizerOutput, colorizeRegExp } from './regex-colorizer-adapter'
-import { colorizePattern } from './regex-colorizer'
+import { colorizeRegExp } from './regex-colorizer'
 
-describe('regex colorizer adapter', () => {
-  it('converts colorizer markup to display tokens without DOM elements', () => {
+describe('regex colorizer', () => {
+  it('colorizes a RegExp as display tokens', () => {
     const regexp = /^(?<word>[a-z]+)-(?:\d{2}|\k<word>)$/giu
     const tokens = colorizeRegExp(regexp)
 
@@ -20,11 +19,22 @@ describe('regex colorizer adapter', () => {
     )
   })
 
-  it('adapts markup as plain data', () => {
-    const output = colorizePattern(String.raw`(?<tag>\w+)\s+\k<tag>`, { flags: 'u' })
-    const tokens = adaptRegexColorizerOutput(output)
+  it('keeps special characters as plain data', () => {
+    const regexp = /(?<tag><&\w+>)\s+\k<tag>/u
+    const tokens = colorizeRegExp(regexp)
 
-    expect(tokens.map((token) => token.text).join('')).toBe(String.raw`(?<tag>\w+)\s+\k<tag>`)
+    expect(tokens.map((token) => token.text).join('')).toBe(regexp.toString())
     expect(tokens.some((token) => token.class?.includes('underline'))).toBe(true)
   })
+
+  it.each([/(?:)/, /a\/b\\c/, /((a|b)+)(?:c?)/, /[^\]\\-]/, /\p{Script=Greek}+/u])(
+    'preserves %s exactly',
+    (regexp) => {
+      expect(
+        colorizeRegExp(regexp)
+          .map((token) => token.text)
+          .join(''),
+      ).toBe(regexp.toString())
+    },
+  )
 })
