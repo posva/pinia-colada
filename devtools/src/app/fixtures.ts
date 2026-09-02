@@ -11,6 +11,8 @@ export function createValueFixture(revision: number) {
   sparseArray[1] = 'one'
   sparseArray[3] = revision
   const sharedObject = { label: 'shared object', revision }
+  const circularObject: Record<string, unknown> = { label: 'circular object', revision }
+  circularObject.self = circularObject
 
   return {
     revision,
@@ -34,6 +36,7 @@ export function createValueFixture(revision: number) {
     emptyArray: [],
     sparseArray,
     sharedReferences: { first: sharedObject, second: sharedObject },
+    circularObject,
     date: new Date(),
     fn: function fixtureFunction() {
       return revision
