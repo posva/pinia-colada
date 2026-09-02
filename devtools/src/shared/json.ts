@@ -144,6 +144,7 @@ export interface DevtoolsDisplayValue {
 }
 
 const SYNTAX_CLASS = {
+  orange: 'text-(--devtools-syntax-orange)',
   gray: 'text-(--devtools-syntax-gray)',
   green: 'text-(--devtools-syntax-green)',
   purple: 'text-(--devtools-syntax-purple)',
@@ -163,6 +164,14 @@ export function getValueDisplayTokens(value: unknown): ValueDisplayToken[] {
       { text: 'ƒ', class: SYNTAX_CLASS.purple },
       { text: ` ${value.name || 'anonymous'}`, class: SYNTAX_CLASS.sapphire },
     ]
+  }
+
+  if (value instanceof Number) {
+    return objectCallTokens('Number', String(value.valueOf()), SYNTAX_CLASS.orange)
+  }
+
+  if (value instanceof String) {
+    return objectCallTokens('String', `"${value.valueOf()}"`, SYNTAX_CLASS.green)
   }
 
   if (typeof value === 'symbol') {
@@ -203,6 +212,15 @@ export function getValueDisplayTokens(value: unknown): ValueDisplayToken[] {
   }
 
   return [{ text: formatted, class: getValueTypeClass(value) }]
+}
+
+function objectCallTokens(type: string, value: string, valueClass: string): ValueDisplayToken[] {
+  return [
+    { text: type, class: SYNTAX_CLASS.objectBlue },
+    { text: '(', class: SYNTAX_CLASS.gray },
+    { text: value, class: valueClass },
+    { text: ')', class: SYNTAX_CLASS.gray },
+  ]
 }
 
 export function getValueDetails(value: unknown): Record<string, unknown> | undefined {
