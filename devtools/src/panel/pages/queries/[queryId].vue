@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
 import { computed, watch } from 'vue'
-import { useDevtoolsActions, useQueryEntries } from '../../composables/devtools-context'
+import { useQueryEntries } from '../../composables/devtools-context'
+import { panelChannel } from '../../../client/panel-channel'
 import { formatDuration } from '../../utils/time'
 import { useRoute } from 'vue-router'
 import type { DataStateStatus } from '@pinia/colada'
@@ -54,8 +55,6 @@ const lastUpdate = useTimeAgo(() => selectedQuery.value?.devtools.updatedAt ?? 0
 //   },
 // )
 
-const actions = useDevtoolsActions()
-
 const isDataOpen = useLocalStorage<boolean>('pc:query:details:data:open', false, {})
 let wasDataOpen = isDataOpen.value
 let lastStatus: DataStateStatus | null = null
@@ -90,7 +89,7 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
   }
 
   // Send to app via RPC
-  actions['queries:set:state'](selectedQuery.value.key, selectedQuery.value.state)
+  panelChannel.callEvent('queries:set:state', selectedQuery.value.key, selectedQuery.value.state)
 }
 </script>
 
@@ -204,7 +203,7 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             size="sm"
             title="Refetch this query"
             :disabled="selectedQuery.options?.enabled === false"
-            @click="actions['queries:refetch'](selectedQuery.key)"
+            @click="panelChannel.callEvent('queries:refetch', selectedQuery.key)"
           >
             <i-lucide-refresh-cw class="size-3.5" /> Refetch
           </UButton>
@@ -213,7 +212,7 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             class="theme-neutral"
             size="sm"
             title="Invalidate this query"
-            @click="actions['queries:invalidate'](selectedQuery.key)"
+            @click="panelChannel.callEvent('queries:invalidate', selectedQuery.key)"
           >
             <i-lucide-timer-reset /> Invalidate
           </UButton>
@@ -223,7 +222,7 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             class="theme-purple"
             size="sm"
             title="Restore the previous state"
-            @click="actions['queries:simulate:loading'](selectedQuery.key)"
+            @click="panelChannel.callEvent('queries:simulate:loading', selectedQuery.key)"
           >
             <i-lucide-loader />
             Simulate loading
@@ -233,7 +232,7 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             class="theme-purple"
             size="sm"
             title="Simulate a loading state"
-            @click="actions['queries:simulate:loading:stop'](selectedQuery.key)"
+            @click="panelChannel.callEvent('queries:simulate:loading:stop', selectedQuery.key)"
           >
             <i-lucide-loader class="animate-spin" />
             Stop loading
@@ -244,7 +243,7 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             class="theme-error"
             size="sm"
             title="Simulate an Error state"
-            @click="actions['queries:simulate:error'](selectedQuery.key)"
+            @click="panelChannel.callEvent('queries:simulate:error', selectedQuery.key)"
           >
             <i-lucide-x-octagon /> Simulate error
           </UButton>
@@ -253,7 +252,7 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             class="theme-error"
             size="sm"
             title="Restore the previous state"
-            @click="actions['queries:simulate:error:stop'](selectedQuery.key)"
+            @click="panelChannel.callEvent('queries:simulate:error:stop', selectedQuery.key)"
           >
             <i-lucide-rotate-ccw /> Remove error
           </UButton>
@@ -262,7 +261,7 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             class="theme-warning"
             size="sm"
             title="Reset this query to its initial (pending) state"
-            @click="actions['queries:reset'](selectedQuery.key)"
+            @click="panelChannel.callEvent('queries:reset', selectedQuery.key)"
           >
             <i-lucide-trash /> Reset
           </UButton>

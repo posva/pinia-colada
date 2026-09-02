@@ -1,41 +1,12 @@
-import { connectPanelChannel } from 'devframe/in-page-channel'
 import { createApp, reactive } from 'vue'
-import { restoreClonedDeep, serializeDevtoolsValue } from '@pinia/colada-devtools/shared'
-import type { DevtoolsActions } from '../panel/composables/devtools-context.ts'
+import { restoreClonedDeep } from '@pinia/colada-devtools/shared'
 import { configureApp } from '../panel/configure-app.ts'
 import DevtoolsPanel from '../panel/DevtoolsPanel.vue'
-import { PINIA_COLADA_CHANNEL } from '../channel.ts'
-import type { PiniaColadaCacheState, PiniaColadaChannelProtocol } from '../channel.ts'
+import type { PiniaColadaCacheState } from '../channel.ts'
+import { panelChannel } from './panel-channel.ts'
 import './panel-styles.css'
 
-const channel = connectPanelChannel<PiniaColadaChannelProtocol>({
-  name: PINIA_COLADA_CHANNEL,
-  serialize: serializeDevtoolsValue,
-  deserialize: restoreClonedDeep,
-  functions: {},
-})
-
-const actions = {
-  'queries:clear': (...args) => channel.callEvent('queries:clear', ...args),
-  'queries:refetch': (key) => channel.callEvent('queries:refetch', key),
-  'queries:invalidate': (key) => channel.callEvent('queries:invalidate', key),
-  'queries:reset': (key) => channel.callEvent('queries:reset', key),
-  'queries:set:state': (key, state) => channel.callEvent('queries:set:state', key, state),
-  'queries:simulate:loading': (key) => channel.callEvent('queries:simulate:loading', key),
-  'queries:simulate:loading:stop': (key) => channel.callEvent('queries:simulate:loading:stop', key),
-  'queries:simulate:error': (key) => channel.callEvent('queries:simulate:error', key),
-  'queries:simulate:error:stop': (key) => channel.callEvent('queries:simulate:error:stop', key),
-  'mutations:clear': (...args) => channel.callEvent('mutations:clear', ...args),
-  'mutations:remove': (id) => channel.callEvent('mutations:remove', id),
-  'mutations:simulate:loading': (id) => channel.callEvent('mutations:simulate:loading', id),
-  'mutations:simulate:loading:stop': (id) =>
-    channel.callEvent('mutations:simulate:loading:stop', id),
-  'mutations:simulate:error': (id) => channel.callEvent('mutations:simulate:error', id),
-  'mutations:simulate:error:stop': (id) => channel.callEvent('mutations:simulate:error:stop', id),
-  'mutations:replay': (id) => channel.callEvent('mutations:replay', id),
-} satisfies DevtoolsActions
-
-const cache = await channel.sharedState.get('cache')
+const cache = await panelChannel.sharedState.get('cache')
 
 function readCache(): PiniaColadaCacheState {
   return restoreClonedDeep(cache.value()) as unknown as PiniaColadaCacheState
@@ -56,7 +27,6 @@ function applyCache() {
 cache.on('updated', applyCache)
 
 const app = createApp(DevtoolsPanel, {
-  actions,
   queries: cacheState.queries,
   mutations: cacheState.mutations,
 })
