@@ -7,7 +7,12 @@ import type {
 import type { UseQueryEntryPayload } from '../query-serialized'
 import type { UseMutationEntryPayload } from '../mutation-serialized'
 import { toRaw } from 'vue'
-import { restoreClonedDeep, safeSerialize, serializeReference } from './custom-values'
+import {
+  isRestoredCustomValue,
+  restoreClonedDeep,
+  safeSerialize,
+  serializeReference,
+} from './custom-values'
 import { isPlainObject } from '../json'
 
 export { isNonSerializableValue } from './custom-values'
@@ -73,8 +78,16 @@ function serializeDevtoolsValueRecursive(
     serialized = val.map((item) =>
       serializeDevtoolsValueRecursive(item, references, activeReferences, lastReferenceId),
     )
+  } else if (isRestoredCustomValue(val)) {
+    serialized = safeSerialize(toRaw(val))
   } else if (val && typeof val === 'object' && Object.getPrototypeOf(val) === null) {
     serialized = safeSerialize(val)
+  } else if (
+    isPlainObject(val) &&
+    '__constructorName' in val &&
+    typeof val.__constructorName === 'string'
+  ) {
+    serialized = safeSerialize(toRaw(val))
   } else if (isPlainObject(val)) {
     serialized = Object.fromEntries(
       Object.entries(val).map(([key, value]) => [
