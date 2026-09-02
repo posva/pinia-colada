@@ -182,6 +182,11 @@ describe('serializeDevtoolsValue', () => {
       { text: '}', class: 'text-(--devtools-syntax-gray)' },
     ])
     expect(restored.regexp).toEqual(values.regexp)
+    expect(
+      getValueDisplayTokens(restored.regexp)
+        .map((token) => token.text)
+        .join(''),
+    ).toBe(restored.regexp.toString())
     expect(formatValue(restored.url)).toBe(
       'URL(https://pinia-colada.esm.dev/guide/?fixture=url#example)',
     )

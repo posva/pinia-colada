@@ -1,4 +1,5 @@
 // NOTE: copied from pinia colada src/utils.ts
+import { colorizeRegExp } from './regex-colorizer-adapter'
 
 /**
  * Valid primitives that can be stringified with `JSON.stringify`.
@@ -181,6 +182,8 @@ export function getValueDisplayTokens(value: unknown): ValueDisplayToken[] {
     }
     return objectCallTokens('Date', value.toISOString(), SYNTAX_CLASS.green)
   }
+
+  if (value instanceof RegExp) return colorizeRegExp(value)
 
   if (typeof value === 'symbol') {
     return [
