@@ -1,6 +1,15 @@
 import { existsSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
-import { addImports, addPlugin, addTemplate, createResolver, defineNuxtModule } from '@nuxt/kit'
+import { fileURLToPath, pathToFileURL } from 'node:url'
+import {
+  addImports,
+  addPlugin,
+  addTemplate,
+  addVitePlugin,
+  createResolver,
+  defineNuxtModule,
+  hasNuxtModuleCompatibility,
+  tryResolveModule,
+} from '@nuxt/kit'
 
 export default defineNuxtModule<Record<string, never>>({
   meta: {
@@ -12,7 +21,7 @@ export default defineNuxtModule<Record<string, never>>({
     },
   },
   // Default configuration options of the Nuxt module
-  setup(_options, nuxt) {
+  async setup(_options, nuxt) {
     const { resolve } = createResolver(import.meta.url)
     const runtimeDir = fileURLToPath(new URL('./runtime', import.meta.url))
     const coladaOptionsPath = resolve(nuxt.options.rootDir, 'colada.options')
@@ -23,6 +32,23 @@ export default defineNuxtModule<Record<string, never>>({
     if (!nuxt.options.vite.optimizeDeps.exclude.includes('@pinia/colada')) {
       nuxt.options.vite.optimizeDeps.exclude.push('@pinia/colada')
     }
+
+    nuxt.hook('modules:done', async () => {
+      if (!nuxt.options.dev) return
+      if (nuxt.options.builder !== '@nuxt/vite-builder') return
+      if (!(await hasNuxtModuleCompatibility('@nuxt/devtools', '>=4.0.0-0', nuxt))) return
+
+      const devtoolsPath = await tryResolveModule('@pinia/colada-devtools/vite', import.meta.url)
+      if (!devtoolsPath) return
+
+      addVitePlugin(
+        async () => {
+          const { PiniaColadaDevtools } = await import(pathToFileURL(devtoolsPath).href)
+          return PiniaColadaDevtools()
+        },
+        { server: false, build: false },
+      )
+    })
 
     // Do not add the extension since the `.ts` will be transpiled to `.mjs` after `npm run prepack`
     addPlugin(resolve('./runtime/plugin'))
