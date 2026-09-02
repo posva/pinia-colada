@@ -42,7 +42,7 @@
     "@pinia/nuxt": "^1.0.2",
     "nuxi": "^3.37.0",
     "nuxt": "^4.5.2",
-    "typescript": "~6.0.3",
+    "typescript": "~7.0.2",
     "vue-tsc": "^3.3.11"
   },
   "pnpm": {
