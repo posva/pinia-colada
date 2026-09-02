@@ -109,28 +109,37 @@ describe('serializeDevtoolsValue', () => {
 
     expect(restored.date).toEqual(values.date)
     expect(formatValue(reactive(restored).date)).toBe('Date(2026-09-01T12:00:00.000Z)')
+    expect(getValueDisplayTokens(restored.date)).toEqual([
+      { text: 'Date', class: 'text-(--devtools-syntax-object-blue)' },
+      { text: '(', class: 'text-(--devtools-syntax-gray)' },
+      { text: '2026-09-01T12:00:00.000Z', class: 'text-(--devtools-syntax-green)' },
+      { text: ')', class: 'text-(--devtools-syntax-gray)' },
+    ])
     expect(Number.isNaN(restored.invalidDate.getTime())).toBe(true)
     expect(formatValue(restored.invalidDate)).toBe('Invalid Date')
-    expect(formatValue(restored.fn)).toBe('ƒ fixtureFunction')
+    expect(getValueDisplayTokens(restored.invalidDate)).toEqual([
+      { text: 'Invalid Date', class: 'text-(--devtools-syntax-red)' },
+    ])
+    expect(formatValue(restored.fn)).toBe('ƒ fixtureFunction()')
     expect(getValueDisplayTokens(restored.fn).map((token) => token.text)).toEqual([
       'ƒ',
-      ' fixtureFunction',
+      ' fixtureFunction()',
     ])
     expect(restored.symbol).toBeTypeOf('symbol')
     expect(restored.bigint).toBe(12_345n)
-    expect(formatValue(restored.boxedNumber)).toBe('Number(42)')
+    expect(formatValue(restored.boxedNumber)).toBe('Number {42}')
     expect(getValueDisplayTokens(restored.boxedNumber)).toEqual([
       { text: 'Number', class: 'text-(--devtools-syntax-object-blue)' },
-      { text: '(', class: 'text-(--devtools-syntax-gray)' },
+      { text: ' {', class: 'text-(--devtools-syntax-gray)' },
       { text: '42', class: 'text-(--devtools-syntax-orange)' },
-      { text: ')', class: 'text-(--devtools-syntax-gray)' },
+      { text: '}', class: 'text-(--devtools-syntax-gray)' },
     ])
-    expect(formatValue(restored.boxedString)).toBe('String("fixture text")')
+    expect(formatValue(restored.boxedString)).toBe('String {"fixture text"}')
     expect(getValueDisplayTokens(restored.boxedString)).toEqual([
       { text: 'String', class: 'text-(--devtools-syntax-object-blue)' },
-      { text: '(', class: 'text-(--devtools-syntax-gray)' },
+      { text: ' {', class: 'text-(--devtools-syntax-gray)' },
       { text: '"fixture text"', class: 'text-(--devtools-syntax-green)' },
-      { text: ')', class: 'text-(--devtools-syntax-gray)' },
+      { text: '}', class: 'text-(--devtools-syntax-gray)' },
     ])
     expect(restored.regexp).toEqual(values.regexp)
     expect(formatValue(restored.url)).toBe(
