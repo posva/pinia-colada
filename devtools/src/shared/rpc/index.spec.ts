@@ -118,6 +118,7 @@ describe('serializeDevtoolsValue', () => {
       boxedNumber: Object(42),
       boxedString: Object('fixture text'),
       regexp: /pinia-colada/gi,
+      simpleRegexp: /pinia-\w+-[5-9]{5,6}/gi,
       url: new URL('https://pinia-colada.esm.dev/guide/?fixture=url#example'),
       urlSearchParams: new URLSearchParams({ fixture: 'search params', revision: '1' }),
       map: new Map([['date', new Date('2026-09-01T12:00:00.000Z')]]),
@@ -187,6 +188,12 @@ describe('serializeDevtoolsValue', () => {
         .map((token) => token.text)
         .join(''),
     ).toBe(restored.regexp.toString())
+    expect(restored.simpleRegexp).toEqual(values.simpleRegexp)
+    expect(
+      getValueDisplayTokens(restored.simpleRegexp)
+        .map((token) => token.text)
+        .join(''),
+    ).toBe(restored.simpleRegexp.toString())
     expect(formatValue(restored.url)).toBe(
       'URL(https://pinia-colada.esm.dev/guide/?fixture=url#example)',
     )
