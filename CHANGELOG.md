@@ -1,3 +1,9 @@
+## [1.4.4](https://github.com/posva/pinia-colada/compare/v1.4.3...v1.4.4) (2026-09-02)
+
+### Bug Fixes
+
+- update variables on initial mutation ([#637](https://github.com/posva/pinia-colada/issues/637)) ([cfa5beb](https://github.com/posva/pinia-colada/commit/cfa5beb75484fe85d794dc7561e7555632c0607f)), closes [#636](https://github.com/posva/pinia-colada/issues/636)
+
 ## [1.4.3](https://github.com/posva/pinia-colada/compare/v1.4.2...v1.4.3) (2026-08-31)
 
 Typo fix in type: `UseQueryEntryNodeValueSerializd` -> `UseQueryEntryNodeValueSerialized`
