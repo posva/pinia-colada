@@ -29,10 +29,10 @@
   ],
   "sideEffects": false,
   "exports": {
-    "./devframe": "./dist/index.js",
-    "./devframe/vite": "./dist/vite.js",
-    "./devframe/vite-hub": "./dist/vite-hub.js",
-    "./devframe/client-script": "./dist/client-script.js"
+    ".": "./dist/index.js",
+    "./vite": "./dist/vite.js",
+    "./vite-hub": "./dist/vite-hub.js",
+    "./client-script": "./dist/client-script.js"
   },
   "files": [
     "LICENSE",
