@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { UseMutationEntryPayload } from '@pinia/colada-devtools/shared'
 import { computed, ref, watch } from 'vue'
-import { useDevtoolsActions, useMutationEntries } from '../../composables/devtools-context'
+import { useMutationEntries } from '../../composables/devtools-context'
+import { panelChannel } from '../../../client/panel-channel'
 import { useRoute, useRouter } from 'vue-router'
 import type { DataStateStatus } from '@pinia/colada'
 
@@ -34,8 +35,6 @@ const lastUpdate = useTimeAgo(() => selectedMutation.value?.devtools.updatedAt ?
   updateInterval: 3000,
 })
 
-const actions = useDevtoolsActions()
-
 // Track when we're replaying to auto-navigate to new mutation
 let justReplayed = false
 const mutationCountBeforeReplay = ref(0)
@@ -46,7 +45,7 @@ function replayMutation(id: UseMutationEntryPayload['id']) {
   justReplayed = true
 
   // Emit the replay event
-  actions['mutations:replay'](id)
+  panelChannel.callEvent('mutations:replay', id)
 }
 
 // FIXME: we should move this logic up and auto detect replays maybe with some linking
@@ -163,7 +162,7 @@ watch(
             class="theme-purple"
             size="sm"
             title="Simulate a loading state"
-            @click="actions['mutations:simulate:loading'](selectedMutation.id)"
+            @click="panelChannel.callEvent('mutations:simulate:loading', selectedMutation.id)"
           >
             <i-lucide-loader />
             Simulate loading
@@ -173,7 +172,7 @@ watch(
             class="theme-purple"
             size="sm"
             title="Stop simulating loading state"
-            @click="actions['mutations:simulate:loading:stop'](selectedMutation.id)"
+            @click="panelChannel.callEvent('mutations:simulate:loading:stop', selectedMutation.id)"
           >
             <i-lucide-loader class="animate-spin" />
             Stop loading
@@ -184,7 +183,7 @@ watch(
             class="theme-error"
             size="sm"
             title="Simulate an Error state"
-            @click="actions['mutations:simulate:error'](selectedMutation.id)"
+            @click="panelChannel.callEvent('mutations:simulate:error', selectedMutation.id)"
           >
             <i-lucide-x-octagon /> Simulate error
           </UButton>
@@ -193,7 +192,7 @@ watch(
             class="theme-error"
             size="sm"
             title="Restore the previous state"
-            @click="actions['mutations:simulate:error:stop'](selectedMutation.id)"
+            @click="panelChannel.callEvent('mutations:simulate:error:stop', selectedMutation.id)"
           >
             <i-lucide-rotate-ccw /> Remove error
           </UButton>
@@ -212,7 +211,7 @@ watch(
             class="theme-warning"
             size="sm"
             title="Remove this mutation from the cache"
-            @click="actions['mutations:remove'](selectedMutation.id)"
+            @click="panelChannel.callEvent('mutations:remove', selectedMutation.id)"
           >
             <i-lucide-trash /> Remove
           </UButton>
