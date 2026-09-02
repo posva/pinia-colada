@@ -46,7 +46,7 @@ export default defineNuxtModule<Record<string, never>>({
           const { PiniaColadaDevtools } = await import(pathToFileURL(devtoolsPath).href)
           return PiniaColadaDevtools()
         },
-        { server: false, build: false },
+        { server: false },
       )
     })
 
