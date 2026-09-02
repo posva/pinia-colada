@@ -3,8 +3,7 @@
  * executes `DevtoolsEmits` actions against them for the Devframe client script.
  */
 import type { QueryCache, MutationCache } from '@pinia/colada'
-import { storeToRefs } from 'pinia'
-import { triggerRef, watch } from 'vue'
+import { watch } from 'vue'
 import type { AppEmits, DevtoolsEmits } from '@pinia/colada-devtools/shared'
 import { restoreOriginalValues } from '@pinia/colada-devtools/shared'
 import {
@@ -34,7 +33,6 @@ export function setupDevtoolsAppBridge(
   emit: DevtoolsAppEmit,
 ): DevtoolsAppBridge {
   addDevtoolsInfo(queryCache, mutationCache)
-  const { caches: queryCaches } = storeToRefs(queryCache)
 
   // Sync queries started before the bridge once they settle because their
   // fetch lifecycle was not observed by $onAction.
@@ -181,7 +179,6 @@ export function setupDevtoolsAppBridge(
       const entry = queryCache.getEntries({ key, exact: true })[0]
       if (entry) {
         queryCache.setEntryState(entry, restoreOriginalValues(state, entry.state.value))
-        triggerRef(queryCaches)
         emit('queries:update', createQueryEntryPayload(entry))
       }
     },

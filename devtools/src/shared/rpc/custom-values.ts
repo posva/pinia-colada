@@ -216,14 +216,10 @@ function getCustomValueType(value: unknown): NonSerializableValue['__type'] | un
  * Plain objects and arrays are traversed so regular edits are retained.
  */
 export function restoreOriginalValues<T>(edited: T, original: unknown): T {
-  return restoreOriginalValuesRecursive(edited, original, false)
+  return restoreOriginalValuesRecursive(edited, original, 0)
 }
 
-function restoreOriginalValuesRecursive<T>(
-  edited: T,
-  original: unknown,
-  preserveContainer: boolean,
-): T {
+function restoreOriginalValuesRecursive<T>(edited: T, original: unknown, depth: number): T {
   const editedType = getCustomValueType(edited)
   const originalType = getCustomValueType(original)
 
@@ -249,20 +245,26 @@ function restoreOriginalValuesRecursive<T>(
   if (Array.isArray(edited) && Array.isArray(original)) {
     for (let index = 0; index < edited.length; index++) {
       if (index in edited) {
-        original[index] = restoreOriginalValuesRecursive(edited[index], original[index], true)
+        const restoredValue = restoreOriginalValuesRecursive(
+          edited[index],
+          original[index],
+          depth + 1,
+        )
+        edited[index] = restoredValue
+        original[index] = restoredValue
       }
     }
     original.length = edited.length
-    if (preserveContainer) return original as T
+    if (depth > 1) return original as T
   } else if (isPlainObject(edited) && isPlainObject(original)) {
     const editedRecord = edited as Record<string, unknown>
     const originalRecord = original as Record<string, unknown>
     for (const [key, value] of Object.entries(edited)) {
-      const restoredValue = restoreOriginalValuesRecursive(value, originalRecord[key], true)
+      const restoredValue = restoreOriginalValuesRecursive(value, originalRecord[key], depth + 1)
       editedRecord[key] = restoredValue
       originalRecord[key] = restoredValue
     }
-    if (preserveContainer) return original as T
+    if (depth > 1) return original as T
   }
 
   return edited
