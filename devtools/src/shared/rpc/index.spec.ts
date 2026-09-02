@@ -30,16 +30,16 @@ describe('serializeDevtoolsValue', () => {
     expect(restored[1]).toBe('one')
   })
 
-  it('displays every occurrence of a repeated object with the same reference number', () => {
+  it('displays every occurrence of a repeated object in full', () => {
     const shared = { label: 'shared object' }
 
     const restored = restoreClonedDeep(serializeDevtoolsValue({ first: shared, second: shared }))
 
     expect(restored.first).toEqual(shared)
     expect(restored.second).toEqual(shared)
-    expect(restored.first).toBe(restored.second)
-    expect(displayText(restored.first)).toMatch(/^Object \*\d+$/)
-    expect(displayText(restored.second)).toBe(displayText(restored.first))
+    expect(restored.first).not.toBe(restored.second)
+    expect(displayText(restored.first)).toBe('Object')
+    expect(displayText(restored.second)).toBe('Object')
   })
 
   it('displays circular references without recursing indefinitely', () => {
@@ -49,11 +49,9 @@ describe('serializeDevtoolsValue', () => {
     const restored = restoreClonedDeep(serializeDevtoolsValue(circular))
 
     expect(restored.label).toBe('circular object')
-    expect(formatValue(restored.self)).toMatch(/^\[Circular \*\d+]$/)
-    expect(displayText(restored)).toMatch(/^Object \*\d+$/)
-    expect(displayText(restored.self)).toBe(
-      `[Circular ${displayText(restored).slice('Object '.length)}]`,
-    )
+    expect(formatValue(restored.self)).toBe('[Circular]')
+    expect(displayText(restored)).toBe('Object')
+    expect(displayText(restored.self)).toBe('[Circular]')
   })
 
   it('serializes tracked promise states and results', async () => {

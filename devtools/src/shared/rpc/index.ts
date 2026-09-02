@@ -11,10 +11,9 @@ import {
   isRestoredCustomValue,
   restoreClonedDeep,
   safeSerialize,
-  serializeReference,
-  serializeReferencedValue,
+  serializeCircular,
 } from './custom-values'
-import { isPlainObject, VALUE_REFERENCE } from '../json'
+import { isPlainObject } from '../json'
 
 export { isNonSerializableValue } from './custom-values'
 export { restoreClonedDeep } from './custom-values'
@@ -57,52 +56,18 @@ export interface DevtoolsEmits {
 
 export function serializeDevtoolsValue<T>(val: T): T
 export function serializeDevtoolsValue(val: unknown): unknown {
-  const referenceCounts = new WeakMap<object, number>()
-  const referenceIds = new WeakMap<object, number>()
-  const lastReferenceId = { value: collectReferences(val, referenceCounts, new WeakSet()) }
-  return serializeDevtoolsValueRecursive(
-    val,
-    referenceCounts,
-    referenceIds,
-    new WeakSet(),
-    lastReferenceId,
-  )
+  return serializeDevtoolsValueRecursive(val, new WeakSet())
 }
 
-function serializeDevtoolsValueRecursive(
-  val: unknown,
-  referenceCounts: WeakMap<object, number>,
-  referenceIds: WeakMap<object, number>,
-  activeReferences: WeakSet<object>,
-  lastReferenceId: { value: number },
-): unknown {
-  let referenceId: number | undefined
+function serializeDevtoolsValueRecursive(val: unknown, activeReferences: WeakSet<object>): unknown {
   if (val && typeof val === 'object') {
-    const restoredReferenceId = (val as Record<PropertyKey, unknown>)[VALUE_REFERENCE]
-    referenceId =
-      referenceIds.get(val) ??
-      (typeof restoredReferenceId === 'number' ? restoredReferenceId : undefined)
-    if (activeReferences.has(val)) {
-      return serializeReference(referenceId ?? ++lastReferenceId.value)
-    }
-    if ((referenceCounts.get(val) ?? 0) > 1 || referenceId != null) {
-      referenceId ??= ++lastReferenceId.value
-      referenceIds.set(val, referenceId)
-    }
+    if (activeReferences.has(val)) return serializeCircular()
     activeReferences.add(val)
   }
 
   let serialized: unknown
   if (Array.isArray(val)) {
-    serialized = val.map((item) =>
-      serializeDevtoolsValueRecursive(
-        item,
-        referenceCounts,
-        referenceIds,
-        activeReferences,
-        lastReferenceId,
-      ),
-    )
+    serialized = val.map((item) => serializeDevtoolsValueRecursive(item, activeReferences))
   } else if (isRestoredCustomValue(val)) {
     serialized = safeSerialize(toRaw(val))
   } else if (val && typeof val === 'object' && Object.getPrototypeOf(val) === null) {
@@ -117,13 +82,7 @@ function serializeDevtoolsValueRecursive(
     serialized = Object.fromEntries(
       Object.entries(val).map(([key, value]) => [
         key,
-        serializeDevtoolsValueRecursive(
-          value,
-          referenceCounts,
-          referenceIds,
-          activeReferences,
-          lastReferenceId,
-        ),
+        serializeDevtoolsValueRecursive(value, activeReferences),
       ]),
     )
   } else {
@@ -131,28 +90,5 @@ function serializeDevtoolsValueRecursive(
   }
 
   if (val && typeof val === 'object') activeReferences.delete(val)
-  return referenceId == null ? serialized : serializeReferencedValue(referenceId, serialized)
-}
-
-function collectReferences(
-  val: unknown,
-  referenceCounts: WeakMap<object, number>,
-  visited: WeakSet<object>,
-): number {
-  if (!val || typeof val !== 'object') return 0
-
-  referenceCounts.set(val, (referenceCounts.get(val) ?? 0) + 1)
-  const existingId = (val as Record<PropertyKey, unknown>)[VALUE_REFERENCE]
-  let largestReferenceId = typeof existingId === 'number' ? existingId : 0
-  if (visited.has(val)) return largestReferenceId
-  visited.add(val)
-
-  const children = Array.isArray(val) ? val : isPlainObject(val) ? Object.values(val) : []
-  for (const child of children) {
-    largestReferenceId = Math.max(
-      largestReferenceId,
-      collectReferences(child, referenceCounts, visited),
-    )
-  }
-  return largestReferenceId
+  return serialized
 }
