@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, useTemplateRef } from 'vue'
-import type { JSONValue } from '@pinia/colada-devtools/shared'
 import {
   getValueTypeClass,
   isPlainObject,
@@ -19,6 +18,7 @@ import ILucideUndo from '~icons/lucide/undo'
 import ILucideMinus from '~icons/lucide/minus'
 import ILucidePlus from '~icons/lucide/plus'
 import ValueDisplay from './ValueDisplay.vue'
+import type { NestedValuePath } from '../../utils/set-nested-value'
 
 const {
   itemKey,
@@ -28,9 +28,9 @@ const {
   readonly,
 } = defineProps<{
   itemKey: string
-  value: JSONValue | Map<PropertyKey, any> | Set<unknown>
+  value: unknown
   depth: number
-  path?: Array<string | number>
+  path?: NestedValuePath
   readonly?: boolean
 }>()
 
@@ -73,7 +73,7 @@ const isExpandable = computed(() => {
   )
 })
 
-const keyValuePairs = computed<Iterable<[PropertyKey, any]>>(() => {
+const keyValuePairs = computed<Iterable<[unknown, any]>>(() => {
   // for perf to avoid reading props.value multiple times
   const readValue = value
   if (Array.isArray(readValue)) {
@@ -91,7 +91,7 @@ const keyValuePairs = computed<Iterable<[PropertyKey, any]>>(() => {
 })
 
 const emit = defineEmits<{
-  'update:value': [path: Array<string | number>, value: unknown]
+  'update:value': [path: NestedValuePath, value: unknown]
 }>()
 
 // Editing methods
@@ -385,13 +385,13 @@ function toggleExpansion() {
     <!-- Expanded children -->
     <template v-if="isExpandable && isExpanded">
       <JsonItem
-        v-for="[childKey, childValue] of keyValuePairs"
-        :key="childKey"
+        v-for="([childKey, childValue], childIndex) of keyValuePairs"
+        :key="childIndex"
         :item-key="String(childKey)"
         :value="childValue"
         :depth="depth + 1"
-        :path="typeof childKey === 'symbol' ? undefined : [...path, childKey]"
-        :readonly="readonly"
+        :path="[...path, childKey]"
+        :readonly="readonly || !!valueDetails"
         @update:value="(...args) => emit('update:value', ...args)"
       />
     </template>

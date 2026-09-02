@@ -224,6 +224,42 @@ function restoreOriginalValuesRecursive<T>(edited: T, original: unknown, depth: 
   const originalType = getCustomValueType(original)
 
   if (editedType === 'reference') return original as T
+  if (
+    editedType === 'map' &&
+    originalType === 'map' &&
+    edited instanceof Map &&
+    original instanceof Map
+  ) {
+    const originalEntries = Array.from(original.entries())
+    const restoredEntries = Array.from(edited.entries(), ([editedKey, editedValue], index) => {
+      const originalEntry = originalEntries[index]
+      return originalEntry
+        ? [
+            restoreOriginalValuesRecursive(editedKey, originalEntry[0], depth + 1),
+            restoreOriginalValuesRecursive(editedValue, originalEntry[1], depth + 1),
+          ]
+        : [editedKey, editedValue]
+    })
+    original.clear()
+    for (const [key, value] of restoredEntries) original.set(key, value)
+    return original as T
+  }
+  if (
+    editedType === 'set' &&
+    originalType === 'set' &&
+    edited instanceof Set &&
+    original instanceof Set
+  ) {
+    const originalValues = Array.from(original)
+    const restoredValues = Array.from(edited, (value, index) =>
+      index < originalValues.length
+        ? restoreOriginalValuesRecursive(value, originalValues[index], depth + 1)
+        : value,
+    )
+    original.clear()
+    for (const value of restoredValues) original.add(value)
+    return original as T
+  }
   if (editedType && editedType === originalType) {
     if (
       (editedType === 'object' || editedType === 'nullprototypeobject') &&

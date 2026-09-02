@@ -156,6 +156,12 @@ describe('app bridge', () => {
     const blob = new Blob(['fixture'], { type: 'text/plain' })
     const file = new File(['fixture'], 'fixture.txt', { type: 'text/plain' })
     const promise = trackPromise(Promise.resolve('fulfilled'))
+    const map = new Map<unknown, unknown>([
+      ['count', 1],
+      ['native', url],
+    ])
+    const setObject = { nested: 'before' }
+    const set = new Set<unknown>(['one', setObject])
     const shared = { label: 'shared' }
     await promise
     const data = {
@@ -168,6 +174,8 @@ describe('app bridge', () => {
       blob,
       file,
       promise,
+      map,
+      set,
       first: shared,
       second: shared,
     }
@@ -184,6 +192,8 @@ describe('app bridge', () => {
     expect(wrapper.get('[data-testid="count"]').text()).toBe('1')
     const editedState = restoreClonedDeep(serializeDevtoolsValue(entry.state.value))
     ;(editedState.data as typeof data).count = 2
+    ;(editedState.data as typeof data).map.set('count', 2)
+    ;(editedState.data as typeof data).set = new Set(['updated', { nested: 'after' }])
 
     devtools.emit('queries:set:state', ['rich-values'], editedState)
     await nextTick()
@@ -201,6 +211,12 @@ describe('app bridge', () => {
     expect(updatedData.blob).toBe(blob)
     expect(updatedData.file).toBe(file)
     expect(updatedData.promise).toBe(promise)
+    expect(updatedData.map).toBe(map)
+    expect(updatedData.map.get('count')).toBe(2)
+    expect(updatedData.map.get('native')).toBe(url)
+    expect(updatedData.set).toBe(set)
+    expect(Array.from(updatedData.set)).toEqual(['updated', setObject])
+    expect(setObject.nested).toBe('after')
     expect(updatedData.first).toBe(shared)
     expect(updatedData.second).toBe(shared)
   })

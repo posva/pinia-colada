@@ -11,16 +11,28 @@ function isExpandable(
 
 <script setup lang="ts">
 import { isPlainObject } from '@pinia/colada-devtools/shared'
+import { computed } from 'vue'
+import type { NestedValuePath } from '../../utils/set-nested-value'
 import JsonItem from './JsonItem.vue'
 import ValueDisplay from './ValueDisplay.vue'
 
-defineProps<{
+const props = defineProps<{
   data: unknown
   readonly?: boolean
 }>()
 
+const keyValuePairs = computed<Iterable<[unknown, unknown]>>(() => {
+  if (Array.isArray(props.data)) return props.data.entries()
+  if (isPlainObject(props.data)) return Object.entries(props.data)
+  if (props.data instanceof Map) return props.data.entries()
+  if (props.data instanceof Set) {
+    return Array.from(props.data, (value, index) => [index, value] as const)
+  }
+  return []
+})
+
 const emit = defineEmits<{
-  'update:value': [path: Array<string | number>, value: unknown]
+  'update:value': [path: NestedValuePath, value: unknown]
 }>()
 </script>
 
@@ -29,9 +41,9 @@ const emit = defineEmits<{
   <template v-if="isExpandable(data)">
     <JsonItem
       class="font-mono"
-      v-for="[key, value] in Object.entries(data)"
-      :key="key"
-      :item-key="key"
+      v-for="([key, value], index) in keyValuePairs"
+      :key="index"
+      :item-key="String(key)"
       :value="value"
       :depth="0"
       :path="[key]"
