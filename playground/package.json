@@ -40,7 +40,7 @@
     "json-server": "0.17.4",
     "npm-run-all2": "^9.0.3",
     "tailwindcss": "^4.3.3",
-    "typescript": "~6.0.3",
+    "typescript": "~7.0.2",
     "vite": "^8.2.2",
     "vite-plugin-vue-devtools": "^8.2.1",
     "vue-tsc": "^3.3.11"
