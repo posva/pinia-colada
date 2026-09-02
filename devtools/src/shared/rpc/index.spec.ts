@@ -30,6 +30,15 @@ describe('serializeDevtoolsValue', () => {
     expect(restored[1]).toBe('one')
   })
 
+  it('displays repeated object references', () => {
+    const shared = { label: 'shared object' }
+
+    const restored = restoreClonedDeep(serializeDevtoolsValue({ first: shared, second: shared }))
+
+    expect(restored.first).toEqual(shared)
+    expect(formatValue(restored.second)).toMatch(/^\[Reference \*\d+]$/)
+  })
+
   it('restores displayable values from their wire representation', () => {
     const values = {
       date: new Date('2026-09-01T12:00:00.000Z'),

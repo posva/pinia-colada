@@ -10,6 +10,7 @@ export function createValueFixture(revision: number) {
   const sparseArray = Array<unknown>(4)
   sparseArray[1] = 'one'
   sparseArray[3] = revision
+  const sharedObject = { label: 'shared object', revision }
 
   return {
     revision,
@@ -32,6 +33,7 @@ export function createValueFixture(revision: number) {
     nullPrototypeObject,
     emptyArray: [],
     sparseArray,
+    sharedReferences: { first: sharedObject, second: sharedObject },
     date: new Date(),
     fn: function fixtureFunction() {
       return revision

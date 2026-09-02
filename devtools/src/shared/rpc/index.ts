@@ -7,7 +7,7 @@ import type {
 import type { UseQueryEntryPayload } from '../query-serialized'
 import type { UseMutationEntryPayload } from '../mutation-serialized'
 import { toRaw } from 'vue'
-import { restoreClonedDeep, safeSerialize } from './custom-values'
+import { restoreClonedDeep, safeSerialize, serializeReference } from './custom-values'
 import { isPlainObject } from '../json'
 
 export { isNonSerializableValue } from './custom-values'
@@ -49,17 +49,42 @@ export interface DevtoolsEmits {
 
 export function serializeDevtoolsValue<T>(val: T): T
 export function serializeDevtoolsValue(val: unknown): unknown {
+  return serializeDevtoolsValueRecursive(val, new WeakMap(), new WeakSet(), { value: 0 })
+}
+
+function serializeDevtoolsValueRecursive(
+  val: unknown,
+  references: WeakMap<object, number>,
+  activeReferences: WeakSet<object>,
+  lastReferenceId: { value: number },
+): unknown {
+  if (val && typeof val === 'object') {
+    const referenceId = references.get(val)
+    if (referenceId != null) {
+      return serializeReference(referenceId, activeReferences.has(val))
+    }
+    references.set(val, ++lastReferenceId.value)
+    activeReferences.add(val)
+  }
+
+  let serialized: unknown
   if (Array.isArray(val)) {
-    return val.map((item) => serializeDevtoolsValue(item))
-  }
-  if (val && typeof val === 'object' && Object.getPrototypeOf(val) === null) {
-    return safeSerialize(val)
-  }
-  // TODO: custom classes?
-  if (isPlainObject(val)) {
-    return Object.fromEntries(
-      Object.entries(val).map(([key, value]) => [key, serializeDevtoolsValue(value)]),
+    serialized = val.map((item) =>
+      serializeDevtoolsValueRecursive(item, references, activeReferences, lastReferenceId),
     )
+  } else if (val && typeof val === 'object' && Object.getPrototypeOf(val) === null) {
+    serialized = safeSerialize(val)
+  } else if (isPlainObject(val)) {
+    serialized = Object.fromEntries(
+      Object.entries(val).map(([key, value]) => [
+        key,
+        serializeDevtoolsValueRecursive(value, references, activeReferences, lastReferenceId),
+      ]),
+    )
+  } else {
+    serialized = safeSerialize(toRaw(val))
   }
-  return safeSerialize(toRaw(val))
+
+  if (val && typeof val === 'object') activeReferences.delete(val)
+  return serialized
 }
