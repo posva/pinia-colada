@@ -9,6 +9,7 @@ export function createValueFixture(revision: number) {
     string: 'Hello from the local fixture',
     number: 42,
     nan: Number.NaN,
+    infinity: Number.POSITIVE_INFINITY,
     boolean: true,
     nullValue: null,
     undefinedValue: undefined,
