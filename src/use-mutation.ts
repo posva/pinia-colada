@@ -11,6 +11,7 @@ import {
   onUnmounted,
   onScopeDispose,
   toValue,
+  triggerRef,
 } from 'vue'
 import { useMutationCache } from './mutation-store'
 import type { UseMutationEntry, UseMutationEntryExtensions } from './mutation-store'
@@ -215,10 +216,14 @@ export function useMutation<
   const variables = computed(() => entry.value.vars)
 
   async function mutateAsync(vars: TVars): Promise<TData> {
-    return mutationCache.mutate(
+    const mutationPromise = mutationCache.mutate(
       // ensures we reuse the initial empty entry and adapt it or create a new one
       (entry.value = mutationCache.ensure(entry.value, vars)),
     )
+    // ensure the entry is reactive on the initial mutation
+    // https://github.com/posva/pinia-colada/issues/636
+    triggerRef(entry)
+    return mutationPromise
   }
 
   function mutate(vars: NoInfer<TVars>) {

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount, enableAutoUnmount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
-import { defineComponent, effectScope, createApp, ref, nextTick } from 'vue'
+import { defineComponent, effectScope, createApp, h, ref, nextTick, watch } from 'vue'
 import type { GlobalMountOptions } from '@posva/test-utils'
 import { delay } from '@posva/test-utils'
 import type { UseMutationOptions } from './mutation-options'
@@ -128,6 +128,66 @@ describe('useMutation', () => {
     await flushPromises()
     expect(wrapper.vm.data).toBe(42)
     expect(wrapper.vm.status).toBe('success')
+  })
+
+  it('updates variables on the first mutation call', async () => {
+    const wrapper = mount(
+      defineComponent({
+        setup() {
+          return { ...useMutation({ mutation: async (n: number) => n * 2 }) }
+        },
+        render() {
+          return h('div', String(this.variables))
+        },
+      }),
+      { global: { plugins: [createPinia(), PiniaColada] } },
+    )
+
+    expect(wrapper.text()).toBe('undefined')
+
+    wrapper.vm.mutate(1)
+    await nextTick()
+
+    expect(wrapper.text()).toBe('1')
+  })
+
+  it('does not over trigger sync watchers on initial load', async () => {
+    const watchIsLoadingSpy = vi.fn()
+    const watchVariablesSpy = vi.fn()
+    const wrapper = mount(
+      defineComponent({
+        setup() {
+          const mutation = useMutation({ mutation: async (n: number) => n * 2 })
+
+          watch(mutation.isLoading, watchIsLoadingSpy, { flush: 'sync' })
+
+          watch(mutation.variables, watchVariablesSpy, { flush: 'sync' })
+
+          return { ...mutation }
+        },
+        // Prime the computed like a UI rendering an optimistic update would.
+        render() {
+          return h('div', String(this.variables))
+        },
+      }),
+      { global: { plugins: [createPinia(), PiniaColada] } },
+    )
+
+    const p = wrapper.vm.mutateAsync(1)
+
+    expect(watchIsLoadingSpy).toHaveBeenCalledTimes(1)
+    expect(watchIsLoadingSpy).toHaveBeenCalledWith(true, false, expect.any(Function))
+    expect(watchVariablesSpy).toHaveBeenCalledTimes(1)
+    expect(watchVariablesSpy).toHaveBeenCalledWith(1, undefined, expect.any(Function))
+
+    watchIsLoadingSpy.mockClear()
+    watchVariablesSpy.mockClear()
+
+    await p
+
+    expect(watchIsLoadingSpy).toHaveBeenCalledTimes(1)
+    expect(watchIsLoadingSpy).toHaveBeenCalledWith(false, true, expect.any(Function))
+    expect(watchVariablesSpy).toHaveBeenCalledTimes(0)
   })
 
   describe('hooks', () => {
