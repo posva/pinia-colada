@@ -83,6 +83,7 @@ export function formatValue(value: unknown) {
     if (value instanceof Error) return `${value.name}(${value.message})`
     if (isCollection(value)) return formatCollection(value)
     if (isPlainObject(value)) {
+      if (Object.getPrototypeOf(value) === null) return 'Object(null prototype)'
       if ('__constructorName' in value && typeof value.__constructorName === 'string') {
         return value.__constructorName
       }

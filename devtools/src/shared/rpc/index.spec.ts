@@ -46,6 +46,7 @@ describe('serializeDevtoolsValue', () => {
         type: 'text/plain',
         lastModified: 1_788_295_200_000,
       }),
+      nullPrototypeObject: Object.assign(Object.create(null), { label: 'null prototype' }),
       instance: new (class FixtureClass {
         label = 'fixture'
       })(),
@@ -81,6 +82,8 @@ describe('serializeDevtoolsValue', () => {
     expect(formatValue(restored.buffer)).toBe('[ArrayBuffer 16 bytes]')
     expect(formatValue(restored.blob)).toBe('[Blob 20 bytes; text/plain]')
     expect(formatValue(restored.file)).toBe('[File fixture.txt; 20 bytes; text/plain]')
+    expect(Object.getPrototypeOf(restored.nullPrototypeObject)).toBeNull()
+    expect(formatValue(restored.nullPrototypeObject)).toBe('Object(null prototype)')
     expect(formatValue(restored.instance)).toBe('FixtureClass')
     expect(Object.keys(restored.instance)).toEqual(['label'])
   })

@@ -52,6 +52,9 @@ export function serializeDevtoolsValue(val: unknown): unknown {
   if (Array.isArray(val)) {
     return val.map((item) => serializeDevtoolsValue(item))
   }
+  if (val && typeof val === 'object' && Object.getPrototypeOf(val) === null) {
+    return safeSerialize(val)
+  }
   // TODO: custom classes?
   if (isPlainObject(val)) {
     return Object.fromEntries(

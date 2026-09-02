@@ -3,6 +3,10 @@ export const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(r
 export function createValueFixture(revision: number) {
   const weakMapKey = {}
   const weakSetValue = {}
+  const nullPrototypeObject = Object.assign(Object.create(null) as Record<string, unknown>, {
+    label: 'null prototype',
+    revision,
+  })
 
   return {
     revision,
@@ -22,6 +26,7 @@ export function createValueFixture(revision: number) {
       array: [1, 'two', false, null, { nested: 'value' }],
     },
     emptyObject: {},
+    nullPrototypeObject,
     emptyArray: [],
     date: new Date(),
     fn: function fixtureFunction() {
