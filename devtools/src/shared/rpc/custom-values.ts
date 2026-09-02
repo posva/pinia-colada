@@ -1,10 +1,4 @@
-import {
-  isPlainObject,
-  VALUE_DETAILS,
-  VALUE_DISPLAY,
-  VALUE_REFERENCE,
-  type ValueDisplayToken,
-} from '../json'
+import { isPlainObject, VALUE_DETAILS, VALUE_DISPLAY, type ValueDisplayToken } from '../json'
 
 export interface NonSerializableValue_Base {
   __custom: '@@pc-non-serializable'
@@ -139,9 +133,9 @@ export interface NonSerializableValue_NullPrototypeObject extends NonSerializabl
   value: { properties: unknown }
 }
 
-export interface NonSerializableValue_Reference extends NonSerializableValue_Base {
-  __type: 'reference'
-  value: { id: number; circular: true } | { id: number; circular: false; value: unknown }
+export interface NonSerializableValue_Circular extends NonSerializableValue_Base {
+  __type: 'circular'
+  value: null
 }
 
 export type NonSerializableValue =
@@ -166,7 +160,7 @@ export type NonSerializableValue =
   | NonSerializableValue_Error
   | NonSerializableValue_Object
   | NonSerializableValue_NullPrototypeObject
-  | NonSerializableValue_Reference
+  | NonSerializableValue_Circular
 
 const CUSTOM_VALUE_SERIALIZE = Symbol.for('@pinia/colada-devtools/custom-value-serialize')
 
@@ -229,7 +223,7 @@ function restoreOriginalValuesRecursive<T>(edited: T, original: unknown, depth: 
   const editedType = getCustomValueType(edited)
   const originalType = getCustomValueType(original)
 
-  if (editedType === 'reference') return original as T
+  if (editedType === 'circular') return original as T
   if (
     editedType === 'map' &&
     originalType === 'map' &&
@@ -595,37 +589,21 @@ function restoreArrayBufferPlaceholder(value: ArrayBufferMetadata) {
   )
 }
 
-class ReferencePlaceholder {
-  constructor(
-    public readonly id: number,
-    public readonly circular: boolean,
-  ) {}
-
+class CircularPlaceholder {
   toString() {
-    return `[${this.circular ? 'Circular' : 'Reference'} *${this.id}]`
+    return '[Circular]'
   }
 
-  [CUSTOM_VALUE_SERIALIZE](): NonSerializableValue_Reference {
-    return serializeReference(this.id)
-  }
-}
-
-export function serializeReference(id: number): NonSerializableValue_Reference {
-  return {
-    __custom: '@@pc-non-serializable',
-    __type: 'reference',
-    value: { id, circular: true },
+  [CUSTOM_VALUE_SERIALIZE](): NonSerializableValue_Circular {
+    return serializeCircular()
   }
 }
 
-export function serializeReferencedValue(
-  id: number,
-  value: unknown,
-): NonSerializableValue_Reference {
+export function serializeCircular(): NonSerializableValue_Circular {
   return {
     __custom: '@@pc-non-serializable',
-    __type: 'reference',
-    value: { id, circular: false, value },
+    __type: 'circular',
+    value: null,
   }
 }
 
@@ -948,13 +926,8 @@ function restoreClonedValue(value: NonSerializableValue) {
     return restoredObject
   } else if (value.__type === 'nullprototypeobject') {
     return Object.assign(Object.create(null), restoreClonedDeep(value.value.properties))
-  } else if (value.__type === 'reference') {
-    if (value.value.circular) return new ReferencePlaceholder(value.value.id, true)
-    const restored = restoreClonedDeep(value.value.value)
-    if (restored && typeof restored === 'object') {
-      Object.defineProperty(restored, VALUE_REFERENCE, { value: value.value.id })
-    }
-    return restored
+  } else if (value.__type === 'circular') {
+    return new CircularPlaceholder()
   }
   // @ts-expect-error: type of value is never
   return new SerializationError(`Unknown non-serializable value type: ${value.__type}`)
@@ -962,33 +935,15 @@ function restoreClonedValue(value: NonSerializableValue) {
 
 export function restoreClonedDeep<T>(val: T): T
 export function restoreClonedDeep(val: unknown): unknown {
-  return restoreClonedDeepRecursive(val, new Map())
-}
-
-function restoreClonedDeepRecursive(val: unknown, references: Map<number, unknown>): unknown {
   if (Array.isArray(val)) {
-    return val.map((item) => restoreClonedDeepRecursive(item, references))
+    return val.map((item) => restoreClonedDeep(item))
   }
   if (isNonSerializableValue(val)) {
-    if (val.__type === 'reference') {
-      if (val.value.circular) return new ReferencePlaceholder(val.value.id, true)
-      if (references.has(val.value.id)) return references.get(val.value.id)
-
-      const restored = restoreClonedDeepRecursive(val.value.value, references)
-      if (restored && typeof restored === 'object') {
-        Object.defineProperty(restored, VALUE_REFERENCE, { value: val.value.id })
-      }
-      references.set(val.value.id, restored)
-      return restored
-    }
     return restoreClonedValue(val)
   }
   if (val && typeof val === 'object' && !isError(val)) {
     return Object.fromEntries(
-      Object.entries(val).map(([key, value]) => [
-        key,
-        restoreClonedDeepRecursive(value, references),
-      ]),
+      Object.entries(val).map(([key, value]) => [key, restoreClonedDeep(value)]),
     )
   }
   return val

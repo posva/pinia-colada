@@ -138,12 +138,10 @@ export interface ValueDisplayToken {
 
 export const VALUE_DISPLAY = Symbol.for('@pinia/colada-devtools/value-display')
 export const VALUE_DETAILS = Symbol.for('@pinia/colada-devtools/value-details')
-export const VALUE_REFERENCE = Symbol.for('@pinia/colada-devtools/value-reference')
 
 export interface DevtoolsDisplayValue {
   [VALUE_DISPLAY]?(): ValueDisplayToken[]
   [VALUE_DETAILS]?(): Record<string, unknown>
-  [VALUE_REFERENCE]?: number
 }
 
 const SYNTAX_CLASS = {
@@ -157,13 +155,6 @@ const SYNTAX_CLASS = {
 } as const
 
 export function getValueDisplayTokens(value: unknown): ValueDisplayToken[] {
-  const tokens = getBaseValueDisplayTokens(value)
-  const reference = isObject(value) ? (value as DevtoolsDisplayValue)[VALUE_REFERENCE] : undefined
-  if (reference != null) tokens.push({ text: ` *${reference}`, class: SYNTAX_CLASS.gray })
-  return tokens
-}
-
-function getBaseValueDisplayTokens(value: unknown): ValueDisplayToken[] {
   if (isObject(value)) {
     const display = (value as DevtoolsDisplayValue)[VALUE_DISPLAY]
     if (display) return display.call(value)
