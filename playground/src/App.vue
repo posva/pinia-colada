@@ -42,7 +42,4 @@ onErrorCaptured((err) => {
       </template>
     </Suspense>
   </RouterView>
-
-  <!-- <PiniaColadaDevtools /> -->
-  <hr />
 </template>
