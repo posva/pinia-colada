@@ -1,10 +1,10 @@
 import { createApp, reactive } from 'vue'
 import { restoreClonedDeep } from '@pinia/colada-devtools/shared'
-import { configureApp } from '../panel/configure-app.ts'
-import DevtoolsPanel from '../panel/DevtoolsPanel.vue'
+import App from './App.vue'
+import { configureApp } from './configure-app.ts'
 import type { PiniaColadaCacheState } from '../channel.ts'
 import { panelChannel } from './panel-channel.ts'
-import './panel-styles.css'
+import './styles.css'
 
 const cache = await panelChannel.sharedState.get('cache')
 
@@ -26,7 +26,7 @@ function applyCache() {
 
 cache.on('updated', applyCache)
 
-const app = createApp(DevtoolsPanel, {
+const app = createApp(App, {
   queries: cacheState.queries,
   mutations: cacheState.mutations,
 })

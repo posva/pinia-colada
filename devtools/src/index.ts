@@ -2,7 +2,7 @@ import { fileURLToPath } from 'node:url'
 import { defineDevframe } from 'devframe'
 import type { DevframeDefinition } from 'devframe'
 import pkg from '../package.json' with { type: 'json' }
-import piniaColadaIcon from './client/logo.svg'
+import piniaColadaIcon from './panel/logo.svg'
 
 /** Dock options required when installing the raw devframe in a hub. */
 export const piniaColadaDevframeDock = {

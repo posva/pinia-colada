@@ -10,11 +10,12 @@ import Components from 'unplugin-vue-components/vite'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const devtoolsDir = __dirname
+const panelDir = resolve(devtoolsDir, './src/panel')
 const UiComponentRe = /^U[A-Z][a-z]/
 
-// SPA mounted at an arbitrary base by the devframe host
+// Panel SPA mounted at an arbitrary base by the devframe host
 export default defineConfig({
-  root: resolve(devtoolsDir, './src/client'),
+  root: panelDir,
   base: './',
   build: {
     outDir: resolve(devtoolsDir, './dist-client'),
@@ -37,7 +38,7 @@ export default defineConfig({
       root: devtoolsDir,
       routesFolder: [
         {
-          src: resolve(devtoolsDir, './src/panel/pages'),
+          src: resolve(panelDir, './pages'),
         },
       ],
       experimental: {
@@ -49,7 +50,7 @@ export default defineConfig({
     Vue(),
     Icons({ compiler: 'vue3' }),
     Components({
-      dirs: [resolve(devtoolsDir, './src/panel/components')],
+      dirs: [resolve(panelDir, './components')],
       dts: false,
       resolvers: [
         (componentName) => {
@@ -58,9 +59,7 @@ export default defineConfig({
               name: `default`,
               // normalizePath: on Windows resolve() yields backslash paths that
               // Vite's import-analysis can't resolve as an import specifier.
-              from: normalizePath(
-                resolve(devtoolsDir, `./src/panel/components/${componentName}.vue`),
-              ),
+              from: normalizePath(resolve(panelDir, `./components/${componentName}.vue`)),
             }
           }
         },

@@ -27,7 +27,7 @@ function PiniaColadaDevtoolsFixture() {
       importMetaUrl: import.meta.url,
       homepage: pkg.homepage,
       description: pkg.description,
-      icon: '/src/client/logo.svg',
+      icon: '/src/panel/logo.svg',
       setup() {},
     }),
     {

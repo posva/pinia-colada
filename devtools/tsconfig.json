@@ -25,7 +25,7 @@
     "./components.d.ts",
     "./typed-router.d.ts",
     "./vite.config.*",
-    "./client.vite.config.ts",
+    "./panel.vite.config.ts",
     "./package.json"
   ],
   "vueCompilerOptions": {

@@ -43,7 +43,7 @@
   "scripts": {
     "dev": "vite --config vite.config.ts",
     "test:types": "vue-tsc --noEmit",
-    "build": "tsdown && vite build --config client.vite.config.ts"
+    "build": "tsdown && vite build --config panel.vite.config.ts"
   },
   "dependencies": {
     "@devframes/hub": "^0.9.8",
