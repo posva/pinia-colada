@@ -19,6 +19,17 @@ describe('serializeDevtoolsValue', () => {
     expect(() => (source.devtools.updatedAt = 2)).not.toThrow()
   })
 
+  it('preserves sparse array holes', () => {
+    const sparse = Array(3)
+    sparse[1] = 'one'
+
+    const restored = restoreClonedDeep(serializeDevtoolsValue(sparse))
+
+    expect(restored).toHaveLength(3)
+    expect(0 in restored).toBe(false)
+    expect(restored[1]).toBe('one')
+  })
+
   it('restores displayable values from their wire representation', () => {
     const values = {
       date: new Date('2026-09-01T12:00:00.000Z'),
