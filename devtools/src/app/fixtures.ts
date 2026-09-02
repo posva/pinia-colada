@@ -52,6 +52,10 @@ export function createValueFixture(revision: number) {
     errorWithCause: new Error('Fixture operation failed', {
       cause: new TypeError('Fixture root cause'),
     }),
+    aggregateError: new AggregateError(
+      [new TypeError('First fixture error'), new RangeError('Second fixture error')],
+      'Multiple fixture operations failed',
+    ),
     classInstance: new (class FixtureClass {
       constructor(
         public label: string,

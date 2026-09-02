@@ -34,6 +34,10 @@ describe('serializeDevtoolsValue', () => {
       errorWithCause: new Error('fixture operation failed', {
         cause: new TypeError('fixture root cause'),
       }),
+      aggregateError: new AggregateError(
+        [new TypeError('first fixture error'), new RangeError('second fixture error')],
+        'multiple fixture operations failed',
+      ),
       buffer: new ArrayBuffer(16),
       blob: new Blob(['Pinia Colada fixture'], { type: 'text/plain' }),
       file: new File(['Pinia Colada fixture'], 'fixture.txt', {
@@ -64,6 +68,12 @@ describe('serializeDevtoolsValue', () => {
     expect(restored.errorWithCause.cause).toBeInstanceOf(Error)
     expect((restored.errorWithCause.cause as Error).name).toBe('TypeError')
     expect((restored.errorWithCause.cause as Error).message).toBe('fixture root cause')
+    expect(restored.aggregateError).toBeInstanceOf(AggregateError)
+    expect(restored.aggregateError.errors).toHaveLength(2)
+    expect(restored.aggregateError.errors[0]).toMatchObject({
+      name: 'TypeError',
+      message: 'first fixture error',
+    })
     expect(formatValue(restored.buffer)).toBe('[ArrayBuffer 16 bytes]')
     expect(formatValue(restored.blob)).toBe('[Blob 20 bytes; text/plain]')
     expect(formatValue(restored.file)).toBe('[File fixture.txt; 20 bytes; text/plain]')

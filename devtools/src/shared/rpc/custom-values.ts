@@ -88,7 +88,7 @@ export interface NonSerializableValue_Promise extends NonSerializableValue_Base 
 
 export interface NonSerializableValue_Error extends NonSerializableValue_Base {
   __type: 'error'
-  value: { name: string; message: string; stack?: string; cause?: unknown }
+  value: { name: string; message: string; stack?: string; cause?: unknown; errors?: unknown[] }
 }
 
 export interface NonSerializableValue_Object extends NonSerializableValue_Base {
@@ -300,6 +300,9 @@ export function safeSerialize(value: unknown) {
         message: value.message,
         stack: value.stack,
         ...('cause' in value && { cause: safeSerializeRecursive(value.cause) }),
+        ...(value instanceof AggregateError && {
+          errors: value.errors.map((error) => safeSerializeRecursive(error)),
+        }),
       },
     } satisfies NonSerializableValue_Error
   } else if (
@@ -401,9 +404,16 @@ function restoreClonedValue(value: NonSerializableValue) {
   } else if (value.__type === 'promise') {
     return Promise.resolve()
   } else if (value.__type === 'error') {
-    const error = new Error(value.value.message, {
+    const options = {
       ...('cause' in value.value && { cause: restoreClonedDeep(value.value.cause) }),
-    })
+    }
+    const error = value.value.errors
+      ? new AggregateError(
+          value.value.errors.map((error) => restoreClonedDeep(error)),
+          value.value.message,
+          options,
+        )
+      : new Error(value.value.message, options)
     error.name = value.value.name
     if (value.value.stack) {
       error.stack = value.value.stack
