@@ -1,4 +1,10 @@
-import { isPlainObject, VALUE_DETAILS, VALUE_DISPLAY, type ValueDisplayToken } from '../json'
+import {
+  isPlainObject,
+  VALUE_DETAILS,
+  VALUE_DISPLAY,
+  VALUE_REFERENCE,
+  type ValueDisplayToken,
+} from '../json'
 
 export interface NonSerializableValue_Base {
   __custom: '@@pc-non-serializable'
@@ -135,7 +141,7 @@ export interface NonSerializableValue_NullPrototypeObject extends NonSerializabl
 
 export interface NonSerializableValue_Reference extends NonSerializableValue_Base {
   __type: 'reference'
-  value: { id: number; circular: boolean }
+  value: { id: number; circular: true } | { id: number; circular: false; value: unknown }
 }
 
 export type NonSerializableValue =
@@ -600,15 +606,26 @@ class ReferencePlaceholder {
   }
 
   [CUSTOM_VALUE_SERIALIZE](): NonSerializableValue_Reference {
-    return serializeReference(this.id, this.circular)
+    return serializeReference(this.id)
   }
 }
 
-export function serializeReference(id: number, circular = false): NonSerializableValue_Reference {
+export function serializeReference(id: number): NonSerializableValue_Reference {
   return {
     __custom: '@@pc-non-serializable',
     __type: 'reference',
-    value: { id, circular },
+    value: { id, circular: true },
+  }
+}
+
+export function serializeReferencedValue(
+  id: number,
+  value: unknown,
+): NonSerializableValue_Reference {
+  return {
+    __custom: '@@pc-non-serializable',
+    __type: 'reference',
+    value: { id, circular: false, value },
   }
 }
 
@@ -932,7 +949,12 @@ function restoreClonedValue(value: NonSerializableValue) {
   } else if (value.__type === 'nullprototypeobject') {
     return Object.assign(Object.create(null), restoreClonedDeep(value.value.properties))
   } else if (value.__type === 'reference') {
-    return new ReferencePlaceholder(value.value.id, value.value.circular)
+    if (value.value.circular) return new ReferencePlaceholder(value.value.id, true)
+    const restored = restoreClonedDeep(value.value.value)
+    if (restored && typeof restored === 'object') {
+      Object.defineProperty(restored, VALUE_REFERENCE, { value: value.value.id })
+    }
+    return restored
   }
   // @ts-expect-error: type of value is never
   return new SerializationError(`Unknown non-serializable value type: ${value.__type}`)
@@ -940,15 +962,33 @@ function restoreClonedValue(value: NonSerializableValue) {
 
 export function restoreClonedDeep<T>(val: T): T
 export function restoreClonedDeep(val: unknown): unknown {
+  return restoreClonedDeepRecursive(val, new Map())
+}
+
+function restoreClonedDeepRecursive(val: unknown, references: Map<number, unknown>): unknown {
   if (Array.isArray(val)) {
-    return val.map((item) => restoreClonedDeep(item))
+    return val.map((item) => restoreClonedDeepRecursive(item, references))
   }
   if (isNonSerializableValue(val)) {
+    if (val.__type === 'reference') {
+      if (val.value.circular) return new ReferencePlaceholder(val.value.id, true)
+      if (references.has(val.value.id)) return references.get(val.value.id)
+
+      const restored = restoreClonedDeepRecursive(val.value.value, references)
+      if (restored && typeof restored === 'object') {
+        Object.defineProperty(restored, VALUE_REFERENCE, { value: val.value.id })
+      }
+      references.set(val.value.id, restored)
+      return restored
+    }
     return restoreClonedValue(val)
   }
   if (val && typeof val === 'object' && !isError(val)) {
     return Object.fromEntries(
-      Object.entries(val).map(([key, value]) => [key, restoreClonedDeep(value)]),
+      Object.entries(val).map(([key, value]) => [
+        key,
+        restoreClonedDeepRecursive(value, references),
+      ]),
     )
   }
   return val
