@@ -77,6 +77,7 @@ export function formatValue(value: unknown) {
   if (typeof value === 'function') return `[Function ${value.name || 'anonymous'}]`
   if (isObject(value)) {
     if (value instanceof Number) return `Number(${value.valueOf()})`
+    if (value instanceof String) return `String("${value.valueOf()}")`
     if (value instanceof Date) return `Date(${value.toISOString()})`
     if (value instanceof RegExp) return value.toString()
     if (value instanceof Error) return `${value.name}(${value.message})`

@@ -26,6 +26,11 @@ export interface NonSerializableValue_BoxedNumber extends NonSerializableValue_B
   value: number
 }
 
+export interface NonSerializableValue_BoxedString extends NonSerializableValue_Base {
+  __type: 'boxedstring'
+  value: string
+}
+
 export interface NonSerializableValue_RegExp extends NonSerializableValue_Base {
   __type: 'regexp'
   value: { source: string; flags: string }
@@ -106,6 +111,7 @@ export type NonSerializableValue =
   | NonSerializableValue_Symbol
   | NonSerializableValue_BigInt
   | NonSerializableValue_BoxedNumber
+  | NonSerializableValue_BoxedString
   | NonSerializableValue_RegExp
   | NonSerializableValue_URL
   | NonSerializableValue_URLSearchParams
@@ -175,7 +181,6 @@ class BinaryDataPlaceholder {
 export function safeSerialize(value: (...args: unknown[]) => unknown): NonSerializableValue_Function
 export function safeSerialize(value: symbol): NonSerializableValue_Symbol
 export function safeSerialize(value: bigint): NonSerializableValue_BigInt
-export function safeSerialize(value: number): NonSerializableValue_BoxedNumber
 export function safeSerialize(value: RegExp): NonSerializableValue_RegExp
 export function safeSerialize(value: URL): NonSerializableValue_URL
 export function safeSerialize(value: URLSearchParams): NonSerializableValue_URLSearchParams
@@ -216,6 +221,12 @@ export function safeSerialize(value: unknown) {
       __type: 'boxednumber',
       value: value.valueOf(),
     } satisfies NonSerializableValue_BoxedNumber
+  } else if (value instanceof String) {
+    return {
+      __custom: '@@pc-non-serializable',
+      __type: 'boxedstring',
+      value: value.valueOf(),
+    } satisfies NonSerializableValue_BoxedString
   } else if (value instanceof RegExp) {
     return {
       __custom: '@@pc-non-serializable',
@@ -368,6 +379,8 @@ function restoreClonedValue(value: NonSerializableValue) {
       return new SerializationError(`Invalid bigint value: ${value.value}`, err)
     }
   } else if (value.__type === 'boxednumber') {
+    return Object(value.value)
+  } else if (value.__type === 'boxedstring') {
     return Object(value.value)
   } else if (value.__type === 'regexp') {
     try {
