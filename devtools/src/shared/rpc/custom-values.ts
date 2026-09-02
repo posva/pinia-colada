@@ -106,6 +106,11 @@ export interface NonSerializableValue_Object extends NonSerializableValue_Base {
   value: { constructorName: string; properties: unknown }
 }
 
+export interface NonSerializableValue_NullPrototypeObject extends NonSerializableValue_Base {
+  __type: 'nullprototypeobject'
+  value: { properties: unknown }
+}
+
 export type NonSerializableValue =
   | NonSerializableValue_Function
   | NonSerializableValue_Symbol
@@ -127,11 +132,15 @@ export type NonSerializableValue =
   | NonSerializableValue_Promise
   | NonSerializableValue_Error
   | NonSerializableValue_Object
+  | NonSerializableValue_NullPrototypeObject
 
 // Helper function to recursively serialize values that might contain non-serializable data
 function safeSerializeRecursive(value: unknown): unknown {
   if (Array.isArray(value)) {
     return value.map((item) => safeSerializeRecursive(item))
+  }
+  if (value && typeof value === 'object' && Object.getPrototypeOf(value) === null) {
+    return safeSerialize(value)
   }
   if (isPlainObject(value)) {
     const result: Record<string, unknown> = {}
@@ -329,6 +338,12 @@ export function safeSerialize(value: unknown) {
         }),
       },
     } satisfies NonSerializableValue_Error
+  } else if (value && typeof value === 'object' && Object.getPrototypeOf(value) === null) {
+    return {
+      __custom: '@@pc-non-serializable',
+      __type: 'nullprototypeobject',
+      value: { properties: safeSerializeRecursive({ ...value }) },
+    } satisfies NonSerializableValue_NullPrototypeObject
   } else if (
     value &&
     typeof value === 'object' &&
@@ -455,6 +470,8 @@ function restoreClonedValue(value: NonSerializableValue) {
       value: value.value.constructorName,
     })
     return restoredObject
+  } else if (value.__type === 'nullprototypeobject') {
+    return Object.assign(Object.create(null), restoreClonedDeep(value.value.properties))
   }
   // @ts-expect-error: type of value is never
   return new SerializationError(`Unknown non-serializable value type: ${value.__type}`)
