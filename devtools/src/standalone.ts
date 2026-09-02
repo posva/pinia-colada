@@ -3,14 +3,15 @@ import { createUi } from '@devframes/hub-ui'
 import { viteDevframeHub } from '@devframes/vite/hub'
 import type { Plugin } from 'vite'
 import { normalizePath } from 'vite'
-import { createPiniaColadaDevframe } from './index.ts'
+import { piniaColadaDevframe } from './index.ts'
 
-export function PiniaColadaDevtoolsHub(): Plugin {
+/** Mount Pinia Colada Devtools as a standalone DevFrame hub in Vite. */
+export function PiniaColadaDevtoolsStandalone(): Plugin {
   const clientScript = normalizePath(fileURLToPath(new URL('./client-script.js', import.meta.url)))
 
   return viteDevframeHub({
     quiet: true,
-    devframes: [createPiniaColadaDevframe()],
+    devframes: [piniaColadaDevframe],
     clientScripts: {
       'pinia-colada': { importFrom: `/@fs/${clientScript}` },
     },

@@ -31,7 +31,7 @@
   "exports": {
     ".": "./dist/index.js",
     "./vite": "./dist/vite.js",
-    "./vite-hub": "./dist/vite-hub.js",
+    "./standalone": "./dist/standalone.js",
     "./client-script": "./dist/client-script.js"
   },
   "files": [

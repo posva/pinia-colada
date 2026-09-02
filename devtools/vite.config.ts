@@ -4,12 +4,13 @@ import { createPluginFromDevframe } from '@vitejs/devtools-kit/node'
 import { DevTools } from '@vitejs/devtools'
 import Vue from '@vitejs/plugin-vue'
 import TailwindCSS from '@tailwindcss/vite'
+import { defineDevframe } from 'devframe'
 import { defineConfig, normalizePath } from 'vite'
 import VueRouter from 'vue-router/vite'
 import IconsResolver from 'unplugin-icons/resolver'
 import Icons from 'unplugin-icons/vite'
 import Components from 'unplugin-vue-components/vite'
-import { createPiniaColadaDevframeDefinition } from './src/devframe.ts'
+import { piniaColadaDevframeDefaults } from './src/devframe.ts'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const UiComponentRe = /^U[A-Z][a-z]/
@@ -18,7 +19,8 @@ const clientScriptPath = normalizePath(resolve(__dirname, './src/client-script.t
 
 function PiniaColadaDevtoolsFixture() {
   return createPluginFromDevframe(
-    createPiniaColadaDevframeDefinition({
+    defineDevframe({
+      ...piniaColadaDevframeDefaults,
       importMetaUrl: import.meta.url,
       icon: '/src/panel/logo.svg',
     }),

@@ -2,14 +2,14 @@ import { fileURLToPath } from 'node:url'
 import { createPluginFromDevframe } from '@vitejs/devtools-kit/node'
 import type { Plugin } from 'vite'
 import { normalizePath } from 'vite'
-import { createPiniaColadaDevframe, piniaColadaDevframeDock } from './index.ts'
+import { piniaColadaDevframe, piniaColadaDevframeDock } from './index.ts'
 
 export function PiniaColadaDevtools(): Plugin {
   const clientScriptPath = normalizePath(
     fileURLToPath(new URL('./client-script.js', import.meta.url)),
   )
 
-  return createPluginFromDevframe(createPiniaColadaDevframe(), {
+  return createPluginFromDevframe(piniaColadaDevframe, {
     dock: {
       ...piniaColadaDevframeDock,
       // Nuxt DevTools 4 doesn't advertise bare client-module resolution yet.
