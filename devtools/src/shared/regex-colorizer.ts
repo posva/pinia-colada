@@ -88,10 +88,6 @@ export interface ColorizePatternOptions {
   flags?: string
 }
 
-export interface ColorizeAllOptions extends ColorizePatternOptions {
-  selector?: string
-}
-
 const error = {
   DUPLICATE_CAPTURE_NAME: 'Duplicate capture name',
   EMPTY_TOP_ALTERNATIVE: 'Empty alternative effectively truncates the regex here',
@@ -108,8 +104,6 @@ const error = {
   UNCLOSED_CLASS: 'Unclosed character class',
   UNQUANTIFIABLE: 'Preceding token is not quantifiable',
 }
-
-const styleId = `rc-${(+new Date()).toString(36).slice(-5)}`
 
 // HTML generation functions for regex syntax parts
 type GroupRenderer = ((value: string, depth: number) => string) & {
@@ -660,7 +654,8 @@ export function colorizePattern(
         } else if (m.startsWith('\\u{')) {
           if (flagsObj.unicode) {
             const charCode = getTokenCharCode(m)
-            output += charCode <= 0x10_ff_ff ? to.metasequence(m) : to.error(m, error.INDEX_OVERFLOW)
+            output +=
+              charCode <= 0x10_ff_ff ? to.metasequence(m) : to.error(m, error.INDEX_OVERFLOW)
             lastToken = {
               quantifiable: true,
             }
@@ -803,54 +798,4 @@ export function colorizePattern(
   }
 
   return output
-}
-
-/**
- * Applies highlighting to all regex elements on the page, replacing their content with HTML.
- * @param {Object} [options]
- * @param {string} [options.selector='.regex'] `querySelectorAll` value: elements to highlight.
- * @param {string} [options.flags] Any combination of valid flags. Overridden by `data-flags`
- * attribute.
- */
-export function colorizeAll({ selector = '.regex', flags = '' }: ColorizeAllOptions = {}): void {
-  const els = document.querySelectorAll<HTMLElement>(selector)
-  els.forEach((el) => {
-    el.classList.add(styleId)
-    el.innerHTML = colorizePattern(el.textContent ?? '', {
-      flags: el.dataset.flags || flags,
-    })
-  })
-}
-
-/**
- * Adds the default theme styles to the page. Don't run this if you provide your own stylesheet.
- */
-export function loadStyles(): void {
-  if (document.getElementById(styleId)) {
-    return
-  }
-  const ss = document.createElement('style')
-  ss.id = styleId
-  // See `themes/default.css` for details
-  ss.textContent = `
-.${styleId} {color: #000; font-family: Consolas, "Source Code Pro", Monospace; white-space: pre-wrap; word-break: break-all; overflow-wrap: anywhere;}
-.${styleId} b {font-weight: normal;}
-.${styleId} i {font-style: normal;}
-.${styleId} u {text-decoration: none;}
-.${styleId} * {border-radius: 0.25em;}
-.${styleId} span {background: #eee;}
-.${styleId} b {background: #80c0ff; color: #092e7f;}
-.${styleId} b.bref {background: #86e9ff; color: #0d47c4;}
-.${styleId} b.err {background: #e30000; color: #fff; font-style: normal;}
-.${styleId} i {background: #e3e3e3; font-style: italic;}
-.${styleId} i span {background: #c3c3c3; font-style: normal;}
-.${styleId} i b {background: #c3c3c3; color: #222;}
-.${styleId} i u {background: #d3d3d3;}
-.${styleId} b.g1 {background: #b4fa50; color: #074d0b;}
-.${styleId} b.g2 {background: #8cd400; color: #053c08;}
-.${styleId} b.g3 {background: #26b809; color: #fff;}
-.${styleId} b.g4 {background: #30ea60; color: #125824;}
-.${styleId} b.g5 {background: #0c8d15; color: #fff;}
-  `
-  document.head.appendChild(ss)
 }
