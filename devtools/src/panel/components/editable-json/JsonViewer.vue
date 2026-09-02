@@ -10,8 +10,9 @@ function isExpandable(
 </script>
 
 <script setup lang="ts">
-import { formatValue, getValueTypeClass, isPlainObject } from '@pinia/colada-devtools/shared'
+import { isPlainObject } from '@pinia/colada-devtools/shared'
 import JsonItem from './JsonItem.vue'
+import ValueDisplay from './ValueDisplay.vue'
 
 defineProps<{
   data: unknown
@@ -40,6 +41,6 @@ const emit = defineEmits<{
   </template>
   <!-- Handle primitive root values -->
   <template v-else>
-    <span class="font-mono" :class="getValueTypeClass(data)">{{ formatValue(data) }}</span>
+    <span class="font-mono"><ValueDisplay :value="data" /></span>
   </template>
 </template>

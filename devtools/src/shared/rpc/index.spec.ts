@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { reactive } from 'vue'
-import { formatValue } from '../json'
+import { formatValue, getValueDisplayTokens } from '../json'
 import { restoreClonedDeep, serializeDevtoolsValue } from './index'
 
 describe('serializeDevtoolsValue', () => {
@@ -89,7 +89,11 @@ describe('serializeDevtoolsValue', () => {
     expect(formatValue(reactive(restored).date)).toBe('Date(2026-09-01T12:00:00.000Z)')
     expect(Number.isNaN(restored.invalidDate.getTime())).toBe(true)
     expect(formatValue(restored.invalidDate)).toBe('Invalid Date')
-    expect(formatValue(restored.fn)).toBe('[Function fixtureFunction]')
+    expect(formatValue(restored.fn)).toBe('ƒ fixtureFunction')
+    expect(getValueDisplayTokens(restored.fn).map((token) => token.text)).toEqual([
+      'ƒ',
+      ' fixtureFunction',
+    ])
     expect(restored.symbol).toBeTypeOf('symbol')
     expect(restored.bigint).toBe(12_345n)
     expect(formatValue(restored.boxedNumber)).toBe('Number(42)')
