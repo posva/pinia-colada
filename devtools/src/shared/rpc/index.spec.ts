@@ -161,7 +161,7 @@ describe('serializeDevtoolsValue', () => {
     ])
     expect(formatValue(restored.fn)).toBe('ƒ fixtureFunction()')
     expect(getValueDisplayTokens(restored.fn)).toEqual([
-      { text: 'ƒ', class: 'text-(--devtools-syntax-purple)' },
+      { text: 'ƒ', class: 'text-(--devtools-syntax-purple) italic' },
       { text: ' fixtureFunction', class: 'text-(--devtools-syntax-sapphire)' },
       { text: '()', class: 'text-(--devtools-syntax-gray)' },
     ])

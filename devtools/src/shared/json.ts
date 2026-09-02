@@ -161,7 +161,7 @@ export function getValueDisplayTokens(value: unknown): ValueDisplayToken[] {
 
   if (typeof value === 'function') {
     return [
-      { text: 'ƒ', class: SYNTAX_CLASS.purple },
+      { text: 'ƒ', class: `${SYNTAX_CLASS.purple} italic` },
       { text: ` ${value.name || 'anonymous'}`, class: SYNTAX_CLASS.sapphire },
       { text: '()', class: SYNTAX_CLASS.gray },
     ]
