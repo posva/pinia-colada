@@ -26,6 +26,7 @@ describe('serializeDevtoolsValue', () => {
       symbol: Symbol('fixture'),
       bigint: 12_345n,
       regexp: /pinia-colada/gi,
+      url: new URL('https://pinia-colada.esm.dev/guide/?fixture=url#example'),
       map: new Map([['date', new Date('2026-09-01T12:00:00.000Z')]]),
       set: new Set([/pinia-colada/gi]),
       error: new TypeError('fixture error'),
@@ -43,6 +44,7 @@ describe('serializeDevtoolsValue', () => {
     expect(restored.symbol).toBeTypeOf('symbol')
     expect(restored.bigint).toBe(12_345n)
     expect(restored.regexp).toEqual(values.regexp)
+    expect(restored.url).toEqual(values.url)
     expect(restored.map).toEqual(values.map)
     expect(restored.set).toEqual(values.set)
     expect(restored.error).toBeInstanceOf(Error)

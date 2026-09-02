@@ -30,6 +30,7 @@ export function createValueFixture(revision: number) {
     globalSymbol: Symbol.for('pinia-colada-fixture'),
     bigint: 12_345_678_901_234_567_890n,
     regexp: /pinia-colada/gi,
+    url: new URL('https://pinia-colada.esm.dev/guide/?fixture=url#example'),
     map: new Map<unknown, unknown>([
       ['revision', revision],
       [{ objectKey: true }, new Date()],

@@ -26,6 +26,11 @@ export interface NonSerializableValue_RegExp extends NonSerializableValue_Base {
   value: { source: string; flags: string }
 }
 
+export interface NonSerializableValue_URL extends NonSerializableValue_Base {
+  __type: 'url'
+  value: string
+}
+
 export interface NonSerializableValue_Map extends NonSerializableValue_Base {
   __type: 'map'
   value: Array<[unknown, unknown]>
@@ -81,6 +86,7 @@ export type NonSerializableValue =
   | NonSerializableValue_Symbol
   | NonSerializableValue_BigInt
   | NonSerializableValue_RegExp
+  | NonSerializableValue_URL
   | NonSerializableValue_Map
   | NonSerializableValue_Set
   | NonSerializableValue_WeakMap
@@ -138,6 +144,7 @@ export function safeSerialize(value: (...args: unknown[]) => unknown): NonSerial
 export function safeSerialize(value: symbol): NonSerializableValue_Symbol
 export function safeSerialize(value: bigint): NonSerializableValue_BigInt
 export function safeSerialize(value: RegExp): NonSerializableValue_RegExp
+export function safeSerialize(value: URL): NonSerializableValue_URL
 export function safeSerialize(value: Map<unknown, unknown>): NonSerializableValue_Map
 export function safeSerialize(value: Set<unknown>): NonSerializableValue_Set
 export function safeSerialize(value: WeakMap<object, unknown>): NonSerializableValue_WeakMap
@@ -173,6 +180,12 @@ export function safeSerialize(value: unknown) {
       __type: 'regexp',
       value: { source: value.source, flags: value.flags },
     } satisfies NonSerializableValue_RegExp
+  } else if (value instanceof URL) {
+    return {
+      __custom: '@@pc-non-serializable',
+      __type: 'url',
+      value: value.href,
+    } satisfies NonSerializableValue_URL
   } else if (value instanceof Map) {
     return {
       __custom: '@@pc-non-serializable',
@@ -291,6 +304,12 @@ function restoreClonedValue(value: NonSerializableValue) {
       return new RegExp(source, flags)
     } catch (err) {
       return new SerializationError(`Invalid regexp value: ${JSON.stringify(value.value)}`, err)
+    }
+  } else if (value.__type === 'url') {
+    try {
+      return new URL(value.value)
+    } catch (err) {
+      return new SerializationError(`Invalid URL value: ${value.value}`, err)
     }
   } else if (value.__type === 'map') {
     const entries = value.value.map(
