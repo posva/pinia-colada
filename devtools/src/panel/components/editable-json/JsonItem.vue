@@ -6,6 +6,7 @@ import {
   isPlainObject,
   getValueType,
   isNonSerializableValue,
+  getValueDetails,
 } from '@pinia/colada-devtools/shared'
 import UButton from '../UButton.vue'
 import ILucideChevronRight from '~icons/lucide/chevron-right'
@@ -60,13 +61,15 @@ const isEditableViaSimple = computed(
 const isEditableViaJson = computed(() => !isCustomValue.value && !readonly)
 
 const isExpanded = ref(false)
+const valueDetails = computed(() => getValueDetails(value))
 
 const isExpandable = computed(() => {
   return (
     (Array.isArray(value) && value.length > 0) ||
     (isPlainObject(value) && Object.keys(value).length > 0) ||
     (value instanceof Map && value.size > 0) ||
-    (value instanceof Set && value.size > 0)
+    (value instanceof Set && value.size > 0) ||
+    !!valueDetails.value
   )
 })
 
@@ -81,6 +84,8 @@ const keyValuePairs = computed<Iterable<[PropertyKey, any]>>(() => {
     return readValue.entries()
   } else if (readValue instanceof Set) {
     return Array.from(readValue).map((v, i) => [i, v] as const)
+  } else if (valueDetails.value) {
+    return Object.entries(valueDetails.value)
   }
   return []
 })
