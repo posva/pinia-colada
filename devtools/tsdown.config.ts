@@ -15,7 +15,7 @@ export default defineConfig({
   format: ['esm'],
   fixedExtension: false,
   target: 'esnext',
-  sourcemap: true,
+  sourcemap: false,
   dts: true,
   loader: {
     '.svg': 'dataurl',
