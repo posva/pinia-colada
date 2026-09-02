@@ -7,6 +7,9 @@ export function createValueFixture(revision: number) {
     label: 'null prototype',
     revision,
   })
+  const sparseArray = Array<unknown>(4)
+  sparseArray[1] = 'one'
+  sparseArray[3] = revision
 
   return {
     revision,
@@ -28,6 +31,7 @@ export function createValueFixture(revision: number) {
     emptyObject: {},
     nullPrototypeObject,
     emptyArray: [],
+    sparseArray,
     date: new Date(),
     fn: function fixtureFunction() {
       return revision

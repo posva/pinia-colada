@@ -74,7 +74,7 @@ const keyValuePairs = computed<Iterable<[PropertyKey, any]>>(() => {
   // for perf to avoid reading props.value multiple times
   const readValue = value
   if (Array.isArray(readValue)) {
-    return readValue.map((v, i) => [i, v] as const)
+    return readValue.entries()
   } else if (isPlainObject(readValue)) {
     return Object.entries(readValue)
   } else if (readValue instanceof Map) {
