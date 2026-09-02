@@ -49,6 +49,9 @@ export function createValueFixture(revision: number) {
     dataView: new DataView(new ArrayBuffer(8)),
     promise: Promise.resolve('resolved fixture promise'),
     error: new TypeError('Example value error'),
+    errorWithCause: new Error('Fixture operation failed', {
+      cause: new TypeError('Fixture root cause'),
+    }),
     classInstance: new (class FixtureClass {
       constructor(
         public label: string,

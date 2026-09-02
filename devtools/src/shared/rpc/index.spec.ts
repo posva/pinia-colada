@@ -31,6 +31,9 @@ describe('serializeDevtoolsValue', () => {
       map: new Map([['date', new Date('2026-09-01T12:00:00.000Z')]]),
       set: new Set([/pinia-colada/gi]),
       error: new TypeError('fixture error'),
+      errorWithCause: new Error('fixture operation failed', {
+        cause: new TypeError('fixture root cause'),
+      }),
       buffer: new ArrayBuffer(16),
       blob: new Blob(['Pinia Colada fixture'], { type: 'text/plain' }),
       file: new File(['Pinia Colada fixture'], 'fixture.txt', {
@@ -58,6 +61,9 @@ describe('serializeDevtoolsValue', () => {
     expect(restored.error.name).toBe('TypeError')
     expect(restored.error.message).toBe('fixture error')
     expect(formatValue(restored.error)).toBe('TypeError(fixture error)')
+    expect(restored.errorWithCause.cause).toBeInstanceOf(Error)
+    expect((restored.errorWithCause.cause as Error).name).toBe('TypeError')
+    expect((restored.errorWithCause.cause as Error).message).toBe('fixture root cause')
     expect(formatValue(restored.buffer)).toBe('[ArrayBuffer 16 bytes]')
     expect(formatValue(restored.blob)).toBe('[Blob 20 bytes; text/plain]')
     expect(formatValue(restored.file)).toBe('[File fixture.txt; 20 bytes; text/plain]')
