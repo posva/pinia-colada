@@ -74,7 +74,7 @@ export function formatValue(value: unknown) {
   if (typeof value === 'string') return `"${value}"`
   if (Object.is(value, -0)) return '-0'
   if (typeof value === 'bigint') return `${value}n`
-  if (typeof value === 'function') return `[Function ${value.name || 'anonymous'}]`
+  if (typeof value === 'function') return `ƒ ${value.name || 'anonymous'}`
   if (isObject(value)) {
     if (value instanceof Number) return `Number(${value.valueOf()})`
     if (value instanceof String) return `String("${value.valueOf()}")`
@@ -114,18 +114,80 @@ const VALUE_TYPE_CSS_CLASS = {
   string: 'text-(--devtools-syntax-green)',
   boolean: 'text-(--devtools-syntax-orange)',
   number: 'text-(--devtools-syntax-orange)',
-  null: 'text-(--devtools-syntax-purple)',
-  undefined: 'text-(--devtools-syntax-purple)',
+  null: 'text-(--devtools-syntax-object-blue)',
+  undefined: 'text-(--devtools-syntax-object-blue)',
   array: 'text-(--ui-text)',
   function: 'text-(--ui-text)',
   object: 'text-(--ui-text)',
-  symbol: 'text-(--devtools-syntax-orange)',
-  bigint: 'text-(--devtools-syntax-sapphire)',
+  symbol: 'text-(--devtools-syntax-object-blue)',
+  bigint: 'text-(--devtools-syntax-orange)',
   date: 'text-(--devtools-syntax-sapphire)',
-  regexp: 'text-(--devtools-syntax-orange)',
+  regexp: 'text-(--devtools-syntax-pale-blue)',
   error: 'text-(--devtools-syntax-red)',
 } satisfies Partial<Record<ReturnType<typeof getValueType>, string>>
 
 export function getValueTypeClass(value: unknown): string | undefined {
   return VALUE_TYPE_CSS_CLASS[getValueType(value)] || '--ui-text'
+}
+
+export interface ValueDisplayToken {
+  text: string
+  class?: string
+}
+
+const SYNTAX_CLASS = {
+  gray: 'text-(--devtools-syntax-gray)',
+  green: 'text-(--devtools-syntax-green)',
+  purple: 'text-(--devtools-syntax-purple)',
+  sapphire: 'text-(--devtools-syntax-sapphire)',
+  red: 'text-(--devtools-syntax-red)',
+  objectBlue: 'text-(--devtools-syntax-object-blue)',
+} as const
+
+export function getValueDisplayTokens(value: unknown): ValueDisplayToken[] {
+  if (typeof value === 'function') {
+    return [
+      { text: 'ƒ', class: SYNTAX_CLASS.purple },
+      { text: ` ${value.name || 'anonymous'}`, class: SYNTAX_CLASS.sapphire },
+    ]
+  }
+
+  if (typeof value === 'symbol') {
+    return [
+      { text: 'Symbol', class: SYNTAX_CLASS.objectBlue },
+      { text: '(', class: SYNTAX_CLASS.gray },
+      { text: value.description || '', class: SYNTAX_CLASS.green },
+      { text: ')', class: SYNTAX_CLASS.gray },
+    ]
+  }
+
+  if (value instanceof Error) {
+    return [
+      { text: value.name, class: SYNTAX_CLASS.red },
+      { text: '(', class: SYNTAX_CLASS.gray },
+      { text: value.message, class: SYNTAX_CLASS.green },
+      { text: ')', class: SYNTAX_CLASS.gray },
+    ]
+  }
+
+  if (
+    isPlainObject(value) &&
+    '__constructorName' in value &&
+    typeof value.__constructorName === 'string'
+  ) {
+    return [{ text: value.__constructorName, class: SYNTAX_CLASS.objectBlue }]
+  }
+
+  const formatted = formatValue(value)
+  const bracketedInstance = /^\[([^\s\]]+)(.*)]$/.exec(formatted)
+  if (bracketedInstance) {
+    return [
+      { text: '[', class: SYNTAX_CLASS.gray },
+      { text: bracketedInstance[1], class: SYNTAX_CLASS.objectBlue },
+      { text: bracketedInstance[2] },
+      { text: ']', class: SYNTAX_CLASS.gray },
+    ]
+  }
+
+  return [{ text: formatted, class: getValueTypeClass(value) }]
 }

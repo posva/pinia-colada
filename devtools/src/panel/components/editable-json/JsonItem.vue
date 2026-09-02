@@ -2,7 +2,6 @@
 import { ref, computed, nextTick, useTemplateRef } from 'vue'
 import type { JSONValue } from '@pinia/colada-devtools/shared'
 import {
-  formatValue,
   getValueTypeClass,
   isPlainObject,
   getValueType,
@@ -18,6 +17,7 @@ import ILucideSave from '~icons/lucide/save'
 import ILucideUndo from '~icons/lucide/undo'
 import ILucideMinus from '~icons/lucide/minus'
 import ILucidePlus from '~icons/lucide/plus'
+import ValueDisplay from './ValueDisplay.vue'
 
 const {
   itemKey,
@@ -243,7 +243,7 @@ function toggleExpansion() {
             :class="getValueTypeClass(value)"
             @dblclick.stop="!readonly && enterEditMode('simple')"
           >
-            {{ formatValue(value) }}
+            <ValueDisplay :value />
           </span>
 
           <!-- Edit controls (shown on hover via Tailwind group) -->
@@ -308,7 +308,7 @@ function toggleExpansion() {
           :class="[getValueTypeClass(value), !readonly && 'cursor-pointer']"
           @click="!readonly && toggleBoolean()"
         >
-          {{ formatValue(value) }}
+          <ValueDisplay :value />
         </span>
       </span>
 
@@ -349,7 +349,7 @@ function toggleExpansion() {
             :class="getValueTypeClass(value)"
             @dblclick.stop="!readonly && enterEditMode('json')"
           >
-            {{ formatValue(value) }}
+            <ValueDisplay :value />
           </span>
 
           <!-- Edit controls (JSON mode only) -->
@@ -373,7 +373,7 @@ function toggleExpansion() {
         :title="isExpandable ? 'Click to expand' : undefined"
         @click="toggleExpansion"
       >
-        {{ formatValue(value) }}
+        <ValueDisplay :value />
       </span>
     </div>
 
