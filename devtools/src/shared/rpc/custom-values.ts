@@ -162,7 +162,7 @@ export type NonSerializableValue =
   | NonSerializableValue_NullPrototypeObject
   | NonSerializableValue_Circular
 
-const CUSTOM_VALUE_SERIALIZE = Symbol.for('@pinia/colada-devtools/custom-value-serialize')
+const CUSTOM_VALUE_SERIALIZE = Symbol('custom-value-serialize')
 
 interface RestoredCustomValue {
   [CUSTOM_VALUE_SERIALIZE](): NonSerializableValue
@@ -418,8 +418,8 @@ class FilePlaceholder {
 
 type PromiseState = 'pending' | 'fulfilled' | 'rejected'
 
-export const PROMISE_STATE = Symbol.for('@pinia/colada-devtools/promise-state')
-export const PROMISE_RESULT = Symbol.for('@pinia/colada-devtools/promise-result')
+export const PROMISE_STATE = Symbol('promise-state')
+export const PROMISE_RESULT = Symbol('promise-result')
 
 type TrackedPromise<T> = Promise<T> & {
   [PROMISE_STATE]: PromiseState

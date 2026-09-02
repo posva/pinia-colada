@@ -136,8 +136,8 @@ export interface ValueDisplayToken {
   class?: string
 }
 
-export const VALUE_DISPLAY = Symbol.for('@pinia/colada-devtools/value-display')
-export const VALUE_DETAILS = Symbol.for('@pinia/colada-devtools/value-details')
+export const VALUE_DISPLAY = Symbol('value-display')
+export const VALUE_DETAILS = Symbol('value-details')
 
 export interface DevtoolsDisplayValue {
   [VALUE_DISPLAY]?(): ValueDisplayToken[]
