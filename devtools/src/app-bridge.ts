@@ -5,6 +5,7 @@
 import type { QueryCache, MutationCache } from '@pinia/colada'
 import { watch } from 'vue'
 import type { AppEmits, DevtoolsEmits } from '@pinia/colada-devtools/shared'
+import { restoreOriginalValues } from '@pinia/colada-devtools/shared'
 import {
   addDevtoolsInfo,
   createQueryEntryPayload,
@@ -177,7 +178,7 @@ export function setupDevtoolsAppBridge(
     'queries:set:state': (key, state) => {
       const entry = queryCache.getEntries({ key, exact: true })[0]
       if (entry) {
-        queryCache.setEntryState(entry, state)
+        queryCache.setEntryState(entry, restoreOriginalValues(state, entry.state.value))
         emit('queries:update', createQueryEntryPayload(entry))
       }
     },
