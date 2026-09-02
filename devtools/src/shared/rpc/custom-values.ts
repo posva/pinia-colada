@@ -111,6 +111,11 @@ export interface NonSerializableValue_NullPrototypeObject extends NonSerializabl
   value: { properties: unknown }
 }
 
+export interface NonSerializableValue_Reference extends NonSerializableValue_Base {
+  __type: 'reference'
+  value: { id: number; circular: boolean }
+}
+
 export type NonSerializableValue =
   | NonSerializableValue_Function
   | NonSerializableValue_Symbol
@@ -133,6 +138,7 @@ export type NonSerializableValue =
   | NonSerializableValue_Error
   | NonSerializableValue_Object
   | NonSerializableValue_NullPrototypeObject
+  | NonSerializableValue_Reference
 
 // Helper function to recursively serialize values that might contain non-serializable data
 function safeSerializeRecursive(value: unknown): unknown {
@@ -184,6 +190,25 @@ class BinaryDataPlaceholder {
       return `[${this.type} ${this.byteLength} bytes; ${this.contentType}]`
     }
     return `[${this.type} ${this.byteLength} bytes]`
+  }
+}
+
+class ReferencePlaceholder {
+  constructor(
+    public readonly id: number,
+    public readonly circular: boolean,
+  ) {}
+
+  toString() {
+    return `[${this.circular ? 'Circular' : 'Reference'} *${this.id}]`
+  }
+}
+
+export function serializeReference(id: number, circular = false): NonSerializableValue_Reference {
+  return {
+    __custom: '@@pc-non-serializable',
+    __type: 'reference',
+    value: { id, circular },
   }
 }
 
@@ -472,6 +497,8 @@ function restoreClonedValue(value: NonSerializableValue) {
     return restoredObject
   } else if (value.__type === 'nullprototypeobject') {
     return Object.assign(Object.create(null), restoreClonedDeep(value.value.properties))
+  } else if (value.__type === 'reference') {
+    return new ReferencePlaceholder(value.value.id, value.value.circular)
   }
   // @ts-expect-error: type of value is never
   return new SerializationError(`Unknown non-serializable value type: ${value.__type}`)
