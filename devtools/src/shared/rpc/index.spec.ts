@@ -25,6 +25,7 @@ describe('serializeDevtoolsValue', () => {
       fn: function fixtureFunction() {},
       symbol: Symbol('fixture'),
       bigint: 12_345n,
+      boxedNumber: Object(42) as number,
       regexp: /pinia-colada/gi,
       url: new URL('https://pinia-colada.esm.dev/guide/?fixture=url#example'),
       urlSearchParams: new URLSearchParams({ fixture: 'search params', revision: '1' }),
@@ -56,6 +57,7 @@ describe('serializeDevtoolsValue', () => {
     expect(formatValue(restored.fn)).toBe('[Function fixtureFunction]')
     expect(restored.symbol).toBeTypeOf('symbol')
     expect(restored.bigint).toBe(12_345n)
+    expect(formatValue(restored.boxedNumber)).toBe('Number(42)')
     expect(restored.regexp).toEqual(values.regexp)
     expect(restored.url).toEqual(values.url)
     expect(restored.urlSearchParams).toEqual(values.urlSearchParams)
