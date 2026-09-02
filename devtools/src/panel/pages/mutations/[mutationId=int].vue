@@ -2,7 +2,7 @@
 import type { UseMutationEntryPayload } from '@pinia/colada-devtools/shared'
 import { computed, ref, watch } from 'vue'
 import { useMutationEntries } from '../../composables/devtools-context'
-import { panelChannel } from '../../../client/panel-channel'
+import { panelChannel } from '../../panel-channel'
 import { useRoute, useRouter } from 'vue-router'
 import type { DataStateStatus } from '@pinia/colada'
 

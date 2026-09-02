@@ -2,7 +2,7 @@
 import type { UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
 import { computed, watch } from 'vue'
 import { useQueryEntries } from '../../composables/devtools-context'
-import { panelChannel } from '../../../client/panel-channel'
+import { panelChannel } from '../../panel-channel'
 import { formatDuration } from '../../utils/time'
 import { useRoute } from 'vue-router'
 import type { DataStateStatus } from '@pinia/colada'
