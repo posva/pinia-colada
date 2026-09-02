@@ -41,6 +41,10 @@ export function createValueFixture(revision: number) {
     weakSet: new WeakSet([weakSetValue]),
     arrayBuffer: new ArrayBuffer(16),
     blob: new Blob(['Pinia Colada fixture'], { type: 'text/plain' }),
+    file: new File(['Pinia Colada fixture'], 'fixture.txt', {
+      type: 'text/plain',
+      lastModified: 1_788_295_200_000,
+    }),
     typedArray: new Uint16Array([1, 2, 65_535]),
     dataView: new DataView(new ArrayBuffer(8)),
     promise: Promise.resolve('resolved fixture promise'),

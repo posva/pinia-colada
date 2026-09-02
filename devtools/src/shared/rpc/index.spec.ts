@@ -33,6 +33,10 @@ describe('serializeDevtoolsValue', () => {
       error: new TypeError('fixture error'),
       buffer: new ArrayBuffer(16),
       blob: new Blob(['Pinia Colada fixture'], { type: 'text/plain' }),
+      file: new File(['Pinia Colada fixture'], 'fixture.txt', {
+        type: 'text/plain',
+        lastModified: 1_788_295_200_000,
+      }),
       instance: new (class FixtureClass {
         label = 'fixture'
       })(),
@@ -56,6 +60,7 @@ describe('serializeDevtoolsValue', () => {
     expect(formatValue(restored.error)).toBe('TypeError(fixture error)')
     expect(formatValue(restored.buffer)).toBe('[ArrayBuffer 16 bytes]')
     expect(formatValue(restored.blob)).toBe('[Blob 20 bytes; text/plain]')
+    expect(formatValue(restored.file)).toBe('[File fixture.txt; 20 bytes; text/plain]')
     expect(formatValue(restored.instance)).toBe('FixtureClass')
     expect(Object.keys(restored.instance)).toEqual(['label'])
   })

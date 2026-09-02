@@ -71,6 +71,11 @@ export interface NonSerializableValue_Blob extends NonSerializableValue_Base {
   value: { size: number; type: string }
 }
 
+export interface NonSerializableValue_File extends NonSerializableValue_Base {
+  __type: 'file'
+  value: { name: string; size: number; type: string; lastModified: number }
+}
+
 export interface NonSerializableValue_TypedArray extends NonSerializableValue_Base {
   __type: 'typedarray'
   value: { arrayType: string; byteLength: number }
@@ -105,6 +110,7 @@ export type NonSerializableValue =
   | NonSerializableValue_Date
   | NonSerializableValue_ArrayBuffer
   | NonSerializableValue_Blob
+  | NonSerializableValue_File
   | NonSerializableValue_TypedArray
   | NonSerializableValue_Promise
   | NonSerializableValue_Error
@@ -143,9 +149,13 @@ class BinaryDataPlaceholder {
     public readonly byteLength: number,
     public readonly arrayType?: string,
     public readonly contentType?: string,
+    public readonly name?: string,
   ) {}
 
   toString() {
+    if (this.name) {
+      return `[${this.type} ${this.name}; ${this.byteLength} bytes; ${this.contentType || 'unknown type'}]`
+    }
     if (this.arrayType) {
       return `[${this.arrayType} ${this.byteLength} bytes]`
     }
@@ -169,6 +179,7 @@ export function safeSerialize(value: WeakSet<object>): NonSerializableValue_Weak
 export function safeSerialize(value: Date): NonSerializableValue_Date
 export function safeSerialize(value: ArrayBuffer): NonSerializableValue_ArrayBuffer
 export function safeSerialize(value: Blob): NonSerializableValue_Blob
+export function safeSerialize(value: File): NonSerializableValue_File
 export function safeSerialize(value: ArrayBufferView): NonSerializableValue_TypedArray
 export function safeSerialize(value: Promise<unknown>): NonSerializableValue_Promise
 export function safeSerialize(value: Error): NonSerializableValue_Error
@@ -249,6 +260,17 @@ export function safeSerialize(value: unknown) {
       __type: 'arraybuffer',
       value: { byteLength: value.byteLength },
     } satisfies NonSerializableValue_ArrayBuffer
+  } else if (typeof File !== 'undefined' && value instanceof File) {
+    return {
+      __custom: '@@pc-non-serializable',
+      __type: 'file',
+      value: {
+        name: value.name,
+        size: value.size,
+        type: value.type,
+        lastModified: value.lastModified,
+      },
+    } satisfies NonSerializableValue_File
   } else if (typeof Blob !== 'undefined' && value instanceof Blob) {
     return {
       __custom: '@@pc-non-serializable',
@@ -365,6 +387,14 @@ function restoreClonedValue(value: NonSerializableValue) {
     return new BinaryDataPlaceholder('ArrayBuffer', value.value.byteLength)
   } else if (value.__type === 'blob') {
     return new BinaryDataPlaceholder('Blob', value.value.size, undefined, value.value.type)
+  } else if (value.__type === 'file') {
+    return new BinaryDataPlaceholder(
+      'File',
+      value.value.size,
+      undefined,
+      value.value.type,
+      value.value.name,
+    )
   } else if (value.__type === 'typedarray') {
     return new BinaryDataPlaceholder('TypedArray', value.value.byteLength, value.value.arrayType)
   } else if (value.__type === 'promise') {
