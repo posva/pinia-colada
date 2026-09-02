@@ -13,7 +13,6 @@
 import { createPageScriptChannel } from 'devframe/in-page-channel'
 import type { QueryCache, MutationCache } from '@pinia/colada'
 import { getActivePinia } from 'pinia'
-import type { Pinia } from 'pinia'
 import {
   removeMutationEntry,
   removeQueryEntry,
@@ -24,32 +23,40 @@ import {
 } from '@pinia/colada-devtools/shared'
 import type { UseMutationEntryPayload, UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
 import { setupDevtoolsAppBridge } from './app-bridge.ts'
-import { PINIA_COLADA_CHANNEL } from './channel.ts'
+import { PINIA_COLADA_CHANNEL, PINIA_COLADA_WAIT_TIMEOUT } from './channel.ts'
 import type { PiniaColadaChannelProtocol } from './channel.ts'
 
-const PINIA_WAIT_TIMEOUT = 15_000
+const SETUP_KEY = Symbol.for('pinia-colada:devtools:client-script')
 
-// the app might create its pinia after this script loads
-async function waitForActivePinia(): Promise<Pinia | null> {
+declare global {
+  interface Window {
+    [SETUP_KEY]?: Promise<boolean>
+  }
+}
+
+// The app might install Pinia and Pinia Colada after this script loads.
+async function waitForPiniaColada() {
+  const colada = await import('@pinia/colada')
   const start = Date.now()
-  while (Date.now() - start < PINIA_WAIT_TIMEOUT) {
+  while (Date.now() - start < PINIA_COLADA_WAIT_TIMEOUT) {
     const pinia = getActivePinia()
-    if (pinia) return pinia
+    if (pinia?._s.has(colada.useQueryCache.$id)) return { pinia, colada }
     await new Promise((r) => setTimeout(r, 200))
   }
   return null
 }
 
-export default async function setupPiniaColadaBridge() {
-  const pinia = await waitForActivePinia()
-  if (!pinia) {
-    // standalone viewer or an app without pinia: nothing to inspect here, so
+async function setupPiniaColadaBridge(): Promise<boolean> {
+  const setup = await waitForPiniaColada()
+  if (!setup) {
+    // Standalone viewer or an app without Pinia Colada: nothing to inspect, so
     // never answer a handshake — panels stay `connecting` and show their empty
     // state
-    return
+    return false
   }
 
-  const { useQueryCache, useMutationCache } = await import('@pinia/colada')
+  const { pinia, colada } = setup
+  const { useQueryCache, useMutationCache } = colada
   const queryCache: QueryCache = useQueryCache(pinia)
   const mutationCache: MutationCache = useMutationCache(pinia)
 
@@ -142,4 +149,24 @@ export default async function setupPiniaColadaBridge() {
 
   // Seed the authoritative cache before a panel connects.
   bridge.sendAll()
+
+  return true
+}
+
+export default function setupPiniaColadaDevtools() {
+  if (SETUP_KEY in window) return window[SETUP_KEY]
+
+  const setup = setupPiniaColadaBridge().then(
+    (didSetup) => {
+      // A later invocation can try again if Pinia was not installed in time.
+      if (!didSetup) delete window[SETUP_KEY]
+      return didSetup
+    },
+    (error) => {
+      delete window[SETUP_KEY]
+      throw error
+    },
+  )
+  window[SETUP_KEY] = setup
+  return setup
 }

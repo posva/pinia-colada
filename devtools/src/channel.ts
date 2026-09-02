@@ -10,6 +10,9 @@ import type { UseMutationEntryPayload, UseQueryEntryPayload } from '@pinia/colad
 /** Channel name, namespaced with the devframe id. */
 export const PINIA_COLADA_CHANNEL = 'pinia-colada:devtools'
 
+/** How long the page script waits for Pinia to be installed. */
+export const PINIA_COLADA_WAIT_TIMEOUT = 15_000
+
 export interface PiniaColadaCacheState {
   queries: UseQueryEntryPayload[]
   mutations: UseMutationEntryPayload[]
