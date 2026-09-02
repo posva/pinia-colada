@@ -12,10 +12,10 @@
     "moduleResolution": "Bundler",
     "paths": {
       "@pinia/colada-devtools/shared": ["./src/shared/index.ts"],
-      "@pinia/colada-devtools/devframe": ["./src/index.ts"],
-      "@pinia/colada-devtools/devframe/vite": ["./src/vite.ts"],
-      "@pinia/colada-devtools/devframe/vite-hub": ["./src/vite-hub.ts"],
-      "@pinia/colada-devtools/devframe/client-script": ["./src/client-script.ts"]
+      "@pinia/colada-devtools": ["./src/index.ts"],
+      "@pinia/colada-devtools/vite": ["./src/vite.ts"],
+      "@pinia/colada-devtools/vite-hub": ["./src/vite-hub.ts"],
+      "@pinia/colada-devtools/client-script": ["./src/client-script.ts"]
     },
     "types": ["unplugin-icons/types/vue"]
   },

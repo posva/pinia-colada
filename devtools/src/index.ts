@@ -7,7 +7,7 @@ import piniaColadaIcon from './panel/logo.svg'
 /** Dock options required when installing the raw devframe in a hub. */
 export const piniaColadaDevframeDock = {
   clientScript: {
-    importFrom: '@pinia/colada-devtools/devframe/client-script',
+    importFrom: '@pinia/colada-devtools/client-script',
   },
 } as const
 

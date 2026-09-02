@@ -8,7 +8,7 @@ adapters for Vite DevTools and a standalone Vite hub.
 For a raw DevFrame hub, install the definition together with its dock options:
 
 ```ts
-import { createPiniaColadaDevframe, piniaColadaDevframeDock } from '@pinia/colada-devtools/devframe'
+import { createPiniaColadaDevframe, piniaColadaDevframeDock } from '@pinia/colada-devtools'
 
 const piniaColada = {
   devframe: createPiniaColadaDevframe(),
@@ -20,7 +20,7 @@ Add the Vite adapter after the Vite DevTools plugin:
 
 ```ts
 import { DevTools } from '@vitejs/devtools'
-import { PiniaColadaDevtools } from '@pinia/colada-devtools/devframe/vite'
+import { PiniaColadaDevtools } from '@pinia/colada-devtools/vite'
 
 export default defineConfig({
   plugins: [DevTools(), PiniaColadaDevtools()],
@@ -30,7 +30,7 @@ export default defineConfig({
 Or mount a standalone Devframe hub with its default UI:
 
 ```ts
-import { PiniaColadaDevtoolsHub } from '@pinia/colada-devtools/devframe/vite-hub'
+import { PiniaColadaDevtoolsHub } from '@pinia/colada-devtools/vite-hub'
 
 export default defineConfig({
   plugins: [PiniaColadaDevtoolsHub()],
