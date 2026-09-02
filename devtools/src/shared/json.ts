@@ -135,6 +135,14 @@ export interface ValueDisplayToken {
   class?: string
 }
 
+export const VALUE_DISPLAY = Symbol.for('@pinia/colada-devtools/value-display')
+export const VALUE_DETAILS = Symbol.for('@pinia/colada-devtools/value-details')
+
+export interface DevtoolsDisplayValue {
+  [VALUE_DISPLAY]?(): ValueDisplayToken[]
+  [VALUE_DETAILS]?(): Record<string, unknown>
+}
+
 const SYNTAX_CLASS = {
   gray: 'text-(--devtools-syntax-gray)',
   green: 'text-(--devtools-syntax-green)',
@@ -145,6 +153,11 @@ const SYNTAX_CLASS = {
 } as const
 
 export function getValueDisplayTokens(value: unknown): ValueDisplayToken[] {
+  if (isObject(value)) {
+    const display = (value as DevtoolsDisplayValue)[VALUE_DISPLAY]
+    if (display) return display.call(value)
+  }
+
   if (typeof value === 'function') {
     return [
       { text: 'ƒ', class: SYNTAX_CLASS.purple },
@@ -190,4 +203,10 @@ export function getValueDisplayTokens(value: unknown): ValueDisplayToken[] {
   }
 
   return [{ text: formatted, class: getValueTypeClass(value) }]
+}
+
+export function getValueDetails(value: unknown): Record<string, unknown> | undefined {
+  if (!isObject(value)) return
+  const details = (value as DevtoolsDisplayValue)[VALUE_DETAILS]
+  return details?.call(value)
 }

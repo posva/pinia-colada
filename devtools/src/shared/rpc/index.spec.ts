@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { reactive } from 'vue'
-import { formatValue, getValueDisplayTokens } from '../json'
-import { restoreClonedDeep, serializeDevtoolsValue } from './index'
+import { formatValue, getValueDetails, getValueDisplayTokens } from '../json'
+import { restoreClonedDeep, serializeDevtoolsValue, trackPromise } from './index'
 
 describe('serializeDevtoolsValue', () => {
   it('preserves negative zero when formatting values', () => {
@@ -49,6 +49,26 @@ describe('serializeDevtoolsValue', () => {
     expect(formatValue(restored.self)).toMatch(/^\[Circular \*\d+]$/)
   })
 
+  it('serializes tracked promise states and results', async () => {
+    const pending = trackPromise(new Promise(() => {}))
+    const fulfilled = trackPromise(Promise.resolve({ message: 'done' }))
+    const rejected = trackPromise(Promise.reject(new TypeError('failed')))
+    await Promise.resolve()
+
+    const restored = restoreClonedDeep(serializeDevtoolsValue({ pending, fulfilled, rejected }))
+
+    expect(formatValue(restored.pending)).toBe('[Promise pending]')
+    expect(getValueDetails(restored.pending)).toEqual({ status: 'pending' })
+    expect(getValueDetails(restored.fulfilled)).toEqual({
+      status: 'fulfilled',
+      value: { message: 'done' },
+    })
+    expect(getValueDetails(restored.rejected)).toMatchObject({
+      status: 'rejected',
+      reason: { name: 'TypeError', message: 'failed' },
+    })
+  })
+
   it('restores displayable values from their wire representation', () => {
     const values = {
       date: new Date('2026-09-01T12:00:00.000Z'),
@@ -72,6 +92,8 @@ describe('serializeDevtoolsValue', () => {
         'multiple fixture operations failed',
       ),
       buffer: new ArrayBuffer(16),
+      typedArray: new Uint16Array([1, 2, 65_535]),
+      dataView: new DataView(new ArrayBuffer(8)),
       blob: new Blob(['Pinia Colada fixture'], { type: 'text/plain' }),
       file: new File(['Pinia Colada fixture'], 'fixture.txt', {
         type: 'text/plain',
@@ -99,8 +121,24 @@ describe('serializeDevtoolsValue', () => {
     expect(formatValue(restored.boxedNumber)).toBe('Number(42)')
     expect(formatValue(restored.boxedString)).toBe('String("fixture text")')
     expect(restored.regexp).toEqual(values.regexp)
-    expect(restored.url).toEqual(values.url)
-    expect(restored.urlSearchParams).toEqual(values.urlSearchParams)
+    expect(formatValue(restored.url)).toBe(
+      'URL(https://pinia-colada.esm.dev/guide/?fixture=url#example)',
+    )
+    expect(getValueDetails(restored.url)).toMatchObject({
+      protocol: 'https:',
+      hostname: 'pinia-colada.esm.dev',
+      pathname: '/guide/',
+    })
+    expect(formatValue(restored.urlSearchParams)).toBe(
+      'URLSearchParams(fixture=search+params&revision=1)',
+    )
+    expect(getValueDetails(restored.urlSearchParams)).toEqual({
+      size: 2,
+      entries: [
+        ['fixture', 'search params'],
+        ['revision', '1'],
+      ],
+    })
     expect(restored.map).toEqual(values.map)
     expect(restored.set).toEqual(values.set)
     expect(restored.error).toBeInstanceOf(Error)
@@ -117,8 +155,30 @@ describe('serializeDevtoolsValue', () => {
       message: 'first fixture error',
     })
     expect(formatValue(restored.buffer)).toBe('[ArrayBuffer 16 bytes]')
-    expect(formatValue(restored.blob)).toBe('[Blob 20 bytes; text/plain]')
-    expect(formatValue(restored.file)).toBe('[File fixture.txt; 20 bytes; text/plain]')
+    expect(getValueDetails(restored.buffer)).toEqual({
+      byteLength: 16,
+      detached: false,
+      maxByteLength: 16,
+      resizable: false,
+    })
+    expect(formatValue(restored.typedArray)).toBe('[Uint16Array 6 bytes]')
+    expect(getValueDetails(restored.typedArray)).toMatchObject({
+      byteLength: 6,
+      byteOffset: 0,
+      length: 3,
+    })
+    expect(formatValue(restored.dataView)).toBe('[DataView 8 bytes]')
+    expect(getValueDetails(restored.dataView)).toMatchObject({ byteLength: 8, byteOffset: 0 })
+    expect(formatValue(restored.blob)).toBe('[Blob 20 bytes]')
+    expect(getValueDetails(restored.blob)).toEqual({ size: 20, type: 'text/plain' })
+    expect(formatValue(restored.file)).toBe('[File fixture.txt 20 bytes]')
+    expect(getValueDetails(restored.file)).toMatchObject({
+      name: 'fixture.txt',
+      size: 20,
+      type: 'text/plain',
+      lastModified: 1_788_295_200_000,
+      webkitRelativePath: '',
+    })
     expect(Object.getPrototypeOf(restored.nullPrototypeObject)).toBeNull()
     expect(formatValue(restored.nullPrototypeObject)).toBe('Object(null prototype)')
     expect(formatValue(restored.instance)).toBe('FixtureClass')

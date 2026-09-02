@@ -1,4 +1,4 @@
-import { isPlainObject } from '../json'
+import { isPlainObject, VALUE_DETAILS, VALUE_DISPLAY, type ValueDisplayToken } from '../json'
 
 export interface NonSerializableValue_Base {
   __custom: '@@pc-non-serializable'
@@ -73,7 +73,14 @@ export interface NonSerializableValue_Date extends NonSerializableValue_Base {
 
 export interface NonSerializableValue_ArrayBuffer extends NonSerializableValue_Base {
   __type: 'arraybuffer'
-  value: { byteLength: number }
+  value: ArrayBufferMetadata
+}
+
+interface ArrayBufferMetadata {
+  byteLength: number
+  detached: boolean
+  maxByteLength: number
+  resizable: boolean
 }
 
 export interface NonSerializableValue_Blob extends NonSerializableValue_Base {
@@ -83,17 +90,32 @@ export interface NonSerializableValue_Blob extends NonSerializableValue_Base {
 
 export interface NonSerializableValue_File extends NonSerializableValue_Base {
   __type: 'file'
-  value: { name: string; size: number; type: string; lastModified: number }
+  value: {
+    name: string
+    size: number
+    type: string
+    lastModified: number
+    webkitRelativePath: string
+  }
 }
 
 export interface NonSerializableValue_TypedArray extends NonSerializableValue_Base {
   __type: 'typedarray'
-  value: { arrayType: string; byteLength: number }
+  value: {
+    arrayType: string
+    byteLength: number
+    byteOffset: number
+    length?: number
+    buffer: ArrayBufferMetadata
+  }
 }
 
 export interface NonSerializableValue_Promise extends NonSerializableValue_Base {
   __type: 'promise'
-  value: null
+  value:
+    | { status: 'pending' }
+    | { status: 'fulfilled'; value: unknown }
+    | { status: 'rejected'; reason: unknown }
 }
 
 export interface NonSerializableValue_Error extends NonSerializableValue_Base {
@@ -174,23 +196,213 @@ class BinaryDataPlaceholder {
   constructor(
     public readonly type: string,
     public readonly byteLength: number,
-    public readonly arrayType?: string,
-    public readonly contentType?: string,
-    public readonly name?: string,
+    private readonly details?: Record<string, unknown>,
   ) {}
 
   toString() {
-    if (this.name) {
-      return `[${this.type} ${this.name}; ${this.byteLength} bytes; ${this.contentType || 'unknown type'}]`
-    }
-    if (this.arrayType) {
-      return `[${this.arrayType} ${this.byteLength} bytes]`
-    }
-    if (this.contentType) {
-      return `[${this.type} ${this.byteLength} bytes; ${this.contentType}]`
-    }
     return `[${this.type} ${this.byteLength} bytes]`
   }
+
+  [VALUE_DISPLAY](): ValueDisplayToken[] {
+    return binaryDisplayTokens(this.type, this.byteLength)
+  }
+
+  [VALUE_DETAILS]() {
+    return this.details
+  }
+}
+
+class BlobPlaceholder {
+  constructor(private readonly metadata: NonSerializableValue_Blob['value']) {}
+
+  toString() {
+    return `[Blob ${this.metadata.size} bytes]`
+  }
+
+  [VALUE_DISPLAY]() {
+    return binaryDisplayTokens('Blob', this.metadata.size)
+  }
+
+  [VALUE_DETAILS]() {
+    return { size: this.metadata.size, type: this.metadata.type }
+  }
+}
+
+class FilePlaceholder {
+  constructor(private readonly metadata: NonSerializableValue_File['value']) {}
+
+  toString() {
+    return `[File ${this.metadata.name} ${this.metadata.size} bytes]`
+  }
+
+  [VALUE_DISPLAY](): ValueDisplayToken[] {
+    return [
+      { text: '[', class: 'text-(--devtools-syntax-gray)' },
+      { text: 'File', class: 'text-(--devtools-syntax-object-blue)' },
+      { text: ` ${this.metadata.name} ` },
+      { text: String(this.metadata.size), class: 'text-(--devtools-syntax-orange)' },
+      { text: ' bytes]', class: 'text-(--devtools-syntax-gray)' },
+    ]
+  }
+
+  [VALUE_DETAILS]() {
+    return {
+      name: this.metadata.name,
+      size: this.metadata.size,
+      type: this.metadata.type,
+      lastModified: this.metadata.lastModified,
+      lastModifiedDate: new Date(this.metadata.lastModified),
+      webkitRelativePath: this.metadata.webkitRelativePath,
+    }
+  }
+}
+
+type PromiseState = 'pending' | 'fulfilled' | 'rejected'
+
+export const PROMISE_STATE = Symbol.for('@pinia/colada-devtools/promise-state')
+export const PROMISE_RESULT = Symbol.for('@pinia/colada-devtools/promise-result')
+
+type TrackedPromise<T> = Promise<T> & {
+  [PROMISE_STATE]: PromiseState
+  [PROMISE_RESULT]?: unknown
+}
+
+export function trackPromise<T>(promise: Promise<T>): Promise<T> {
+  const trackedPromise = promise as TrackedPromise<T>
+  trackedPromise[PROMISE_STATE] = 'pending'
+  promise.then(
+    (value) => {
+      trackedPromise[PROMISE_STATE] = 'fulfilled'
+      trackedPromise[PROMISE_RESULT] = value
+    },
+    (reason: unknown) => {
+      trackedPromise[PROMISE_STATE] = 'rejected'
+      trackedPromise[PROMISE_RESULT] = reason
+    },
+  )
+  return promise
+}
+
+class PromisePlaceholder {
+  constructor(private readonly state: NonSerializableValue_Promise['value']) {}
+
+  toString() {
+    return `[Promise ${this.state.status}]`
+  }
+
+  [VALUE_DISPLAY](): ValueDisplayToken[] {
+    const statusClass =
+      this.state.status === 'fulfilled'
+        ? 'text-(--devtools-syntax-green)'
+        : this.state.status === 'rejected'
+          ? 'text-(--devtools-syntax-red)'
+          : 'text-(--devtools-syntax-orange)'
+    return [
+      { text: '[', class: 'text-(--devtools-syntax-gray)' },
+      { text: 'Promise', class: 'text-(--devtools-syntax-object-blue)' },
+      { text: ' ' },
+      { text: this.state.status, class: statusClass },
+      { text: ']', class: 'text-(--devtools-syntax-gray)' },
+    ]
+  }
+
+  [VALUE_DETAILS]() {
+    if (this.state.status === 'fulfilled') {
+      return { status: this.state.status, value: restoreClonedDeep(this.state.value) }
+    }
+    if (this.state.status === 'rejected') {
+      return { status: this.state.status, reason: restoreClonedDeep(this.state.reason) }
+    }
+    return { status: this.state.status }
+  }
+}
+
+class URLPlaceholder {
+  private readonly url: URL
+
+  constructor(value: string) {
+    this.url = new URL(value)
+  }
+
+  toString() {
+    return `URL(${this.url.href})`
+  }
+
+  [VALUE_DISPLAY](): ValueDisplayToken[] {
+    return objectCallDisplayTokens('URL', this.url.href)
+  }
+
+  [VALUE_DETAILS]() {
+    return {
+      href: this.url.href,
+      origin: this.url.origin,
+      protocol: this.url.protocol,
+      username: this.url.username,
+      password: this.url.password,
+      host: this.url.host,
+      hostname: this.url.hostname,
+      port: this.url.port,
+      pathname: this.url.pathname,
+      search: this.url.search,
+      searchParams: new URLSearchParamsPlaceholder(this.url.searchParams.toString()),
+      hash: this.url.hash,
+    }
+  }
+}
+
+class URLSearchParamsPlaceholder {
+  private readonly params: URLSearchParams
+
+  constructor(value: string) {
+    this.params = new URLSearchParams(value)
+  }
+
+  toString() {
+    return `URLSearchParams(${this.params.toString()})`
+  }
+
+  [VALUE_DISPLAY](): ValueDisplayToken[] {
+    return objectCallDisplayTokens('URLSearchParams', this.params.toString())
+  }
+
+  [VALUE_DETAILS]() {
+    return {
+      size: this.params.size,
+      entries: Array.from(this.params.entries()),
+    }
+  }
+}
+
+function objectCallDisplayTokens(type: string, value: string): ValueDisplayToken[] {
+  return [
+    { text: type, class: 'text-(--devtools-syntax-object-blue)' },
+    { text: '(', class: 'text-(--devtools-syntax-gray)' },
+    { text: value, class: 'text-(--devtools-syntax-green)' },
+    { text: ')', class: 'text-(--devtools-syntax-gray)' },
+  ]
+}
+
+function binaryDisplayTokens(type: string, byteLength: number): ValueDisplayToken[] {
+  return [
+    { text: '[', class: 'text-(--devtools-syntax-gray)' },
+    { text: type, class: 'text-(--devtools-syntax-object-blue)' },
+    { text: ' ' },
+    { text: String(byteLength), class: 'text-(--devtools-syntax-orange)' },
+    { text: ' bytes]', class: 'text-(--devtools-syntax-gray)' },
+  ]
+}
+
+function getArrayBufferMetadata(value: ArrayBuffer): ArrayBufferMetadata {
+  return {
+    byteLength: value.byteLength,
+    detached: value.detached,
+    maxByteLength: value.maxByteLength,
+    resizable: value.resizable,
+  }
+}
+
+function restoreArrayBufferPlaceholder(value: ArrayBufferMetadata) {
+  return new BinaryDataPlaceholder('ArrayBuffer', value.byteLength, { ...value })
 }
 
 class ReferencePlaceholder {
@@ -316,7 +528,7 @@ export function safeSerialize(value: unknown) {
     return {
       __custom: '@@pc-non-serializable',
       __type: 'arraybuffer',
-      value: { byteLength: value.byteLength },
+      value: getArrayBufferMetadata(value),
     } satisfies NonSerializableValue_ArrayBuffer
   } else if (typeof File !== 'undefined' && value instanceof File) {
     return {
@@ -327,6 +539,7 @@ export function safeSerialize(value: unknown) {
         size: value.size,
         type: value.type,
         lastModified: value.lastModified,
+        webkitRelativePath: value.webkitRelativePath || '',
       },
     } satisfies NonSerializableValue_File
   } else if (typeof Blob !== 'undefined' && value instanceof Blob) {
@@ -341,13 +554,26 @@ export function safeSerialize(value: unknown) {
     return {
       __custom: '@@pc-non-serializable',
       __type: 'typedarray',
-      value: { arrayType: typeName, byteLength: value.byteLength },
+      value: {
+        arrayType: typeName,
+        byteLength: value.byteLength,
+        byteOffset: value.byteOffset,
+        ...('length' in value && typeof value.length === 'number' && { length: value.length }),
+        buffer: getArrayBufferMetadata(value.buffer as ArrayBuffer),
+      },
     } satisfies NonSerializableValue_TypedArray
   } else if (value instanceof Promise) {
+    const trackedPromise = value as Partial<TrackedPromise<unknown>>
+    const status = trackedPromise[PROMISE_STATE] || 'pending'
     return {
       __custom: '@@pc-non-serializable',
       __type: 'promise',
-      value: null,
+      value:
+        status === 'fulfilled'
+          ? { status, value: safeSerializeRecursive(trackedPromise[PROMISE_RESULT]) }
+          : status === 'rejected'
+            ? { status, reason: safeSerializeRecursive(trackedPromise[PROMISE_RESULT]) }
+            : { status },
     } satisfies NonSerializableValue_Promise
   } else if (value instanceof Error) {
     return {
@@ -431,12 +657,12 @@ function restoreClonedValue(value: NonSerializableValue) {
     }
   } else if (value.__type === 'url') {
     try {
-      return new URL(value.value)
+      return new URLPlaceholder(value.value)
     } catch (err) {
       return new SerializationError(`Invalid URL value: ${value.value}`, err)
     }
   } else if (value.__type === 'urlsearchparams') {
-    return new URLSearchParams(value.value)
+    return new URLSearchParamsPlaceholder(value.value)
   } else if (value.__type === 'map') {
     const entries = value.value.map(
       ([k, v]) => [restoreClonedDeep(k), restoreClonedDeep(v)] as const,
@@ -457,21 +683,20 @@ function restoreClonedValue(value: NonSerializableValue) {
       return new SerializationError(`Invalid date value: ${value.value}`, err)
     }
   } else if (value.__type === 'arraybuffer') {
-    return new BinaryDataPlaceholder('ArrayBuffer', value.value.byteLength)
+    return restoreArrayBufferPlaceholder(value.value)
   } else if (value.__type === 'blob') {
-    return new BinaryDataPlaceholder('Blob', value.value.size, undefined, value.value.type)
+    return new BlobPlaceholder(value.value)
   } else if (value.__type === 'file') {
-    return new BinaryDataPlaceholder(
-      'File',
-      value.value.size,
-      undefined,
-      value.value.type,
-      value.value.name,
-    )
+    return new FilePlaceholder(value.value)
   } else if (value.__type === 'typedarray') {
-    return new BinaryDataPlaceholder('TypedArray', value.value.byteLength, value.value.arrayType)
+    return new BinaryDataPlaceholder(value.value.arrayType, value.value.byteLength, {
+      buffer: restoreArrayBufferPlaceholder(value.value.buffer),
+      byteLength: value.value.byteLength,
+      byteOffset: value.value.byteOffset,
+      ...('length' in value.value && { length: value.value.length }),
+    })
   } else if (value.__type === 'promise') {
-    return Promise.resolve()
+    return new PromisePlaceholder(value.value)
   } else if (value.__type === 'error') {
     const options = {
       ...('cause' in value.value && { cause: restoreClonedDeep(value.value.cause) }),
