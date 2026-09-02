@@ -8,7 +8,7 @@ export default defineConfig({
     index: 'src/index.ts',
     vite: 'src/vite.ts',
     'client-script': 'src/client-script.ts',
-    'vite-hub': 'src/vite-hub.ts',
+    standalone: 'src/standalone.ts',
   },
   outDir: 'dist',
   clean: true,

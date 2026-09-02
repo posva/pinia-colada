@@ -14,7 +14,7 @@
       "@pinia/colada-devtools/shared": ["./src/shared/index.ts"],
       "@pinia/colada-devtools": ["./src/index.ts"],
       "@pinia/colada-devtools/vite": ["./src/vite.ts"],
-      "@pinia/colada-devtools/vite-hub": ["./src/vite-hub.ts"],
+      "@pinia/colada-devtools/standalone": ["./src/standalone.ts"],
       "@pinia/colada-devtools/client-script": ["./src/client-script.ts"]
     },
     "types": ["unplugin-icons/types/vue"]
