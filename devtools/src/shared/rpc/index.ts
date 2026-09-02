@@ -17,6 +17,7 @@ import { isPlainObject } from '../json'
 
 export { isNonSerializableValue } from './custom-values'
 export { restoreClonedDeep } from './custom-values'
+export { restoreOriginalValues } from './custom-values'
 export { trackPromise } from './custom-values'
 export type { NonSerializableValue } from './custom-values'
 

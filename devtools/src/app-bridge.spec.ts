@@ -6,6 +6,11 @@ import { createPinia } from 'pinia'
 import { PiniaColada, useMutation, useMutationCache, useQuery, useQueryCache } from '@pinia/colada'
 import type { AsyncStatus } from '@pinia/colada'
 import type { AppEmits, DevtoolsEmits } from '@pinia/colada-devtools/shared'
+import {
+  restoreClonedDeep,
+  serializeDevtoolsValue,
+  trackPromise,
+} from '@pinia/colada-devtools/shared'
 import { setupDevtoolsAppBridge } from './app-bridge'
 import type { DevtoolsAppBridge } from './app-bridge'
 
@@ -139,6 +144,53 @@ describe('app bridge', () => {
     const [stopPayload] = await stopUpdate
     expect(stopPayload.asyncStatus).toBe('idle')
     expect(stopPayload.devtools.simulate).toBe(null)
+  })
+
+  it('keeps native values when editing query data', async () => {
+    const { queryCache, devtools } = factory()
+    const url = new URL('https://pinia-colada.esm.dev/guide/')
+    const urlSearchParams = new URLSearchParams({ fixture: 'params' })
+    const buffer = new Uint8Array([1, 2, 3]).buffer
+    const typedArray = new Uint16Array([1, 2, 3])
+    const dataView = new DataView(buffer)
+    const blob = new Blob(['fixture'], { type: 'text/plain' })
+    const file = new File(['fixture'], 'fixture.txt', { type: 'text/plain' })
+    const promise = trackPromise(Promise.resolve('fulfilled'))
+    const shared = { label: 'shared' }
+    await promise
+    const data = {
+      count: 1,
+      url,
+      urlSearchParams,
+      buffer,
+      typedArray,
+      dataView,
+      blob,
+      file,
+      promise,
+      first: shared,
+      second: shared,
+    }
+    queryCache.setQueryData(['rich-values'], data)
+    const entry = queryCache.getEntries({ key: ['rich-values'], exact: true })[0]!
+    const editedState = restoreClonedDeep(serializeDevtoolsValue(entry.state.value))
+    ;(editedState.data as typeof data).count = 2
+
+    devtools.emit('queries:set:state', ['rich-values'], editedState)
+
+    const updatedData = entry.state.value.data as typeof data
+    expect(updatedData.count).toBe(2)
+    expect(updatedData.url).toBe(url)
+    expect(updatedData.urlSearchParams).toBe(urlSearchParams)
+    expect(updatedData.buffer).toBe(buffer)
+    expect(new Uint8Array(updatedData.buffer)).toEqual(new Uint8Array([1, 2, 3]))
+    expect(updatedData.typedArray).toBe(typedArray)
+    expect(updatedData.dataView).toBe(dataView)
+    expect(updatedData.blob).toBe(blob)
+    expect(updatedData.file).toBe(file)
+    expect(updatedData.promise).toBe(promise)
+    expect(updatedData.first).toBe(shared)
+    expect(updatedData.second).toBe(shared)
   })
 
   it('reports idle after a query that started before the bridge settles', async () => {

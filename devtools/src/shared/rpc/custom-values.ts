@@ -176,6 +176,98 @@ export function isRestoredCustomValue(value: unknown): value is RestoredCustomVa
   )
 }
 
+function getCustomValueType(value: unknown): NonSerializableValue['__type'] | undefined {
+  if (isRestoredCustomValue(value)) return value[CUSTOM_VALUE_SERIALIZE]().__type
+  if (typeof value === 'function') return 'function'
+  if (typeof value === 'symbol') return 'symbol'
+  if (typeof value === 'bigint') return 'bigint'
+  if (value instanceof Number) return 'boxednumber'
+  if (value instanceof String) return 'boxedstring'
+  if (value instanceof RegExp) return 'regexp'
+  if (value instanceof URL) return 'url'
+  if (value instanceof URLSearchParams) return 'urlsearchparams'
+  if (value instanceof Map) return 'map'
+  if (value instanceof Set) return 'set'
+  if (value instanceof WeakMap) return 'weakmap'
+  if (value instanceof WeakSet) return 'weakset'
+  if (value instanceof Date) return 'date'
+  if (value instanceof ArrayBuffer) return 'arraybuffer'
+  if (typeof File !== 'undefined' && value instanceof File) return 'file'
+  if (typeof Blob !== 'undefined' && value instanceof Blob) return 'blob'
+  if (ArrayBuffer.isView(value)) return 'typedarray'
+  if (value instanceof Promise) return 'promise'
+  if (value instanceof Error) return 'error'
+  if (!value || typeof value !== 'object') return
+  if (Object.getPrototypeOf(value) === null) return 'nullprototypeobject'
+  if (
+    isPlainObject(value) &&
+    '__constructorName' in value &&
+    typeof value.__constructorName === 'string'
+  ) {
+    return 'object'
+  }
+  if (value.constructor && value.constructor !== Object && value.constructor !== Array) {
+    return 'object'
+  }
+}
+
+/**
+ * Replaces transported display values with the native values from the live cache.
+ * Plain objects and arrays are traversed so regular edits are retained.
+ */
+export function restoreOriginalValues<T>(edited: T, original: unknown): T {
+  return restoreOriginalValuesRecursive(edited, original, false)
+}
+
+function restoreOriginalValuesRecursive<T>(
+  edited: T,
+  original: unknown,
+  preserveContainer: boolean,
+): T {
+  const editedType = getCustomValueType(edited)
+  const originalType = getCustomValueType(original)
+
+  if (editedType === 'reference') return original as T
+  if (editedType && editedType === originalType) {
+    if (
+      (editedType === 'object' || editedType === 'nullprototypeobject') &&
+      edited &&
+      original &&
+      typeof edited === 'object' &&
+      typeof original === 'object'
+    ) {
+      for (const [key, value] of Object.entries(edited)) {
+        ;(original as Record<string, unknown>)[key] = restoreOriginalValues(
+          value,
+          (original as Record<string, unknown>)[key],
+        )
+      }
+    }
+    return original as T
+  }
+
+  if (Array.isArray(edited) && Array.isArray(original)) {
+    for (let index = 0; index < edited.length; index++) {
+      if (index in edited) {
+        original[index] = restoreOriginalValuesRecursive(edited[index], original[index], true)
+      }
+    }
+    original.length = edited.length
+    if (preserveContainer) return original as T
+  } else if (isPlainObject(edited) && isPlainObject(original)) {
+    const editedRecord = edited as Record<string, unknown>
+    const originalRecord = original as Record<string, unknown>
+    for (const [key, value] of Object.entries(edited)) {
+      const restoredValue = restoreOriginalValuesRecursive(value, originalRecord[key], true)
+      editedRecord[key] = restoredValue
+      originalRecord[key] = restoredValue
+    }
+    if (preserveContainer) return original as T
+  }
+
+  return edited
+}
+
 // Helper function to recursively serialize values that might contain non-serializable data
 function safeSerializeRecursive(value: unknown): unknown {
   if (Array.isArray(value)) {
