@@ -8,6 +8,7 @@ export function createValueFixture(revision: number) {
     revision,
     string: 'Hello from the local fixture',
     number: 42,
+    nan: Number.NaN,
     boolean: true,
     nullValue: null,
     undefinedValue: undefined,
