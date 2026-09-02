@@ -39,6 +39,16 @@ describe('serializeDevtoolsValue', () => {
     expect(formatValue(restored.second)).toMatch(/^\[Reference \*\d+]$/)
   })
 
+  it('displays circular references without recursing indefinitely', () => {
+    const circular: Record<string, unknown> = { label: 'circular object' }
+    circular.self = circular
+
+    const restored = restoreClonedDeep(serializeDevtoolsValue(circular))
+
+    expect(restored.label).toBe('circular object')
+    expect(formatValue(restored.self)).toMatch(/^\[Circular \*\d+]$/)
+  })
+
   it('restores displayable values from their wire representation', () => {
     const values = {
       date: new Date('2026-09-01T12:00:00.000Z'),
