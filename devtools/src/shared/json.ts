@@ -72,6 +72,7 @@ export function formatValue(value: unknown) {
   if (value === null) return 'null'
   if (value === undefined) return 'undefined'
   if (typeof value === 'string') return `"${value}"`
+  if (Object.is(value, -0)) return '-0'
   if (typeof value === 'bigint') return `${value}n`
   if (typeof value === 'function') return `[Function ${value.name || 'anonymous'}]`
   if (isObject(value)) {

@@ -4,6 +4,10 @@ import { formatValue } from '../json'
 import { restoreClonedDeep, serializeDevtoolsValue } from './index'
 
 describe('serializeDevtoolsValue', () => {
+  it('preserves negative zero when formatting values', () => {
+    expect(formatValue(restoreClonedDeep(serializeDevtoolsValue(-0)))).toBe('-0')
+  })
+
   it('does not expose nested source objects to consumers', () => {
     const source = { devtools: { updatedAt: 1 } }
     const serialized = serializeDevtoolsValue(source)
