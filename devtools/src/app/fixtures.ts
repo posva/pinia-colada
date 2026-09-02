@@ -40,6 +40,7 @@ export function createValueFixture(revision: number) {
     weakMap: new WeakMap([[weakMapKey, 'hidden value']]),
     weakSet: new WeakSet([weakSetValue]),
     arrayBuffer: new ArrayBuffer(16),
+    blob: new Blob(['Pinia Colada fixture'], { type: 'text/plain' }),
     typedArray: new Uint16Array([1, 2, 65_535]),
     dataView: new DataView(new ArrayBuffer(8)),
     promise: Promise.resolve('resolved fixture promise'),
