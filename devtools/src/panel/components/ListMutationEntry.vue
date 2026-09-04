@@ -105,6 +105,7 @@ const status = computed(() => getMutationStatus(entry))
           entry.devtools.inactiveAt &&
           typeof entry.options?.gcTime === 'number' &&
           Number.isFinite(entry.options.gcTime) &&
+          // only display when they disappear quickly to reduce noise
           entry.options.gcTime <= 30_000
         "
         title="This mutation will be garbage collected"
