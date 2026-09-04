@@ -7,12 +7,7 @@ import type {
 import type { UseQueryEntryPayload } from '../query-serialized'
 import type { UseMutationEntryPayload } from '../mutation-serialized'
 import { toRaw } from 'vue'
-import {
-  isRestoredCustomValue,
-  restoreClonedDeep,
-  safeSerialize,
-  serializeCircular,
-} from './custom-values'
+import { isRestoredCustomValue, safeSerialize, serializeCircular } from './custom-values'
 import { isPlainObject } from '../json'
 
 export { isNonSerializableValue } from './custom-values'
@@ -21,37 +16,37 @@ export { restoreOriginalValues } from './custom-values'
 export { trackPromise } from './custom-values'
 export type { NonSerializableValue } from './custom-values'
 
-export interface AppEmits {
-  'queries:all': [entries: UseQueryEntryPayload[]]
-  'queries:update': [entry: UseQueryEntryPayload]
-  'queries:delete': [entry: UseQueryEntryPayload]
-  'mutations:all': [entries: UseMutationEntryPayload[]]
-  'mutations:update': [entry: UseMutationEntryPayload]
-  'mutations:delete': [entry: UseMutationEntryPayload]
+export type AppProcedures = {
+  'queries:all': (entries: UseQueryEntryPayload[]) => void
+  'queries:update': (entry: UseQueryEntryPayload) => void
+  'queries:delete': (entry: UseQueryEntryPayload) => void
+  'mutations:all': (entries: UseMutationEntryPayload[]) => void
+  'mutations:update': (entry: UseMutationEntryPayload) => void
+  'mutations:delete': (entry: UseMutationEntryPayload) => void
 }
 
-export interface DevtoolsEmits {
-  'queries:clear': [] | [filters: UseQueryEntryFilter]
-  'queries:refetch': [entryKey: EntryKey]
-  'queries:invalidate': [entryKey: EntryKey]
-  'queries:reset': [entryKey: EntryKey]
+export type DevtoolsProcedures = {
+  'queries:clear': (filters?: UseQueryEntryFilter) => void
+  'queries:refetch': (entryKey: EntryKey) => void
+  'queries:invalidate': (entryKey: EntryKey) => void
+  'queries:reset': (entryKey: EntryKey) => void
 
-  'queries:simulate:error': [entryKey: EntryKey]
-  'queries:simulate:error:stop': [entryKey: EntryKey]
-  'queries:simulate:loading': [entryKey: EntryKey]
-  'queries:simulate:loading:stop': [entryKey: EntryKey]
+  'queries:simulate:error': (entryKey: EntryKey) => void
+  'queries:simulate:error:stop': (entryKey: EntryKey) => void
+  'queries:simulate:loading': (entryKey: EntryKey) => void
+  'queries:simulate:loading:stop': (entryKey: EntryKey) => void
 
-  'queries:set:state': [entryKey: EntryKey, state: DataState<unknown, unknown, unknown>]
+  'queries:set:state': (entryKey: EntryKey, state: DataState<unknown, unknown, unknown>) => void
 
-  'mutations:clear': [] | [filters: UseMutationEntryFilter]
-  'mutations:remove': [id: number]
+  'mutations:clear': (filters?: UseMutationEntryFilter) => void
+  'mutations:remove': (id: number) => void
 
-  'mutations:simulate:error': [id: number]
-  'mutations:simulate:error:stop': [id: number]
-  'mutations:simulate:loading': [id: number]
-  'mutations:simulate:loading:stop': [id: number]
+  'mutations:simulate:error': (id: number) => void
+  'mutations:simulate:error:stop': (id: number) => void
+  'mutations:simulate:loading': (id: number) => void
+  'mutations:simulate:loading:stop': (id: number) => void
 
-  'mutations:replay': [id: number]
+  'mutations:replay': (id: number) => void
 }
 
 export function serializeDevtoolsValue<T>(val: T): T

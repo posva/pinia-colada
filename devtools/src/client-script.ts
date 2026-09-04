@@ -90,55 +90,82 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
     deserialize: restoreClonedDeep,
     functions: {
       'queries:clear': {
-        type: 'event',
-        handler: (filters) =>
-          filters ? bridge.actions['queries:clear'](filters) : bridge.actions['queries:clear'](),
+        type: 'action',
+        jsonSerializable: true,
+        handler: bridge.actions['queries:clear'],
       },
-      'queries:refetch': { type: 'event', handler: bridge.actions['queries:refetch'] },
-      'queries:invalidate': { type: 'event', handler: bridge.actions['queries:invalidate'] },
-      'queries:reset': { type: 'event', handler: bridge.actions['queries:reset'] },
-      'queries:set:state': { type: 'event', handler: bridge.actions['queries:set:state'] },
+      'queries:refetch': {
+        type: 'action',
+        jsonSerializable: true,
+        handler: bridge.actions['queries:refetch'],
+      },
+      'queries:invalidate': {
+        type: 'action',
+        jsonSerializable: true,
+        handler: bridge.actions['queries:invalidate'],
+      },
+      'queries:reset': {
+        type: 'action',
+        jsonSerializable: true,
+        handler: bridge.actions['queries:reset'],
+      },
+      // Edited state can contain rich values restored by the channel codec.
+      'queries:set:state': { type: 'action', handler: bridge.actions['queries:set:state'] },
       'queries:simulate:loading': {
-        type: 'event',
+        type: 'action',
+        jsonSerializable: true,
         handler: bridge.actions['queries:simulate:loading'],
       },
       'queries:simulate:loading:stop': {
-        type: 'event',
+        type: 'action',
+        jsonSerializable: true,
         handler: bridge.actions['queries:simulate:loading:stop'],
       },
       'queries:simulate:error': {
-        type: 'event',
+        type: 'action',
+        jsonSerializable: true,
         handler: bridge.actions['queries:simulate:error'],
       },
       'queries:simulate:error:stop': {
-        type: 'event',
+        type: 'action',
+        jsonSerializable: true,
         handler: bridge.actions['queries:simulate:error:stop'],
       },
       'mutations:clear': {
-        type: 'event',
-        handler: (filters) =>
-          filters
-            ? bridge.actions['mutations:clear'](filters)
-            : bridge.actions['mutations:clear'](),
+        type: 'action',
+        jsonSerializable: true,
+        handler: bridge.actions['mutations:clear'],
       },
-      'mutations:remove': { type: 'event', handler: bridge.actions['mutations:remove'] },
+      'mutations:remove': {
+        type: 'action',
+        jsonSerializable: true,
+        handler: bridge.actions['mutations:remove'],
+      },
       'mutations:simulate:loading': {
-        type: 'event',
+        type: 'action',
+        jsonSerializable: true,
         handler: bridge.actions['mutations:simulate:loading'],
       },
       'mutations:simulate:loading:stop': {
-        type: 'event',
+        type: 'action',
+        jsonSerializable: true,
         handler: bridge.actions['mutations:simulate:loading:stop'],
       },
       'mutations:simulate:error': {
-        type: 'event',
+        type: 'action',
+        jsonSerializable: true,
         handler: bridge.actions['mutations:simulate:error'],
       },
       'mutations:simulate:error:stop': {
-        type: 'event',
+        type: 'action',
+        jsonSerializable: true,
         handler: bridge.actions['mutations:simulate:error:stop'],
       },
-      'mutations:replay': { type: 'event', handler: bridge.actions['mutations:replay'] },
+      'mutations:replay': {
+        type: 'action',
+        jsonSerializable: true,
+        handler: bridge.actions['mutations:replay'],
+      },
     },
   })
 
