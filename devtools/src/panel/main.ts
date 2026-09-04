@@ -1,25 +1,24 @@
-import { createApp, h, reactive, ref } from 'vue'
+import { createApp, h, ref } from 'vue'
 import { restoreClonedDeep } from '@pinia/colada-devtools/shared'
 import App from './App.vue'
 import { configureApp } from './configure-app.ts'
 import { PINIA_COLADA_WAIT_TIMEOUT } from '../channel.ts'
 import type { PiniaColadaCacheState } from '../channel.ts'
+import { MUTATIONS_KEY, QUERIES_KEY } from './composables/devtools-context.ts'
 import { panelChannel } from './panel-channel.ts'
 import './styles.css'
 
-const cacheState = reactive<PiniaColadaCacheState>({
-  queries: [],
-  mutations: [],
-})
+const queries = ref<PiniaColadaCacheState['queries']>([])
+const mutations = ref<PiniaColadaCacheState['mutations']>([])
 const status = ref<'loading' | 'ready' | 'not-found'>('loading')
 
 const app = createApp(() =>
   h(App, {
-    queries: cacheState.queries,
-    mutations: cacheState.mutations,
     status: status.value,
   }),
 )
+app.provide(QUERIES_KEY, queries)
+app.provide(MUTATIONS_KEY, mutations)
 configureApp(app)
 app.mount('#app')
 
@@ -50,8 +49,8 @@ void waitForConnection()
 void panelChannel.sharedState.get('cache').then((cache) => {
   function applyCache() {
     const value = restoreClonedDeep(cache.value()) as unknown as PiniaColadaCacheState
-    cacheState.queries.splice(0, cacheState.queries.length, ...value.queries)
-    cacheState.mutations.splice(0, cacheState.mutations.length, ...value.mutations)
+    queries.value = value.queries
+    mutations.value = value.mutations
   }
 
   cache.on('updated', applyCache)
