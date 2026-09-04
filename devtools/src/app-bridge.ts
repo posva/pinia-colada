@@ -1,10 +1,10 @@
 /**
- * App-side devtools wiring: mirrors the caches into `AppEmits` messages and
- * executes `DevtoolsEmits` actions against them for the Devframe client script.
+ * App-side devtools wiring: mirrors the caches through `AppProcedures` and
+ * executes `DevtoolsProcedures` against them for the Devframe client script.
  */
 import type { QueryCache, MutationCache } from '@pinia/colada'
 import { watch } from 'vue'
-import type { AppEmits, DevtoolsEmits } from '@pinia/colada-devtools/shared'
+import type { AppProcedures, DevtoolsProcedures } from '@pinia/colada-devtools/shared'
 import { restoreOriginalValues } from '@pinia/colada-devtools/shared'
 import {
   addDevtoolsInfo,
@@ -20,12 +20,13 @@ export interface DevtoolsAppBridge {
    * when the devtools UI signals it's ready.
    */
   sendAll: () => void
-  actions: {
-    [K in keyof DevtoolsEmits]: (...args: DevtoolsEmits[K]) => void
-  }
+  actions: DevtoolsProcedures
 }
 
-export type DevtoolsAppEmit = <K extends keyof AppEmits>(event: K, ...args: AppEmits[K]) => void
+export type DevtoolsAppEmit = <K extends keyof AppProcedures>(
+  event: K,
+  ...args: Parameters<AppProcedures[K]>
+) => void
 
 export function setupDevtoolsAppBridge(
   queryCache: QueryCache,

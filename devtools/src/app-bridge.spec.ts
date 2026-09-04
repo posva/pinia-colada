@@ -5,7 +5,7 @@ import type { ShallowRef } from 'vue'
 import { createPinia } from 'pinia'
 import { PiniaColada, useMutation, useMutationCache, useQuery, useQueryCache } from '@pinia/colada'
 import type { AsyncStatus } from '@pinia/colada'
-import type { AppEmits, DevtoolsEmits } from '@pinia/colada-devtools/shared'
+import type { AppProcedures, DevtoolsProcedures } from '@pinia/colada-devtools/shared'
 import {
   restoreClonedDeep,
   serializeDevtoolsValue,
@@ -24,7 +24,7 @@ describe('app bridge', () => {
     const queryCache = useQueryCache(pinia)
     const mutationCache = useMutationCache(pinia)
 
-    const listeners = new Map<keyof AppEmits, Set<(...args: any[]) => void>>()
+    const listeners = new Map<keyof AppProcedures, Set<(...args: any[]) => void>>()
     let bridge: DevtoolsAppBridge | undefined
     const installBridge = () =>
       (bridge ??= setupDevtoolsAppBridge(queryCache, mutationCache, (event, ...args) => {
@@ -32,11 +32,19 @@ describe('app bridge', () => {
       }))
     if (installImmediately) installBridge()
     const devtools = {
-      emit<K extends keyof DevtoolsEmits>(event: K, ...args: DevtoolsEmits[K]) {
-        const handler = installBridge().actions[event] as (...args: DevtoolsEmits[K]) => void
+      emit<K extends keyof DevtoolsProcedures>(
+        event: K,
+        ...args: Parameters<DevtoolsProcedures[K]>
+      ) {
+        const handler = installBridge().actions[event] as (
+          ...args: Parameters<DevtoolsProcedures[K]>
+        ) => void
         handler(...args)
       },
-      on<K extends keyof AppEmits>(event: K, callback: (...args: AppEmits[K]) => void) {
+      on<K extends keyof AppProcedures>(
+        event: K,
+        callback: (...args: Parameters<AppProcedures[K]>) => void,
+      ) {
         let eventListeners = listeners.get(event)
         if (!eventListeners) listeners.set(event, (eventListeners = new Set()))
         eventListeners.add(callback)
@@ -64,11 +72,11 @@ describe('app bridge', () => {
     }
   }
 
-  function nextEmission<K extends keyof AppEmits>(
+  function nextEmission<K extends keyof AppProcedures>(
     devtools: ReturnType<typeof factory>['devtools'],
     event: K,
   ) {
-    return new Promise<AppEmits[K]>((resolve) => {
+    return new Promise<Parameters<AppProcedures[K]>>((resolve) => {
       const off = devtools.on(event, (...args) => {
         off()
         resolve(args)
@@ -78,7 +86,7 @@ describe('app bridge', () => {
 
   // waits until no emission of the given event arrives for a quiet window, so
   // updates queued by previous cache operations don't leak into assertions
-  function drainEmissions<K extends keyof AppEmits>(
+  function drainEmissions<K extends keyof AppProcedures>(
     devtools: ReturnType<typeof factory>['devtools'],
     event: K,
     quiet = 50,
@@ -240,7 +248,7 @@ describe('app bridge', () => {
     expect(entry.asyncStatus.value).toBe('loading')
 
     installBridge()
-    const settledUpdate = new Promise<AppEmits['queries:update'][0]>((resolve) => {
+    const settledUpdate = new Promise<Parameters<AppProcedures['queries:update']>[0]>((resolve) => {
       const off = devtools.on('queries:update', (payload) => {
         if (payload.keyHash === entry.keyHash && payload.asyncStatus === 'idle') {
           off()
@@ -294,14 +302,16 @@ describe('app bridge', () => {
     expect(entry.asyncStatus.value).toBe('loading')
 
     installBridge()
-    const settledUpdate = new Promise<AppEmits['mutations:update'][0]>((resolve) => {
-      const off = devtools.on('mutations:update', (payload) => {
-        if (payload.id === entry.id && payload.asyncStatus === 'idle') {
-          off()
-          resolve(payload)
-        }
-      })
-    })
+    const settledUpdate = new Promise<Parameters<AppProcedures['mutations:update']>[0]>(
+      (resolve) => {
+        const off = devtools.on('mutations:update', (payload) => {
+          if (payload.id === entry.id && payload.asyncStatus === 'idle') {
+            off()
+            resolve(payload)
+          }
+        })
+      },
+    )
 
     resolveMutation('done')
     await mutationPromise
@@ -328,14 +338,16 @@ describe('app bridge', () => {
 
     const entry = mutationCache.getEntries()[0]!
     installBridge()
-    const settledUpdate = new Promise<AppEmits['mutations:update'][0]>((resolve) => {
-      const off = devtools.on('mutations:update', (payload) => {
-        if (payload.id === entry.id && payload.asyncStatus === 'idle') {
-          off()
-          resolve(payload)
-        }
-      })
-    })
+    const settledUpdate = new Promise<Parameters<AppProcedures['mutations:update']>[0]>(
+      (resolve) => {
+        const off = devtools.on('mutations:update', (payload) => {
+          if (payload.id === entry.id && payload.asyncStatus === 'idle') {
+            off()
+            resolve(payload)
+          }
+        })
+      },
+    )
 
     rejectMutation(new Error('failed'))
     await expect(mutationPromise).rejects.toThrow('failed')
