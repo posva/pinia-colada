@@ -19,6 +19,7 @@ export function setNestedValue(obj: unknown, path: NestedValuePath, value: unkno
     if (typeof key !== 'number' || !Number.isInteger(key) || key < 0 || key >= current.size) {
       return false
     }
+    // replace the value while preserving the order of the set
     const values = Array.from(current)
     values[key] = value
     current.clear()
