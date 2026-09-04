@@ -1,16 +1,12 @@
 <script setup lang="ts">
-import { provide, toRef } from 'vue'
-import type { UseQueryEntryPayload, UseMutationEntryPayload } from '@pinia/colada-devtools/shared'
-import { MUTATIONS_KEY, QUERIES_KEY } from './composables/devtools-context'
+import { useMutationEntries, useQueryEntries } from './composables/devtools-context'
 
-const props = defineProps<{
-  queries: UseQueryEntryPayload[]
-  mutations: UseMutationEntryPayload[]
+defineProps<{
   status: 'loading' | 'ready' | 'not-found'
 }>()
 
-provide(QUERIES_KEY, toRef(props, 'queries'))
-provide(MUTATIONS_KEY, toRef(props, 'mutations'))
+const queries = useQueryEntries()
+const mutations = useMutationEntries()
 </script>
 
 <template>
