@@ -1,8 +1,9 @@
+@source '../shared';
 @import 'tailwindcss';
 
 /* @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *)); */
 
-:host {
+:root {
   font-family: sans-serif;
   color-scheme: light dark;
 
@@ -45,6 +46,8 @@
   --devtools-syntax-red: light-dark(#d20f39, #f38ba8);
   --devtools-syntax-yellow: light-dark(#df8e1d, #f9e2af);
   --devtools-syntax-sapphire: light-dark(#209fb5, #74c7ec);
+  --devtools-syntax-object-blue: light-dark(#1e66f5, #89b4fa);
+  --devtools-syntax-pale-blue: light-dark(#04a5e5, #89dceb);
 
   @variant dark {
     --color-primary-50: var(--color-yellow-50);
@@ -73,11 +76,11 @@
   }
 }
 
-:host:has(.dark) {
+:root:has(.dark) {
   color-scheme: dark;
 }
 
-:host:has(.light) {
+:root:has(.light) {
   color-scheme: light;
 }
 

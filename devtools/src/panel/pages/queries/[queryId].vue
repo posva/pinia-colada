@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
 import { computed, watch } from 'vue'
-import { useDuplexChannel, useQueryEntries } from '../../composables/duplex-channel'
+import { useQueryEntries } from '../../composables/devtools-context'
+import { panelChannel } from '../../panel-channel'
 import { formatDuration } from '../../utils/time'
 import { useRoute } from 'vue-router'
 import type { DataStateStatus } from '@pinia/colada'
@@ -16,6 +17,7 @@ import ISigmaSquare from '~icons/lucide/sigma-square'
 import IPlugZap from '~icons/lucide/plug-zap'
 import { useTimeAgo, formatTimeAgo, useLocalStorage } from '@vueuse/core'
 import type { FormatTimeAgoOptions } from '@vueuse/core'
+import { setNestedValue, type NestedValuePath } from '../../utils/set-nested-value'
 
 const route = useRoute()
 const queries = useQueryEntries()
@@ -53,8 +55,6 @@ const lastUpdate = useTimeAgo(() => selectedQuery.value?.devtools.updatedAt ?? 0
 //   },
 // )
 
-const channel = useDuplexChannel()
-
 const isDataOpen = useLocalStorage<boolean>('pc:query:details:data:open', false, {})
 let wasDataOpen = isDataOpen.value
 let lastStatus: DataStateStatus | null = null
@@ -76,36 +76,8 @@ watch(
   },
 )
 
-// Helper function to set nested value
-function setNestedValue(obj: any, path: Array<string | number>, value: unknown): boolean {
-  if (path.length === 0) {
-    console.error('Cannot set value with empty path')
-    return false
-  }
-
-  let current = obj
-  // Navigate to parent of target value
-  for (let i = 0; i < path.length - 1; i++) {
-    if (current == null || typeof current !== 'object') {
-      console.error('Invalid path:', path, 'at index', i, 'Current value:', current)
-      return false
-    }
-    current = current[path[i]!]
-  }
-
-  // Validate the final parent exists
-  if (current == null || typeof current !== 'object') {
-    console.error('Invalid final parent in path:', path)
-    return false
-  }
-
-  // Set the final value
-  current[path.at(-1)!] = value
-  return true
-}
-
 // Handle value updates from JsonViewer
-const handleValueUpdate = (path: Array<string | number>, value: unknown) => {
+const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
   if (!selectedQuery.value) return
 
   // Update the value at the path
@@ -117,7 +89,7 @@ const handleValueUpdate = (path: Array<string | number>, value: unknown) => {
   }
 
   // Send to app via RPC
-  channel.emit('queries:set:state', selectedQuery.value.key, selectedQuery.value.state)
+  panelChannel.callEvent('queries:set:state', selectedQuery.value.key, selectedQuery.value.state)
 }
 </script>
 
@@ -231,7 +203,7 @@ const handleValueUpdate = (path: Array<string | number>, value: unknown) => {
             size="sm"
             title="Refetch this query"
             :disabled="selectedQuery.options?.enabled === false"
-            @click="channel.emit('queries:refetch', selectedQuery.key)"
+            @click="panelChannel.callEvent('queries:refetch', selectedQuery.key)"
           >
             <i-lucide-refresh-cw class="size-3.5" /> Refetch
           </UButton>
@@ -240,7 +212,7 @@ const handleValueUpdate = (path: Array<string | number>, value: unknown) => {
             class="theme-neutral"
             size="sm"
             title="Invalidate this query"
-            @click="channel.emit('queries:invalidate', selectedQuery.key)"
+            @click="panelChannel.callEvent('queries:invalidate', selectedQuery.key)"
           >
             <i-lucide-timer-reset /> Invalidate
           </UButton>
@@ -250,7 +222,7 @@ const handleValueUpdate = (path: Array<string | number>, value: unknown) => {
             class="theme-purple"
             size="sm"
             title="Restore the previous state"
-            @click="channel.emit('queries:simulate:loading', selectedQuery.key)"
+            @click="panelChannel.callEvent('queries:simulate:loading', selectedQuery.key)"
           >
             <i-lucide-loader />
             Simulate loading
@@ -260,7 +232,7 @@ const handleValueUpdate = (path: Array<string | number>, value: unknown) => {
             class="theme-purple"
             size="sm"
             title="Simulate a loading state"
-            @click="channel.emit('queries:simulate:loading:stop', selectedQuery.key)"
+            @click="panelChannel.callEvent('queries:simulate:loading:stop', selectedQuery.key)"
           >
             <i-lucide-loader class="animate-spin" />
             Stop loading
@@ -271,7 +243,7 @@ const handleValueUpdate = (path: Array<string | number>, value: unknown) => {
             class="theme-error"
             size="sm"
             title="Simulate an Error state"
-            @click="channel.emit('queries:simulate:error', selectedQuery.key)"
+            @click="panelChannel.callEvent('queries:simulate:error', selectedQuery.key)"
           >
             <i-lucide-x-octagon /> Simulate error
           </UButton>
@@ -280,7 +252,7 @@ const handleValueUpdate = (path: Array<string | number>, value: unknown) => {
             class="theme-error"
             size="sm"
             title="Restore the previous state"
-            @click="channel.emit('queries:simulate:error:stop', selectedQuery.key)"
+            @click="panelChannel.callEvent('queries:simulate:error:stop', selectedQuery.key)"
           >
             <i-lucide-rotate-ccw /> Remove error
           </UButton>
@@ -289,7 +261,7 @@ const handleValueUpdate = (path: Array<string | number>, value: unknown) => {
             class="theme-warning"
             size="sm"
             title="Reset this query to its initial (pending) state"
-            @click="channel.emit('queries:reset', selectedQuery.key)"
+            @click="panelChannel.callEvent('queries:reset', selectedQuery.key)"
           >
             <i-lucide-trash /> Reset
           </UButton>

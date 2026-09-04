@@ -1,4 +1,4 @@
 dist
-dist-panel
-dist-shared
+dist-app
+dist-client
 .env

@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, useTemplateRef } from 'vue'
-import type { JSONValue } from '@pinia/colada-devtools/shared'
 import {
-  formatValue,
   getValueTypeClass,
   isPlainObject,
   getValueType,
   isNonSerializableValue,
+  getValueDetails,
 } from '@pinia/colada-devtools/shared'
-import UButton from '../UButton.ce.vue'
+import UButton from '../UButton.vue'
 import ILucideChevronRight from '~icons/lucide/chevron-right'
 import ILucidePencil from '~icons/lucide/pencil'
 import ILucideSquare from '~icons/lucide/square'
@@ -18,6 +17,8 @@ import ILucideSave from '~icons/lucide/save'
 import ILucideUndo from '~icons/lucide/undo'
 import ILucideMinus from '~icons/lucide/minus'
 import ILucidePlus from '~icons/lucide/plus'
+import ValueDisplay from './ValueDisplay.vue'
+import type { NestedValuePath } from '../../utils/set-nested-value'
 
 const {
   itemKey,
@@ -27,9 +28,9 @@ const {
   readonly,
 } = defineProps<{
   itemKey: string
-  value: JSONValue | Map<PropertyKey, any> | Set<unknown>
+  value: unknown
   depth: number
-  path?: Array<string | number>
+  path?: NestedValuePath
   readonly?: boolean
 }>()
 
@@ -60,33 +61,37 @@ const isEditableViaSimple = computed(
 const isEditableViaJson = computed(() => !isCustomValue.value && !readonly)
 
 const isExpanded = ref(false)
+const valueDetails = computed(() => getValueDetails(value))
 
 const isExpandable = computed(() => {
   return (
     (Array.isArray(value) && value.length > 0) ||
     (isPlainObject(value) && Object.keys(value).length > 0) ||
     (value instanceof Map && value.size > 0) ||
-    (value instanceof Set && value.size > 0)
+    (value instanceof Set && value.size > 0) ||
+    !!valueDetails.value
   )
 })
 
-const keyValuePairs = computed<Iterable<[PropertyKey, any]>>(() => {
+const keyValuePairs = computed<Iterable<[unknown, any]>>(() => {
   // for perf to avoid reading props.value multiple times
   const readValue = value
   if (Array.isArray(readValue)) {
-    return readValue.map((v, i) => [i, v] as const)
+    return readValue.entries()
   } else if (isPlainObject(readValue)) {
     return Object.entries(readValue)
   } else if (readValue instanceof Map) {
     return readValue.entries()
   } else if (readValue instanceof Set) {
     return Array.from(readValue).map((v, i) => [i, v] as const)
+  } else if (valueDetails.value) {
+    return Object.entries(valueDetails.value)
   }
   return []
 })
 
 const emit = defineEmits<{
-  'update:value': [path: Array<string | number>, value: unknown]
+  'update:value': [path: NestedValuePath, value: unknown]
 }>()
 
 // Editing methods
@@ -243,7 +248,7 @@ function toggleExpansion() {
             :class="getValueTypeClass(value)"
             @dblclick.stop="!readonly && enterEditMode('simple')"
           >
-            {{ formatValue(value) }}
+            <ValueDisplay :value />
           </span>
 
           <!-- Edit controls (shown on hover via Tailwind group) -->
@@ -308,7 +313,7 @@ function toggleExpansion() {
           :class="[getValueTypeClass(value), !readonly && 'cursor-pointer']"
           @click="!readonly && toggleBoolean()"
         >
-          {{ formatValue(value) }}
+          <ValueDisplay :value />
         </span>
       </span>
 
@@ -349,7 +354,7 @@ function toggleExpansion() {
             :class="getValueTypeClass(value)"
             @dblclick.stop="!readonly && enterEditMode('json')"
           >
-            {{ formatValue(value) }}
+            <ValueDisplay :value />
           </span>
 
           <!-- Edit controls (JSON mode only) -->
@@ -373,20 +378,20 @@ function toggleExpansion() {
         :title="isExpandable ? 'Click to expand' : undefined"
         @click="toggleExpansion"
       >
-        {{ formatValue(value) }}
+        <ValueDisplay :value />
       </span>
     </div>
 
     <!-- Expanded children -->
     <template v-if="isExpandable && isExpanded">
       <JsonItem
-        v-for="[childKey, childValue] of keyValuePairs"
-        :key="childKey"
+        v-for="([childKey, childValue], childIndex) of keyValuePairs"
+        :key="childIndex"
         :item-key="String(childKey)"
         :value="childValue"
         :depth="depth + 1"
-        :path="typeof childKey === 'symbol' ? undefined : [...path, childKey]"
-        :readonly="readonly"
+        :path="[...path, childKey]"
+        :readonly="readonly || !!valueDetails"
         @update:value="(...args) => emit('update:value', ...args)"
       />
     </template>

@@ -13,10 +13,9 @@ allowBuilds:
   '@tailwindcss/oxide': true
 overrides:
   twoslash-vue: 0.3.7
-  vue-router: ^5.2.0
+  'nuxt@4.5.2>@nuxt/devtools': 4.0.0-alpha.15
 ignoreWorkspaceRootCheck: true
 shamefullyHoist: true
 strictPeerDependencies: false
 minimumReleaseAgeExclude:
-  - '@rolldown/binding-darwin-x64@1.2.5'
-  - '@rolldown/binding-linux-arm64-gnu@1.2.5'
+  - vue-router@5.3.1

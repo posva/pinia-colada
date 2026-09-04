@@ -7,7 +7,6 @@
     "dev": "pnpm run --stream '/^dev:/'",
     "dev:client": "vite",
     "dev:db": "json-server --port 7777 db.json",
-    "dev_devtools": "pnpm run -C ../devtools build:panel -w",
     "preview": "vite preview",
     "build": "vite build",
     "type-check": "vue-tsc --build --force"
@@ -32,6 +31,7 @@
   "devDependencies": {
     "@nostics/unplugin": "^1.1.0",
     "@pinia/colada-devtools": "workspace:^",
+    "@vitejs/devtools": "^0.6.3",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^26.2.0",
     "@vitejs/plugin-vue": "^6.0.8",

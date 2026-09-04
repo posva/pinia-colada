@@ -1,65 +1,8 @@
-import App from './app.vue'
+import { createPinia } from 'pinia'
 import { createApp } from 'vue'
-// import { createRouter, createWebHistory } from 'vue-router'
-// import { routes } from 'vue-router/auto-routes'
-import { createPinia, getActivePinia } from 'pinia'
-import { hydrateQueryCache, PiniaColada, useMutationCache, useQueryCache } from '@pinia/colada'
-import { PiniaColadaRetry } from '@pinia/colada-plugin-retry'
-import { createRouter, createWebHistory } from 'vue-router'
+import { PiniaColada } from '@pinia/colada'
+import App from './App.vue'
+import { router } from './router.ts'
 import './style.css'
-import 'water.css'
 
-const app = createApp(App)
-app.provide('test', 'IT WORKS!')
-app.use(createPinia())
-app.use(PiniaColada, {
-  queryOptions: {},
-  plugins: [PiniaColadaRetry({})],
-})
-
-// simulate SSR
-if (typeof document !== 'undefined') {
-  const queryCache = useQueryCache(getActivePinia())
-  hydrateQueryCache(queryCache, {
-    '["ssr"]': [{ text: 'I was serializaed!', when: Date.now() }, null, 0],
-  })
-  // @ts-expect-error: for debugging
-  window.queryCache = queryCache
-  // @ts-expect-error: for debugging
-  window.mutationCache = useMutationCache(getActivePinia())
-}
-
-const router = createRouter({
-  history: createWebHistory(),
-  routes: [
-    {
-      path: '/',
-      component: () => import('./pages/(home).vue'),
-    },
-    {
-      path: '/multi-types',
-      component: () => import('./pages/multi-types.vue'),
-    },
-    {
-      path: '/mutations-test',
-      component: () => import('./pages/mutations-test.vue'),
-    },
-    {
-      path: '/contacts',
-      component: () => import('./pages/contacts.vue'),
-      children: [
-        {
-          path: ':id',
-          component: () => import('./pages/contacts/[id].vue'),
-        },
-      ],
-    },
-    {
-      path: '/ssr-test',
-      component: () => import('./pages/ssr-test.vue'),
-    },
-  ],
-})
-
-app.use(router)
-app.mount(`#app`)
+createApp(App).use(createPinia()).use(PiniaColada).use(router).mount('#app')

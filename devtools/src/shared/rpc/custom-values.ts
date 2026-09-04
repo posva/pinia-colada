@@ -1,4 +1,4 @@
-import { isPlainObject } from '../json'
+import { isPlainObject, VALUE_DETAILS, VALUE_DISPLAY, type ValueDisplayToken } from '../json'
 
 export interface NonSerializableValue_Base {
   __custom: '@@pc-non-serializable'
@@ -21,9 +21,29 @@ export interface NonSerializableValue_BigInt extends NonSerializableValue_Base {
   value: string
 }
 
+export interface NonSerializableValue_BoxedNumber extends NonSerializableValue_Base {
+  __type: 'boxednumber'
+  value: number
+}
+
+export interface NonSerializableValue_BoxedString extends NonSerializableValue_Base {
+  __type: 'boxedstring'
+  value: string
+}
+
 export interface NonSerializableValue_RegExp extends NonSerializableValue_Base {
   __type: 'regexp'
   value: { source: string; flags: string }
+}
+
+export interface NonSerializableValue_URL extends NonSerializableValue_Base {
+  __type: 'url'
+  value: string
+}
+
+export interface NonSerializableValue_URLSearchParams extends NonSerializableValue_Base {
+  __type: 'urlsearchparams'
+  value: string
 }
 
 export interface NonSerializableValue_Map extends NonSerializableValue_Base {
@@ -48,27 +68,59 @@ export interface NonSerializableValue_WeakSet extends NonSerializableValue_Base 
 
 export interface NonSerializableValue_Date extends NonSerializableValue_Base {
   __type: 'date'
-  value: string
+  value: string | null
 }
 
 export interface NonSerializableValue_ArrayBuffer extends NonSerializableValue_Base {
   __type: 'arraybuffer'
-  value: { byteLength: number }
+  value: ArrayBufferMetadata
+}
+
+interface ArrayBufferMetadata {
+  byteLength: number
+  detached: boolean
+  maxByteLength: number
+  resizable: boolean
+}
+
+export interface NonSerializableValue_Blob extends NonSerializableValue_Base {
+  __type: 'blob'
+  value: { size: number; type: string }
+}
+
+export interface NonSerializableValue_File extends NonSerializableValue_Base {
+  __type: 'file'
+  value: {
+    name: string
+    size: number
+    type: string
+    lastModified: number
+    webkitRelativePath: string
+  }
 }
 
 export interface NonSerializableValue_TypedArray extends NonSerializableValue_Base {
   __type: 'typedarray'
-  value: { arrayType: string; byteLength: number }
+  value: {
+    arrayType: string
+    byteLength: number
+    byteOffset: number
+    length?: number
+    buffer: ArrayBufferMetadata
+  }
 }
 
 export interface NonSerializableValue_Promise extends NonSerializableValue_Base {
   __type: 'promise'
-  value: null
+  value:
+    | { status: 'pending' }
+    | { status: 'fulfilled'; value: unknown }
+    | { status: 'rejected'; reason: unknown }
 }
 
 export interface NonSerializableValue_Error extends NonSerializableValue_Base {
   __type: 'error'
-  value: { name: string; message: string; stack?: string }
+  value: { name: string; message: string; stack?: string; cause?: unknown; errors?: unknown[] }
 }
 
 export interface NonSerializableValue_Object extends NonSerializableValue_Base {
@@ -76,42 +128,200 @@ export interface NonSerializableValue_Object extends NonSerializableValue_Base {
   value: { constructorName: string; properties: unknown }
 }
 
+export interface NonSerializableValue_NullPrototypeObject extends NonSerializableValue_Base {
+  __type: 'nullprototypeobject'
+  value: { properties: unknown }
+}
+
+export interface NonSerializableValue_Circular extends NonSerializableValue_Base {
+  __type: 'circular'
+  value: null
+}
+
 export type NonSerializableValue =
   | NonSerializableValue_Function
   | NonSerializableValue_Symbol
   | NonSerializableValue_BigInt
+  | NonSerializableValue_BoxedNumber
+  | NonSerializableValue_BoxedString
   | NonSerializableValue_RegExp
+  | NonSerializableValue_URL
+  | NonSerializableValue_URLSearchParams
   | NonSerializableValue_Map
   | NonSerializableValue_Set
   | NonSerializableValue_WeakMap
   | NonSerializableValue_WeakSet
   | NonSerializableValue_Date
   | NonSerializableValue_ArrayBuffer
+  | NonSerializableValue_Blob
+  | NonSerializableValue_File
   | NonSerializableValue_TypedArray
   | NonSerializableValue_Promise
   | NonSerializableValue_Error
   | NonSerializableValue_Object
+  | NonSerializableValue_NullPrototypeObject
+  | NonSerializableValue_Circular
+
+const CUSTOM_VALUE_SERIALIZE = Symbol('custom-value-serialize')
+
+interface RestoredCustomValue {
+  [CUSTOM_VALUE_SERIALIZE](): NonSerializableValue
+}
+
+export function isRestoredCustomValue(value: unknown): value is RestoredCustomValue {
+  return (
+    !!value &&
+    (typeof value === 'object' || typeof value === 'function') &&
+    CUSTOM_VALUE_SERIALIZE in value
+  )
+}
+
+function getCustomValueType(value: unknown): NonSerializableValue['__type'] | undefined {
+  if (isRestoredCustomValue(value)) return value[CUSTOM_VALUE_SERIALIZE]().__type
+  if (typeof value === 'function') return 'function'
+  if (typeof value === 'symbol') return 'symbol'
+  if (typeof value === 'bigint') return 'bigint'
+  if (value instanceof Number) return 'boxednumber'
+  if (value instanceof String) return 'boxedstring'
+  if (value instanceof RegExp) return 'regexp'
+  if (value instanceof URL) return 'url'
+  if (value instanceof URLSearchParams) return 'urlsearchparams'
+  if (value instanceof Map) return 'map'
+  if (value instanceof Set) return 'set'
+  if (value instanceof WeakMap) return 'weakmap'
+  if (value instanceof WeakSet) return 'weakset'
+  if (value instanceof Date) return 'date'
+  if (value instanceof ArrayBuffer) return 'arraybuffer'
+  if (typeof File !== 'undefined' && value instanceof File) return 'file'
+  if (typeof Blob !== 'undefined' && value instanceof Blob) return 'blob'
+  if (ArrayBuffer.isView(value)) return 'typedarray'
+  if (value instanceof Promise) return 'promise'
+  if (value instanceof Error) return 'error'
+  if (!value || typeof value !== 'object') return
+  if (Object.getPrototypeOf(value) === null) return 'nullprototypeobject'
+  if (
+    isPlainObject(value) &&
+    '__constructorName' in value &&
+    typeof value.__constructorName === 'string'
+  ) {
+    return 'object'
+  }
+  if (value.constructor && value.constructor !== Object && value.constructor !== Array) {
+    return 'object'
+  }
+}
+
+/**
+ * Replaces transported display values with the native values from the live cache.
+ * Plain objects and arrays are traversed so regular edits are retained.
+ */
+export function restoreOriginalValues<T>(edited: T, original: unknown): T {
+  return restoreOriginalValuesRecursive(edited, original, 0)
+}
+
+function restoreOriginalValuesRecursive<T>(edited: T, original: unknown, depth: number): T {
+  const editedType = getCustomValueType(edited)
+  const originalType = getCustomValueType(original)
+
+  if (editedType === 'circular') return original as T
+  if (
+    editedType === 'map' &&
+    originalType === 'map' &&
+    edited instanceof Map &&
+    original instanceof Map
+  ) {
+    const originalEntries = Array.from(original.entries())
+    const restoredEntries = Array.from(edited.entries(), ([editedKey, editedValue], index) => {
+      const originalEntry = originalEntries[index]
+      return originalEntry
+        ? [
+            restoreOriginalValuesRecursive(editedKey, originalEntry[0], depth + 1),
+            restoreOriginalValuesRecursive(editedValue, originalEntry[1], depth + 1),
+          ]
+        : [editedKey, editedValue]
+    })
+    original.clear()
+    for (const [key, value] of restoredEntries) original.set(key, value)
+    return original as T
+  }
+  if (
+    editedType === 'set' &&
+    originalType === 'set' &&
+    edited instanceof Set &&
+    original instanceof Set
+  ) {
+    const originalValues = Array.from(original)
+    const restoredValues = Array.from(edited, (value, index) =>
+      index < originalValues.length
+        ? restoreOriginalValuesRecursive(value, originalValues[index], depth + 1)
+        : value,
+    )
+    original.clear()
+    for (const value of restoredValues) original.add(value)
+    return original as T
+  }
+  if (editedType && editedType === originalType) {
+    if (
+      (editedType === 'object' || editedType === 'nullprototypeobject') &&
+      edited &&
+      original &&
+      typeof edited === 'object' &&
+      typeof original === 'object'
+    ) {
+      for (const [key, value] of Object.entries(edited)) {
+        ;(original as Record<string, unknown>)[key] = restoreOriginalValues(
+          value,
+          (original as Record<string, unknown>)[key],
+        )
+      }
+    }
+    return original as T
+  }
+
+  if (Array.isArray(edited) && Array.isArray(original)) {
+    for (let index = 0; index < edited.length; index++) {
+      if (index in edited) {
+        const restoredValue = restoreOriginalValuesRecursive(
+          edited[index],
+          original[index],
+          depth + 1,
+        )
+        edited[index] = restoredValue
+        original[index] = restoredValue
+      }
+    }
+    original.length = edited.length
+    if (depth > 1) return original as T
+  } else if (isPlainObject(edited) && isPlainObject(original)) {
+    const editedRecord = edited as Record<string, unknown>
+    const originalRecord = original as Record<string, unknown>
+    for (const [key, value] of Object.entries(edited)) {
+      const restoredValue = restoreOriginalValuesRecursive(value, originalRecord[key], depth + 1)
+      editedRecord[key] = restoredValue
+      originalRecord[key] = restoredValue
+    }
+    if (depth > 1) return original as T
+  }
+
+  return edited
+}
 
 // Helper function to recursively serialize values that might contain non-serializable data
 function safeSerializeRecursive(value: unknown): unknown {
   if (Array.isArray(value)) {
     return value.map((item) => safeSerializeRecursive(item))
   }
+  if (value && typeof value === 'object' && Object.getPrototypeOf(value) === null) {
+    return safeSerialize(value)
+  }
   if (isPlainObject(value)) {
-    // Try to serialize with safeSerialize first
-    const serialized = safeSerialize(value)
-    if (serialized !== value) {
-      // It was a non-serializable value, return the serialized version
-      return serialized
-    }
-    // It's a regular object, recursively serialize its properties
     const result: Record<string, unknown> = {}
     for (const [key, val] of Object.entries(value)) {
       result[key] = safeSerializeRecursive(val)
     }
     return result
   }
-  return value
+  return safeSerialize(value)
 }
 
 // Custom error for serialization issues
@@ -130,14 +340,270 @@ class BinaryDataPlaceholder {
   constructor(
     public readonly type: string,
     public readonly byteLength: number,
-    public readonly arrayType?: string,
+    private readonly details?: Record<string, unknown>,
+    private readonly serialized?:
+      | NonSerializableValue_ArrayBuffer
+      | NonSerializableValue_TypedArray,
   ) {}
 
   toString() {
-    if (this.arrayType) {
-      return `[${this.arrayType} ${this.byteLength} bytes]`
-    }
     return `[${this.type} ${this.byteLength} bytes]`
+  }
+
+  [VALUE_DISPLAY](): ValueDisplayToken[] {
+    return binaryDisplayTokens(this.type, this.byteLength)
+  }
+
+  [VALUE_DETAILS]() {
+    return this.details
+  }
+
+  [CUSTOM_VALUE_SERIALIZE]() {
+    return this.serialized!
+  }
+}
+
+class BlobPlaceholder {
+  constructor(private readonly metadata: NonSerializableValue_Blob['value']) {}
+
+  toString() {
+    return `[Blob ${this.metadata.size} bytes]`
+  }
+
+  [VALUE_DISPLAY]() {
+    return binaryDisplayTokens('Blob', this.metadata.size)
+  }
+
+  [VALUE_DETAILS]() {
+    return { size: this.metadata.size, type: this.metadata.type }
+  }
+
+  [CUSTOM_VALUE_SERIALIZE](): NonSerializableValue_Blob {
+    return { __custom: '@@pc-non-serializable', __type: 'blob', value: this.metadata }
+  }
+}
+
+class FilePlaceholder {
+  constructor(private readonly metadata: NonSerializableValue_File['value']) {}
+
+  toString() {
+    return `[File ${this.metadata.name} ${this.metadata.size} bytes]`
+  }
+
+  [VALUE_DISPLAY](): ValueDisplayToken[] {
+    return [
+      { text: '[', class: 'text-(--devtools-syntax-gray)' },
+      { text: 'File', class: 'text-(--devtools-syntax-object-blue)' },
+      { text: ` ${this.metadata.name} ` },
+      { text: String(this.metadata.size), class: 'text-(--devtools-syntax-orange)' },
+      { text: ' bytes]', class: 'text-(--devtools-syntax-gray)' },
+    ]
+  }
+
+  [VALUE_DETAILS]() {
+    return {
+      name: this.metadata.name,
+      size: this.metadata.size,
+      type: this.metadata.type,
+      lastModified: this.metadata.lastModified,
+      lastModifiedDate: new Date(this.metadata.lastModified),
+      webkitRelativePath: this.metadata.webkitRelativePath,
+    }
+  }
+
+  [CUSTOM_VALUE_SERIALIZE](): NonSerializableValue_File {
+    return { __custom: '@@pc-non-serializable', __type: 'file', value: this.metadata }
+  }
+}
+
+type PromiseState = 'pending' | 'fulfilled' | 'rejected'
+
+export const PROMISE_STATE = Symbol('promise-state')
+export const PROMISE_RESULT = Symbol('promise-result')
+
+type TrackedPromise<T> = Promise<T> & {
+  [PROMISE_STATE]: PromiseState
+  [PROMISE_RESULT]?: unknown
+}
+
+export function trackPromise<T>(promise: Promise<T>): Promise<T> {
+  const trackedPromise = promise as TrackedPromise<T>
+  trackedPromise[PROMISE_STATE] = 'pending'
+  promise.then(
+    (value) => {
+      trackedPromise[PROMISE_STATE] = 'fulfilled'
+      trackedPromise[PROMISE_RESULT] = value
+    },
+    (reason: unknown) => {
+      trackedPromise[PROMISE_STATE] = 'rejected'
+      trackedPromise[PROMISE_RESULT] = reason
+    },
+  )
+  return promise
+}
+
+class PromisePlaceholder {
+  constructor(private readonly state: NonSerializableValue_Promise['value']) {}
+
+  toString() {
+    return `[Promise ${this.state.status}]`
+  }
+
+  [VALUE_DISPLAY](): ValueDisplayToken[] {
+    const statusClass =
+      this.state.status === 'fulfilled'
+        ? 'text-(--devtools-syntax-green)'
+        : this.state.status === 'rejected'
+          ? 'text-(--devtools-syntax-red)'
+          : 'text-(--devtools-syntax-orange)'
+    return [
+      { text: '[', class: 'text-(--devtools-syntax-gray)' },
+      { text: 'Promise', class: 'text-(--devtools-syntax-object-blue)' },
+      { text: ' ' },
+      { text: this.state.status, class: statusClass },
+      { text: ']', class: 'text-(--devtools-syntax-gray)' },
+    ]
+  }
+
+  [VALUE_DETAILS]() {
+    if (this.state.status === 'fulfilled') {
+      return { status: this.state.status, value: restoreClonedDeep(this.state.value) }
+    }
+    if (this.state.status === 'rejected') {
+      return { status: this.state.status, reason: restoreClonedDeep(this.state.reason) }
+    }
+    return { status: this.state.status }
+  }
+
+  [CUSTOM_VALUE_SERIALIZE](): NonSerializableValue_Promise {
+    return { __custom: '@@pc-non-serializable', __type: 'promise', value: this.state }
+  }
+}
+
+class URLPlaceholder {
+  private readonly url: URL
+
+  constructor(value: string) {
+    this.url = new URL(value)
+  }
+
+  toString() {
+    return `URL(${this.url.href})`
+  }
+
+  [VALUE_DISPLAY](): ValueDisplayToken[] {
+    return objectCallDisplayTokens('URL', this.url.href)
+  }
+
+  [VALUE_DETAILS]() {
+    return {
+      href: this.url.href,
+      origin: this.url.origin,
+      protocol: this.url.protocol,
+      username: this.url.username,
+      password: this.url.password,
+      host: this.url.host,
+      hostname: this.url.hostname,
+      port: this.url.port,
+      pathname: this.url.pathname,
+      search: this.url.search,
+      searchParams: new URLSearchParamsPlaceholder(this.url.searchParams.toString()),
+      hash: this.url.hash,
+    }
+  }
+
+  [CUSTOM_VALUE_SERIALIZE](): NonSerializableValue_URL {
+    return { __custom: '@@pc-non-serializable', __type: 'url', value: this.url.href }
+  }
+}
+
+class URLSearchParamsPlaceholder {
+  private readonly params: URLSearchParams
+
+  constructor(value: string) {
+    this.params = new URLSearchParams(value)
+  }
+
+  toString() {
+    return `URLSearchParams(${this.params.toString()})`
+  }
+
+  [VALUE_DISPLAY](): ValueDisplayToken[] {
+    return objectCallDisplayTokens('URLSearchParams', this.params.toString())
+  }
+
+  [VALUE_DETAILS]() {
+    return {
+      size: this.params.size,
+      entries: Array.from(this.params.entries()),
+    }
+  }
+
+  [CUSTOM_VALUE_SERIALIZE](): NonSerializableValue_URLSearchParams {
+    return {
+      __custom: '@@pc-non-serializable',
+      __type: 'urlsearchparams',
+      value: this.params.toString(),
+    }
+  }
+}
+
+function objectCallDisplayTokens(type: string, value: string): ValueDisplayToken[] {
+  return [
+    { text: type, class: 'text-(--devtools-syntax-object-blue)' },
+    { text: '(', class: 'text-(--devtools-syntax-gray)' },
+    { text: value, class: 'text-(--devtools-syntax-green)' },
+    { text: ')', class: 'text-(--devtools-syntax-gray)' },
+  ]
+}
+
+function binaryDisplayTokens(type: string, byteLength: number): ValueDisplayToken[] {
+  return [
+    { text: '[', class: 'text-(--devtools-syntax-gray)' },
+    { text: type, class: 'text-(--devtools-syntax-object-blue)' },
+    { text: ' ' },
+    { text: String(byteLength), class: 'text-(--devtools-syntax-orange)' },
+    { text: ' bytes]', class: 'text-(--devtools-syntax-gray)' },
+  ]
+}
+
+function getArrayBufferMetadata(value: ArrayBuffer): ArrayBufferMetadata {
+  return {
+    byteLength: value.byteLength,
+    detached: value.detached,
+    maxByteLength: value.maxByteLength,
+    resizable: value.resizable,
+  }
+}
+
+function restoreArrayBufferPlaceholder(value: ArrayBufferMetadata) {
+  return new BinaryDataPlaceholder(
+    'ArrayBuffer',
+    value.byteLength,
+    { ...value },
+    {
+      __custom: '@@pc-non-serializable',
+      __type: 'arraybuffer',
+      value,
+    },
+  )
+}
+
+class CircularPlaceholder {
+  toString() {
+    return '[Circular]'
+  }
+
+  [CUSTOM_VALUE_SERIALIZE](): NonSerializableValue_Circular {
+    return serializeCircular()
+  }
+}
+
+export function serializeCircular(): NonSerializableValue_Circular {
+  return {
+    __custom: '@@pc-non-serializable',
+    __type: 'circular',
+    value: null,
   }
 }
 
@@ -145,18 +611,24 @@ export function safeSerialize(value: (...args: unknown[]) => unknown): NonSerial
 export function safeSerialize(value: symbol): NonSerializableValue_Symbol
 export function safeSerialize(value: bigint): NonSerializableValue_BigInt
 export function safeSerialize(value: RegExp): NonSerializableValue_RegExp
+export function safeSerialize(value: URL): NonSerializableValue_URL
+export function safeSerialize(value: URLSearchParams): NonSerializableValue_URLSearchParams
 export function safeSerialize(value: Map<unknown, unknown>): NonSerializableValue_Map
 export function safeSerialize(value: Set<unknown>): NonSerializableValue_Set
 export function safeSerialize(value: WeakMap<object, unknown>): NonSerializableValue_WeakMap
 export function safeSerialize(value: WeakSet<object>): NonSerializableValue_WeakSet
 export function safeSerialize(value: Date): NonSerializableValue_Date
 export function safeSerialize(value: ArrayBuffer): NonSerializableValue_ArrayBuffer
+export function safeSerialize(value: Blob): NonSerializableValue_Blob
+export function safeSerialize(value: File): NonSerializableValue_File
 export function safeSerialize(value: ArrayBufferView): NonSerializableValue_TypedArray
 export function safeSerialize(value: Promise<unknown>): NonSerializableValue_Promise
 export function safeSerialize(value: Error): NonSerializableValue_Error
 export function safeSerialize<T>(value: T): T
 export function safeSerialize(value: unknown) {
-  if (typeof value === 'function') {
+  if (isRestoredCustomValue(value)) {
+    return value[CUSTOM_VALUE_SERIALIZE]()
+  } else if (typeof value === 'function') {
     return {
       __custom: '@@pc-non-serializable',
       __type: 'function',
@@ -174,12 +646,36 @@ export function safeSerialize(value: unknown) {
       __type: 'bigint',
       value: String(value),
     } satisfies NonSerializableValue_BigInt
+  } else if (value instanceof Number) {
+    return {
+      __custom: '@@pc-non-serializable',
+      __type: 'boxednumber',
+      value: value.valueOf(),
+    } satisfies NonSerializableValue_BoxedNumber
+  } else if (value instanceof String) {
+    return {
+      __custom: '@@pc-non-serializable',
+      __type: 'boxedstring',
+      value: value.valueOf(),
+    } satisfies NonSerializableValue_BoxedString
   } else if (value instanceof RegExp) {
     return {
       __custom: '@@pc-non-serializable',
       __type: 'regexp',
       value: { source: value.source, flags: value.flags },
     } satisfies NonSerializableValue_RegExp
+  } else if (value instanceof URL) {
+    return {
+      __custom: '@@pc-non-serializable',
+      __type: 'url',
+      value: value.href,
+    } satisfies NonSerializableValue_URL
+  } else if (value instanceof URLSearchParams) {
+    return {
+      __custom: '@@pc-non-serializable',
+      __type: 'urlsearchparams',
+      value: value.toString(),
+    } satisfies NonSerializableValue_URLSearchParams
   } else if (value instanceof Map) {
     return {
       __custom: '@@pc-non-serializable',
@@ -211,27 +707,58 @@ export function safeSerialize(value: unknown) {
     return {
       __custom: '@@pc-non-serializable',
       __type: 'date',
-      value: value.toISOString(),
+      value: Number.isNaN(value.getTime()) ? null : value.toISOString(),
     } satisfies NonSerializableValue_Date
   } else if (value instanceof ArrayBuffer) {
     return {
       __custom: '@@pc-non-serializable',
       __type: 'arraybuffer',
-      value: { byteLength: value.byteLength },
+      value: getArrayBufferMetadata(value),
     } satisfies NonSerializableValue_ArrayBuffer
+  } else if (typeof File !== 'undefined' && value instanceof File) {
+    return {
+      __custom: '@@pc-non-serializable',
+      __type: 'file',
+      value: {
+        name: value.name,
+        size: value.size,
+        type: value.type,
+        lastModified: value.lastModified,
+        webkitRelativePath: value.webkitRelativePath || '',
+      },
+    } satisfies NonSerializableValue_File
+  } else if (typeof Blob !== 'undefined' && value instanceof Blob) {
+    return {
+      __custom: '@@pc-non-serializable',
+      __type: 'blob',
+      value: { size: value.size, type: value.type },
+    } satisfies NonSerializableValue_Blob
   } else if (ArrayBuffer.isView(value)) {
     // Handle TypedArrays and DataView
     const typeName = value.constructor.name
     return {
       __custom: '@@pc-non-serializable',
       __type: 'typedarray',
-      value: { arrayType: typeName, byteLength: value.byteLength },
+      value: {
+        arrayType: typeName,
+        byteLength: value.byteLength,
+        byteOffset: value.byteOffset,
+        ...('length' in value && typeof value.length === 'number' && { length: value.length }),
+        buffer: getArrayBufferMetadata(value.buffer as ArrayBuffer),
+      },
     } satisfies NonSerializableValue_TypedArray
   } else if (value instanceof Promise) {
+    const trackedPromise = value as Partial<TrackedPromise<unknown>>
+    const status = trackedPromise[PROMISE_STATE] || 'pending'
     return {
       __custom: '@@pc-non-serializable',
       __type: 'promise',
-      value: null,
+      value:
+        status === 'fulfilled'
+          ? { status, value: safeSerializeRecursive(trackedPromise[PROMISE_RESULT]) }
+          : status === 'rejected'
+            ? { status, reason: safeSerializeRecursive(trackedPromise[PROMISE_RESULT]) }
+            : { status },
     } satisfies NonSerializableValue_Promise
   } else if (value instanceof Error) {
     return {
@@ -241,8 +768,31 @@ export function safeSerialize(value: unknown) {
         name: value.name,
         message: value.message,
         stack: value.stack,
+        ...('cause' in value && { cause: safeSerializeRecursive(value.cause) }),
+        ...(value instanceof AggregateError && {
+          errors: value.errors.map((error) => safeSerializeRecursive(error)),
+        }),
       },
     } satisfies NonSerializableValue_Error
+  } else if (value && typeof value === 'object' && Object.getPrototypeOf(value) === null) {
+    return {
+      __custom: '@@pc-non-serializable',
+      __type: 'nullprototypeobject',
+      value: { properties: safeSerializeRecursive({ ...value }) },
+    } satisfies NonSerializableValue_NullPrototypeObject
+  } else if (
+    isPlainObject(value) &&
+    '__constructorName' in value &&
+    typeof value.__constructorName === 'string'
+  ) {
+    return {
+      __custom: '@@pc-non-serializable',
+      __type: 'object',
+      value: {
+        constructorName: value.__constructorName,
+        properties: safeSerializeRecursive({ ...value }),
+      },
+    } satisfies NonSerializableValue_Object
   } else if (
     value &&
     typeof value === 'object' &&
@@ -279,7 +829,10 @@ export function isNonSerializableValue(value: unknown): value is NonSerializable
 
 function restoreClonedValue(value: NonSerializableValue) {
   if (value.__type === 'function') {
-    return () => {}
+    const restoredFunction = () => {}
+    const name = /^\[Function: (.*)]$/.exec(value.value)?.[1]
+    if (name) Object.defineProperty(restoredFunction, 'name', { value: name })
+    return restoredFunction
   } else if (value.__type === 'symbol') {
     return Symbol(value.value)
   } else if (value.__type === 'bigint') {
@@ -289,6 +842,10 @@ function restoreClonedValue(value: NonSerializableValue) {
     } catch (err) {
       return new SerializationError(`Invalid bigint value: ${value.value}`, err)
     }
+  } else if (value.__type === 'boxednumber') {
+    return Object(value.value)
+  } else if (value.__type === 'boxedstring') {
+    return Object(value.value)
   } else if (value.__type === 'regexp') {
     try {
       const { source, flags } = value.value
@@ -296,6 +853,14 @@ function restoreClonedValue(value: NonSerializableValue) {
     } catch (err) {
       return new SerializationError(`Invalid regexp value: ${JSON.stringify(value.value)}`, err)
     }
+  } else if (value.__type === 'url') {
+    try {
+      return new URLPlaceholder(value.value)
+    } catch (err) {
+      return new SerializationError(`Invalid URL value: ${value.value}`, err)
+    }
+  } else if (value.__type === 'urlsearchparams') {
+    return new URLSearchParamsPlaceholder(value.value)
   } else if (value.__type === 'map') {
     const entries = value.value.map(
       ([k, v]) => [restoreClonedDeep(k), restoreClonedDeep(v)] as const,
@@ -309,19 +874,43 @@ function restoreClonedValue(value: NonSerializableValue) {
   } else if (value.__type === 'weakset') {
     return new WeakSet()
   } else if (value.__type === 'date') {
+    if (value.value === null) return new Date(Number.NaN)
     try {
       return new Date(value.value)
     } catch (err) {
       return new SerializationError(`Invalid date value: ${value.value}`, err)
     }
   } else if (value.__type === 'arraybuffer') {
-    return new BinaryDataPlaceholder('ArrayBuffer', value.value.byteLength)
+    return restoreArrayBufferPlaceholder(value.value)
+  } else if (value.__type === 'blob') {
+    return new BlobPlaceholder(value.value)
+  } else if (value.__type === 'file') {
+    return new FilePlaceholder(value.value)
   } else if (value.__type === 'typedarray') {
-    return new BinaryDataPlaceholder('TypedArray', value.value.byteLength, value.value.arrayType)
+    return new BinaryDataPlaceholder(
+      value.value.arrayType,
+      value.value.byteLength,
+      {
+        buffer: restoreArrayBufferPlaceholder(value.value.buffer),
+        byteLength: value.value.byteLength,
+        byteOffset: value.value.byteOffset,
+        ...('length' in value.value && { length: value.value.length }),
+      },
+      value,
+    )
   } else if (value.__type === 'promise') {
-    return Promise.resolve()
+    return new PromisePlaceholder(value.value)
   } else if (value.__type === 'error') {
-    const error = new Error(value.value.message)
+    const options = {
+      ...('cause' in value.value && { cause: restoreClonedDeep(value.value.cause) }),
+    }
+    const error = value.value.errors
+      ? new AggregateError(
+          value.value.errors.map((error) => restoreClonedDeep(error)),
+          value.value.message,
+          options,
+        )
+      : new Error(value.value.message, options)
     error.name = value.value.name
     if (value.value.stack) {
       error.stack = value.value.stack
@@ -329,9 +918,16 @@ function restoreClonedValue(value: NonSerializableValue) {
     return error
   } else if (value.__type === 'object') {
     const properties = restoreClonedDeep(value.value.properties)
-    return typeof properties === 'object' && properties !== null
-      ? { ...properties, __constructorName: value.value.constructorName }
-      : { __constructorName: value.value.constructorName }
+    const restoredObject =
+      typeof properties === 'object' && properties !== null ? { ...properties } : {}
+    Object.defineProperty(restoredObject, '__constructorName', {
+      value: value.value.constructorName,
+    })
+    return restoredObject
+  } else if (value.__type === 'nullprototypeobject') {
+    return Object.assign(Object.create(null), restoreClonedDeep(value.value.properties))
+  } else if (value.__type === 'circular') {
+    return new CircularPlaceholder()
   }
   // @ts-expect-error: type of value is never
   return new SerializationError(`Unknown non-serializable value type: ${value.__type}`)
@@ -354,7 +950,5 @@ export function restoreClonedDeep(val: unknown): unknown {
 }
 
 export function isError(err: unknown): err is Error {
-  return 'isError' in Error && typeof Error.isError === 'function'
-    ? Error.isError(err)
-    : err instanceof Error
+  return Error.isError?.(err) ?? err instanceof Error
 }

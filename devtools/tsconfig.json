@@ -11,19 +11,22 @@
     "lib": ["esnext", "dom"],
     "moduleResolution": "Bundler",
     "paths": {
-      "@pinia/colada-devtools/panel": ["./src/panel/index.ts"],
       "@pinia/colada-devtools/shared": ["./src/shared/index.ts"],
-      "@pinia/colada-devtools": ["./src/index.ts"]
+      "@pinia/colada-devtools": ["./src/index.ts"],
+      "@pinia/colada-devtools/vite": ["./src/vite.ts"],
+      "@pinia/colada-devtools/standalone": ["./src/standalone.ts"],
+      "@pinia/colada-devtools/client-script": ["./src/client-script.ts"]
     },
     "types": ["unplugin-icons/types/vue"]
   },
   "include": [
     "./src/**/*",
     "./env.d.ts",
-    "./auto-imports.d.ts",
     "./components.d.ts",
     "./typed-router.d.ts",
-    "./vite.config.*"
+    "./vite.config.*",
+    "./panel.vite.config.ts",
+    "./package.json"
   ],
   "vueCompilerOptions": {
     "plugins": ["vue-router/volar/sfc-route-blocks", "vue-router/volar/sfc-typed-router"]

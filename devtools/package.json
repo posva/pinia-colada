@@ -30,44 +30,68 @@
   "sideEffects": false,
   "exports": {
     ".": "./dist/index.js",
-    "./panel": "./dist-panel/index.js",
-    "./shared": "./dist-shared/index.js"
+    "./vite": "./dist/vite.js",
+    "./standalone": "./dist/standalone.js",
+    "./client-script": "./dist/client-script.js"
   },
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
   "files": [
     "LICENSE",
     "README.md",
     "dist",
-    "dist-panel",
-    "dist-shared"
+    "dist-client"
   ],
   "scripts": {
-    "dev:app": "vite",
-    "dev:db": "pnpm run -C ../playground dev:db",
-    "dev": "pnpm run --stream '/^dev:/'",
+    "dev": "vite --config vite.config.ts",
     "test:types": "vue-tsc --noEmit",
-    "build:main": "vite build --config vite.config.ts",
-    "build:shared": "vite build --config vite.config.shared.ts",
-    "build:panel": "vite build --config vite.config.panel.ts",
-    "build": "pnpm run --stream '/^build:/'"
+    "build": "tsdown && vite build --config panel.vite.config.ts"
+  },
+  "dependencies": {
+    "devframe": "^0.9.8"
+  },
+  "peerDependencies": {
+    "@devframes/hub": "^0.9.8",
+    "@devframes/hub-ui": "^0.9.8",
+    "@devframes/vite": "^0.9.8",
+    "@vitejs/devtools-kit": "^0.6.3",
+    "vite": "^7.0.0 || ^8.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@devframes/hub": {
+      "optional": true
+    },
+    "@devframes/hub-ui": {
+      "optional": true
+    },
+    "@devframes/vite": {
+      "optional": true
+    },
+    "@vitejs/devtools-kit": {
+      "optional": true
+    },
+    "vite": {
+      "optional": true
+    }
   },
   "devDependencies": {
-    "@iconify-json/lucide": "^1.2.125",
-    "@microsoft/api-extractor": "^7.59.0",
+    "@devframes/hub": "^0.9.8",
+    "@devframes/hub-ui": "^0.9.8",
+    "@devframes/vite": "^0.9.8",
+    "@iconify-json/lucide": "^1.2.128",
     "@pinia/colada": "workspace:^*",
     "@posva/splitpanes": "^4.0.6",
     "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/devtools": "^0.6.3",
+    "@vitejs/devtools-kit": "^0.6.3",
+    "@vitejs/plugin-vue": "^6.0.8",
     "@vueuse/core": "^14.4.0",
-    "mande": "^2.0.10",
-    "match-container": "^0.1.4",
     "pinia": "^4.0.3",
     "tailwindcss": "^4.3.3",
-    "unplugin-dts": "^1.0.3",
+    "tsdown": "^0.22.14",
     "unplugin-icons": "^23.0.1",
     "unplugin-vue-components": "^32.1.0",
-    "vue": "^3.5.41",
-    "vue-router": "^5.2.0",
+    "vite": "^8.2.2",
+    "vue": "^3.5.42",
+    "vue-router": "^5.3.1",
     "vue-tsc": "^3.3.11"
   }
 }

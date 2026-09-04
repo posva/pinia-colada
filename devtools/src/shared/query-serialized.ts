@@ -46,31 +46,73 @@ export interface UseQueryEntryPayloadOptions extends Pick<
   refetchOnWindowFocus: RefetchOnControl
 }
 
-export function miniJsonParse(value: unknown): string {
-  const isValidIdentifier = (key: string): boolean => /^[A-Z_$][\w$]*$/i.test(key)
+function createDisplayReplacer() {
+  const ancestors: object[] = []
 
-  const serialize = (val: unknown): string => {
-    if (val === null) return 'null'
-    if (typeof val === 'number') return val.toString()
-    if (typeof val === 'string') return JSON.stringify(val)
-    if (typeof val === 'boolean') return val ? 'true' : 'false'
-
-    if (Array.isArray(val)) {
-      return `[${val.map(serialize).join(',')}]`
+  return function stringifyDisplayValue(
+    this: Record<string, unknown>,
+    key: string,
+    value: unknown,
+  ): unknown {
+    const originalValue = this[key]
+    if (originalValue instanceof Date) {
+      return Number.isNaN(originalValue.getTime())
+        ? 'Invalid Date'
+        : `Date(${originalValue.toISOString()})`
     }
+    if (typeof value === 'bigint') return `${value}n`
+    if (!value || typeof value !== 'object') return value
 
-    if (typeof val === 'object') {
-      const obj = val as Record<string, unknown>
-      const entries = Object.keys(obj).map((key) => {
-        const k = isValidIdentifier(key) ? key : JSON.stringify(key)
-        const v = serialize(obj[key])
-        return `${k}:${v}`
-      })
-      return `{${entries.join(',')}}`
-    }
+    while (ancestors.length > 0 && ancestors.at(-1) !== this) ancestors.pop()
+    if (ancestors.includes(value)) return '[Circular]'
+    ancestors.push(value)
+    return value
+  }
+}
 
-    return 'undefined' // or throw if you prefer to exclude unsupported values
+const VALID_IDENTIFIER_RE = /^[A-Z_$][\w$]*$/i
+
+function isValidIdentifier(key: string): boolean {
+  return VALID_IDENTIFIER_RE.test(key)
+}
+
+function serializeMiniJson(value: unknown): string {
+  if (value === null) return 'null'
+  if (typeof value === 'number') return value.toString()
+  if (typeof value === 'string') return JSON.stringify(value)
+  if (typeof value === 'boolean') return value ? 'true' : 'false'
+
+  if (Array.isArray(value)) {
+    return `[${value.map(serializeMiniJson).join(',')}]`
   }
 
-  return serialize(value)
+  if (typeof value === 'object') {
+    const obj = value as Record<string, unknown>
+    const entries = Object.keys(obj).map((key) => {
+      const k = isValidIdentifier(key) ? key : JSON.stringify(key)
+      const v = serializeMiniJson(obj[key])
+      return `${k}:${v}`
+    })
+    return `{${entries.join(',')}}`
+  }
+
+  return 'undefined'
+}
+
+/**
+ * Stringifies a value for display while preserving BigInts.
+ *
+ * @internal
+ */
+export function miniJsonStringify(value: unknown): string {
+  return JSON.stringify(value, createDisplayReplacer(), 2) ?? String(value)
+}
+
+/**
+ * Serializes a value into the compact object syntax used in query keys.
+ *
+ * @internal
+ */
+export function miniJsonParse(value: unknown): string {
+  return serializeMiniJson(value)
 }

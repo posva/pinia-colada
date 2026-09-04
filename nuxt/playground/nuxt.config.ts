@@ -12,7 +12,7 @@ export default defineNuxtConfig({
   vite: {
     resolve: {
       alias: {
-        pinia: fileURLToPath(new URL('../../node_modules/pinia/dist/pinia.mjs', import.meta.url)),
+        pinia: fileURLToPath(new URL('../../node_modules/pinia/dist/pinia.js', import.meta.url)),
         '@pinia/colada': fileURLToPath(new URL('../../src/index.ts', import.meta.url)),
         '@pinia/colada-plugin-retry': fileURLToPath(
           new URL('../../plugins/retry/src/index.ts', import.meta.url),

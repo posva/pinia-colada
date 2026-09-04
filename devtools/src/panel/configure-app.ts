@@ -1,7 +1,7 @@
 import type { App as VueApp } from 'vue'
 import { createMemoryHistory, RouterLink, RouterView } from 'vue-router'
 import { experimental_createRouter as createRouter } from 'vue-router/experimental'
-import { resolver } from 'vue-router/auto-resolver'
+import { handleHotUpdate, resolver } from 'vue-router/auto-resolver'
 // import { createPinia } from 'pinia'
 
 export function configureApp(app: VueApp<unknown>) {
@@ -9,6 +9,10 @@ export function configureApp(app: VueApp<unknown>) {
     history: createMemoryHistory(),
     resolver,
   })
+
+  if (import.meta.hot) {
+    handleHotUpdate(router)
+  }
 
   // redirect '/' to '/queries'
   router.beforeEach((to) => {

@@ -1,5 +1,6 @@
 import { defineConfig, type TestProjectInlineConfiguration } from 'vitest/config'
 import Vue from '@vitejs/plugin-vue'
+import Icons from 'unplugin-icons/vite'
 import { fileURLToPath } from 'node:url'
 import fs from 'node:fs'
 
@@ -71,6 +72,7 @@ export default defineConfig({
       },
       {
         extends: true,
+        plugins: [Icons({ compiler: 'vue3' })],
         resolve: {
           alias: {
             '@pinia/colada-devtools/shared': fileURLToPath(
