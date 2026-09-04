@@ -950,7 +950,5 @@ export function restoreClonedDeep(val: unknown): unknown {
 }
 
 export function isError(err: unknown): err is Error {
-  return 'isError' in Error && typeof Error.isError === 'function'
-    ? Error.isError(err)
-    : err instanceof Error
+  return Error.isError?.(err) ?? err instanceof Error
 }
