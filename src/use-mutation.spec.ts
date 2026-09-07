@@ -151,7 +151,7 @@ describe('useMutation', () => {
     expect(wrapper.text()).toBe('1')
   })
 
-  it('does not over trigger sync watchers on initial load', async () => {
+  it('does not over trigger sync watchers', async () => {
     const watchIsLoadingSpy = vi.fn()
     const watchVariablesSpy = vi.fn()
     const wrapper = mount(
@@ -188,6 +188,13 @@ describe('useMutation', () => {
     expect(watchIsLoadingSpy).toHaveBeenCalledTimes(1)
     expect(watchIsLoadingSpy).toHaveBeenCalledWith(false, true, expect.any(Function))
     expect(watchVariablesSpy).toHaveBeenCalledTimes(0)
+
+    const secondMutation = wrapper.vm.mutateAsync(2)
+
+    expect(watchVariablesSpy).toHaveBeenCalledTimes(1)
+    expect(watchVariablesSpy).toHaveBeenCalledWith(2, 1, expect.any(Function))
+
+    await secondMutation
   })
 
   describe('hooks', () => {
