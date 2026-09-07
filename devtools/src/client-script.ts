@@ -71,23 +71,19 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
   let mutateCache: ((mutator: (cache: PiniaColadaCacheState) => void) => void) | undefined
 
   function updateQuery(entry: UseQueryEntryPayload) {
-    const serializedEntry = serializeDevtoolsValue(entry)
-    mutateCache?.((cache) => replaceQueryEntry(cache.queries, serializedEntry))
+    mutateCache?.((cache) => replaceQueryEntry(cache.queries, serializeDevtoolsValue(entry)))
   }
 
   function deleteQuery(entry: UseQueryEntryPayload) {
-    const serializedEntry = serializeDevtoolsValue(entry)
-    mutateCache?.((cache) => removeQueryEntry(cache.queries, serializedEntry))
+    mutateCache?.((cache) => removeQueryEntry(cache.queries, serializeDevtoolsValue(entry)))
   }
 
   function updateMutation(entry: UseMutationEntryPayload) {
-    const serializedEntry = serializeDevtoolsValue(entry)
-    mutateCache?.((cache) => replaceMutationEntry(cache.mutations, serializedEntry))
+    mutateCache?.((cache) => replaceMutationEntry(cache.mutations, serializeDevtoolsValue(entry)))
   }
 
   function deleteMutation(entry: UseMutationEntryPayload) {
-    const serializedEntry = serializeDevtoolsValue(entry)
-    mutateCache?.((cache) => removeMutationEntry(cache.mutations, serializedEntry))
+    mutateCache?.((cache) => removeMutationEntry(cache.mutations, serializeDevtoolsValue(entry)))
   }
 
   addDevtoolsInfo(queryCache, mutationCache)
@@ -133,7 +129,6 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
         const payload = createQueryEntryPayload(entry)
         payload.asyncStatus = 'loading'
         updateQuery(payload)
-        channel.callEvent('queries:update', payload)
       }
 
       // TODO: throttle
