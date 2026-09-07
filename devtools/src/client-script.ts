@@ -133,7 +133,7 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
         const payload = createQueryEntryPayload(entry)
         payload.asyncStatus = 'loading'
         updateQuery(payload)
-        channel.callEvent('')
+        channel.callEvent('queries:update', payload)
       }
 
       // TODO: throttle
