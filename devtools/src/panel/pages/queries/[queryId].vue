@@ -88,8 +88,8 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
     return
   }
 
-  // Send to app via RPC
-  panelChannel.callEvent('queries:set:state', selectedQuery.value.key, selectedQuery.value.state)
+  // Send to app via the in-page channel
+  return panelChannel.call('queries:set:state', selectedQuery.value.key, selectedQuery.value.state)
 }
 </script>
 
@@ -203,7 +203,7 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             size="sm"
             title="Refetch this query"
             :disabled="selectedQuery.options?.enabled === false"
-            @click="panelChannel.callEvent('queries:refetch', selectedQuery.key)"
+            @click="panelChannel.call('queries:refetch', selectedQuery.key)"
           >
             <i-lucide-refresh-cw class="size-3.5" /> Refetch
           </UButton>
@@ -212,7 +212,7 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             class="theme-neutral"
             size="sm"
             title="Invalidate this query"
-            @click="panelChannel.callEvent('queries:invalidate', selectedQuery.key)"
+            @click="panelChannel.call('queries:invalidate', selectedQuery.key)"
           >
             <i-lucide-timer-reset /> Invalidate
           </UButton>
@@ -222,7 +222,7 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             class="theme-purple"
             size="sm"
             title="Restore the previous state"
-            @click="panelChannel.callEvent('queries:simulate:loading', selectedQuery.key)"
+            @click="panelChannel.call('queries:simulate:loading', selectedQuery.key)"
           >
             <i-lucide-loader />
             Simulate loading
@@ -232,7 +232,7 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             class="theme-purple"
             size="sm"
             title="Simulate a loading state"
-            @click="panelChannel.callEvent('queries:simulate:loading:stop', selectedQuery.key)"
+            @click="panelChannel.call('queries:simulate:loading:stop', selectedQuery.key)"
           >
             <i-lucide-loader class="animate-spin" />
             Stop loading
@@ -243,7 +243,7 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             class="theme-error"
             size="sm"
             title="Simulate an Error state"
-            @click="panelChannel.callEvent('queries:simulate:error', selectedQuery.key)"
+            @click="panelChannel.call('queries:simulate:error', selectedQuery.key)"
           >
             <i-lucide-x-octagon /> Simulate error
           </UButton>
@@ -252,7 +252,7 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             class="theme-error"
             size="sm"
             title="Restore the previous state"
-            @click="panelChannel.callEvent('queries:simulate:error:stop', selectedQuery.key)"
+            @click="panelChannel.call('queries:simulate:error:stop', selectedQuery.key)"
           >
             <i-lucide-rotate-ccw /> Remove error
           </UButton>
@@ -261,7 +261,7 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             class="theme-warning"
             size="sm"
             title="Reset this query to its initial (pending) state"
-            @click="panelChannel.callEvent('queries:reset', selectedQuery.key)"
+            @click="panelChannel.call('queries:reset', selectedQuery.key)"
           >
             <i-lucide-trash /> Reset
           </UButton>

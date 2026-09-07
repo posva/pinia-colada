@@ -44,8 +44,7 @@ function replayMutation(id: UseMutationEntryPayload['id']) {
   mutationCountBeforeReplay.value = mutations.value.length
   justReplayed = true
 
-  // Emit the replay event
-  panelChannel.callEvent('mutations:replay', id)
+  return panelChannel.call('mutations:replay', id)
 }
 
 // FIXME: we should move this logic up and auto detect replays maybe with some linking
@@ -162,7 +161,7 @@ watch(
             class="theme-purple"
             size="sm"
             title="Simulate a loading state"
-            @click="panelChannel.callEvent('mutations:simulate:loading', selectedMutation.id)"
+            @click="panelChannel.call('mutations:simulate:loading', selectedMutation.id)"
           >
             <i-lucide-loader />
             Simulate loading
@@ -172,7 +171,7 @@ watch(
             class="theme-purple"
             size="sm"
             title="Stop simulating loading state"
-            @click="panelChannel.callEvent('mutations:simulate:loading:stop', selectedMutation.id)"
+            @click="panelChannel.call('mutations:simulate:loading:stop', selectedMutation.id)"
           >
             <i-lucide-loader class="animate-spin" />
             Stop loading
@@ -183,7 +182,7 @@ watch(
             class="theme-error"
             size="sm"
             title="Simulate an Error state"
-            @click="panelChannel.callEvent('mutations:simulate:error', selectedMutation.id)"
+            @click="panelChannel.call('mutations:simulate:error', selectedMutation.id)"
           >
             <i-lucide-x-octagon /> Simulate error
           </UButton>
@@ -192,7 +191,7 @@ watch(
             class="theme-error"
             size="sm"
             title="Restore the previous state"
-            @click="panelChannel.callEvent('mutations:simulate:error:stop', selectedMutation.id)"
+            @click="panelChannel.call('mutations:simulate:error:stop', selectedMutation.id)"
           >
             <i-lucide-rotate-ccw /> Remove error
           </UButton>
@@ -211,7 +210,7 @@ watch(
             class="theme-warning"
             size="sm"
             title="Remove this mutation from the cache"
-            @click="panelChannel.callEvent('mutations:remove', selectedMutation.id)"
+            @click="panelChannel.call('mutations:remove', selectedMutation.id)"
           >
             <i-lucide-trash /> Remove
           </UButton>

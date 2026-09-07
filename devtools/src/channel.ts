@@ -1,5 +1,6 @@
 import type { InPageChannelProtocol } from 'devframe/in-page-channel'
 import type {
+  AppEmits,
   DevtoolsProcedures,
   UseMutationEntryPayload,
   UseQueryEntryPayload,
@@ -18,7 +19,7 @@ export interface PiniaColadaCacheState {
 
 export interface PiniaColadaChannelProtocol extends InPageChannelProtocol {
   pageScript: DevtoolsProcedures
-  panel: Record<string, never>
+  panel: AppEmits
   sharedStates: {
     cache: PiniaColadaCacheState
   }

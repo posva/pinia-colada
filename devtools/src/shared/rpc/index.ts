@@ -4,11 +4,11 @@ import type {
   UseQueryEntryFilter,
   UseMutationEntryFilter,
 } from '@pinia/colada'
-import type { UseQueryEntryPayload } from '../query-serialized'
-import type { UseMutationEntryPayload } from '../mutation-serialized'
 import { toRaw } from 'vue'
 import { isRestoredCustomValue, safeSerialize, serializeCircular } from './custom-values'
 import { isPlainObject } from '../json'
+import type { UseMutationEntryPayload } from '../mutation-serialized'
+import type { UseQueryEntryPayload } from '../query-serialized'
 
 export { isNonSerializableValue } from './custom-values'
 export { restoreClonedDeep } from './custom-values'
@@ -16,10 +16,14 @@ export { restoreOriginalValues } from './custom-values'
 export { trackPromise } from './custom-values'
 export type { NonSerializableValue } from './custom-values'
 
-export type AppProcedures = {
+/**
+ * Events emitted by the host app with info consumed by the devtools
+ */
+export type AppEmits = {
   'queries:all': (entries: UseQueryEntryPayload[]) => void
   'queries:update': (entry: UseQueryEntryPayload) => void
   'queries:delete': (entry: UseQueryEntryPayload) => void
+
   'mutations:all': (entries: UseMutationEntryPayload[]) => void
   'mutations:update': (entry: UseMutationEntryPayload) => void
   'mutations:delete': (entry: UseMutationEntryPayload) => void

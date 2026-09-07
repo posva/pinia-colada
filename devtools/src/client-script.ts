@@ -2,8 +2,8 @@
  * Dock client script, a.k.a. the in-page channel's **page script**: runs
  * inside the inspected app page (same Vite module graph as the app, so
  * `pinia` / `@pinia/colada` and the devtools sources resolve to the app's own
- * instances). It reuses the app-side cache wiring and exposes each devtools
- * action directly as a typed channel event.
+ * instances). It wires the app-side caches directly to the authoritative
+ * shared state and exposes each devtools action through the channel.
  *
  * It is the authority of the channel: panels handshake with it directly, so no
  * devframe server round-trip (and no auth) is involved, and a panel that
@@ -13,18 +13,26 @@
 import { createPageScriptChannel } from 'devframe/in-page-channel'
 import type { QueryCache, MutationCache } from '@pinia/colada'
 import { getActivePinia } from 'pinia'
+import { watch } from 'vue'
 import {
   removeMutationEntry,
   removeQueryEntry,
   replaceMutationEntry,
   replaceQueryEntry,
   restoreClonedDeep,
+  restoreOriginalValues,
   serializeDevtoolsValue,
 } from '@pinia/colada-devtools/shared'
 import type { UseMutationEntryPayload, UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
-import { setupDevtoolsAppBridge } from './app-bridge.ts'
+import {
+  addDevtoolsInfo,
+  createMutationEntryPayload,
+  createQueryEntryPayload,
+  ensureMutationDevtoolsInfo,
+  ensureQueryDevtoolsInfo,
+} from './pc-devtools-info-plugin'
 import { PINIA_COLADA_CHANNEL, PINIA_COLADA_WAIT_TIMEOUT } from './channel.ts'
-import type { PiniaColadaChannelProtocol } from './channel.ts'
+import type { PiniaColadaCacheState, PiniaColadaChannelProtocol } from './channel.ts'
 
 const SETUP_KEY = Symbol.for('pinia-colada:devtools:client-script')
 
@@ -60,28 +68,120 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
   const queryCache: QueryCache = useQueryCache(pinia)
   const mutationCache: MutationCache = useMutationCache(pinia)
 
-  let mutateCache:
-    | ((mutator: (cache: import('./channel.ts').PiniaColadaCacheState) => void) => void)
-    | undefined
+  let mutateCache: ((mutator: (cache: PiniaColadaCacheState) => void) => void) | undefined
 
-  const bridge = setupDevtoolsAppBridge(queryCache, mutationCache, (event, payload) => {
-    // The initial sync includes any updates missed during setup.
-    if (!mutateCache) return
-    const serializedPayload = serializeDevtoolsValue(payload)
-    mutateCache((cache) => {
-      if (event === 'queries:all') cache.queries = serializedPayload as UseQueryEntryPayload[]
-      else if (event === 'queries:update') {
-        replaceQueryEntry(cache.queries, serializedPayload as UseQueryEntryPayload)
-      } else if (event === 'queries:delete') {
-        removeQueryEntry(cache.queries, serializedPayload as UseQueryEntryPayload)
-      } else if (event === 'mutations:all') {
-        cache.mutations = serializedPayload as UseMutationEntryPayload[]
-      } else if (event === 'mutations:update') {
-        replaceMutationEntry(cache.mutations, serializedPayload as UseMutationEntryPayload)
-      } else {
-        removeMutationEntry(cache.mutations, serializedPayload as UseMutationEntryPayload)
+  function updateQuery(entry: UseQueryEntryPayload) {
+    const serializedEntry = serializeDevtoolsValue(entry)
+    mutateCache?.((cache) => replaceQueryEntry(cache.queries, serializedEntry))
+  }
+
+  function deleteQuery(entry: UseQueryEntryPayload) {
+    const serializedEntry = serializeDevtoolsValue(entry)
+    mutateCache?.((cache) => removeQueryEntry(cache.queries, serializedEntry))
+  }
+
+  function updateMutation(entry: UseMutationEntryPayload) {
+    const serializedEntry = serializeDevtoolsValue(entry)
+    mutateCache?.((cache) => replaceMutationEntry(cache.mutations, serializedEntry))
+  }
+
+  function deleteMutation(entry: UseMutationEntryPayload) {
+    const serializedEntry = serializeDevtoolsValue(entry)
+    mutateCache?.((cache) => removeMutationEntry(cache.mutations, serializedEntry))
+  }
+
+  addDevtoolsInfo(queryCache, mutationCache)
+
+  // Sync queries started before setup once they settle because their fetch
+  // lifecycle was not observed by $onAction.
+  for (const entry of queryCache.getEntries()) {
+    const refreshCall = entry.pending?.refreshCall
+    if (refreshCall) {
+      const syncSettledEntry = () => updateQuery(createQueryEntryPayload(entry))
+      void refreshCall.then(syncSettledEntry, syncSettledEntry)
+    }
+  }
+
+  // Do the same for mutations, which do not expose their pending promise.
+  for (const entry of mutationCache.getEntries()) {
+    if (entry.asyncStatus.value === 'loading') {
+      const stop = watch(entry.asyncStatus, (asyncStatus) => {
+        if (asyncStatus === 'idle') {
+          stop()
+          updateMutation(createMutationEntryPayload(entry))
+        }
+      })
+    }
+  }
+
+  queryCache.$onAction(({ name, after, onError, args }) => {
+    if (name === 'remove') {
+      const [entry] = args
+      after(() => deleteQuery(createQueryEntryPayload(entry)))
+    } else if (
+      name === 'track' ||
+      name === 'untrack' ||
+      name === 'cancel' ||
+      name === 'invalidate' ||
+      name === 'fetch' ||
+      name === 'setEntryState'
+    ) {
+      const [entry] = args
+
+      // On fetch, display the loading state immediately.
+      if (name === 'fetch') {
+        const payload = createQueryEntryPayload(entry)
+        payload.asyncStatus = 'loading'
+        updateQuery(payload)
+        channel.callEvent('')
       }
-    })
+
+      // TODO: throttle
+      after(() => {
+        ensureQueryDevtoolsInfo(entry).simulate = null
+        updateQuery(createQueryEntryPayload(entry))
+
+        if (
+          name === 'fetch' &&
+          entry.options?.staleTime != null &&
+          Number.isFinite(entry.options.staleTime)
+        ) {
+          setTimeout(() => updateQuery(createQueryEntryPayload(entry)), entry.options.staleTime)
+        }
+      })
+      onError(() => updateQuery(createQueryEntryPayload(entry)))
+    } else if (name === 'create') {
+      after((entry) => updateQuery(createQueryEntryPayload(entry)))
+    } else if (name === 'setQueryData') {
+      const [key] = args
+      after(() => {
+        const entry = queryCache.getEntries({ key, exact: true })[0]
+        if (entry) updateQuery(createQueryEntryPayload(entry))
+      })
+    }
+  })
+
+  mutationCache.$onAction(({ name, args, after, onError }) => {
+    if (name === 'remove') {
+      const [entry] = args
+      after(() => deleteMutation(createMutationEntryPayload(entry)))
+    } else if (name === 'mutate' || name === 'setEntryState' || name === 'untrack') {
+      const [entry] = args
+      // Avoid displaying temporary entries.
+      if (entry.id < 1) return
+
+      if (name === 'mutate') {
+        const payload = createMutationEntryPayload(entry)
+        payload.asyncStatus = 'loading'
+        updateMutation(payload)
+      }
+      after(() => updateMutation(createMutationEntryPayload(entry)))
+      onError(() => updateMutation(createMutationEntryPayload(entry)))
+    } else if (name === 'create') {
+      after((entry) => {
+        if (entry.id > 0) updateMutation(createMutationEntryPayload(entry))
+      })
+    }
   })
 
   const channel = createPageScriptChannel<PiniaColadaChannelProtocol>({
@@ -91,80 +191,211 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
     functions: {
       'queries:clear': {
         type: 'action',
-        jsonSerializable: true,
-        handler: bridge.actions['queries:clear'],
+        handler: (filters = {}) => {
+          queryCache.getEntries(filters).forEach((entry) => queryCache.remove(entry))
+        },
       },
+
       'queries:refetch': {
         type: 'action',
-        jsonSerializable: true,
-        handler: bridge.actions['queries:refetch'],
+        handler: (key) => {
+          queryCache.invalidateQueries({ key, exact: true }, 'all')
+        },
       },
+
       'queries:invalidate': {
         type: 'action',
-        jsonSerializable: true,
-        handler: bridge.actions['queries:invalidate'],
+        handler: (key) => {
+          queryCache.invalidateQueries({ key, exact: true })
+        },
       },
+
       'queries:reset': {
         type: 'action',
-        jsonSerializable: true,
-        handler: bridge.actions['queries:reset'],
+        handler: (key) => {
+          const entry = queryCache.getEntries({ key, exact: true })[0]
+          if (entry) {
+            queryCache.cancel(entry)
+            queryCache.setEntryState(entry, {
+              status: 'pending',
+              data: undefined,
+              error: null,
+            })
+          }
+        },
       },
+
       // Edited state can contain rich values restored by the channel codec.
-      'queries:set:state': { type: 'action', handler: bridge.actions['queries:set:state'] },
+      'queries:set:state': {
+        type: 'action',
+        handler: (key, state) => {
+          const entry = queryCache.getEntries({ key, exact: true })[0]
+          if (entry) {
+            queryCache.setEntryState(entry, restoreOriginalValues(state, entry.state.value))
+            updateQuery(createQueryEntryPayload(entry))
+          }
+        },
+      },
+
       'queries:simulate:loading': {
         type: 'action',
-        jsonSerializable: true,
-        handler: bridge.actions['queries:simulate:loading'],
+        handler: (key) => {
+          const entry = queryCache.getEntries({ key, exact: true })[0]
+          if (entry) {
+            entry.asyncStatus.value = 'loading'
+            ensureQueryDevtoolsInfo(entry).simulate = 'loading'
+            updateQuery(createQueryEntryPayload(entry))
+          }
+        },
       },
+
       'queries:simulate:loading:stop': {
         type: 'action',
-        jsonSerializable: true,
-        handler: bridge.actions['queries:simulate:loading:stop'],
+        handler: (key) => {
+          const entry = queryCache.getEntries({ key, exact: true })[0]
+          if (entry && ensureQueryDevtoolsInfo(entry).simulate === 'loading') {
+            entry.asyncStatus.value = 'idle'
+            ensureQueryDevtoolsInfo(entry).simulate = null
+            updateQuery(createQueryEntryPayload(entry))
+          }
+        },
       },
+
       'queries:simulate:error': {
         type: 'action',
-        jsonSerializable: true,
-        handler: bridge.actions['queries:simulate:error'],
+        handler: (key) => {
+          const entry = queryCache.getEntries({ key, exact: true })[0]
+          if (entry) {
+            queryCache.cancel(entry)
+            queryCache.setEntryState(entry, {
+              ...entry.state.value,
+              status: 'error',
+              error: new Error('Simulated error'),
+            })
+            // Set after setEntryState because that action resets the simulation.
+            ensureQueryDevtoolsInfo(entry).simulate = 'error'
+            updateQuery(createQueryEntryPayload(entry))
+          }
+        },
       },
+
       'queries:simulate:error:stop': {
         type: 'action',
-        jsonSerializable: true,
-        handler: bridge.actions['queries:simulate:error:stop'],
+        handler: (key) => {
+          const entry = queryCache.getEntries({ key, exact: true })[0]
+          if (entry && ensureQueryDevtoolsInfo(entry).simulate === 'error') {
+            queryCache.cancel(entry)
+            queryCache.setEntryState(entry, {
+              ...entry.state.value,
+              status: entry.state.value.data !== undefined ? 'success' : 'pending',
+              error: null,
+            })
+            ensureQueryDevtoolsInfo(entry).simulate = null
+            updateQuery(createQueryEntryPayload(entry))
+          }
+        },
       },
+
       'mutations:clear': {
         type: 'action',
-        jsonSerializable: true,
-        handler: bridge.actions['mutations:clear'],
+        handler: (filters = {}) => {
+          mutationCache.getEntries(filters).forEach((entry) => mutationCache.remove(entry))
+        },
       },
+
       'mutations:remove': {
         type: 'action',
-        jsonSerializable: true,
-        handler: bridge.actions['mutations:remove'],
+        handler: (id) => {
+          const entry = mutationCache.get(id)
+          if (entry) mutationCache.remove(entry)
+        },
       },
+
       'mutations:simulate:loading': {
         type: 'action',
-        jsonSerializable: true,
-        handler: bridge.actions['mutations:simulate:loading'],
+        handler: (id) => {
+          const entry = mutationCache.get(id)
+          if (entry) {
+            entry.asyncStatus.value = 'loading'
+            ensureMutationDevtoolsInfo(entry).simulate = 'loading'
+            updateMutation(createMutationEntryPayload(entry))
+          }
+        },
       },
+
       'mutations:simulate:loading:stop': {
         type: 'action',
-        jsonSerializable: true,
-        handler: bridge.actions['mutations:simulate:loading:stop'],
+        handler: (id) => {
+          const entry = mutationCache.get(id)
+          if (entry && ensureMutationDevtoolsInfo(entry).simulate === 'loading') {
+            entry.asyncStatus.value = 'idle'
+            ensureMutationDevtoolsInfo(entry).simulate = null
+            updateMutation(createMutationEntryPayload(entry))
+          }
+        },
       },
+
       'mutations:simulate:error': {
         type: 'action',
-        jsonSerializable: true,
-        handler: bridge.actions['mutations:simulate:error'],
+        handler: (id) => {
+          const entry = mutationCache.get(id)
+          if (entry) {
+            mutationCache.setEntryState(entry, {
+              ...entry.state.value,
+              status: 'error',
+              error: new Error('Simulated error'),
+            })
+            // Set after setEntryState because that action resets the simulation.
+            ensureMutationDevtoolsInfo(entry).simulate = 'error'
+            updateMutation(createMutationEntryPayload(entry))
+          }
+        },
       },
+
       'mutations:simulate:error:stop': {
         type: 'action',
-        jsonSerializable: true,
-        handler: bridge.actions['mutations:simulate:error:stop'],
+        handler: (id) => {
+          const entry = mutationCache.get(id)
+          if (entry && ensureMutationDevtoolsInfo(entry).simulate === 'error') {
+            const state = entry.state.value
+            mutationCache.setEntryState(
+              entry,
+              state.data === undefined
+                ? { data: undefined, status: 'pending', error: null }
+                : { data: state.data, status: 'success', error: null },
+            )
+            ensureMutationDevtoolsInfo(entry).simulate = null
+            updateMutation(createMutationEntryPayload(entry))
+          }
+        },
       },
+
       'mutations:replay': {
         type: 'action',
-        jsonSerializable: true,
-        handler: bridge.actions['mutations:replay'],
+        handler: (id) => {
+          const entry = mutationCache.get(id)
+
+          if (!entry) {
+            console.warn('[@pinia/colada] Cannot replay: mutation entry not found')
+            return
+          }
+
+          if (entry.gcTimeout) {
+            console.warn(
+              "[@pinia/colada] Cannot replay: mutation is in the process of being garbage collected. It isn't used anywhere and replaying it will have no effect.",
+            )
+            return
+          }
+
+          mutationCache.setEntryState(entry, {
+            data: undefined,
+            status: 'pending',
+            error: null,
+          })
+          mutationCache.mutate(entry).catch(() => {
+            // Errors update the authoritative state through $onAction.
+          })
+        },
       },
     },
   })
@@ -175,7 +406,12 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
   mutateCache = (mutator) => cacheState.mutate(mutator)
 
   // Seed the authoritative cache before a panel connects.
-  bridge.sendAll()
+  mutateCache((cache) => {
+    cache.queries = serializeDevtoolsValue(queryCache.getEntries().map(createQueryEntryPayload))
+    cache.mutations = serializeDevtoolsValue(
+      mutationCache.getEntries().map(createMutationEntryPayload),
+    )
+  })
 
   return true
 }
