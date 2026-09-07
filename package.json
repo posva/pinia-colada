@@ -57,7 +57,7 @@
     "play": "pnpm -C playground dev",
     "prepublishOnly": "pnpm run build",
     "release": "node scripts/release.ts",
-    "test": "pnpm run build && pnpm run test:cov && pnpm run test:e2e:hmr && pnpm run build:all && pnpm run test:types && pnpm run codemods:test && pnpm run docs:build",
+    "test": "pnpm run build && pnpm run test:cov && pnpm run test:e2e:hmr && pnpm run build:all && pnpm run test:types && pnpm run --filter './devtools' test:types && pnpm run codemods:test && pnpm run docs:build",
     "fmt": "oxfmt",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
