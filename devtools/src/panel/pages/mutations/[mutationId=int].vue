@@ -13,6 +13,8 @@ import IBraces from '~icons/lucide/braces'
 import IVariable from '~icons/lucide/variable'
 import { useTimeAgo, useLocalStorage, formatTimeAgo } from '@vueuse/core'
 import type { FormatTimeAgoOptions } from '@vueuse/core'
+import { useEntryUpdateNotifications } from '../../composables/entry-update-notifications'
+import EntryUpdateNotification from '../../components/EntryUpdateNotification.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -74,6 +76,14 @@ watch(
 const isDataOpen = useLocalStorage<boolean>('pc:mutation:details:data:open', false, {})
 const isVarsOpen = useLocalStorage<boolean>('pc:mutation:details:vars:open', true, {})
 const isErrorOpen = useLocalStorage<boolean>('pc:mutation:details:error:open', false, {})
+const { hasNewData, hasNewError } = useEntryUpdateNotifications(
+  () => {
+    const mutation = selectedMutation.value
+    return mutation ? { id: mutation.id, when: mutation.when, status: mutation.state.status } : null
+  },
+  isDataOpen,
+  isErrorOpen,
+)
 </script>
 
 <template>
@@ -211,20 +221,28 @@ const isErrorOpen = useLocalStorage<boolean>('pc:mutation:details:error:open', f
       <UCollapse
         v-model:open="isDataOpen"
         :title="`Data${selectedMutation.state.data === undefined ? ' (empty)' : ''}`"
-        :icon="IFileText"
         :class="[selectedMutation.state.data === undefined && 'text-(--ui-text-muted)']"
         no-padding
         scroll-on-open
       >
+        <template #title="{ title }">
+          <h3 class="font-semibold text-sm flex gap-x-1 items-center">
+            <IFileText class="size-4" />
+            {{ title }}
+            <EntryUpdateNotification v-if="hasNewData" type="data" />
+          </h3>
+        </template>
         <JsonViewer :data="selectedMutation.state.data" />
       </UCollapse>
 
-      <UCollapse
-        v-model:open="isErrorOpen"
-        :title="`Error${selectedMutation.state.status === 'error' ? ' (!)' : ''}`"
-        :icon="ICircleX"
-        scroll-on-open
-      >
+      <UCollapse v-model:open="isErrorOpen" title="Error" scroll-on-open>
+        <template #title="{ title }">
+          <h3 class="font-semibold text-sm flex gap-x-1 items-center">
+            <ICircleX class="size-4" />
+            {{ title }}
+            <EntryUpdateNotification v-if="hasNewError" type="error" />
+          </h3>
+        </template>
         <div class="py-1">
           <pre
             v-if="selectedMutation.state.error"

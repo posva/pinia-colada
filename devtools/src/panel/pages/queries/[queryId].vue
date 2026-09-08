@@ -17,6 +17,8 @@ import IPlugZap from '~icons/lucide/plug-zap'
 import { useTimeAgo, formatTimeAgo, useLocalStorage } from '@vueuse/core'
 import type { FormatTimeAgoOptions } from '@vueuse/core'
 import { setNestedValue, type NestedValuePath } from '../../utils/set-nested-value'
+import { useEntryUpdateNotifications } from '../../composables/entry-update-notifications'
+import EntryUpdateNotification from '../../components/EntryUpdateNotification.vue'
 
 const route = useRoute()
 const queries = useQueryEntries()
@@ -56,6 +58,14 @@ const lastUpdate = useTimeAgo(() => selectedQuery.value?.devtools.updatedAt ?? 0
 
 const isDataOpen = useLocalStorage<boolean>('pc:query:details:data:open', false, {})
 const isErrorOpen = useLocalStorage<boolean>('pc:query:details:error:open', false, {})
+const { hasNewData, hasNewError } = useEntryUpdateNotifications(
+  () => {
+    const query = selectedQuery.value
+    return query ? { id: query.keyHash, when: query.when, status: query.state.status } : null
+  },
+  isDataOpen,
+  isErrorOpen,
+)
 
 // Handle value updates from JsonViewer
 const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
@@ -252,22 +262,34 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
       <UCollapse
         v-model:open="isDataOpen"
         :title="`Data${selectedQuery.state.data === undefined ? ' (empty)' : ''}`"
-        :icon="IFileText"
         :class="[selectedQuery.state.data === undefined && 'text-(--ui-text-muted)']"
         no-padding
         scroll-on-open
       >
+        <template #title="{ title }">
+          <h3 class="font-semibold text-sm flex gap-x-1 items-center">
+            <IFileText class="size-4" />
+            {{ title }}
+            <EntryUpdateNotification v-if="hasNewData" type="data" />
+          </h3>
+        </template>
         <JsonViewer :data="selectedQuery.state.data" @update:value="handleValueUpdate" />
       </UCollapse>
 
       <UCollapse
         v-model:open="isErrorOpen"
-        :title="`Error${selectedQuery.state.status === 'error' ? ' (!)' : '(empty)'}`"
-        :icon="ICircleX"
+        :title="`Error${selectedQuery.state.status === 'error' ? '' : ' (empty)'}`"
         :class="[selectedQuery.state.status !== 'error' && 'text-(--ui-text-muted)']"
         disabled
         scroll-on-open
       >
+        <template #title="{ title }">
+          <h3 class="font-semibold text-sm flex gap-x-1 items-center">
+            <ICircleX class="size-4" />
+            {{ title }}
+            <EntryUpdateNotification v-if="hasNewError" type="error" />
+          </h3>
+        </template>
         <div class="py-1">
           <pre v-if="selectedQuery.state.error" class="rounded p-1 overflow-auto max-h-[1200px]">{{
             selectedQuery.state.error
