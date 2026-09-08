@@ -10,17 +10,6 @@ defineProps<{
 const open = defineModel<boolean>('open', {
   default: true,
 })
-
-function scrollIfNeeded(event: TransitionEvent) {
-  if (event.target instanceof HTMLElement) {
-    const scrollOptions: ScrollIntoViewOptions = {
-      block: 'nearest',
-      inline: 'nearest',
-      behavior: 'smooth',
-    }
-    event.target.scrollIntoView(scrollOptions)
-  }
-}
 </script>
 
 <template>
@@ -36,11 +25,7 @@ function scrollIfNeeded(event: TransitionEvent) {
         </h3>
       </slot>
     </div>
-    <div
-      :class="!noPadding && 'px-2'"
-      class="collapse-content text-sm overflow-hidden"
-      @transitionend="scrollIfNeeded"
-    >
+    <div :class="!noPadding && 'px-2'" class="collapse-content text-sm overflow-hidden">
       <slot :open />
     </div>
   </div>

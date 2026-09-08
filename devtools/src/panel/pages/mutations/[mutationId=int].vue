@@ -4,7 +4,6 @@ import { computed, ref, watch } from 'vue'
 import { useMutationEntries } from '../../composables/devtools-context'
 import { panelChannel } from '../../panel-channel'
 import { useRoute, useRouter } from 'vue-router'
-import type { DataStateStatus } from '@pinia/colada'
 
 import IWrench from '~icons/lucide/wrench'
 import IInfoCircle from '~icons/lucide/info'
@@ -74,25 +73,7 @@ watch(
 
 const isDataOpen = useLocalStorage<boolean>('pc:mutation:details:data:open', false, {})
 const isVarsOpen = useLocalStorage<boolean>('pc:mutation:details:vars:open', true, {})
-let wasDataOpen = isDataOpen.value
-let lastStatus: DataStateStatus | null = null
 const isErrorOpen = useLocalStorage<boolean>('pc:mutation:details:error:open', false, {})
-
-watch(
-  () => selectedMutation.value?.state,
-  (state) => {
-    if (!state || lastStatus === state.status) return
-    lastStatus = state.status
-    if (state.status === 'error') {
-      isErrorOpen.value = true
-      wasDataOpen = isDataOpen.value
-      isDataOpen.value = false
-    } else if (state.status === 'success') {
-      isDataOpen.value = wasDataOpen
-      isErrorOpen.value = false
-    }
-  },
-)
 </script>
 
 <template>

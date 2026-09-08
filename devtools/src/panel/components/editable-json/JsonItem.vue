@@ -112,7 +112,7 @@ function enterEditMode(mode: 'simple' | 'json' = 'simple') {
 
   // Auto-focus the input
   nextTick(() => {
-    inputRef.value?.focus()
+    inputRef.value?.focus({ preventScroll: true })
   })
 }
 

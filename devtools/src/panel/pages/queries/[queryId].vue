@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import type { UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
-import { computed, watch } from 'vue'
+import { computed } from 'vue'
 import { useQueryEntries } from '../../composables/devtools-context'
 import { panelChannel } from '../../panel-channel'
 import { formatDuration } from '../../utils/time'
 import { useRoute } from 'vue-router'
-import type { DataStateStatus } from '@pinia/colada'
 
 import IWrench from '~icons/lucide/wrench'
 import IInfoCircle from '~icons/lucide/info'
@@ -56,25 +55,7 @@ const lastUpdate = useTimeAgo(() => selectedQuery.value?.devtools.updatedAt ?? 0
 // )
 
 const isDataOpen = useLocalStorage<boolean>('pc:query:details:data:open', false, {})
-let wasDataOpen = isDataOpen.value
-let lastStatus: DataStateStatus | null = null
 const isErrorOpen = useLocalStorage<boolean>('pc:query:details:error:open', false, {})
-watch(
-  () => selectedQuery.value?.state,
-  (state) => {
-    if (!state || lastStatus === state.status) return
-    lastStatus = state.status
-    if (state.status === 'error') {
-      isErrorOpen.value = true
-      // preserve it for later
-      wasDataOpen = isDataOpen.value
-      isDataOpen.value = false
-    } else if (state.status === 'success') {
-      isDataOpen.value = wasDataOpen
-      isErrorOpen.value = false
-    }
-  },
-)
 
 // Handle value updates from JsonViewer
 const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
