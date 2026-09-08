@@ -9,3 +9,9 @@ export const panelChannel = connectPanelChannel<PiniaColadaChannelProtocol>({
   deserialize: restoreClonedDeep,
   functions: {},
 })
+
+// FIXME: Remove this normalization once devframe applies the channel codec to
+// shared-state updates as well as the initial snapshot.
+export function normalizeSharedStateValue<T>(value: T): T {
+  return restoreClonedDeep(serializeDevtoolsValue(value))
+}

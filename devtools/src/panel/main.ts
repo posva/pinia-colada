@@ -1,11 +1,10 @@
 import { createApp, h, ref } from 'vue'
-import { restoreClonedDeep } from '@pinia/colada-devtools/shared'
 import App from './App.vue'
 import { configureApp } from './configure-app.ts'
 import { PINIA_COLADA_WAIT_TIMEOUT } from '../channel.ts'
 import type { PiniaColadaCacheState } from '../channel.ts'
 import { MUTATIONS_KEY, QUERIES_KEY } from './composables/devtools-context.ts'
-import { panelChannel } from './panel-channel.ts'
+import { normalizeSharedStateValue, panelChannel } from './panel-channel.ts'
 import './styles.css'
 
 const queries = ref<PiniaColadaCacheState['queries']>([])
@@ -48,7 +47,7 @@ panelChannel.events.on('status:updated', (channelStatus) => {
 void waitForConnection()
 void panelChannel.sharedState.get('cache').then((cache) => {
   function applyCache() {
-    const value = restoreClonedDeep(cache.value()) as unknown as PiniaColadaCacheState
+    const value = normalizeSharedStateValue(cache.value()) as unknown as PiniaColadaCacheState
     queries.value = value.queries
     mutations.value = value.mutations
   }
