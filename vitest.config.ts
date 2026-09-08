@@ -4,8 +4,11 @@ import Icons from 'unplugin-icons/vite'
 import { fileURLToPath } from 'node:url'
 import fs from 'node:fs'
 
+const repoRoot = fileURLToPath(new URL('.', import.meta.url))
+const devtoolsRoot = fileURLToPath(new URL('./devtools', import.meta.url))
+
 const pluginsProjects: TestProjectInlineConfiguration[] = fs
-  .globSync('./plugins/*/')
+  .globSync('./plugins/*/', { cwd: repoRoot })
   .map((dir) => {
     try {
       const pkg = JSON.parse(
@@ -16,7 +19,7 @@ const pluginsProjects: TestProjectInlineConfiguration[] = fs
         extends: true,
         test: {
           name: '🔌 ' + pkg.name,
-          root: dir,
+          root: fileURLToPath(new URL(dir, import.meta.url)),
           typecheck: {
             enabled: true,
           },
@@ -31,6 +34,7 @@ const pluginsProjects: TestProjectInlineConfiguration[] = fs
   .filter((v) => v != null)
 
 export default defineConfig({
+  root: repoRoot,
   plugins: [Vue()],
 
   // this allows plugins to correctly import the dev version of pinia
@@ -46,7 +50,7 @@ export default defineConfig({
         // inherit from root config
         extends: true,
         test: {
-          root: '.',
+          root: repoRoot,
           name: {
             label: '🍹 @pinia/colada',
             color: 'white',
@@ -61,6 +65,7 @@ export default defineConfig({
       {
         extends: true,
         test: {
+          root: repoRoot,
           name: {
             label: 'memory-leaks',
             color: 'cyan',
@@ -85,7 +90,7 @@ export default defineConfig({
             label: '🔍 @pinia/colada-devtools',
             color: 'yellow',
           },
-          root: './devtools',
+          root: devtoolsRoot,
           include: ['src/**/*.{test,spec}.ts'],
         },
       },
