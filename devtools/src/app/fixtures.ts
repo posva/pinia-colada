@@ -42,6 +42,7 @@ export function createValueFixture(revision: number) {
     fn: function fixtureFunction() {
       return revision
     },
+    arrowFn: () => revision,
     symbol: Symbol('fixture'),
     anonymousSymbol: Symbol(),
     globalSymbol: Symbol.for('pinia-colada-fixture'),
