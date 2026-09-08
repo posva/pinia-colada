@@ -214,6 +214,7 @@ const isErrorOpen = useLocalStorage<boolean>('pc:mutation:details:error:open', f
         :icon="IFileText"
         :class="[selectedMutation.state.data === undefined && 'text-(--ui-text-muted)']"
         no-padding
+        scroll-on-open
       >
         <JsonViewer :data="selectedMutation.state.data" />
       </UCollapse>
@@ -222,6 +223,7 @@ const isErrorOpen = useLocalStorage<boolean>('pc:mutation:details:error:open', f
         v-model:open="isErrorOpen"
         :title="`Error${selectedMutation.state.status === 'error' ? ' (!)' : ''}`"
         :icon="ICircleX"
+        scroll-on-open
       >
         <div class="py-1">
           <pre
@@ -232,7 +234,7 @@ const isErrorOpen = useLocalStorage<boolean>('pc:mutation:details:error:open', f
         </div>
       </UCollapse>
 
-      <UCollapse title="Options" :open="false" :icon="IBraces" no-padding>
+      <UCollapse title="Options" :open="false" :icon="IBraces" no-padding scroll-on-open>
         <JsonViewer v-if="selectedMutation.options" :data="selectedMutation.options" readonly />
         <p v-else>No options configured for this mutation.</p>
       </UCollapse>

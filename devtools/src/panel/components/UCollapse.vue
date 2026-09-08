@@ -1,20 +1,70 @@
 <script setup lang="ts">
-import type { Component } from 'vue'
+import { useTemplateRef, type Component } from 'vue'
 
-defineProps<{
+const { scrollOnOpen } = defineProps<{
   title?: string
   icon?: Component
   noPadding?: boolean
+  scrollOnOpen?: boolean
 }>()
 
 const open = defineModel<boolean>('open', {
   default: true,
 })
+
+const collapse = useTemplateRef('collapse')
+let pendingScroll: { container: HTMLElement; scrollTop: number } | undefined
+
+function prepareScroll(event: Event) {
+  // Only opted-in sections prepare a scroll when the user opens them.
+  if (
+    !scrollOnOpen ||
+    !(event.currentTarget instanceof HTMLInputElement) ||
+    !event.currentTarget.checked
+  ) {
+    // Closing before the animation ends cancels any pending scroll.
+    pendingScroll = undefined
+    return
+  }
+
+  // The split pane owns the visible scroll area for the section.
+  const container = collapse.value?.closest<HTMLElement>('.splitpanes__pane')
+  if (container) {
+    // Remember its position so later user scrolling can take priority.
+    pendingScroll = {
+      container,
+      scrollTop: container.scrollTop,
+    }
+  }
+}
+
+function scrollAfterOpening(event: TransitionEvent) {
+  // Wait for this section's animation; pendingScroll only exists after a user opens it.
+  if (event.propertyName !== 'grid-template-rows' || !pendingScroll) return
+
+  const scroll = pendingScroll
+  pendingScroll = undefined
+
+  const element = collapse.value
+  // A changed scroll position means the user took control while the section was opening.
+  if (!element || !open.value || Math.abs(scroll.container.scrollTop - scroll.scrollTop) > 1) return
+
+  const sectionRect = element.getBoundingClientRect()
+  const containerRect = scroll.container.getBoundingClientRect()
+
+  // Keep the current view when the whole section already fits in the pane.
+  if (sectionRect.bottom <= containerRect.bottom + 1) return
+
+  scroll.container.scrollTo({
+    top: scroll.container.scrollTop + sectionRect.top - containerRect.top,
+    behavior: 'smooth',
+  })
+}
 </script>
 
 <template>
-  <div class="collapse collapse-arrow">
-    <input v-model="open" type="checkbox" />
+  <div ref="collapse" class="collapse collapse-arrow" @transitionend.self="scrollAfterOpening">
+    <input v-model="open" type="checkbox" @change="prepareScroll" />
     <div class="collapse-title px-2 py-0.5 bg-neutral-200 dark:bg-neutral-800 theme-neutral">
       <slot name="title" :open :title>
         <h3 class="font-semibold text-sm flex gap-x-1 items-center">

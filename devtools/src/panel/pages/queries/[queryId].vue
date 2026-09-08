@@ -255,6 +255,7 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
         :icon="IFileText"
         :class="[selectedQuery.state.data === undefined && 'text-(--ui-text-muted)']"
         no-padding
+        scroll-on-open
       >
         <JsonViewer :data="selectedQuery.state.data" @update:value="handleValueUpdate" />
       </UCollapse>
@@ -265,6 +266,7 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
         :icon="ICircleX"
         :class="[selectedQuery.state.status !== 'error' && 'text-(--ui-text-muted)']"
         disabled
+        scroll-on-open
       >
         <div class="py-1">
           <pre v-if="selectedQuery.state.error" class="rounded p-1 overflow-auto max-h-[1200px]">{{
@@ -301,6 +303,7 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
         :title="`History (${selectedQuery.devtools.history.length})`"
         :icon="IHistory"
         :open="false"
+        scroll-on-open
       >
         <div class="py-1">
           <UCollapse
@@ -309,13 +312,20 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             :title="`Entry nº${entry.id} (${formatTimeAgo(new Date(entry.updatedAt), TIME_AGO_OPTIONS)})`"
             :open="false"
             class="border border-neutral-200 dark:border-neutral-800"
+            scroll-on-open
           >
             <JsonViewer :data="entry" readonly />
           </UCollapse>
         </div>
       </UCollapse>
 
-      <UCollapse title="Options" :open="!selectedQuery.options" :icon="IBraces" no-padding>
+      <UCollapse
+        title="Options"
+        :open="!selectedQuery.options"
+        :icon="IBraces"
+        no-padding
+        scroll-on-open
+      >
         <JsonViewer v-if="selectedQuery.options" :data="selectedQuery.options" readonly />
         <p v-else>
           This Query entry has no options. It might have been created from the server or manually
