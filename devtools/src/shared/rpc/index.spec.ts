@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { reactive } from 'vue'
 import { formatValue, getValueDetails, getValueDisplayTokens } from '../json'
-import { restoreClonedDeep, serializeDevtoolsValue, trackPromise } from './index'
+import { onPromiseSettled, restoreClonedDeep, serializeDevtoolsValue } from './index'
 
 describe('serializeDevtoolsValue', () => {
   it('preserves negative zero when formatting values', () => {
@@ -54,13 +54,19 @@ describe('serializeDevtoolsValue', () => {
     expect(displayText(restored.self)).toBe('[Circular]')
   })
 
-  it('serializes tracked promise states and results', async () => {
-    const pending = trackPromise(new Promise(() => {}))
-    const fulfilled = trackPromise(Promise.resolve({ message: 'done' }))
-    const rejected = trackPromise(Promise.reject(new TypeError('failed')))
+  it('observes and serializes promise states and results', async () => {
+    const pending = new Promise(() => {})
+    const fulfilled = Promise.resolve({ message: 'done' })
+    const rejected = Promise.reject(new TypeError('failed'))
+    const promises = { pending, fulfilled, rejected }
+
+    const initial = restoreClonedDeep(serializeDevtoolsValue(promises))
+    expect(formatValue(initial.fulfilled)).toBe('[Promise pending]')
+    expect(formatValue(initial.rejected)).toBe('[Promise pending]')
+
     await Promise.resolve()
 
-    const restored = restoreClonedDeep(serializeDevtoolsValue({ pending, fulfilled, rejected }))
+    const restored = restoreClonedDeep(serializeDevtoolsValue(promises))
 
     expect(formatValue(restored.pending)).toBe('[Promise pending]')
     expect(getValueDetails(restored.pending)).toEqual({ status: 'pending' })
@@ -74,9 +80,23 @@ describe('serializeDevtoolsValue', () => {
     })
   })
 
+  it('notifies once when an observed promise settles', async () => {
+    let resolve!: () => void
+    const promise = new Promise<void>((r) => (resolve = r))
+    let notifications = 0
+    const unsubscribe = onPromiseSettled(() => notifications++)
+
+    serializeDevtoolsValue(promise)
+    serializeDevtoolsValue(promise)
+    resolve()
+    await promise
+    unsubscribe()
+
+    expect(notifications).toBe(1)
+  })
+
   it('preserves restored custom values across an edited-data round trip', async () => {
-    const fulfilled = trackPromise(Promise.resolve({ message: 'done' }))
-    await Promise.resolve()
+    const fulfilled = Promise.resolve({ message: 'done' })
     const values = {
       edited: false,
       arrayBuffer: new ArrayBuffer(16),
@@ -92,6 +112,8 @@ describe('serializeDevtoolsValue', () => {
       })(),
     }
 
+    serializeDevtoolsValue(values)
+    await Promise.resolve()
     const restored = restoreClonedDeep(serializeDevtoolsValue(values))
     restored.edited = true
     const roundTripped = restoreClonedDeep(serializeDevtoolsValue(restored))

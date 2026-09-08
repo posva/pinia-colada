@@ -416,30 +416,36 @@ class FilePlaceholder {
   }
 }
 
-type PromiseState = 'pending' | 'fulfilled' | 'rejected'
+type PromiseState =
+  | { status: 'pending' }
+  | { status: 'fulfilled'; value: unknown }
+  | { status: 'rejected'; reason: unknown }
 
-export const PROMISE_STATE = Symbol('promise-state')
-export const PROMISE_RESULT = Symbol('promise-result')
+const promiseStates = new WeakMap<Promise<unknown>, PromiseState>()
+const promiseSettledListeners = new Set<() => void>()
 
-type TrackedPromise<T> = Promise<T> & {
-  [PROMISE_STATE]: PromiseState
-  [PROMISE_RESULT]?: unknown
+export function onPromiseSettled(listener: () => void): () => void {
+  promiseSettledListeners.add(listener)
+  return () => promiseSettledListeners.delete(listener)
 }
 
-export function trackPromise<T>(promise: Promise<T>): Promise<T> {
-  const trackedPromise = promise as TrackedPromise<T>
-  trackedPromise[PROMISE_STATE] = 'pending'
-  promise.then(
+function getPromiseState(promise: Promise<unknown>): PromiseState {
+  let state = promiseStates.get(promise)
+  if (state) return state
+
+  state = { status: 'pending' }
+  promiseStates.set(promise, state)
+  void promise.then(
     (value) => {
-      trackedPromise[PROMISE_STATE] = 'fulfilled'
-      trackedPromise[PROMISE_RESULT] = value
+      promiseStates.set(promise, { status: 'fulfilled', value })
+      promiseSettledListeners.forEach((listener) => listener())
     },
     (reason: unknown) => {
-      trackedPromise[PROMISE_STATE] = 'rejected'
-      trackedPromise[PROMISE_RESULT] = reason
+      promiseStates.set(promise, { status: 'rejected', reason })
+      promiseSettledListeners.forEach((listener) => listener())
     },
   )
-  return promise
+  return state
 }
 
 class PromisePlaceholder {
@@ -748,17 +754,16 @@ export function safeSerialize(value: unknown) {
       },
     } satisfies NonSerializableValue_TypedArray
   } else if (value instanceof Promise) {
-    const trackedPromise = value as Partial<TrackedPromise<unknown>>
-    const status = trackedPromise[PROMISE_STATE] || 'pending'
+    const state = getPromiseState(value)
     return {
       __custom: '@@pc-non-serializable',
       __type: 'promise',
       value:
-        status === 'fulfilled'
-          ? { status, value: safeSerializeRecursive(trackedPromise[PROMISE_RESULT]) }
-          : status === 'rejected'
-            ? { status, reason: safeSerializeRecursive(trackedPromise[PROMISE_RESULT]) }
-            : { status },
+        state.status === 'fulfilled'
+          ? { status: state.status, value: safeSerializeRecursive(state.value) }
+          : state.status === 'rejected'
+            ? { status: state.status, reason: safeSerializeRecursive(state.reason) }
+            : { status: state.status },
     } satisfies NonSerializableValue_Promise
   } else if (value instanceof Error) {
     return {

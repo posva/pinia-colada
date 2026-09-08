@@ -8,10 +8,12 @@ import { toRaw } from 'vue'
 import { isRestoredCustomValue, safeSerialize, serializeCircular } from './custom-values'
 import { isPlainObject } from '../json'
 
-export { isNonSerializableValue } from './custom-values'
-export { restoreClonedDeep } from './custom-values'
-export { restoreOriginalValues } from './custom-values'
-export { trackPromise } from './custom-values'
+export {
+  isNonSerializableValue,
+  onPromiseSettled,
+  restoreClonedDeep,
+  restoreOriginalValues,
+} from './custom-values'
 export type { NonSerializableValue } from './custom-values'
 
 export type DevtoolsProcedures = {

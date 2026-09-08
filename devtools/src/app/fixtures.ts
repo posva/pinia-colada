@@ -1,5 +1,3 @@
-import { trackPromise } from '../shared/rpc'
-
 export const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
 
 export function createValueFixture(revision: number) {
@@ -68,9 +66,9 @@ export function createValueFixture(revision: number) {
     }),
     typedArray: new Uint16Array([1, 2, 65_535]),
     dataView: new DataView(new ArrayBuffer(8)),
-    pendingPromise: trackPromise(new Promise(() => {})),
-    fulfilledPromise: trackPromise(Promise.resolve({ message: 'fulfilled fixture promise' })),
-    rejectedPromise: trackPromise(Promise.reject(new TypeError('Rejected fixture promise'))),
+    pendingPromise: new Promise(() => {}),
+    fulfilledPromise: Promise.resolve({ message: 'fulfilled fixture promise' }),
+    rejectedPromise: Promise.reject(new TypeError('Rejected fixture promise')),
     error: new TypeError('Example value error'),
     errorWithCause: new Error('Fixture operation failed', {
       cause: new TypeError('Fixture root cause'),

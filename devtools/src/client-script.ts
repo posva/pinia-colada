@@ -17,6 +17,7 @@ import { watch } from 'vue'
 import {
   removeMutationEntry,
   removeQueryEntry,
+  onPromiseSettled,
   replaceMutationEntry,
   replaceQueryEntry,
   restoreClonedDeep,
@@ -399,6 +400,21 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
     initialValue: { queries: [], mutations: [] },
   })
   mutateCache = (mutator) => cacheState.mutate(mutator)
+
+  let promiseRefreshScheduled = false
+  onPromiseSettled(() => {
+    if (promiseRefreshScheduled) return
+    promiseRefreshScheduled = true
+    queueMicrotask(() => {
+      promiseRefreshScheduled = false
+      mutateCache?.((cache) => {
+        cache.queries = serializeDevtoolsValue(queryCache.getEntries().map(createQueryEntryPayload))
+        cache.mutations = serializeDevtoolsValue(
+          mutationCache.getEntries().map(createMutationEntryPayload),
+        )
+      })
+    })
+  })
 
   // Seed the authoritative cache before a panel connects.
   mutateCache((cache) => {
