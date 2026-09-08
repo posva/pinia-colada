@@ -19,6 +19,7 @@ import ValueDisplay from './ValueDisplay.vue'
 const props = defineProps<{
   data: unknown
   readonly?: boolean
+  stickyKeys?: boolean
 }>()
 
 const keyValuePairs = computed<Iterable<[unknown, unknown]>>(() => {
@@ -48,6 +49,7 @@ const emit = defineEmits<{
       :depth="0"
       :path="[key]"
       :readonly
+      :sticky-keys
       @update:value="(...args) => emit('update:value', ...args)"
     />
   </template>

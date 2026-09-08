@@ -26,12 +26,14 @@ const {
   depth,
   path = [],
   readonly,
+  stickyKeys,
 } = defineProps<{
   itemKey: string
   value: unknown
   depth: number
   path?: NestedValuePath
   readonly?: boolean
+  stickyKeys?: boolean
 }>()
 
 // Editing state
@@ -193,15 +195,16 @@ function toggleExpansion() {
 
 <template>
   <div
-    :style="{ paddingLeft: `${depth * 0.35}em` }"
-    class="ring-(--ui-bg-muted)"
+    :style="{ paddingLeft: `${depth * 0.35}em`, '--json-item-depth': depth }"
+    class="json-item ring-(--ui-bg-muted)"
     :class="{
       'hover:ring': isExpandable,
       'rounded-tl': depth > 0,
+      'json-item-sticky': stickyKeys,
     }"
   >
     <div
-      class="group flex items-center gap-2 py-0.5 bg-transparent hover:bg-(--ui-bg-muted) duration-200 transition-colors"
+      class="json-item-key group flex items-center gap-2 py-0.5 bg-transparent hover:bg-(--ui-bg-muted) duration-200 transition-colors"
       :class="depth > 0 && 'rounded-l'"
     >
       <ILucideChevronRight
@@ -383,7 +386,7 @@ function toggleExpansion() {
     </div>
 
     <!-- Expanded children -->
-    <template v-if="isExpandable && isExpanded">
+    <div v-if="isExpandable && isExpanded" class="json-item-children">
       <JsonItem
         v-for="([childKey, childValue], childIndex) of keyValuePairs"
         :key="childIndex"
@@ -392,8 +395,18 @@ function toggleExpansion() {
         :depth="depth + 1"
         :path="[...path, childKey]"
         :readonly="readonly || !!valueDetails"
+        :sticky-keys
         @update:value="(...args) => emit('update:value', ...args)"
       />
-    </template>
+    </div>
   </div>
 </template>
+
+<style scoped>
+.json-item-sticky:has(> .json-item-children) > .json-item-key {
+  position: sticky;
+  top: calc((var(--json-item-depth) + 1) * 1.5rem);
+  z-index: calc(100 - var(--json-item-depth));
+  background-color: var(--ui-bg);
+}
+</style>

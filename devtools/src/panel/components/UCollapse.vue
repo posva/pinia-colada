@@ -77,7 +77,7 @@ function scrollAfterOpening(event: TransitionEvent) {
         </slot>
       </div>
     </div>
-    <div :class="!noPadding && 'px-2'" class="collapse-content text-sm overflow-hidden">
+    <div :class="!noPadding && 'px-2'" class="collapse-content text-sm overflow-clip">
       <slot :open />
     </div>
   </div>
@@ -179,6 +179,8 @@ function scrollAfterOpening(event: TransitionEvent) {
 }
 
 .collapse-content {
+  position: relative;
+  z-index: 0;
   visibility: hidden;
   grid-column-start: 1;
   grid-row-start: 2;

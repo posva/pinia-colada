@@ -182,7 +182,7 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             no-padding
             class="rounded border border-(--ui-border) overflow-hidden"
           >
-            <JsonViewer :data="data" readonly />
+            <JsonViewer :data="data" readonly sticky-keys />
           </UCollapse>
         </div>
       </UCollapse>
@@ -273,7 +273,11 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             <EntryUpdateNotification v-if="hasNewData" type="data" />
           </h3>
         </template>
-        <JsonViewer :data="selectedQuery.state.data" @update:value="handleValueUpdate" />
+        <JsonViewer
+          :data="selectedQuery.state.data"
+          sticky-keys
+          @update:value="handleValueUpdate"
+        />
       </UCollapse>
 
       <UCollapse
@@ -336,7 +340,7 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             class="border border-neutral-200 dark:border-neutral-800"
             scroll-on-open
           >
-            <JsonViewer :data="entry" readonly />
+            <JsonViewer :data="entry" readonly sticky-keys />
           </UCollapse>
         </div>
       </UCollapse>
@@ -348,7 +352,12 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
         no-padding
         scroll-on-open
       >
-        <JsonViewer v-if="selectedQuery.options" :data="selectedQuery.options" readonly />
+        <JsonViewer
+          v-if="selectedQuery.options"
+          :data="selectedQuery.options"
+          readonly
+          sticky-keys
+        />
         <p v-else>
           This Query entry has no options. It might have been created from the server or manually
           set with

@@ -215,7 +215,7 @@ const { hasNewData, hasNewError } = useEntryUpdateNotifications(
         :icon="IVariable"
         no-padding
       >
-        <JsonViewer :data="selectedMutation.vars" readonly />
+        <JsonViewer :data="selectedMutation.vars" readonly sticky-keys />
       </UCollapse>
 
       <UCollapse
@@ -232,7 +232,7 @@ const { hasNewData, hasNewError } = useEntryUpdateNotifications(
             <EntryUpdateNotification v-if="hasNewData" type="data" />
           </h3>
         </template>
-        <JsonViewer :data="selectedMutation.state.data" />
+        <JsonViewer :data="selectedMutation.state.data" sticky-keys />
       </UCollapse>
 
       <UCollapse v-model:open="isErrorOpen" title="Error" scroll-on-open>
@@ -253,7 +253,12 @@ const { hasNewData, hasNewError } = useEntryUpdateNotifications(
       </UCollapse>
 
       <UCollapse title="Options" :open="false" :icon="IBraces" no-padding scroll-on-open>
-        <JsonViewer v-if="selectedMutation.options" :data="selectedMutation.options" readonly />
+        <JsonViewer
+          v-if="selectedMutation.options"
+          :data="selectedMutation.options"
+          readonly
+          sticky-keys
+        />
         <p v-else>No options configured for this mutation.</p>
       </UCollapse>
     </template>

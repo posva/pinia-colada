@@ -4,6 +4,24 @@ import { restoreClonedDeep, serializeDevtoolsValue } from '@pinia/colada-devtool
 import JsonItem from './JsonItem.vue'
 
 describe('JsonItem', () => {
+  it('opts into sticky keys recursively', async () => {
+    const wrapper = mount(JsonItem, {
+      props: {
+        itemKey: 'root',
+        value: { child: { value: 1 } },
+        depth: 0,
+        stickyKeys: true,
+      },
+    })
+
+    expect(wrapper.classes()).toContain('json-item-sticky')
+
+    await wrapper.get('[title="Click to expand"]').trigger('click')
+
+    const child = wrapper.findAllComponents(JsonItem).find((item) => item.props('depth') === 1)
+    expect(child?.props('stickyKeys')).toBe(true)
+  })
+
   it('shows native value details as readonly', async () => {
     const value = restoreClonedDeep(
       serializeDevtoolsValue(new URL('https://pinia-colada.esm.dev/guide/?fixture=url')),
