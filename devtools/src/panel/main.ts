@@ -4,7 +4,8 @@ import { configureApp } from './configure-app.ts'
 import { PINIA_COLADA_WAIT_TIMEOUT } from '../channel.ts'
 import type { PiniaColadaCacheState } from '../channel.ts'
 import { MUTATIONS_KEY, QUERIES_KEY } from './composables/devtools-context.ts'
-import { normalizeSharedStateValue, panelChannel } from './panel-channel.ts'
+import { normalizeSharedStateValue } from './panel-channel-codec.ts'
+import { panelChannel } from './panel-channel.ts'
 import './styles.css'
 
 const queries = ref<PiniaColadaCacheState['queries']>([])
