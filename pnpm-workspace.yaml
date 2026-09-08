@@ -18,4 +18,13 @@ ignoreWorkspaceRootCheck: true
 shamefullyHoist: true
 strictPeerDependencies: false
 minimumReleaseAgeExclude:
+  - '@clack/core'
+  - '@clack/prompts'
+  - '@devframes/*'
+  - '@vitejs/devtools'
+  - '@vitejs/devtools-kit'
+  - devframe
+  - ignore
+  - srvx
+  - unimport
   - vue-router@5.3.1
