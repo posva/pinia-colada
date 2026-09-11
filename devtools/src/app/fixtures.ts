@@ -14,6 +14,10 @@ export function createValueFixture(revision: number) {
   const circularObject: Record<string, unknown> = { label: 'circular object', revision }
   circularObject.self = circularObject
 
+  const rejectedPromise = Promise.reject(new TypeError('Rejected fixture promise'))
+  // avoid unhandled promise rejection warning in the console
+  void rejectedPromise.catch(() => {})
+
   return {
     revision,
     string: 'Hello from the local fixture',
@@ -69,7 +73,7 @@ export function createValueFixture(revision: number) {
     dataView: new DataView(new ArrayBuffer(8)),
     pendingPromise: new Promise(() => {}),
     fulfilledPromise: Promise.resolve({ message: 'fulfilled fixture promise' }),
-    rejectedPromise: Promise.reject(new TypeError('Rejected fixture promise')),
+    rejectedPromise,
     error: new TypeError('Example value error'),
     errorWithCause: new Error('Fixture operation failed', {
       cause: new TypeError('Fixture root cause'),
