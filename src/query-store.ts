@@ -306,7 +306,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           keyHash: toCacheKey(key),
           state,
           placeholderData: null,
-          when: initialData === undefined ? 0 : Date.now() - when,
+          // Negative ages mark invalidated data.
+          when: initialData === undefined || when < 0 ? 0 : Date.now() - when,
           asyncStatus,
           pending: null,
           // this set can contain components and effects and worsen the performance
