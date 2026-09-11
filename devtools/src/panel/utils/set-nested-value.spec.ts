@@ -37,4 +37,19 @@ describe('setNestedValue', () => {
     expect(setNestedValue(set, [0], 'updated')).toBe(true)
     expect(Array.from(set)).toEqual(['updated', 'two'])
   })
+
+  it.each(['one', 'three', NaN, -0])('rejects a duplicate set value (%s)', (value) => {
+    const data = { set: new Set<unknown>(['one', 'two', 'three', NaN, 0]) }
+
+    expect(setNestedValue(data, ['set', 1], value)).toBe(false)
+    expect(Array.from(data.set)).toEqual(['one', 'two', 'three', NaN, 0])
+  })
+
+  it.each(['one', NaN, -0])('accepts the value at the same set index (%s)', (value) => {
+    const set = new Set<unknown>([value, 'two'])
+    const original = Array.from(set)
+
+    expect(setNestedValue(set, [0], value)).toBe(true)
+    expect(Array.from(set)).toEqual(original)
+  })
 })

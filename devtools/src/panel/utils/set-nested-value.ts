@@ -21,6 +21,10 @@ export function setNestedValue(obj: unknown, path: NestedValuePath, value: unkno
     }
     // replace the value while preserving the order of the set
     const values = Array.from(current)
+    // Reject duplicates at another index to avoid removing an entry.
+    if (current.has(value) && values[key] !== value && !Object.is(values[key], value)) {
+      return false
+    }
     values[key] = value
     current.clear()
     for (const item of values) current.add(item)
