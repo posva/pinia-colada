@@ -25,8 +25,8 @@ describe('useQueryState', () => {
     const wrapper = mount(
       defineComponent({
         setup() {
-          const { data, error, status, isPending } = useQueryState(['non-existent'])
-          return { data, error, status, isPending }
+          const { data, error, status, asyncStatus, isPending } = useQueryState(['non-existent'])
+          return { data, error, status, asyncStatus, isPending }
         },
         template: `<div>{{ data }}</div>`,
       }),
@@ -40,6 +40,7 @@ describe('useQueryState', () => {
     expect(wrapper.vm.data).toBeUndefined()
     expect(wrapper.vm.error).toBeUndefined()
     expect(wrapper.vm.status).toBeUndefined()
+    expect(wrapper.vm.asyncStatus).toBeUndefined()
     expect(wrapper.vm.isPending).toBe(true)
   })
 
@@ -68,6 +69,7 @@ describe('useQueryState', () => {
     )
 
     expect(wrapper.vm.status).toBe('success')
+    expect(wrapper.vm.asyncStatus).toBe('idle')
     expect(wrapper.vm.isPending).toBe(false)
     expect(wrapper.vm.data).toBe(42)
     expect(wrapper.vm.error).toBeNull()
