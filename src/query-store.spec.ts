@@ -4,7 +4,7 @@ import type { UseQueryEntry, UseQueryEntryNodeValueSerialized } from './query-st
 import { useQueryCache } from './query-store'
 import { USE_QUERY_DEFAULTS } from './query-options'
 import { flushPromises, mount } from '@vue/test-utils'
-import { computed, createApp, nextTick, watch } from 'vue'
+import { computed, createApp, effectScope, nextTick, watch } from 'vue'
 import { useQuery } from './use-query'
 import { PiniaColada } from './pinia-colada'
 import { mockConsoleError, mockWarn } from '@posva/test-utils'
@@ -137,6 +137,29 @@ describe('Query Cache store', () => {
       const predicate = vi.fn(() => true)
       expect(queryCache.getEntries({ key: ['a'], predicate })).toHaveLength(2)
       expect(predicate).toHaveBeenCalledTimes(2)
+    })
+
+    it('filters based on stale', () => {
+      const queryCache = useQueryCache()
+      createEntries([['a'], ['b']])
+      queryCache.setQueryData(['a'], 'ok')
+
+      expect(queryCache.getEntries({ stale: true })).toMatchObject([{ key: ['b'] }])
+      expect(queryCache.getEntries({ stale: false })).toMatchObject([{ key: ['a'] }])
+    })
+
+    it('filters based on active', () => {
+      const queryCache = useQueryCache()
+      createEntries([['a'], ['b']])
+      const [entry] = queryCache.getEntries({ key: ['a'] })
+      const scope = effectScope()
+      queryCache.track(entry!, scope)
+
+      expect(queryCache.getEntries({ active: true })).toMatchObject([{ key: ['a'] }])
+      expect(queryCache.getEntries({ active: false })).toMatchObject([{ key: ['b'] }])
+
+      queryCache.untrack(entry!, scope)
+      scope.stop()
     })
 
     it('filters based on status', async () => {
