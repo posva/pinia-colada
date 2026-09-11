@@ -2,7 +2,7 @@ import { defineConfig } from 'tsdown'
 import type { UserConfig } from 'tsdown'
 
 const commonOptions = {
-  sourcemap: true,
+  sourcemap: false,
   format: ['esm'],
   deps: {
     onlyBundle: [],
