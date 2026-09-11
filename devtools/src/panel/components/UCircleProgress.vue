@@ -13,9 +13,11 @@ const {
   strokeWidth?: number
 }>()
 
-const valuePercentage = computed(() =>
-  Math.min(100, Math.max(0, Math.round(((value - min) / (max - min)) * 100))),
-)
+const valuePercentage = computed<number>(() => {
+  const range = max - min
+  if (range <= 0) return 0
+  return Math.min(100, Math.max(0, Math.round(((value - min) / range) * 100)))
+})
 </script>
 
 <template>
