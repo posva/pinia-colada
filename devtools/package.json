@@ -87,7 +87,7 @@
     "@vueuse/core": "^14.4.0",
     "pinia": "^4.0.3",
     "tailwindcss": "^4.3.3",
-    "tsdown": "^0.22.14",
+    "tsdown": "^0.23.0",
     "unplugin-icons": "^23.0.1",
     "unplugin-vue-components": "^32.1.0",
     "vite": "^8.2.2",

@@ -31,9 +31,9 @@
   "devDependencies": {
     "@nostics/unplugin": "^1.1.0",
     "@pinia/colada-devtools": "workspace:^",
-    "@vitejs/devtools": "^0.7.3",
     "@tailwindcss/vite": "^4.3.3",
-    "@types/node": "^26.2.0",
+    "@types/node": "^26.5.1",
+    "@vitejs/devtools": "^0.7.3",
     "@vitejs/plugin-vue": "^6.0.8",
     "@vue/tsconfig": "^0.9.1",
     "autoprefixer": "^10.5.4",
