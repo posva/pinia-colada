@@ -7,7 +7,6 @@ import VueRouter from 'vue-router/vite'
 // import VueDevTools from 'vite-plugin-vue-devtools'
 import TailwindCSS from '@tailwindcss/vite'
 import { nosticsCollector } from '@nostics/unplugin/dev-server-collector'
-import { DevTools } from '@vitejs/devtools'
 import { PiniaColadaDevtools } from '@pinia/colada-devtools/vite'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -15,6 +14,11 @@ let devtoolsBase = '/'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  devtools: {
+    build: {
+      withApp: true,
+    },
+  },
   plugins: [
     //
     VueRouter(),
@@ -28,7 +32,6 @@ export default defineConfig({
       },
     }),
     // VueDevTools(),
-    DevTools({ build: { withApp: true } }),
     PiniaColadaDevtools({ production: true }),
     {
       // Vite DevTools 0.7.3 emits the static hub but only injects its dock in dev.

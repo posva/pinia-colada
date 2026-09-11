@@ -1,7 +1,6 @@
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createPluginFromDevframe } from '@vitejs/devtools-kit/node'
-import { DevTools } from '@vitejs/devtools'
 import Vue from '@vitejs/plugin-vue'
 import TailwindCSS from '@tailwindcss/vite'
 import { defineDevframe } from 'devframe'
@@ -44,6 +43,9 @@ function PiniaColadaDevtoolsFixture() {
 }
 
 export default defineConfig({
+  devtools: {
+    enabled: true,
+  },
   root: __dirname,
   build: {
     outDir: 'dist-app',
@@ -71,7 +73,6 @@ export default defineConfig({
       },
     }),
     Vue(),
-    DevTools(),
     PiniaColadaDevtoolsFixture(),
     Icons({ compiler: 'vue3' }),
     Components({
