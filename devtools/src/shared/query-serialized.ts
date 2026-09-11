@@ -76,23 +76,31 @@ function isValidIdentifier(key: string): boolean {
   return VALID_IDENTIFIER_RE.test(key)
 }
 
-function serializeMiniJson(value: unknown): string {
+function serializeMiniJson(value: unknown, ancestors = new Set<object>()): string {
   if (value === null) return 'null'
   if (typeof value === 'number') return value.toString()
   if (typeof value === 'string') return JSON.stringify(value)
   if (typeof value === 'boolean') return value ? 'true' : 'false'
 
   if (Array.isArray(value)) {
-    return `[${value.map(serializeMiniJson).join(',')}]`
+    // Avoid infinite recursion on circular references.
+    if (ancestors.has(value)) return '"[Circular]"'
+    ancestors.add(value)
+    const result = `[${value.map((item) => serializeMiniJson(item, ancestors)).join(',')}]`
+    ancestors.delete(value)
+    return result
   }
 
   if (typeof value === 'object') {
+    if (ancestors.has(value)) return '"[Circular]"'
+    ancestors.add(value)
     const obj = value as Record<string, unknown>
     const entries = Object.keys(obj).map((key) => {
       const k = isValidIdentifier(key) ? key : JSON.stringify(key)
-      const v = serializeMiniJson(obj[key])
+      const v = serializeMiniJson(obj[key], ancestors)
       return `${k}:${v}`
     })
+    ancestors.delete(value)
     return `{${entries.join(',')}}`
   }
 
