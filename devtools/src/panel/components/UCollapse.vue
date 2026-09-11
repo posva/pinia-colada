@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useTemplateRef, type Component } from 'vue'
+import { useTemplateRef, type Component, useId } from 'vue'
 
 const { scrollOnOpen } = defineProps<{
   title?: string
@@ -7,6 +7,8 @@ const { scrollOnOpen } = defineProps<{
   noPadding?: boolean
   scrollOnOpen?: boolean
 }>()
+
+const titleId = useId()
 
 const open = defineModel<boolean>('open', {
   default: true,
@@ -65,8 +67,11 @@ function scrollAfterOpening(event: TransitionEvent) {
 <template>
   <div ref="collapse" class="collapse collapse-arrow" @transitionend.self="scrollAfterOpening">
     <div class="collapse-header">
-      <input v-model="open" type="checkbox" @change="prepareScroll" />
-      <div class="collapse-title px-2 py-0.5 bg-neutral-200 dark:bg-neutral-800 theme-neutral">
+      <input v-model="open" type="checkbox" @change="prepareScroll" :aria-labelledby="titleId" />
+      <div
+        :id="titleId"
+        class="collapse-title px-2 py-0.5 bg-neutral-200 dark:bg-neutral-800 theme-neutral"
+      >
         <slot name="title" :open :title>
           <h3 class="font-semibold text-sm flex gap-x-1 items-center">
             <slot name="icon">
