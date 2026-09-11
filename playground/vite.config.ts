@@ -11,6 +11,7 @@ import { DevTools } from '@vitejs/devtools'
 import { PiniaColadaDevtools } from '@pinia/colada-devtools/vite'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
+let devtoolsBase = '/'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -27,8 +28,28 @@ export default defineConfig({
       },
     }),
     // VueDevTools(),
-    DevTools(),
-    PiniaColadaDevtools(),
+    DevTools({ build: { withApp: true } }),
+    PiniaColadaDevtools({ production: true }),
+    {
+      // Vite DevTools 0.7.3 emits the static hub but only injects its dock in dev.
+      name: 'playground:production-devtools',
+      apply: (_config, env) => env.command === 'build' && !env.isSsrBuild,
+      configResolved(config) {
+        devtoolsBase = config.base
+      },
+      transformIndexHtml: {
+        order: 'post',
+        handler() {
+          return [
+            {
+              tag: 'script',
+              attrs: { type: 'module', src: `${devtoolsBase}__devtools/embedded.js` },
+              injectTo: 'body',
+            },
+          ]
+        },
+      },
+    },
     TailwindCSS(),
     nosticsCollector.vite({ debug: true }),
   ],

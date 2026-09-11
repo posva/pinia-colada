@@ -17,8 +17,8 @@ component from your app:
  </template>
 ```
 
-If you used `<PiniaColadaProdDevtools />`, remove it in the same way. Version 2
-does not yet support inspecting deployed production builds.
+If you used `<PiniaColadaProdDevtools />`, remove it in the same way and enable
+production support in the Vite plugin as described below.
 
 ### Vite DevTools
 
@@ -67,10 +67,17 @@ pnpm add -D @pinia/colada-devtools @devframes/hub @devframes/hub-ui @devframes/v
  })
 ```
 
-Both integrations currently run only with the Vite development server. They
-are not included in production builds. There is no replacement yet for the old
-`<PiniaColadaProdDevtools />`; keep using the previous version if inspecting a
-deployed production build is required.
+### Production builds
+
+To keep the devtools in production, enable both options in your Vite configuration:
+
+```ts
+plugins: [vue(), DevTools({ build: { withApp: true } }), PiniaColadaDevtools({ production: true })]
+```
+
+Load `<base>__devtools/embedded.js` in the built app and deploy the full build output.
+See the [playground configuration](../playground/vite.config.ts) for a complete example.
+In the playground, add `?DEVTOOLS` to the URL to show the devtools.
 
 ## Development
 
