@@ -154,7 +154,7 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
     } else if (name === 'setQueryData') {
       const [key] = args
       after(() => {
-        const entry = queryCache.getEntries({ key, exact: true })[0]
+        const entry = queryCache.get(key)
         if (entry) updateQuery(createQueryEntryPayload(entry))
       })
     }
@@ -224,7 +224,7 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
       'queries:reset': {
         type: 'action',
         handler: (key) => {
-          const entry = queryCache.getEntries({ key, exact: true })[0]
+          const entry = queryCache.get(key)
           if (entry) {
             queryCache.cancel(entry)
             queryCache.setEntryState(entry, {
@@ -241,7 +241,7 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
       'queries:set:state': {
         type: 'action',
         handler: (key, state) => {
-          const entry = queryCache.getEntries({ key, exact: true })[0]
+          const entry = queryCache.get(key)
           if (entry) {
             queryCache.setEntryState(entry, restoreOriginalValues(state, entry.state.value))
             updateQuery(createQueryEntryPayload(entry))
@@ -252,7 +252,7 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
       'queries:simulate:loading': {
         type: 'action',
         handler: (key) => {
-          const entry = queryCache.getEntries({ key, exact: true })[0]
+          const entry = queryCache.get(key)
           if (entry) {
             entry.asyncStatus.value = 'loading'
             ensureQueryDevtoolsInfo(entry).simulate = 'loading'
@@ -264,7 +264,7 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
       'queries:simulate:loading:stop': {
         type: 'action',
         handler: (key) => {
-          const entry = queryCache.getEntries({ key, exact: true })[0]
+          const entry = queryCache.get(key)
           if (entry && ensureQueryDevtoolsInfo(entry).simulate === 'loading') {
             entry.asyncStatus.value = 'idle'
             ensureQueryDevtoolsInfo(entry).simulate = null
@@ -276,7 +276,7 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
       'queries:simulate:error': {
         type: 'action',
         handler: (key) => {
-          const entry = queryCache.getEntries({ key, exact: true })[0]
+          const entry = queryCache.get(key)
           if (entry) {
             queryCache.cancel(entry)
             queryCache.setEntryState(entry, {
@@ -294,7 +294,7 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
       'queries:simulate:error:stop': {
         type: 'action',
         handler: (key) => {
-          const entry = queryCache.getEntries({ key, exact: true })[0]
+          const entry = queryCache.get(key)
           if (entry && ensureQueryDevtoolsInfo(entry).simulate === 'error') {
             queryCache.cancel(entry)
             queryCache.setEntryState(entry, {
