@@ -43,7 +43,7 @@
     "@nuxt/eslint-config": "^1.17.0",
     "@nuxt/module-builder": "1.0.3",
     "@nuxt/schema": "^4.5.2",
-    "@nuxt/test-utils": "^4.1.0",
+    "@nuxt/test-utils": "^4.3.2",
     "@pinia/colada": "workspace:*",
     "@pinia/colada-devtools": "workspace:^",
     "@pinia/nuxt": "^1.0.2",
