@@ -407,6 +407,38 @@ describe('useMutation', () => {
       expect(onMutate).toHaveBeenCalledWith(undefined, { global: true, entry: anyEntry })
     })
 
+    it('awaits global onMutate and passes its context to local hooks and mutation', async () => {
+      const onMutate = vi.fn()
+      const { wrapper, mutation } = mountSimple(
+        { onMutate },
+        {
+          plugins: [
+            createPinia(),
+            [
+              PiniaColada,
+              {
+                mutationOptions: {
+                  onMutate: async () => {
+                    await delay(10)
+                    return { global: true }
+                  },
+                },
+              },
+            ],
+          ],
+        },
+      )
+
+      wrapper.vm.mutate()
+      await flushPromises()
+      expect(onMutate).toHaveBeenCalledTimes(0)
+      expect(mutation).toHaveBeenCalledTimes(0)
+
+      await vi.advanceTimersByTimeAsync(10)
+      expect(onMutate).toHaveBeenCalledWith(undefined, { global: true, entry: anyEntry })
+      expect(mutation).toHaveBeenCalledWith(undefined, { global: true, entry: anyEntry })
+    })
+
     it('triggers global onSuccess', async () => {
       const onSuccess = vi.fn()
       const { wrapper } = mountSimple(

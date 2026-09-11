@@ -498,7 +498,9 @@ describe('useQuery', () => {
       await flushPromises()
       vi.advanceTimersByTime(1000)
       expect(cache.getQueryData(['key'])).toBe(42)
+      expect(cache.get(['key'])?.active).toBe(true)
       wrapper.unmount()
+      expect(cache.get(['key'])?.active).toBe(false)
       vi.advanceTimersByTime(999)
       // still there
       expect(cache.getQueryData(['key'])).toBe(42)

@@ -42,6 +42,27 @@ describe('query cache serialization', () => {
     expect(serializeQueryCache(queryCache)).toEqual({})
   })
 
+  it('keeps invalidated data stale after hydration', async () => {
+    const pinia = createPinia()
+    createApp({}).use(pinia)
+    const queryCache = useQueryCache(pinia)
+    queryCache.setQueryData(['a'], 'old')
+    queryCache.invalidate(queryCache.get(['a'])!)
+
+    const clientPinia = createPinia()
+    createApp({}).use(clientPinia)
+    const clientCache = useQueryCache(clientPinia)
+    hydrateQueryCache(clientCache, serializeQueryCache(queryCache))
+    const query = vi.fn(async () => 'new')
+    const entry = clientCache.ensure({ key: ['a'], query, staleTime: Infinity })
+
+    expect(entry.state.value.data).toBe('old')
+    expect(entry.stale).toBe(true)
+    await clientCache.refresh(entry)
+    expect(query).toHaveBeenCalledTimes(1)
+    expect(entry.state.value.data).toBe('new')
+  })
+
   it('creates relative timestamps', () => {
     const pinia = createPinia()
     const app = createApp({})

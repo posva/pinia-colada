@@ -466,6 +466,26 @@ describe('useInfiniteQuery', () => {
     expect(query).toHaveBeenNthCalledWith(3, expect.objectContaining({ pageParam: 2 }))
   })
 
+  it('removes trailing pages when refetching fewer pages', async () => {
+    let hasMorePages = true
+    const { wrapper, query } = mountSimple({
+      getNextPageParam: (_page, _pages, pageParam) => (hasMorePages ? pageParam + 1 : null),
+    })
+
+    await flushPromises()
+    await wrapper.vm.loadNextPage()
+    await wrapper.vm.loadNextPage()
+    expect(wrapper.vm.data?.pages).toHaveLength(3)
+
+    hasMorePages = false
+    query.mockClear()
+    await wrapper.vm.refetch()
+
+    expect(query).toHaveBeenCalledTimes(1)
+    expect(wrapper.vm.data).toEqual({ pages: [[1, 2, 3]], pageParams: [0] })
+    expect(wrapper.vm.hasNextPage).toBe(false)
+  })
+
   it('should refetch using existing page params, not initial page param', async () => {
     const { wrapper, query } = mountSimple({
       maxPages: 2,
