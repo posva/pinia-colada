@@ -123,6 +123,29 @@ describe('useInfiniteQuery', () => {
     return { wrapper, query, pinia, queryCache }
   }
 
+  describe('warns', () => {
+    it('warns when loading previous pages without getPreviousPageParam', async () => {
+      const { wrapper } = mountSimple({ getPreviousPageParam: undefined })
+      await flushPromises()
+
+      await wrapper.vm.loadPreviousPage()
+      expect('[PINIA_COLADA_R0008]').toHaveBeenWarnedTimes(1)
+    })
+
+    it.each([
+      ['next', 'loadNextPage'],
+      ['previous', 'loadPreviousPage'],
+    ] as const)('reports loading the %s page after cache removal', async (direction, method) => {
+      const { wrapper, queryCache } = mountSimple()
+      await flushPromises()
+      queryCache.remove(queryCache.get(['key'])!)
+
+      await wrapper.vm[method]()
+
+      expect('[PINIA_COLADA_R0009] Cannot load the ' + direction + ' page').toHaveBeenWarnedTimes(1)
+    })
+  })
+
   describe('global query options', () => {
     it('respects refetchOnWindowFocus from PiniaColada plugin defaults', async () => {
       const query = vi.fn(async ({ pageParam }: { pageParam: number }) => [pageParam])

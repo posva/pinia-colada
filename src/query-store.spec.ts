@@ -275,6 +275,28 @@ describe('Query Cache store', () => {
     })
   })
 
+  it('warns once when used before Pinia is installed', () => {
+    setActivePinia(createPinia())
+    useQueryCache()
+    setActivePinia(createPinia())
+    useQueryCache()
+
+    expect('[PINIA_COLADA_R0001] useQueryCache()').toHaveBeenWarnedTimes(1)
+    expect('inject() can only be used inside setup()').toHaveBeenWarned()
+  })
+
+  it.each(['refresh', 'fetch'] as const)(
+    'rejects %s for seeded data without a query function',
+    async (method) => {
+      const cache = useQueryCache()
+      cache.setQueryData(['todos'], ['Buy milk'])
+      const [entry] = cache.getEntries({ key: ['todos'] })
+
+      await expect(cache[method](entry!)).rejects.toThrowError()
+      expect('[PINIA_COLADA_R0004]').toHaveBeenWarnedTimes(1)
+    },
+  )
+
   it('warns if the user directly sets the cache', async () => {
     const queryCache = useQueryCache()
     queryCache.caches = new Map()

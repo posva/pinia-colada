@@ -111,13 +111,57 @@ describe('Mutation Cache store', () => {
     mockConsoleError()
     mockWarn()
 
-    it('errors if the user tries to directly set tha cache', () => {
+    it('warns once when used before Pinia is installed', () => {
+      setActivePinia(createPinia())
+      useMutationCache()
+      setActivePinia(createPinia())
+      useMutationCache()
+
+      expect('[PINIA_COLADA_R0001] useMutationCache()').toHaveBeenWarnedTimes(1)
+      expect('inject() can only be used inside setup()').toHaveBeenWarned()
+    })
+
+    it.each([
+      { key: ['todos', 'create'], label: 'with key "todos/create"' },
+      { key: undefined, label: 'without a key' },
+    ])('reports reuse of a completed mutation $label', async ({ key, label }) => {
+      const cache = useMutationCache()
+      const entry = cache.ensure(
+        cache.create({ key, gcTime: Infinity, mutation: async (text: string) => text }),
+        'Buy milk',
+      )
+      await cache.mutate(entry)
+      await cache.mutate(entry)
+
+      expect(
+        '[PINIA_COLADA_R0006] A mutation entry ' + label + ' was reused.',
+      ).toHaveBeenErroredTimes(1)
+    })
+
+    it('reports reuse while a mutation is still pending', async () => {
+      const cache = useMutationCache()
+      const saved = Promise.withResolvers<string>()
+      const entry = cache.ensure(
+        cache.create({ gcTime: Infinity, mutation: () => saved.promise }),
+        undefined,
+      )
+      const first = cache.mutate(entry)
+      const second = cache.mutate(entry)
+      expect('[PINIA_COLADA_R0006]').toHaveBeenErroredTimes(1)
+      saved.resolve('saved')
+      await Promise.all([first, second])
+    })
+
+    it('errors if the user tries to directly set the cache', () => {
       const mutationCache = useMutationCache()
       mutationCache.caches = {} as any
       expect('The mutation cache cannot be directly set').toHaveBeenErroredTimes(1)
     })
 
-    it('errors when mutating an entry that was not ensured', () => {
+    it.each([
+      { key: ['todos', 'create'], label: 'with key "todos/create"' },
+      { key: undefined, label: 'without a key' },
+    ])('errors when mutating an unensured entry $label', async ({ key, label }) => {
       const mutationCache = useMutationCache()
 
       const options = {
@@ -125,12 +169,12 @@ describe('Mutation Cache store', () => {
         mutation: async () => 'test',
       } satisfies UseMutationOptionsWithDefaults
 
-      const entry = mutationCache.create(options)
+      const entry = mutationCache.create(options, key)
 
-      mutationCache.mutate(entry).catch(() => {})
+      await mutationCache.mutate(entry)
 
       expect(
-        'A mutation entry without a key was mutated before being ensured',
+        '[PINIA_COLADA_R0005] A mutation entry ' + label + ' was mutated before being ensured.',
       ).toHaveBeenErroredTimes(1)
     })
   })

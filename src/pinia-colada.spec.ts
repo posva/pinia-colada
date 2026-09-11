@@ -1,6 +1,7 @@
 import { enableAutoUnmount, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent } from 'vue'
+import { createApp, defineComponent } from 'vue'
+import { mockWarn } from '@posva/test-utils'
 import { createPinia } from 'pinia'
 import { useQuery } from './use-query'
 import type { PiniaColadaOptions } from './pinia-colada'
@@ -40,6 +41,15 @@ describe('PiniaColada', () => {
 
     return { pinia, wrapper }
   }
+
+  describe('warns', () => {
+    mockWarn()
+
+    it('throws if Pinia is not installed', () => {
+      expect(() => createApp({}).use(PiniaColada)).toThrowError()
+      expect('[PINIA_COLADA_C0001]').toHaveBeenWarnedTimes(1)
+    })
+  })
 
   it('executes plugins', async () => {
     const plugin = vi.fn()

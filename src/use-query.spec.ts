@@ -2330,6 +2330,11 @@ describe('useQuery', () => {
   })
 
   describe('warns', () => {
+    it('rejects an empty query key in component setup', () => {
+      expect(() => mountSimple({ key: [] })).toThrowError()
+      expect('[PINIA_COLADA_R0003]').toHaveBeenWarnedTimes(1)
+    })
+
     it.todo('warns if the key uses a reactive property that does not belong to the query', async () => {
       const querySpy = vi.fn().mockResolvedValue(42)
       mount(
