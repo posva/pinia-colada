@@ -42,7 +42,7 @@
   ],
   "scripts": {
     "dev": "vite --config vite.config.ts",
-    "test:types": "vue-tsc --noEmit",
+    "test:types": "vue-tsc --build ./tsconfig.json --noEmit",
     "build": "tsdown && vite build --config panel.vite.config.ts"
   },
   "dependencies": {

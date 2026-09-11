@@ -1,0 +1,25 @@
+{
+  "extends": "./tsconfig.common.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "composite": true,
+    "declaration": true,
+    "types": ["node"],
+    "emitDeclarationOnly": true,
+    "allowImportingTsExtensions": true,
+    "declarationDir": "./.tsc-types/src",
+    "noEmit": false,
+    "paths": {
+      "@pinia/colada": ["./src/index.ts"]
+    }
+  },
+  "include": [
+    //
+    "./*.config.ts",
+    "./devtools/*.config.ts",
+    "./devtools/src/devframe.ts",
+    "./e2e/**/*.config.ts",
+    "./plugins/tsdown.common.ts",
+    "./plugins/*/*.config.ts"
+  ]
+}
