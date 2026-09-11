@@ -42,3 +42,34 @@ export const entryFiltersSchema = z
   .describe('Pinia Colada query filters. Use an empty object to match every query.')
 
 export type DevtoolsMcpQueryFilter = z.infer<typeof entryFiltersSchema>
+
+export const mutationIdSchema = z
+  .number()
+  .int()
+  .positive()
+  .describe('The ID of a cached Pinia Colada mutation.')
+
+export const mutationIdListSchema = z
+  .array(mutationIdSchema)
+  .describe('IDs of mutations affected by an operation. Empty if no mutations were affected.')
+
+export const mutationFiltersSchema = z
+  .strictObject({
+    key: entryKeySchema
+      .describe('Match mutations whose key starts with these segments.')
+      .optional(),
+    status: z
+      .enum(['pending', 'success', 'error'])
+      .nullable()
+      .describe('Match mutations by their current data status; null applies no status filter.')
+      .optional(),
+  })
+  .describe('Pinia Colada mutation filters. Use an empty object to match every mutation.')
+
+export const queryStateSchema = z
+  .discriminatedUnion('status', [
+    z.strictObject({ status: z.literal('pending'), data: z.unknown(), error: z.null() }),
+    z.strictObject({ status: z.literal('success'), data: z.unknown(), error: z.null() }),
+    z.strictObject({ status: z.literal('error'), data: z.unknown(), error: z.unknown() }),
+  ])
+  .describe('Query state. Data and errors can contain rich values restored by the channel codec.')

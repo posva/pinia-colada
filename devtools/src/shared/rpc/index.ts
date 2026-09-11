@@ -17,27 +17,31 @@ export {
 export type { NonSerializableValue } from './custom-values'
 
 export type DevtoolsProcedures = {
-  'queries:clear': (filters?: UseQueryEntryFilter) => void
+  'queries:clear': (filters?: UseQueryEntryFilter) => EntryKey[]
   'queries:refetch': (filters?: UseQueryEntryFilter) => EntryKey[]
-  'queries:invalidate': (entryKey: EntryKey) => void
-  'queries:reset': (entryKey: EntryKey) => void
+  'queries:invalidate': (filters?: UseQueryEntryFilter) => EntryKey[]
+  'queries:reset': (filters?: UseQueryEntryFilter) => EntryKey[]
 
-  'queries:simulate:error': (entryKey: EntryKey) => void
-  'queries:simulate:error:stop': (entryKey: EntryKey) => void
-  'queries:simulate:loading': (entryKey: EntryKey) => void
-  'queries:simulate:loading:stop': (entryKey: EntryKey) => void
+  'queries:simulate:error': (filters?: UseQueryEntryFilter) => EntryKey[]
+  'queries:simulate:error:stop': (filters?: UseQueryEntryFilter) => EntryKey[]
+  'queries:simulate:loading': (filters?: UseQueryEntryFilter) => EntryKey[]
+  'queries:simulate:loading:stop': (filters?: UseQueryEntryFilter) => EntryKey[]
 
-  'queries:set:state': (entryKey: EntryKey, state: DataState<unknown, unknown, unknown>) => void
+  'queries:state:get': (entryKey: EntryKey) => DataState<unknown, unknown, unknown> | undefined
+  'queries:state:set': (
+    entryKey: EntryKey,
+    state: DataState<unknown, unknown, unknown>,
+  ) => EntryKey[]
 
-  'mutations:clear': (filters?: UseMutationEntryFilter) => void
-  'mutations:remove': (id: number) => void
+  'mutations:clear': (filters?: UseMutationEntryFilter) => number[]
+  'mutations:remove': (id: number) => number[]
 
-  'mutations:simulate:error': (id: number) => void
-  'mutations:simulate:error:stop': (id: number) => void
-  'mutations:simulate:loading': (id: number) => void
-  'mutations:simulate:loading:stop': (id: number) => void
+  'mutations:simulate:error': (id: number) => number[]
+  'mutations:simulate:error:stop': (id: number) => number[]
+  'mutations:simulate:loading': (id: number) => number[]
+  'mutations:simulate:loading:stop': (id: number) => number[]
 
-  'mutations:replay': (id: number) => void
+  'mutations:replay': (id: number) => number[]
 }
 
 export function serializeDevtoolsValue<T>(val: T): T

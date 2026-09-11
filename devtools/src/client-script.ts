@@ -34,9 +34,15 @@ import {
 } from './pc-devtools-info-plugin'
 import { PINIA_COLADA_CHANNEL, PINIA_COLADA_WAIT_TIMEOUT } from './channel.ts'
 import type { PiniaColadaCacheState, PiniaColadaChannelProtocol } from './channel.ts'
-import { entryFiltersSchema, entryKeyListSchema, entryKeySchema } from './mcp-shared.ts'
-import type { DevtoolsMcpEntryKey } from './mcp-shared.ts'
-import { z } from 'zod'
+import {
+  entryFiltersSchema,
+  entryKeyListSchema,
+  entryKeySchema,
+  mutationFiltersSchema,
+  mutationIdSchema,
+  mutationIdListSchema,
+  queryStateSchema,
+} from './mcp-shared.ts'
 
 const SETUP_KEY = Symbol.for('pinia-colada:devtools:client-script')
 
@@ -192,40 +198,71 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
       'queries:refetch': {
         type: 'action',
         jsonSerializable: true,
-        args: [entryFiltersSchema],
+        args: [entryFiltersSchema.optional()],
         returns: entryKeyListSchema,
         // @ts-expect-error: TODO: will be supported in next version
         agent: {
           description:
             'Refetch Pinia Colada queries matching the key, exact, stale, active, and status filters.',
-          safety: 'action',
         },
         handler: async (filters = {}) => {
           const entries = queryCache.getEntries(filters)
           await Promise.allSettled(entries.map((entry) => queryCache.fetch(entry)))
-          return entries.map((entry) => Array.from(entry.key) as DevtoolsMcpEntryKey)
+          return entries.map((entry) => entry.key)
         },
       },
 
       'queries:clear': {
         type: 'action',
+        jsonSerializable: true,
+        args: [entryFiltersSchema.optional()],
+        returns: entryKeyListSchema,
+        // @ts-expect-error: TODO: will be supported in next version
+        agent: {
+          description:
+            'Remove Pinia Colada queries matching the key, exact, stale, active, and status filters from the cache.',
+          safety: 'destructive',
+        },
         handler: (filters = {}) => {
-          queryCache.getEntries(filters).forEach((entry) => queryCache.remove(entry))
+          const entries = queryCache.getEntries(filters)
+          entries.forEach((entry) => queryCache.remove(entry))
+          return entries.map((entry) => entry.key)
         },
       },
 
       'queries:invalidate': {
         type: 'action',
-        handler: (key) => {
-          queryCache.invalidateQueries({ key, exact: true })
+        jsonSerializable: true,
+        args: [entryFiltersSchema.optional()],
+        returns: entryKeyListSchema,
+        // @ts-expect-error: TODO: will be supported in next version
+        agent: {
+          description:
+            'Invalidate matching Pinia Colada queries and refetch active, enabled queries.',
+        },
+        handler: async (filters = {}) => {
+          const entries = queryCache.getEntries(filters)
+          await Promise.allSettled(
+            entries.map((entry) => queryCache.invalidateQueries({ key: entry.key, exact: true })),
+          )
+          return entries.map((entry) => entry.key)
         },
       },
 
       'queries:reset': {
         type: 'action',
-        handler: (key) => {
-          const entry = queryCache.get(key)
-          if (entry) {
+        jsonSerializable: true,
+        args: [entryFiltersSchema.optional()],
+        returns: entryKeyListSchema,
+        // @ts-expect-error: TODO: will be supported in next version
+        agent: {
+          description:
+            'Cancel matching Pinia Colada queries and reset their state to pending with no data.',
+          safety: 'destructive',
+        },
+        handler: (filters = {}) => {
+          const entries = queryCache.getEntries(filters)
+          for (const entry of entries) {
             queryCache.cancel(entry)
             queryCache.setEntryState(entry, {
               status: 'pending',
@@ -233,51 +270,100 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
               error: null,
             })
           }
+          return entries.map((entry) => entry.key)
         },
       },
 
-      // TODO: rename to state:set and create state:get
+      'queries:state:get': {
+        type: 'query',
+        jsonSerializable: false,
+        args: [entryKeySchema],
+        returns: queryStateSchema.optional(),
+        // @ts-expect-error: TODO: will be supported in next version
+        agent: {
+          description:
+            'Get the state of one Pinia Colada query by its exact key. Returns undefined if the query is not cached. Rich values use the channel codec.',
+        },
+        handler: (key) => queryCache.get(key)?.state.value,
+      },
+
       // Edited state can contain rich values restored by the channel codec.
-      'queries:set:state': {
+      'queries:state:set': {
         type: 'action',
+        jsonSerializable: false,
+        args: [entryKeySchema, queryStateSchema],
+        returns: entryKeyListSchema,
+        // @ts-expect-error: TODO: will be supported in next version
+        agent: {
+          description:
+            'Replace the state of one Pinia Colada query, overwriting its cached data and error. Rich values use the channel codec.',
+          safety: 'destructive',
+        },
         handler: (key, state) => {
           const entry = queryCache.get(key)
           if (entry) {
             queryCache.setEntryState(entry, restoreOriginalValues(state, entry.state.value))
             updateQuery(createQueryEntryPayload(entry))
+            return [entry.key]
           }
+          return []
         },
       },
 
       'queries:simulate:loading': {
         type: 'action',
-        handler: (key) => {
-          const entry = queryCache.get(key)
-          if (entry) {
+        jsonSerializable: true,
+        args: [entryFiltersSchema.optional()],
+        returns: entryKeyListSchema,
+        // @ts-expect-error: TODO: will be supported in next version
+        agent: {
+          description: 'Simulate loading for matching Pinia Colada queries.',
+        },
+        handler: (filters = {}) => {
+          const entries = queryCache.getEntries(filters)
+          for (const entry of entries) {
             entry.asyncStatus.value = 'loading'
             ensureQueryDevtoolsInfo(entry).simulate = 'loading'
             updateQuery(createQueryEntryPayload(entry))
           }
+          return entries.map((entry) => entry.key)
         },
       },
 
       'queries:simulate:loading:stop': {
         type: 'action',
-        handler: (key) => {
-          const entry = queryCache.get(key)
-          if (entry && ensureQueryDevtoolsInfo(entry).simulate === 'loading') {
+        jsonSerializable: true,
+        args: [entryFiltersSchema.optional()],
+        returns: entryKeyListSchema,
+        // @ts-expect-error: TODO: will be supported in next version
+        agent: {
+          description: 'Stop loading simulations for matching Pinia Colada queries.',
+        },
+        handler: (filters = {}) => {
+          const entries = queryCache
+            .getEntries(filters)
+            .filter((entry) => ensureQueryDevtoolsInfo(entry).simulate === 'loading')
+          for (const entry of entries) {
             entry.asyncStatus.value = 'idle'
             ensureQueryDevtoolsInfo(entry).simulate = null
             updateQuery(createQueryEntryPayload(entry))
           }
+          return entries.map((entry) => entry.key)
         },
       },
 
       'queries:simulate:error': {
         type: 'action',
-        handler: (key) => {
-          const entry = queryCache.get(key)
-          if (entry) {
+        jsonSerializable: true,
+        args: [entryFiltersSchema.optional()],
+        returns: entryKeyListSchema,
+        // @ts-expect-error: TODO: will be supported in next version
+        agent: {
+          description: 'Cancel matching Pinia Colada queries and simulate an error.',
+        },
+        handler: (filters = {}) => {
+          const entries = queryCache.getEntries(filters)
+          for (const entry of entries) {
             queryCache.cancel(entry)
             queryCache.setEntryState(entry, {
               ...entry.state.value,
@@ -288,14 +374,25 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
             ensureQueryDevtoolsInfo(entry).simulate = 'error'
             updateQuery(createQueryEntryPayload(entry))
           }
+          return entries.map((entry) => entry.key)
         },
       },
 
       'queries:simulate:error:stop': {
         type: 'action',
-        handler: (key) => {
-          const entry = queryCache.get(key)
-          if (entry && ensureQueryDevtoolsInfo(entry).simulate === 'error') {
+        jsonSerializable: true,
+        args: [entryFiltersSchema.optional()],
+        returns: entryKeyListSchema,
+        // @ts-expect-error: TODO: will be supported in next version
+        agent: {
+          description:
+            'Stop error simulations for matching Pinia Colada queries, restoring success or pending state.',
+        },
+        handler: (filters = {}) => {
+          const entries = queryCache
+            .getEntries(filters)
+            .filter((entry) => ensureQueryDevtoolsInfo(entry).simulate === 'error')
+          for (const entry of entries) {
             queryCache.cancel(entry)
             queryCache.setEntryState(entry, {
               ...entry.state.value,
@@ -305,50 +402,97 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
             ensureQueryDevtoolsInfo(entry).simulate = null
             updateQuery(createQueryEntryPayload(entry))
           }
+          return entries.map((entry) => entry.key)
         },
       },
 
       'mutations:clear': {
         type: 'action',
+        jsonSerializable: true,
+        args: [mutationFiltersSchema.optional()],
+        returns: mutationIdListSchema,
+        // @ts-expect-error: TODO: will be supported in next version
+        agent: {
+          description:
+            'Remove Pinia Colada mutations matching the key prefix and status filters from the cache.',
+          safety: 'destructive',
+        },
         handler: (filters = {}) => {
-          mutationCache.getEntries(filters).forEach((entry) => mutationCache.remove(entry))
+          const entries = mutationCache.getEntries(filters)
+          entries.forEach((entry) => mutationCache.remove(entry))
+          return entries.map((entry) => entry.id)
         },
       },
 
       'mutations:remove': {
         type: 'action',
+        jsonSerializable: true,
+        args: [mutationIdSchema],
+        returns: mutationIdListSchema,
+        // @ts-expect-error: TODO: will be supported in next version
+        agent: {
+          description: 'Remove one Pinia Colada mutation from the cache by its ID.',
+          safety: 'destructive',
+        },
         handler: (id) => {
           const entry = mutationCache.get(id)
-          if (entry) mutationCache.remove(entry)
+          if (!entry) return []
+          mutationCache.remove(entry)
+          return [entry.id]
         },
       },
 
       'mutations:simulate:loading': {
         type: 'action',
+        jsonSerializable: true,
+        args: [mutationIdSchema],
+        returns: mutationIdListSchema,
+        // @ts-expect-error: TODO: will be supported in next version
+        agent: {
+          description: 'Simulate loading for one Pinia Colada mutation by its ID.',
+        },
         handler: (id) => {
           const entry = mutationCache.get(id)
           if (entry) {
             entry.asyncStatus.value = 'loading'
             ensureMutationDevtoolsInfo(entry).simulate = 'loading'
             updateMutation(createMutationEntryPayload(entry))
+            return [entry.id]
           }
+          return []
         },
       },
 
       'mutations:simulate:loading:stop': {
         type: 'action',
+        jsonSerializable: true,
+        args: [mutationIdSchema],
+        returns: mutationIdListSchema,
+        // @ts-expect-error: TODO: will be supported in next version
+        agent: {
+          description: 'Stop a loading simulation for one Pinia Colada mutation by its ID.',
+        },
         handler: (id) => {
           const entry = mutationCache.get(id)
           if (entry && ensureMutationDevtoolsInfo(entry).simulate === 'loading') {
             entry.asyncStatus.value = 'idle'
             ensureMutationDevtoolsInfo(entry).simulate = null
             updateMutation(createMutationEntryPayload(entry))
+            return [entry.id]
           }
+          return []
         },
       },
 
       'mutations:simulate:error': {
         type: 'action',
+        jsonSerializable: true,
+        args: [mutationIdSchema],
+        returns: mutationIdListSchema,
+        // @ts-expect-error: TODO: will be supported in next version
+        agent: {
+          description: 'Simulate an error for one Pinia Colada mutation by its ID.',
+        },
         handler: (id) => {
           const entry = mutationCache.get(id)
           if (entry) {
@@ -360,12 +504,22 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
             // Set after setEntryState because that action resets the simulation.
             ensureMutationDevtoolsInfo(entry).simulate = 'error'
             updateMutation(createMutationEntryPayload(entry))
+            return [entry.id]
           }
+          return []
         },
       },
 
       'mutations:simulate:error:stop': {
         type: 'action',
+        jsonSerializable: true,
+        args: [mutationIdSchema],
+        returns: mutationIdListSchema,
+        // @ts-expect-error: TODO: will be supported in next version
+        agent: {
+          description:
+            'Stop an error simulation for one Pinia Colada mutation by its ID, restoring success or pending state.',
+        },
         handler: (id) => {
           const entry = mutationCache.get(id)
           if (entry && ensureMutationDevtoolsInfo(entry).simulate === 'error') {
@@ -378,25 +532,36 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
             )
             ensureMutationDevtoolsInfo(entry).simulate = null
             updateMutation(createMutationEntryPayload(entry))
+            return [entry.id]
           }
+          return []
         },
       },
 
       'mutations:replay': {
         type: 'action',
-        handler: (id) => {
+        jsonSerializable: true,
+        args: [mutationIdSchema],
+        returns: mutationIdListSchema,
+        // @ts-expect-error: TODO: will be supported in next version
+        agent: {
+          description:
+            'Replay one Pinia Colada mutation with its stored variables. This runs the mutation again and can delete server data or repeat a write. Missing mutations and mutations awaiting garbage collection are skipped.',
+          safety: 'destructive',
+        },
+        handler: async (id) => {
           const entry = mutationCache.get(id)
 
           if (!entry) {
             console.warn('[@pinia/colada] Cannot replay: mutation entry not found')
-            return
+            return []
           }
 
           if (entry.gcTimeout) {
             console.warn(
               "[@pinia/colada] Cannot replay: mutation is in the process of being garbage collected. It isn't used anywhere and replaying it will have no effect.",
             )
-            return
+            return []
           }
 
           mutationCache.setEntryState(entry, {
@@ -404,9 +569,10 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
             status: 'pending',
             error: null,
           })
-          mutationCache.mutate(entry).catch(() => {
+          await mutationCache.mutate(entry).catch(() => {
             // Errors update the authoritative state through $onAction.
           })
+          return [entry.id]
         },
       },
     },
