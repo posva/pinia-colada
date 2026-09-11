@@ -269,9 +269,10 @@ function restoreOriginalValuesRecursive<T>(edited: T, original: unknown, depth: 
       typeof original === 'object'
     ) {
       for (const [key, value] of Object.entries(edited)) {
-        ;(original as Record<string, unknown>)[key] = restoreOriginalValues(
+        ;(original as Record<string, unknown>)[key] = restoreOriginalValuesRecursive(
           value,
           (original as Record<string, unknown>)[key],
+          depth + 1,
         )
       }
     }
