@@ -235,16 +235,7 @@ function PiniaColadaInfiniteQueryPlugin(scope: EffectScope, queryCache: QueryCac
         const [entry] = args
         if (isInfiniteQueryEntry(entry)) {
           scope.run(() => {
-            const nextPageParam = shallowRef<unknown | null | undefined>()
-            const hasNextPage = computed(() => nextPageParam.value != null)
-            const previousPageParam = shallowRef<unknown | null | undefined>()
-            const hasPreviousPage = computed(() => previousPageParam.value != null)
-
-            entry.ext.nextPageParam = nextPageParam
-            entry.ext.hasNextPage = hasNextPage
-            entry.ext.previousPageParam = previousPageParam
-            entry.ext.hasPreviousPage = hasPreviousPage
-            entry.ext.nextPageIndicator = 0
+            createInfiniteQueryEntryExtensions(entry.ext)
           })
         }
       }
