@@ -784,8 +784,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    */
   function get<
     TData = unknown,
-    TError = ErrorDefault,
-    TDataInitial extends TData | undefined = undefined,
+    TError = unknown,
+    TDataInitial extends TData | undefined = unknown extends TData ? unknown : undefined,
   >(
     key: EntryKeyTagged<TData, TError, TDataInitial> | EntryKey,
   ): UseQueryEntry<TData, TError, TDataInitial> | undefined {
