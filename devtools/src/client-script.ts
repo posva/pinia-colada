@@ -194,6 +194,7 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
         jsonSerializable: true,
         args: [entryFiltersSchema],
         returns: entryKeyListSchema,
+        // @ts-expect-error: TODO: will be supported in next version
         agent: {
           description:
             'Refetch Pinia Colada queries matching the key, exact, stale, active, and status filters.',

@@ -11,6 +11,7 @@ import IconsResolver from 'unplugin-icons/resolver'
 import Icons from 'unplugin-icons/vite'
 import Components from 'unplugin-vue-components/vite'
 import { piniaColadaDevframeDefaults } from './src/devframe.ts'
+import type { ClientScriptEntry } from '@devframes/hub'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const UiComponentRe = /^U[A-Z][a-z]/
@@ -28,9 +29,9 @@ function PiniaColadaDevtoolsFixture() {
       dock: {
         clientScript: {
           importFrom: `/@fs/${clientScriptPath}`,
-          // TODO: add after the PR is merged
+          // @ts-expect-error: TODO: add after the PR is merged
           eager: true,
-        },
+        } satisfies ClientScriptEntry,
       },
       setup(ctx) {
         const dock = ctx.docks.views.get('pinia-colada')

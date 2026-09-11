@@ -3,14 +3,15 @@ import { defineDevframe } from 'devframe'
 import type { DevframeDefinition } from 'devframe'
 import { piniaColadaDevframeDefaults } from './devframe.ts'
 import piniaColadaIcon from './panel/logo.svg'
+import type { ClientScriptEntry } from '@devframes/hub'
 
 /** Dock options required when installing the raw devframe in a hub. */
 export const piniaColadaDevframeDock = {
   clientScript: {
     importFrom: '@pinia/colada-devtools/client-script',
-    // TODO: add after the PR is merged
+    // @ts-expect-error: TODO: add after the PR is merged
     eager: true,
-  },
+  } satisfies ClientScriptEntry,
 } as const
 
 export const piniaColadaDevframe: DevframeDefinition = defineDevframe({
