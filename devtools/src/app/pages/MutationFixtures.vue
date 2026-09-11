@@ -18,9 +18,9 @@ const successMutation = useMutation({
 
 const failableMutation = useMutation({
   key: (input: { execution: number }) => ['fixtures', 'failable-mutation', input.execution],
-  async mutation(input: { execution: number }) {
+  async mutation(input: { execution: number; shouldFail?: boolean }) {
     await delay(600)
-    if (shouldFail.value) throw new Error(`Mutation ${input.execution} failed intentionally`)
+    if (input.shouldFail) throw new Error(`Mutation ${input.execution} failed intentionally`)
     return { success: true, ...input }
   },
 })
@@ -60,7 +60,7 @@ function runSuccess() {
 }
 
 function runFailable() {
-  failableMutation.mutate({ execution: nextExecution() })
+  failableMutation.mutate({ execution: nextExecution(), shouldFail: shouldFail.value })
 }
 
 function runComplex() {
