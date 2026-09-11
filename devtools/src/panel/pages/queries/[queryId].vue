@@ -194,7 +194,7 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             size="sm"
             title="Refetch this query"
             :disabled="selectedQuery.options?.enabled === false"
-            @click="panelChannel.call('queries:refetch', selectedQuery.key)"
+            @click="panelChannel.call('queries:refetch', { key: selectedQuery.key, exact: true })"
           >
             <i-lucide-refresh-cw class="size-3.5" /> Refetch
           </UButton>

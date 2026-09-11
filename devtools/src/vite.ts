@@ -16,6 +16,7 @@ export function PiniaColadaDevtools(): Plugin {
       // /@fs keeps this module in the inspected app's Vite graph, so its Pinia
       // and Pinia Colada imports resolve to the app's own instances.
       clientScript: {
+        ...piniaColadaDevframeDock.clientScript,
         importFrom: `/@fs/${clientScriptPath}`,
       },
     },
@@ -30,6 +31,7 @@ export function PiniaColadaDevtools(): Plugin {
       ctx.docks.update({
         ...dock,
         clientScript: {
+          ...dock.clientScript,
           importFrom: `${base}@fs/${clientScriptPath}`,
         },
       })

@@ -34,6 +34,9 @@ import {
 } from './pc-devtools-info-plugin'
 import { PINIA_COLADA_CHANNEL, PINIA_COLADA_WAIT_TIMEOUT } from './channel.ts'
 import type { PiniaColadaCacheState, PiniaColadaChannelProtocol } from './channel.ts'
+import { entryFiltersSchema, entryKeyListSchema, entryKeySchema } from './mcp-shared.ts'
+import type { DevtoolsMcpEntryKey } from './mcp-shared.ts'
+import { z } from 'zod'
 
 const SETUP_KEY = Symbol.for('pinia-colada:devtools:client-script')
 
@@ -185,17 +188,28 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
     serialize: serializeDevtoolsValue,
     deserialize: restoreClonedDeep,
     functions: {
+      // NOTE: this version is ready for MCP, still not released
+      'queries:refetch': {
+        type: 'action',
+        jsonSerializable: true,
+        args: [entryFiltersSchema],
+        returns: entryKeyListSchema,
+        agent: {
+          description:
+            'Refetch Pinia Colada queries matching the key, exact, stale, active, and status filters.',
+          safety: 'action',
+        },
+        handler: async (filters = {}) => {
+          const entries = queryCache.getEntries(filters)
+          await Promise.allSettled(entries.map((entry) => queryCache.fetch(entry)))
+          return entries.map((entry) => Array.from(entry.key) as DevtoolsMcpEntryKey)
+        },
+      },
+
       'queries:clear': {
         type: 'action',
         handler: (filters = {}) => {
           queryCache.getEntries(filters).forEach((entry) => queryCache.remove(entry))
-        },
-      },
-
-      'queries:refetch': {
-        type: 'action',
-        handler: (key) => {
-          queryCache.invalidateQueries({ key, exact: true }, 'all')
         },
       },
 
@@ -221,6 +235,7 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
         },
       },
 
+      // TODO: rename to state:set and create state:get
       // Edited state can contain rich values restored by the channel codec.
       'queries:set:state': {
         type: 'action',

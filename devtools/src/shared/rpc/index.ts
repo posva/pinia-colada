@@ -18,7 +18,7 @@ export type { NonSerializableValue } from './custom-values'
 
 export type DevtoolsProcedures = {
   'queries:clear': (filters?: UseQueryEntryFilter) => void
-  'queries:refetch': (entryKey: EntryKey) => void
+  'queries:refetch': (filters?: UseQueryEntryFilter) => EntryKey[]
   'queries:invalidate': (entryKey: EntryKey) => void
   'queries:reset': (entryKey: EntryKey) => void
 

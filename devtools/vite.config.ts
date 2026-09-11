@@ -28,6 +28,8 @@ function PiniaColadaDevtoolsFixture() {
       dock: {
         clientScript: {
           importFrom: `/@fs/${clientScriptPath}`,
+          // TODO: add after the PR is merged
+          eager: true,
         },
       },
       setup(ctx) {

@@ -46,7 +46,8 @@
     "build": "tsdown && vite build --config panel.vite.config.ts"
   },
   "dependencies": {
-    "devframe": "^0.9.16"
+    "devframe": "^0.9.16",
+    "zod": "^4.5.4"
   },
   "peerDependencies": {
     "@devframes/hub": "^0.9.16",

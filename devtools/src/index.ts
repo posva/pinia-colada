@@ -8,6 +8,8 @@ import piniaColadaIcon from './panel/logo.svg'
 export const piniaColadaDevframeDock = {
   clientScript: {
     importFrom: '@pinia/colada-devtools/client-script',
+    // TODO: add after the PR is merged
+    eager: true,
   },
 } as const
 
