@@ -95,7 +95,7 @@ export default defineConfig({
         },
       },
       ...pluginsProjects,
-      // TODO: once they upgrade to vitest 4
+      // TODO: once @nuxt/test-utils supports vitest 5
       // './nuxt',
     ],
 
