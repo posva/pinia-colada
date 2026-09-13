@@ -12,8 +12,8 @@ allowBuilds:
   unrs-resolver: false
   '@tailwindcss/oxide': true
 overrides:
-  twoslash-vue: 0.3.7
-  'nuxt@4.5.2>@nuxt/devtools': 4.0.0-alpha.15
+  twoslash-vue: 0.3.9
+  'nuxt@4.5.2>@nuxt/devtools': 4.0.0-alpha.18
 ignoreWorkspaceRootCheck: true
 shamefullyHoist: true
 strictPeerDependencies: false
