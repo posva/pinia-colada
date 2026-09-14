@@ -46,8 +46,8 @@
     "build": "tsdown && vite build --config panel.vite.config.ts"
   },
   "dependencies": {
-    "devframe": "^0.9.18",
-    "zod": "^4.6.1"
+    "devframe": "^0.9.19",
+    "zod": "^4.6.4"
   },
   "peerDependencies": {
     "@devframes/hub": "^0.9.16",
@@ -74,10 +74,10 @@
     }
   },
   "devDependencies": {
-    "@devframes/hub": "^0.9.18",
-    "@devframes/hub-ui": "^0.9.18",
-    "@devframes/vite": "^0.9.18",
-    "@iconify-json/lucide": "^1.2.131",
+    "@devframes/hub": "^0.9.19",
+    "@devframes/hub-ui": "^0.9.19",
+    "@devframes/vite": "^0.9.19",
+    "@iconify-json/lucide": "^1.2.132",
     "@pinia/colada": "workspace:^",
     "@posva/splitpanes": "^4.0.6",
     "@tailwindcss/vite": "^4.3.3",
