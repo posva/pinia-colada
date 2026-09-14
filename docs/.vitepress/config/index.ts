@@ -300,6 +300,7 @@ On top of that Pinia Colada is highly extensible. You can create your own plugin
             { text: 'TanStack Query compat plugin', link: '/cookbook/tanstack-compat.html' },
             { text: 'Migrating from TanStack Query', link: '/cookbook/migration-tvq.html' },
             { text: 'Migration Codemods', link: '/cookbook/migrations.html' },
+            { text: 'Devtools v2 (unreleased)', link: '/cookbook/migration-devtools-v2.html' },
           ],
         },
       ],
