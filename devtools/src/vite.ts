@@ -58,6 +58,19 @@ export function PiniaColadaDevtools(options: PiniaColadaDevtoolsOptions = {}): P
     ...plugin,
     apply: (_config, env) =>
       !env.isSsrBuild && (env.command === 'serve' || options.production === true),
+    config(_config, { command }) {
+      if (command !== 'serve') return
+
+      return {
+        optimizeDeps: {
+          // The bridge loads after Vite's initial dependency scan.
+          include: [
+            '@pinia/colada-devtools > devframe/in-page-channel',
+            '@pinia/colada-devtools > zod',
+          ],
+        },
+      }
+    },
     transformIndexHtml: {
       order: 'pre',
       handler(_html, ctx) {
