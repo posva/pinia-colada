@@ -6,4 +6,4 @@
 - [Testing](./testing.md)
 - [Migrating from `@tanstack/vue-query` to `@pinia/colada`](./migration-tvq.md)
 - [Migration Codemods](./migrations.md)
-- [Migrating Devtools to v2 (unreleased)](./migration-devtools-v2.md)
+- [Migrating Devtools to v2](./migration-devtools-v2.md)

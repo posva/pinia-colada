@@ -95,10 +95,6 @@ npx nuxi module add pinia
 
 ## Devtools
 
-::: warning Unreleased
-This setup requires the upcoming major release of `@pinia/colada-devtools`, which is not published yet.
-:::
-
 Install the devtools as a development dependency:
 
 ```sh

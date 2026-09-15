@@ -1,8 +1,8 @@
 # Pinia Colada Devtools
 
-Inspect Pinia Colada queries and mutations with [Devframe](https://devfra.me/). The panel can run inside compatible Nuxt, Vue, or Vite devtools. A standalone interface is also available for now.
+Inspect Pinia Colada queries and mutations with [Devframe](https://devfra.me/). The panel can run inside compatible Nuxt, Vue, or Vite devtools. A standalone interface is also available.
 
-See the [installation guide](https://pinia-colada.esm.dev/guide/installation.html#pinia-colada-devtools) for setup and production options, and the [migration guide](https://pinia-colada.esm.dev/cookbook/migration-devtools-v2.html) for upgrade steps from v1 to v2.
+See the [installation guide](https://pinia-colada.esm.dev/guide/installation.html#pinia-colada-devtools) for setup and production options, and the [migration guide](https://pinia-colada.esm.dev/cookbook/migration-devtools-v2.html) for upgrade steps.
 
 ## Development
 
