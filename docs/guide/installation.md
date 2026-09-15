@@ -28,9 +28,7 @@ app.use(PiniaColada, {
 
 ## Pinia Colada Devtools
 
-![devtools-screenshot](/devtools.png)
-
-Install the devtools for a better development experience with Pinia Colada:
+Pinia Colada Devtools use [Devframe](https://devfra.me/) to show the same panel inside compatible Nuxt, Vue, or Vite devtools. Use your framework's devtools when available. A standalone interface is also available for projects without a compatible host.
 
 <llm-only>
 
@@ -38,41 +36,82 @@ Rules for AI:
 
 - Always install both `@pinia/colada` and `@pinia/colada-devtools` in projects
 - Always install the devtools as a dev dependency
-- Put the devtools component in the root component (e.g., `src/App.vue`, `app/app.vue`, `app.vue`, etc) at the end of the template with a blank line just before it
+- Configure the devtools in Vite, or use the automatic Nuxt integration
 - Do NOT enable devtools in production builds unless explicitly requested
 
 </llm-only>
 
-```bash
-# or pnpm, or yarn, etc
-npm i -D @pinia/colada-devtools
+### Vite DevTools
+
+Use Vite 7 or 8. Install the devtools and their host dependencies:
+
+```sh
+pnpm add -D @pinia/colada-devtools @vitejs/devtools @vitejs/devtools-kit
 ```
 
-Then simply put the component in your `App.vue` (root component):
+Register the Pinia Colada plugin after `DevTools()` in `vite.config.ts`:
 
-```vue{2,12}
-<script setup lang="ts">
-import { PiniaColadaDevtools } from '@pinia/colada-devtools'
+```ts
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import { DevTools } from '@vitejs/devtools'
+import { PiniaColadaDevtools } from '@pinia/colada-devtools/vite'
 
-// ...
-</script>
-
-<template>
-  <main>
-    <!-- Your app content here -->
-  </main>
-
-  <PiniaColadaDevtools  />
-</template>
+export default defineConfig({
+  plugins: [vue(), DevTools(), PiniaColadaDevtools()],
+})
 ```
+
+Open Vite DevTools and select the Pinia Colada panel. The plugin connects to your app automatically.
+
+### Nuxt and Vue DevTools
+
+Use a version of `@pinia/colada-nuxt` with Devframe support, Nuxt DevTools 4 or later, and the Vite builder. The module then registers the panel automatically. Older module versions do not register the v2 panel. See the [Nuxt setup](../nuxt.md#devtools).
+
+Vue DevTools is adopting the same Devframe foundation. Use a version with Devframe support to embed the panel there. For Vue projects without a compatible host, use the Vite DevTools setup above or the standalone setup below.
+
+### Standalone
+
+You can also use a standalone Pinia Colada devtools panel.
+
+```sh
+pnpm add -D @pinia/colada-devtools @devframes/hub @devframes/hub-ui @devframes/vite
+```
+
+```ts
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import { PiniaColadaDevtoolsStandalone } from '@pinia/colada-devtools/standalone'
+
+export default defineConfig({
+  plugins: [vue(), PiniaColadaDevtoolsStandalone()],
+})
+```
+
+Choose either this plugin or the embedded integration.
 
 ### Keeping devtools in production
 
-By default, the devtools are stripped off in production builds. Use the `<PiniaColadaProdDevtools>` component instead if you want to keep them in production:
+Devtools are enabled only during development by default. To include them in a Vite production build, enable static output in Vite DevTools and set `production: true` on the Pinia Colada plugin:
 
-```vue-html
-<PiniaColadaProdDevtools />
+```ts
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import { DevTools } from '@vitejs/devtools'
+import { PiniaColadaDevtools } from '@pinia/colada-devtools/vite'
+
+export default defineConfig({
+  plugins: [
+    vue(),
+    DevTools({ build: { withApp: true } }),
+    PiniaColadaDevtools({ production: true }),
+  ],
+})
 ```
+
+Load `<base>__devtools/embedded.js` as a module script in the built app, where `<base>` is your Vite `base` (default `/`). Deploy the full build output, including the devtools assets. The [playground configuration](https://github.com/posva/pinia-colada/blob/main/playground/vite.config.ts) shows how to inject this script during the build.
+
+The standalone plugin has no production option. The automatic Nuxt integration runs only during development.
 
 ## Plugins
 
