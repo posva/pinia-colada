@@ -30,10 +30,6 @@ app.use(PiniaColada, {
 
 Pinia Colada Devtools use [Devframe](https://devfra.me/) to show the same panel inside compatible Nuxt, Vue, or Vite devtools. Use your framework's devtools when available. A standalone interface is also available for projects without a compatible host.
 
-::: warning Unreleased
-These instructions describe the upcoming major release of `@pinia/colada-devtools`, which is not published yet.
-:::
-
 <llm-only>
 
 Rules for AI:
@@ -76,7 +72,7 @@ Vue DevTools is adopting the same Devframe foundation. Use a version with Devfra
 
 ### Standalone
 
-The standalone interface remains available for now. Prefer an embedded panel when your framework's devtools support it; a separate interface should become unnecessary as host support expands.
+You can also use a standalone Pinia Colada devtools panel.
 
 ```sh
 pnpm add -D @pinia/colada-devtools @devframes/hub @devframes/hub-ui @devframes/vite
