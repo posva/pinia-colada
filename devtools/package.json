@@ -48,7 +48,7 @@
   "dependencies": {
     "@devframes/agentic": "^0.10.0",
     "devframe": "^0.10.0",
-    "zod": "^4.6.4"
+    "zod": "^4.6.5"
   },
   "peerDependencies": {
     "@devframes/hub": "^0.10.0",
@@ -84,7 +84,7 @@
     "@tailwindcss/vite": "^4.3.3",
     "@vitejs/devtools": "^0.7.4",
     "@vitejs/devtools-kit": "^0.7.4",
-    "@vitejs/plugin-vue": "^6.0.8",
+    "@vitejs/plugin-vue": "^6.0.9",
     "@vueuse/core": "^14.4.0",
     "pinia": "^4.0.3",
     "tailwindcss": "^4.3.3",
