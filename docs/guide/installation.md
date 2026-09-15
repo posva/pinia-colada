@@ -66,7 +66,7 @@ Open Vite DevTools and select the Pinia Colada panel. The plugin connects to you
 
 ### Nuxt and Vue DevTools
 
-With Nuxt DevTools 4 or later and the Vite builder, the Pinia Colada Nuxt module registers the panel automatically. See the [Nuxt setup](../nuxt.md#devtools).
+Use a version of `@pinia/colada-nuxt` with Devframe support, Nuxt DevTools 4 or later, and the Vite builder. The module then registers the panel automatically. Older module versions do not register the v2 panel. See the [Nuxt setup](../nuxt.md#devtools).
 
 Vue DevTools is adopting the same Devframe foundation. Use a version with Devframe support to embed the panel there. For Vue projects without a compatible host, use the Vite DevTools setup above or the standalone setup below.
 

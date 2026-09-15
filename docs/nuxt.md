@@ -95,6 +95,8 @@ npx nuxi module add pinia
 
 ## Devtools
 
+Use a version of `@pinia/colada-nuxt` with Devframe support. Older versions do not register the v2 panel, even with Nuxt DevTools 4.
+
 Install the devtools as a development dependency:
 
 ```sh
