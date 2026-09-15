@@ -10,6 +10,5 @@ export const piniaColadaDevframeDefaults = {
   packageName: pkg.name,
   homepage: pkg.homepage,
   description: pkg.description,
-  cli: { mcp: true },
   setup() {},
 } satisfies Omit<DevframeDefinition, 'importMetaUrl'>
