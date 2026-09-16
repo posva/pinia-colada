@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "devframe": {
+      "command": "npx",
+      "args": ["devframe", "connect"]
+    }
+  }
+}

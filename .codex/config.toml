@@ -1,0 +1,3 @@
+[mcp_servers.devframe]
+command = "npx"
+args = ["devframe", "connect"]
