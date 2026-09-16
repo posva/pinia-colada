@@ -1,3 +1,14 @@
+# [1.2.0](https://github.com/posva/pinia-colada/compare/%40pinia%2Fcolada-nuxt%401.1.0...%40pinia%2Fcolada-nuxt%401.2.0) (2026-09-16)
+
+### Bug Fixes
+
+- **nuxt:** register colada devtools in vite ([c351b5f](https://github.com/posva/pinia-colada/commit/c351b5f47afb2da965dc4cf94ed277082a002a35))
+
+### Features
+
+- **devtools:** add standalone Vite hub plugin ([35ca1aa](https://github.com/posva/pinia-colada/commit/35ca1aa21a9a55bafa2aeb681b6de7185e85ea70))
+- **nuxt:** register colada in nuxt devtools ([9f20a7b](https://github.com/posva/pinia-colada/commit/9f20a7ba142892a7e3a219e5f52f4c242c746331))
+
 # [1.1.0](https://github.com/posva/pinia-colada/compare/%40pinia%2Fcolada-nuxt%401.0.2...%40pinia%2Fcolada-nuxt%401.1.0) (2026-08-31)
 
 ### Bug Fixes

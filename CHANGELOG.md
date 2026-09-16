@@ -1,3 +1,10 @@
+## [1.4.5](https://github.com/posva/pinia-colada/compare/v1.4.4...v1.4.5) (2026-09-16)
+
+### Bug Fixes
+
+- stale serialization + hydration ([1887ccc](https://github.com/posva/pinia-colada/commit/1887cccc00d1faec6f2286315f76fb592805c5ca))
+- **types:** make querystore.get return a more lax entry ([1062bf3](https://github.com/posva/pinia-colada/commit/1062bf32b7783347072131c3697baaf399b9d10b))
+
 ## [1.4.4](https://github.com/posva/pinia-colada/compare/v1.4.3...v1.4.4) (2026-09-02)
 
 ### Bug Fixes

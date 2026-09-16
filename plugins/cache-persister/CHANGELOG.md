@@ -1,3 +1,5 @@
+## [1.1.2](https://github.com/posva/pinia-colada/compare/%40pinia%2Fcolada-plugin-cache-persister%401.1.1...%40pinia%2Fcolada-plugin-cache-persister%401.1.2) (2026-09-16)
+
 ## [1.1.1](https://github.com/posva/pinia-colada/compare/%40pinia%2Fcolada-plugin-cache-persister%401.1.0...%40pinia%2Fcolada-plugin-cache-persister%401.1.1) (2026-08-10)
 
 ### Bug Fixes
