@@ -109,7 +109,7 @@ By using Pinia Colada, you get access to a wide range of features that simplify 
 - **Modular Design**: It encourages a modular approach to async state management, promoting better code organization and maintainability.
 - **TypeScript Support**: It has excellent TypeScript support out of the box, ensuring type safety and better developer experience.
 - **Performance**: Pinia Colada is designed with performance in mind, ensuring efficient fetches and reactivity.
-- **DevTools Integration**: Pinia Colada provides its own advanced devtools to easily debug loading and error states and debug any fetch happening too often!
+- **DevTools Integration**: Pinia Colada provides devtools to inspect queries, mutations, loading states, and errors. The devtools use [Devframe](https://devfra.me/) to embed the same panel in compatible Nuxt, Vue, or Vite devtools. See the [setup instructions](./guide/installation.md#pinia-colada-devtools).
 
 By using Pinia Colada, you can enhance your Vue.js application's async state management with a modern, efficient, and developer-friendly solution.
 

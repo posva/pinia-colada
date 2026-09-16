@@ -93,6 +93,27 @@ npx nuxi module add pinia
 
 :::
 
+## Devtools
+
+Use a version of `@pinia/colada-nuxt` with Devframe support. Older versions do not register the v2 panel, even with Nuxt DevTools 4.
+
+Install the devtools as a development dependency:
+
+```sh
+pnpm add -D @pinia/colada-devtools
+```
+
+Use Nuxt DevTools 4 or later with the Vite builder and enable devtools in `nuxt.config.ts`:
+
+```ts
+export default defineNuxtConfig({
+  modules: ['@pinia/nuxt', '@pinia/colada-nuxt'],
+  devtools: { enabled: true },
+})
+```
+
+The Pinia Colada module registers the panel during development. Open Nuxt DevTools and select Pinia Colada. See the [devtools installation guide](./guide/installation.md#pinia-colada-devtools) for other hosts.
+
 ## Configuration
 
 You can configure the Pinia Colada plugin by creating a `colada.options.ts` file at the root of your project.
