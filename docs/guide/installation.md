@@ -28,6 +28,8 @@ app.use(PiniaColada, {
 
 ## Pinia Colada Devtools
 
+![devtools-screenshot](/devtools.png)
+
 Pinia Colada Devtools use [Devframe](https://devfra.me/) to show the same panel inside compatible Nuxt, Vue, or Vite devtools. Use your framework's devtools when available. A standalone interface is also available for projects without a compatible host.
 
 <llm-only>
