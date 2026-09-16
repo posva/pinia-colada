@@ -70,7 +70,7 @@ export class ContainerQueryList extends EventTarget {
     doc.adoptedStyleSheets.push(propertyCssSheet)
 
     // NOTE: adoptedStyleSheets cannot be shared so this fails in some scenarios
-    if (rootNode.ownerDocument === document) {
+    if (rootNode === document || rootNode.ownerDocument === document) {
       const containerQuerySheet = new CSSStyleSheet()
       containerQuerySheet.replaceSync(containerCss)
       rootNode.adoptedStyleSheets.push(containerQuerySheet)
