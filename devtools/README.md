@@ -40,7 +40,7 @@ pnpm add -D @pinia/colada-devtools @vitejs/devtools @vitejs/devtools-kit
 
 The Pinia Colada plugin must come after `DevTools()`.
 
-Use Vite DevTools and its kit version 0.7.4 or later with DevFrame 0.10.
+Use Vite DevTools and its kit version 0.7.5 or later with DevFrame 1.
 
 For Nuxt, install `@pinia/colada-devtools` and enable Nuxt DevTools. The Pinia
 Colada Nuxt module registers the integration automatically:
@@ -70,7 +70,9 @@ pnpm add -D @pinia/colada-devtools @devframes/hub @devframes/hub-ui @devframes/v
 ```
 
 MCP support is included through `@devframes/agentic`. The standalone host enables
-MCP; a custom hub controls MCP through its own `mcp` option.
+MCP; a custom hub controls MCP through its own `mcp` option. The Vite and standalone
+adapters publish their live hub to `devframe connect`. Browser-backed tools are
+available while an app page is open and authorized.
 
 ### Production builds
 

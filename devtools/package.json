@@ -46,15 +46,15 @@
     "build": "tsdown && vite build --config panel.vite.config.ts"
   },
   "dependencies": {
-    "@devframes/agentic": "^0.10.0",
-    "devframe": "^0.10.0",
+    "@devframes/agentic": "^1.0.0",
+    "devframe": "^1.0.0",
     "zod": "^4.6.4"
   },
   "peerDependencies": {
-    "@devframes/hub": "^0.10.0",
-    "@devframes/hub-ui": "^0.10.0",
-    "@devframes/vite": "^0.10.0",
-    "@vitejs/devtools-kit": "^0.7.4",
+    "@devframes/hub": "^1.0.0",
+    "@devframes/hub-ui": "^1.0.0",
+    "@devframes/vite": "^1.0.0",
+    "@vitejs/devtools-kit": "^0.7.5",
     "vite": "^7.0.0 || ^8.0.0"
   },
   "peerDependenciesMeta": {
@@ -75,15 +75,15 @@
     }
   },
   "devDependencies": {
-    "@devframes/hub": "^0.10.0",
-    "@devframes/hub-ui": "^0.10.0",
-    "@devframes/vite": "^0.10.0",
+    "@devframes/hub": "^1.0.0",
+    "@devframes/hub-ui": "^1.0.0",
+    "@devframes/vite": "^1.0.0",
     "@iconify-json/lucide": "^1.2.132",
     "@pinia/colada": "workspace:^",
     "@posva/splitpanes": "^4.0.6",
     "@tailwindcss/vite": "^4.3.3",
-    "@vitejs/devtools": "^0.7.4",
-    "@vitejs/devtools-kit": "^0.7.4",
+    "@vitejs/devtools": "^0.7.5",
+    "@vitejs/devtools-kit": "^0.7.5",
     "@vitejs/plugin-vue": "^6.0.8",
     "@vueuse/core": "^14.4.0",
     "pinia": "^4.0.3",

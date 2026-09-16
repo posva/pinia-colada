@@ -1,5 +1,9 @@
+import type { AddressInfo } from 'node:net'
+import process from 'node:process'
 import { fileURLToPath } from 'node:url'
+import { DEVTOOLS_MOUNT_PATH } from '@vitejs/devtools-kit/constants'
 import { createPluginFromDevframe } from '@vitejs/devtools-kit/node'
+import { registerDevframeInstance } from 'devframe/internal'
 import type { Plugin } from 'vite'
 import { normalizePath } from 'vite'
 import { piniaColadaDevframe, piniaColadaDevframeDock } from './index.ts'
@@ -70,6 +74,39 @@ export function PiniaColadaDevtools(options: PiniaColadaDevtoolsOptions = {}): P
           ],
         },
       }
+    },
+    configureServer(server) {
+      const httpServer = server.httpServer
+      if (!httpServer) return
+
+      // Vite DevTools does not publish its hub for devframe connect.
+      let unregister: (() => void) | undefined
+      const register = () => {
+        const address = httpServer.address() as AddressInfo | string | null
+        if (!address || typeof address === 'string') return
+
+        unregister = registerDevframeInstance({
+          pid: process.pid,
+          port: address.port,
+          origin: server.resolvedUrls?.local[0]
+            ? new URL(server.resolvedUrls.local[0]).origin
+            : `http${server.config.server.https ? 's' : ''}://localhost:${address.port}`,
+          basePath: DEVTOOLS_MOUNT_PATH,
+          id: piniaColadaDevframe.id,
+          name: piniaColadaDevframe.name,
+          rootDir: server.config.root,
+          mcp: { path: `${DEVTOOLS_MOUNT_PATH}__mcp` },
+          startedAt: Date.now(),
+        }).unregister
+      }
+      const cleanup = () => {
+        httpServer.off('listening', register)
+        unregister?.()
+      }
+
+      if (httpServer.listening) register()
+      else httpServer.once('listening', register)
+      httpServer.once('close', cleanup)
     },
     transformIndexHtml: {
       order: 'pre',

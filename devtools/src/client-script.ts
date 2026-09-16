@@ -194,13 +194,11 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
     serialize: serializeDevtoolsValue,
     deserialize: restoreClonedDeep,
     functions: {
-      // NOTE: this version is ready for MCP, still not released
       'queries:refetch': {
         type: 'action',
         jsonSerializable: true,
         args: [entryFiltersSchema.optional()],
         returns: entryKeyListSchema,
-        // @ts-expect-error: TODO: will be supported in next version
         agent: {
           description:
             'Refetch Pinia Colada queries matching the key, exact, stale, active, and status filters.',
@@ -217,7 +215,6 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
         jsonSerializable: true,
         args: [entryFiltersSchema.optional()],
         returns: entryKeyListSchema,
-        // @ts-expect-error: TODO: will be supported in next version
         agent: {
           description:
             'Remove Pinia Colada queries matching the key, exact, stale, active, and status filters from the cache.',
@@ -235,7 +232,6 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
         jsonSerializable: true,
         args: [entryFiltersSchema.optional()],
         returns: entryKeyListSchema,
-        // @ts-expect-error: TODO: will be supported in next version
         agent: {
           description:
             'Invalidate matching Pinia Colada queries and refetch active, enabled queries.',
@@ -254,7 +250,6 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
         jsonSerializable: true,
         args: [entryFiltersSchema.optional()],
         returns: entryKeyListSchema,
-        // @ts-expect-error: TODO: will be supported in next version
         agent: {
           description:
             'Cancel matching Pinia Colada queries and reset their state to pending with no data.',
@@ -279,11 +274,6 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
         jsonSerializable: false,
         args: [entryKeySchema],
         returns: queryStateSchema.optional(),
-        // @ts-expect-error: TODO: will be supported in next version
-        agent: {
-          description:
-            'Get the state of one Pinia Colada query by its exact key. Returns undefined if the query is not cached. Rich values use the channel codec.',
-        },
         handler: (key) => queryCache.get(key)?.state.value,
       },
 
@@ -293,12 +283,6 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
         jsonSerializable: false,
         args: [entryKeySchema, queryStateSchema],
         returns: entryKeyListSchema,
-        // @ts-expect-error: TODO: will be supported in next version
-        agent: {
-          description:
-            'Replace the state of one Pinia Colada query, overwriting its cached data and error. Rich values use the channel codec.',
-          safety: 'destructive',
-        },
         handler: (key, state) => {
           const entry = queryCache.get(key)
           if (entry) {
@@ -315,7 +299,6 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
         jsonSerializable: true,
         args: [entryFiltersSchema.optional()],
         returns: entryKeyListSchema,
-        // @ts-expect-error: TODO: will be supported in next version
         agent: {
           description: 'Simulate loading for matching Pinia Colada queries.',
         },
@@ -335,7 +318,6 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
         jsonSerializable: true,
         args: [entryFiltersSchema.optional()],
         returns: entryKeyListSchema,
-        // @ts-expect-error: TODO: will be supported in next version
         agent: {
           description: 'Stop loading simulations for matching Pinia Colada queries.',
         },
@@ -357,7 +339,6 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
         jsonSerializable: true,
         args: [entryFiltersSchema.optional()],
         returns: entryKeyListSchema,
-        // @ts-expect-error: TODO: will be supported in next version
         agent: {
           description: 'Cancel matching Pinia Colada queries and simulate an error.',
         },
@@ -383,7 +364,6 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
         jsonSerializable: true,
         args: [entryFiltersSchema.optional()],
         returns: entryKeyListSchema,
-        // @ts-expect-error: TODO: will be supported in next version
         agent: {
           description:
             'Stop error simulations for matching Pinia Colada queries, restoring success or pending state.',
@@ -411,7 +391,6 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
         jsonSerializable: true,
         args: [mutationFiltersSchema.optional()],
         returns: mutationIdListSchema,
-        // @ts-expect-error: TODO: will be supported in next version
         agent: {
           description:
             'Remove Pinia Colada mutations matching the key prefix and status filters from the cache.',
@@ -429,7 +408,6 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
         jsonSerializable: true,
         args: [mutationIdSchema],
         returns: mutationIdListSchema,
-        // @ts-expect-error: TODO: will be supported in next version
         agent: {
           description: 'Remove one Pinia Colada mutation from the cache by its ID.',
           safety: 'destructive',
@@ -447,7 +425,6 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
         jsonSerializable: true,
         args: [mutationIdSchema],
         returns: mutationIdListSchema,
-        // @ts-expect-error: TODO: will be supported in next version
         agent: {
           description: 'Simulate loading for one Pinia Colada mutation by its ID.',
         },
@@ -468,7 +445,6 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
         jsonSerializable: true,
         args: [mutationIdSchema],
         returns: mutationIdListSchema,
-        // @ts-expect-error: TODO: will be supported in next version
         agent: {
           description: 'Stop a loading simulation for one Pinia Colada mutation by its ID.',
         },
@@ -489,7 +465,6 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
         jsonSerializable: true,
         args: [mutationIdSchema],
         returns: mutationIdListSchema,
-        // @ts-expect-error: TODO: will be supported in next version
         agent: {
           description: 'Simulate an error for one Pinia Colada mutation by its ID.',
         },
@@ -515,7 +490,6 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
         jsonSerializable: true,
         args: [mutationIdSchema],
         returns: mutationIdListSchema,
-        // @ts-expect-error: TODO: will be supported in next version
         agent: {
           description:
             'Stop an error simulation for one Pinia Colada mutation by its ID, restoring success or pending state.',
@@ -543,7 +517,6 @@ async function setupPiniaColadaBridge(): Promise<boolean> {
         jsonSerializable: true,
         args: [mutationIdSchema],
         returns: mutationIdListSchema,
-        // @ts-expect-error: TODO: will be supported in next version
         agent: {
           description:
             'Replay one Pinia Colada mutation with its stored variables. This runs the mutation again and can delete server data or repeat a write. Missing mutations and mutations awaiting garbage collection are skipped.',

@@ -11,6 +11,10 @@ export function PiniaColadaDevtoolsStandalone(): ReturnType<typeof viteDevframeH
   return viteDevframeHub({
     quiet: true,
     mcp: true,
+    register: {
+      id: piniaColadaDevframe.id,
+      name: piniaColadaDevframe.name,
+    },
     devframes: [piniaColadaDevframe],
     clientScripts: {
       'pinia-colada': {

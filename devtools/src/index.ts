@@ -9,7 +9,6 @@ import type { ClientScriptEntry } from '@devframes/hub'
 export const piniaColadaDevframeDock = {
   clientScript: {
     importFrom: '@pinia/colada-devtools/client-script',
-    // @ts-expect-error: TODO: add after the PR is merged
     eager: true,
   } satisfies ClientScriptEntry,
 } as const

@@ -28,7 +28,6 @@ function PiniaColadaDevtoolsFixture() {
       dock: {
         clientScript: {
           importFrom: `/@fs/${clientScriptPath}`,
-          // @ts-expect-error: TODO: add after the PR is merged
           eager: true,
         } satisfies ClientScriptEntry,
       },
