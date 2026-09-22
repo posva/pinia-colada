@@ -60,9 +60,9 @@ export function PiniaColadaAutoRefetch(
     function scheduleRefetch(
       // TODO: should be undefined
       entry: UseQueryEntry<unknown, unknown, unknown>,
-      delayMs: number,
+      delayMs: number | false,
     ) {
-      if (!entry.active) return
+      if (!entry.active || !delayMs || !Number.isFinite(delayMs)) return
 
       // Always clear existing timeout first
       clearTimeout(entry.ext[REFETCH_TIMEOUT_KEY])
@@ -99,10 +99,7 @@ export function PiniaColadaAutoRefetch(
       if (name === 'ensure') {
         after((entry) => {
           // after ensure, options are always defined
-          const interval = shouldScheduleRefetch(entry)
-          if (interval) {
-            scheduleRefetch(entry, interval)
-          }
+          scheduleRefetch(entry, shouldScheduleRefetch(entry))
         })
       }
 
@@ -115,10 +112,7 @@ export function PiniaColadaAutoRefetch(
 
         after(async () => {
           if (!entry.options) return
-          const interval = shouldScheduleRefetch(entry)
-          if (interval) {
-            scheduleRefetch(entry, interval)
-          }
+          scheduleRefetch(entry, shouldScheduleRefetch(entry))
         })
       }
 

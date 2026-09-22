@@ -357,4 +357,18 @@ describe('Auto Refetch plugin', () => {
       expect(query).toHaveBeenCalledTimes(2)
     })
   })
+
+  describe('unschedulable intervals', () => {
+    it('never refetches data that never goes stale (staleTime: Infinity)', async () => {
+      const { query } = mountQuery({ staleTime: Infinity })
+
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+
+      for (let i = 0; i < 5; i++) {
+        await vi.advanceTimersByTimeAsync(10)
+      }
+      expect(query).toHaveBeenCalledTimes(1)
+    })
+  })
 })
