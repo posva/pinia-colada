@@ -35,9 +35,9 @@ By default, `invalidateQueries()` invalidates all queries (both active and inact
 queryCache.invalidateQueries({ key: ['todos'] }, 'all')
 ```
 
-Queries paused with `enabled: false` are never refetched, even with `'all'`. They are still marked as stale.
+`invalidateQueries()` never refetches queries paused with `enabled: false`, even with `'all'`. They are still marked as stale.
 
-Invalidating a query also [cancels](./cancelling-queries.md) its pending request. Passing `false` as the second parameter marks the queries as stale without refetching any of them, so a query that was loading stops and does not restart until something refreshes it (a component mounting, the window regaining focus…). To leave loading queries alone, filter them out:
+Invalidating a query also [cancels](./cancelling-queries.md) its pending request. Passing `false` as the second parameter marks the queries as stale without refetching any of them, so a query that was loading stops and does not restart until something refreshes it. To leave loading queries alone, filter them out:
 
 ```ts
 queryCache.invalidateQueries(
