@@ -35,6 +35,17 @@ By default, `invalidateQueries()` invalidates all queries (both active and inact
 queryCache.invalidateQueries({ key: ['todos'] }, 'all')
 ```
 
+Queries paused with `enabled: false` are never refetched, even with `'all'`. They are still marked as stale.
+
+Invalidating a query also [cancels](./cancelling-queries.md) its pending request. Passing `false` as the second parameter marks the queries as stale without refetching any of them, so a query that was loading stops and does not restart until something refreshes it (a component mounting, the window regaining focus…). To leave loading queries alone, filter them out:
+
+```ts
+queryCache.invalidateQueries(
+  { key: ['todos'], predicate: (entry) => entry.asyncStatus.value !== 'loading' },
+  false,
+)
+```
+
 ::: info
 
 The `useQueryCache` composable grants access to the query cache. It can be used within your components' setup function and other contexts where `inject()` is available, such as Pinia Stores and Router navigation guards. Note that it cannot be invoked in the global scope or within a component method.
