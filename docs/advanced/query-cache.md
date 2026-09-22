@@ -70,13 +70,13 @@ For everything else, the convenience actions take a key or filters directly:
 
 - **`invalidateQueries(filters?, refetchActive?)`**: mark matching entries stale and refetch the active ones. The everyday tool after a mutation. See [Query Invalidation](/guide/query-invalidation.md) for filter behavior and the `'all'` option.
 - **`cancelQueries(filters?, reason?)`**: abort pending fetches for matching entries. Used in [Optimistic Updates](/guide/optimistic-updates.md) to stop in-flight fetches from overwriting the optimistic state.
-- **`setQueriesData(filters, updater)`**: bulk-patch matching entries with an updater function. Use it when one server-side change should be reflected across many cached queries (e.g. a contact appearing in several lists).
+- **`setQueriesData(filters, updater)`**: bulk-patch matching entries with an updater function. Use it when one server-side change should be reflected across many cached queries (e.g. a contact appearing in several lists). Like `setQueryData`, it forces `status: 'success'` on every match, including entries that never loaded, so filter by `status: 'success'` to only patch loaded data.
 - **`getQueryData(key)` / `setQueryData(key, data | updater)`**: direct read/write of a single entry's data by key. `setQueryData` creates the entry if missing and forces `status: 'success'`.
 
 ```ts
-// after creating a contact, patch every list it appears in
+// after creating a contact, patch every loaded list it appears in
 queryCache.setQueriesData<Contact[]>(
-  { key: ['contacts', 'list'] },
+  { key: ['contacts', 'list'], status: 'success' },
   (list = []) => [...list, newContact],
 )
 ```
