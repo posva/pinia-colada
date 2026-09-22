@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent } from 'vue'
 import { createPinia } from 'pinia'
 import { useQuery } from '../use-query'
+import { useQueryCache } from '../query-store'
 import type { PiniaColadaOptions } from '../pinia-colada'
 import { PiniaColada } from '../pinia-colada'
 import { PiniaColadaQueryHooksPlugin } from './query-hooks'
@@ -123,6 +124,82 @@ describe('Query Hooks plugin', () => {
       data: undefined,
       status: 'error',
       error: new Error('oops'),
+    })
+  })
+
+  describe('cancelled fetches', () => {
+    // Simulates a cancellable request: resolves after 50ms unless aborted externally
+    function abortableQuery({ signal }: { signal: AbortSignal }) {
+      return new Promise<number>((resolve, reject) => {
+        const timer = setTimeout(() => resolve(42), 50)
+        signal.addEventListener('abort', () => {
+          clearTimeout(timer)
+          // use the real abort reason, like fetch() do
+          reject(signal.reason)
+        })
+      })
+    }
+
+    function factoryWithHooks(queryOptions?: UseQueryOptions) {
+      const onSuccess = vi.fn()
+      const onSettled = vi.fn()
+      const onError = vi.fn()
+      const { pinia, wrapper } = factory(
+        {
+          plugins: [
+            PiniaColadaQueryHooksPlugin({
+              onSuccess,
+              onSettled,
+              onError,
+            }),
+          ],
+        },
+        queryOptions || {
+          query: abortableQuery,
+          key: ['key'],
+        },
+      )
+      return { pinia, wrapper, queryCache: useQueryCache(pinia), onSuccess, onSettled, onError }
+    }
+
+    it('does not call onError nor onSettled when an in-flight fetch is invalidated', async () => {
+      const { queryCache, onSuccess, onSettled, onError } = factoryWithHooks()
+
+      queryCache.invalidateQueries({ key: ['key'] })
+      vi.advanceTimersByTime(100)
+      await flushPromises()
+
+      expect(onError).toHaveBeenCalledTimes(0)
+      expect(onSettled).toHaveBeenCalledTimes(1)
+      expect(onSuccess).toHaveBeenCalledTimes(1)
+      expect(onSuccess).toHaveBeenCalledWith(42, expect.objectContaining({}))
+    })
+
+    it('does not call onError nor onSettled when an in-flight fetch is cancelled', async () => {
+      const { wrapper, queryCache, onSuccess, onSettled, onError } = factoryWithHooks()
+
+      queryCache.cancelQueries({ key: ['key'] })
+      vi.advanceTimersByTime(100)
+      await flushPromises()
+
+      expect(onError).toHaveBeenCalledTimes(0)
+      expect(onSuccess).toHaveBeenCalledTimes(0)
+      expect(onSettled).toHaveBeenCalledTimes(0)
+      expect(wrapper.vm.error).toBeNull()
+    })
+
+    it('does not call onError for a fetch superseded by a newer one', async () => {
+      const { queryCache, onSuccess, onSettled, onError } = factoryWithHooks()
+      const entry = queryCache.get(['key'])!
+
+      queryCache.fetch(entry)
+      vi.advanceTimersByTime(100)
+      await flushPromises()
+
+      expect(onError).toHaveBeenCalledTimes(0)
+      expect(onSuccess).toHaveBeenCalledTimes(1)
+      expect(onSettled).toHaveBeenCalledTimes(1)
+      expect(onSettled).toHaveBeenCalledWith(42, null, expect.objectContaining({}))
     })
   })
 })

@@ -70,6 +70,11 @@ export function PiniaColadaQueryHooksPlugin(
         })
 
         onError(async (error) => {
+          // skip errors that never reached the entry: the fetch was superseded
+          // by a newer one or aborted by `cancel()` / `invalidateQueries()`.
+          // `fetch` skips `setEntryState` in those cases but still rethrows,
+          // which would otherwise surface as a global error (e.g. toast).
+          if (entry.state.value.error !== error) return
           await options.onError?.(error, entry)
           options.onSettled?.(undefined, error, entry)
         })
