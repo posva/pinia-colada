@@ -54,7 +54,6 @@ This plugin schedules timers and is effectively client-only. It will not schedul
 
 - If you set `autoRefetch: true`, also set a `staleTime`. Without a `staleTime`, there is nothing to schedule.
 - If you need dynamic intervals, use the function form: `autoRefetch: (state) => state.data ? 30_000 : false`.
-- Refetches keep running while the page is hidden: the plugin doesn't check `document.visibilityState`.
 
 ## Links
 
