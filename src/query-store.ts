@@ -518,7 +518,13 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       // do not reinitialize the entry
       // because of the immediate watcher in useQuery, the `ensure()` action is called twice on mount
       // we return early to avoid pushing to currentDefineQueryEntry
-      if (previousEntry && keyHash === previousEntry.keyHash) {
+      if (
+        previousEntry &&
+        keyHash === previousEntry.keyHash &&
+        // oldEntry from defineQuery() can be an old entry not in the cache anymore, in which case
+        // it must be ignored
+        cachesRaw.get(keyHash) === previousEntry
+      ) {
         // with defineQueryOptions fn syntax, we need to update the options
         previousEntry.options = options
         return previousEntry

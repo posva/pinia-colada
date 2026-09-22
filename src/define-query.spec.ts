@@ -4,6 +4,7 @@ import { createPinia } from 'pinia'
 import type { App } from 'vue'
 import { createApp, defineComponent, effectScope, inject, provide, ref } from 'vue'
 import { defineQuery } from './define-query'
+import { useInfiniteQuery } from './infinite-query'
 import { useQuery } from './use-query'
 import type { UseQueryOptions } from './query-options'
 import { useQueryCache } from './query-store'
@@ -1111,6 +1112,88 @@ describe('defineQuery', () => {
         vi.advanceTimersByTime(1)
         expect(queryCache.getEntries({ key: ['key'] })).toHaveLength(0)
         wrapper.unmount()
+      })
+
+      // https://github.com/posva/pinia-colada/issues/646
+      it('reads the cache entry when remounted after it was garbage collected', async () => {
+        const pinia = createPinia()
+        const useTodos = defineQuery(() =>
+          useQuery({ key: ['todos'], query: async () => 'todos', gcTime: 1000 }),
+        )
+        function mountDefinedQuery() {
+          let returned!: ReturnType<typeof useTodos>
+          const wrapper = mount(
+            defineComponent({
+              render: () => null,
+              setup() {
+                returned = useTodos()
+                return {}
+              },
+            }),
+            { global: { plugins: [pinia, PiniaColada] } },
+          )
+          return { wrapper, returned }
+        }
+
+        const first = mountDefinedQuery()
+        await flushPromises()
+        const cache = useQueryCache(pinia)
+
+        first.wrapper.unmount()
+        expect(cache.getEntries({ key: ['todos'] })).toHaveLength(1)
+        vi.advanceTimersByTime(1000)
+        expect(cache.getEntries({ key: ['todos'] })).toHaveLength(0)
+
+        const { returned } = mountDefinedQuery()
+        await flushPromises()
+        expect(returned.data.value).toBe('todos')
+        expect(cache.getEntries({ key: ['todos'] })).toHaveLength(1)
+
+        cache.setQueryData(['todos'], 'patched')
+        await flushPromises()
+        expect(returned.data.value).toBe('patched')
+      })
+
+      // https://github.com/posva/pinia-colada/issues/646
+      it('keeps loadNextPage working when remounted after it was garbage collected', async () => {
+        const pinia = createPinia()
+        const useFeed = defineQuery(() =>
+          useInfiniteQuery({
+            key: ['feed'],
+            query: async ({ pageParam }: { pageParam: number }) => [pageParam],
+            initialPageParam: 1,
+            getNextPageParam: (lastPage) => lastPage[0]! + 1,
+            gcTime: 1000,
+          }),
+        )
+        function mountDefinedQuery() {
+          let returned!: ReturnType<typeof useFeed>
+          const wrapper = mount(
+            defineComponent({
+              render: () => null,
+              setup() {
+                returned = useFeed()
+                return {}
+              },
+            }),
+            { global: { plugins: [pinia, PiniaColada] } },
+          )
+          return { wrapper, returned }
+        }
+
+        const first = mountDefinedQuery()
+        await flushPromises()
+
+        first.wrapper.unmount()
+        vi.advanceTimersByTime(1000)
+
+        const { returned } = mountDefinedQuery()
+        await flushPromises()
+        expect(returned.hasNextPage.value).toBe(true)
+
+        await returned.loadNextPage()
+        await flushPromises()
+        expect(returned.data.value?.pages).toHaveLength(2)
       })
 
       // NOTE: not sure if worth it, defineQuery should be used sparingly
