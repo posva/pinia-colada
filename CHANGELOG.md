@@ -1,3 +1,10 @@
+## [1.4.6](https://github.com/posva/pinia-colada/compare/v1.4.5...v1.4.6) (2026-09-23)
+
+### Bug Fixes
+
+- discard gced old entries with defineQuery ([ac181c9](https://github.com/posva/pinia-colada/commit/ac181c9bf2365bd4b8ef986afe55466579a5f7c9)), closes [#646](https://github.com/posva/pinia-colada/issues/646)
+- skip onError for cancelled fetches in query hooks plugin ([15179ba](https://github.com/posva/pinia-colada/commit/15179ba5a3ac0aa0aed4e898d54ebb460d190a79)), closes [#647](https://github.com/posva/pinia-colada/issues/647)
+
 ## [1.4.5](https://github.com/posva/pinia-colada/compare/v1.4.4...v1.4.5) (2026-09-16)
 
 ### Bug Fixes

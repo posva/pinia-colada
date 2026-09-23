@@ -1,3 +1,9 @@
+## [0.2.7](https://github.com/posva/pinia-colada/compare/%40pinia%2Fcolada-plugin-auto-refetch%400.2.6...%40pinia%2Fcolada-plugin-auto-refetch%400.2.7) (2026-09-23)
+
+### Bug Fixes
+
+- **auto-refetch:** skip refetch when staleTime is not finite ([#650](https://github.com/posva/pinia-colada/issues/650)) ([e647258](https://github.com/posva/pinia-colada/commit/e647258e6f81890aeb5c66393140eab038d5b272)), closes [#648](https://github.com/posva/pinia-colada/issues/648)
+
 ## [0.2.6](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-auto-refetch@0.2.5...@pinia/colada-plugin-auto-refetch@0.2.6) (2026-03-06)
 
 - refactor!: remove CJS support ([458071a](https://github.com/posva/pinia-colada/commit/458071a3a16f7f93ecde6b0816ae61239769526f))
