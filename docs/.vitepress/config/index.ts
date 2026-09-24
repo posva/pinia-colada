@@ -214,6 +214,7 @@ On top of that Pinia Colada is highly extensible. You can create your own plugin
           items: [
             { text: 'Quick Start', link: '/quick-start.html' },
             { text: 'Why', link: '/why.html' },
+            { text: 'Community', link: '/community.html' },
           ],
         },
         {
