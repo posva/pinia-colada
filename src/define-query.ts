@@ -1,21 +1,12 @@
-import { getCurrentInstance, getCurrentScope, onScopeDispose, toValue } from 'vue'
-import type { EffectScope } from 'vue'
+import { getCurrentInstance, getCurrentScope, onScopeDispose, toValue, watch } from 'vue'
 import type { tErrorSymbol, UseQueryOptions } from './query-options'
 import { useQueryCache } from './query-store'
+import type { UseQueryEntry } from './query-store'
 import type { ErrorDefault } from './types-extension'
 import type { UseQueryReturn } from './use-query'
 import { useQuery } from './use-query'
 import { noop } from './utils'
 import type { _RemoveMaybeRef } from './utils'
-
-/**
- * The current effect scope where the function returned by `defineQuery` is
- * being called. This allows `useQuery()` to know if it should be attached to
- * an effect scope or not
- *
- * @internal
- */
-export let currentDefineQueryEffect: undefined | EffectScope
 
 /**
  * Options to define a query with `defineQuery()`. Similar to
@@ -83,17 +74,13 @@ export function defineQuery(optionsOrSetup: DefineQueryOptions | (() => unknown)
   let refCount = 0
   return () => {
     const queryCache = useQueryCache()
-    // preserve any current effect to account for nested usage of these functions
-    const previousEffect = currentDefineQueryEffect
-    const currentScope = getCurrentInstance() || (currentDefineQueryEffect = getCurrentScope())
-
-    const defineQueryEntry = queryCache.ensureDefinedQuery(setupFn)
-    const [ensuredEntries, ret, scope, isPaused, consumers] = defineQueryEntry
+    const currentScope = getCurrentInstance() || getCurrentScope()
+    const [entries, ret, scope, isPaused] = queryCache.ensureDefinedQuery(setupFn)
 
     // subsequent calls to the composable returned by useQuery will not trigger the `useQuery()`,
     // this ensures the refetchOnMount option is respected
     if (hasBeenEnsured) {
-      ensuredEntries.forEach((entry) => {
+      entries.forEach(({ value: entry }) => {
         // since defined query can be activated multiple times without executing useQuery,
         // we need to execute it here too
         if (entry.options?.refetchOnMount && toValue(entry.options.enabled)) {
@@ -108,37 +95,32 @@ export function defineQuery(optionsOrSetup: DefineQueryOptions | (() => unknown)
     }
     hasBeenEnsured = true
 
-    // NOTE: most of the time this should be set, so maybe we should show a dev warning
-    // if it's not set instead
-    //
-    // Because `useQuery()` might already be called before and we might be reusing an existing query
-    // we need to manually track and untrack. When untracking, we cannot use the ensuredEntries because
-    // there might be another component using the defineQuery, so we simply count how many are using it
     if (currentScope) {
       refCount++
-      // `useQuery()` moves every consumer to the new entry when a key changes
-      consumers.add(currentScope)
-      ensuredEntries.forEach((entry) => {
-        queryCache.track(entry, currentScope)
-      })
+      let trackedEntries: UseQueryEntry[] = []
+      // The setup runs once, but each caller needs a watcher in its own scope to follow key changes.
+      watch(
+        entries,
+        (entries) => {
+          for (const entry of trackedEntries) {
+            // Another query may still use this entry. Untracking it could abort its pending request.
+            if (!entries.includes(entry)) queryCache.untrack(entry, currentScope)
+          }
+          for (const entry of entries) queryCache.track(entry, currentScope)
+          trackedEntries = entries
+        },
+        { immediate: true },
+      )
       onScopeDispose(() => {
-        consumers.delete(currentScope)
-        // the entries might have changed since this scope started using the defined query
-        new Set([...ensuredEntries, ...defineQueryEntry[0]]).forEach((entry) => {
-          queryCache.untrack(entry, currentScope)
-        })
-        // if all entries become inactive, we pause the scope
-        // to avoid triggering the effects within useQuery. This immitates the behavior
-        // of a component that unmounts
+        // Computeds may point to a new key before this watcher runs.
+        // Dispose the entries this caller actually tracked without evaluating a pending key change.
+        trackedEntries.forEach((entry) => queryCache.untrack(entry, currentScope))
         if (--refCount < 1) {
           scope.pause()
           isPaused.value = true
         }
       })
     }
-
-    // reset the previous effect
-    currentDefineQueryEffect = previousEffect
 
     return ret
   }
