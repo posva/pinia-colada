@@ -374,6 +374,82 @@ describe('defineQuery', () => {
     })
   })
 
+  describe('key changes with multiple components', () => {
+    function mountComponents(count: number, useIt: () => unknown) {
+      const pinia = createPinia()
+      const wrappers = Array.from({ length: count }, () =>
+        mount(
+          defineComponent({
+            render: () => null,
+            setup() {
+              useIt()
+              return {}
+            },
+          }),
+          { global: { plugins: [pinia, PiniaColada] } },
+        ),
+      )
+      return { wrappers, queryCache: useQueryCache(pinia) }
+    }
+
+    function getEntry(queryCache: ReturnType<typeof useQueryCache>, key: string[]) {
+      return queryCache.getEntries({ key, exact: true })[0]
+    }
+
+    it('does not refetch the previous key when it is invalidated', async () => {
+      const id = ref('a')
+      const query = vi.fn(async () => id.value)
+      const useItem = defineQuery(() => useQuery({ key: () => ['item', id.value], query }))
+      const { queryCache } = mountComponents(2, useItem)
+      await flushPromises()
+
+      id.value = 'b'
+      await flushPromises()
+      query.mockClear()
+
+      await queryCache.invalidateQueries({ key: ['item', 'a'] })
+
+      expect(query).toHaveBeenCalledTimes(0)
+      expect(queryCache.getQueryData(['item', 'a'])).toBe('a')
+      expect(getEntry(queryCache, ['item', 'a'])?.active).toBe(false)
+      expect(getEntry(queryCache, ['item', 'b'])?.active).toBe(true)
+    })
+
+    it('keeps the new entry active while a later component still uses it', async () => {
+      const id = ref('a')
+      const useItem = defineQuery(() =>
+        useQuery({ key: () => ['item', id.value], query: async () => id.value }),
+      )
+      const { wrappers, queryCache } = mountComponents(2, useItem)
+      await flushPromises()
+
+      id.value = 'b'
+      await flushPromises()
+      wrappers[0]!.unmount()
+
+      expect(getEntry(queryCache, ['item', 'b'])?.active).toBe(true)
+    })
+
+    it('garbage collects the new entry when the first component unmounted before the key change', async () => {
+      const id = ref('a')
+      const useItem = defineQuery(() =>
+        useQuery({ key: () => ['item', id.value], query: async () => id.value, gcTime: 1000 }),
+      )
+      const { wrappers, queryCache } = mountComponents(2, useItem)
+      await flushPromises()
+
+      wrappers[0]!.unmount()
+      id.value = 'b'
+      await flushPromises()
+      expect(getEntry(queryCache, ['item', 'b'])?.active).toBe(true)
+
+      wrappers[1]!.unmount()
+      expect(getEntry(queryCache, ['item', 'b'])?.active).toBe(false)
+      vi.advanceTimersByTime(1000)
+      expect(queryCache.getQueryData(['item', 'b'])).toBeUndefined()
+    })
+  })
+
   describe('refetchOnMount', () => {
     it('refreshes the query if mounted in a new component', async () => {
       const spy = vi.fn(async () => {

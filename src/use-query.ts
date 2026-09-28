@@ -138,6 +138,8 @@ export function useQuery<
   const defineQueryEffect = currentDefineQueryEntry?.[2]
   const currentEffect = currentDefineQueryEffect || getCurrentScope()
   const isPaused = currentDefineQueryEntry?.[3]
+  // `currentDefineQueryEntry` is reset once the defineQuery() setup ends, but the entry watcher needs it later
+  const defineQueryEntry = currentDefineQueryEntry
 
   const options = computed<UseQueryOptionsWithDefaults<TData, TError, TDataInitial>>(
     () =>
@@ -266,16 +268,30 @@ export function useQuery<
     entry,
     (entry, previousEntry) => {
       if (!isActive) return
-      if (previousEntry) {
-        queryCache.untrack(previousEntry, hasCurrentInstance)
-        queryCache.untrack(previousEntry, currentEffect)
-      }
-      // track the current effect and component
-      queryCache.track(entry, hasCurrentInstance)
-      // if we have acurrent instance we don't track the effect because in Vue each component
-      // has its own scope that is detached
-      if (!hasCurrentInstance && currentEffect !== defineQueryEffect) {
-        queryCache.track(entry, currentEffect)
+      if (defineQueryEntry) {
+        // within defineQuery(), `hasCurrentInstance` is only the first component that used it and it might be
+        // unmounted by now, so we move every current consumer of the defined query to the new entry instead
+        const entries = defineQueryEntry[0]
+        const index = previousEntry ? entries.indexOf(previousEntry) : -1
+        if (index > -1) entries[index] = entry
+        // another query within the same defineQuery() might still use the previous entry
+        const isPreviousEntryUsed = !!previousEntry && entries.includes(previousEntry)
+        for (const consumer of defineQueryEntry[4]) {
+          if (previousEntry && !isPreviousEntryUsed) queryCache.untrack(previousEntry, consumer)
+          queryCache.track(entry, consumer)
+        }
+      } else {
+        if (previousEntry) {
+          queryCache.untrack(previousEntry, hasCurrentInstance)
+          queryCache.untrack(previousEntry, currentEffect)
+        }
+        // track the current effect and component
+        queryCache.track(entry, hasCurrentInstance)
+        // if we have acurrent instance we don't track the effect because in Vue each component
+        // has its own scope that is detached
+        if (!hasCurrentInstance && currentEffect !== defineQueryEffect) {
+          queryCache.track(entry, currentEffect)
+        }
       }
 
       // TODO: does this trigger after unmount?
