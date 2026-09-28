@@ -375,8 +375,7 @@ describe('defineQuery', () => {
   })
 
   describe('key changes with multiple components', () => {
-    function mountComponents(count: number, useIt: () => unknown) {
-      const pinia = createPinia()
+    function mountComponents(count: number, useIt: () => unknown, pinia = createPinia()) {
       const wrappers = Array.from({ length: count }, () =>
         mount(
           defineComponent({
@@ -389,12 +388,78 @@ describe('defineQuery', () => {
           { global: { plugins: [pinia, PiniaColada] } },
         ),
       )
-      return { wrappers, queryCache: useQueryCache(pinia) }
+      return { wrappers, queryCache: useQueryCache(pinia), pinia }
     }
 
-    function getEntry(queryCache: ReturnType<typeof useQueryCache>, key: string[]) {
-      return queryCache.getEntries({ key, exact: true })[0]
-    }
+    it('keeps a shared static key active when another consumer mounts during a key change', async () => {
+      const id = ref('a')
+      const useItem = defineQuery(() => {
+        const fixed = useQuery({ key: ['item', 'a'], query: async () => 'a' })
+        const moving = useQuery({ key: () => ['item', id.value], query: async () => id.value })
+        return { fixed, moving }
+      })
+      const { wrappers, queryCache, pinia } = mountComponents(2, useItem)
+      await flushPromises()
+
+      id.value = 'b'
+      // Mount before the entry watcher runs.
+      const later = mountComponents(1, useItem, pinia)
+      await flushPromises()
+
+      expect(queryCache.get(['item', 'a'])?.active).toBe(true)
+
+      for (const wrapper of [...wrappers, ...later.wrappers]) wrapper.unmount()
+      expect(queryCache.get(['item', 'b'])?.active).toBe(false)
+    })
+
+    it('cleans up the last tracked key when unmounted before the watcher runs', async () => {
+      const id = ref('a')
+      const useItem = defineQuery(() =>
+        useQuery({ key: () => ['item', id.value], query: async () => id.value, gcTime: 1000 }),
+      )
+      const { wrappers, queryCache, pinia } = mountComponents(2, useItem)
+      await flushPromises()
+
+      id.value = 'b'
+      await flushPromises()
+      id.value = 'c'
+      const later = mountComponents(1, useItem, pinia)
+      for (const wrapper of wrappers) wrapper.unmount()
+      await flushPromises()
+
+      expect(queryCache.get(['item', 'b'])?.active).toBe(false)
+      expect(queryCache.get(['item', 'c'])?.active).toBe(true)
+
+      later.wrappers[0]!.unmount()
+      vi.advanceTimersByTime(1000)
+      expect(queryCache.getEntries({ key: ['item'] })).toHaveLength(0)
+    })
+
+    it('does not abort a shared pending query when another query changes its key', async () => {
+      const id = ref('a')
+      const pending = Promise.withResolvers<string>()
+      const signals: AbortSignal[] = []
+      const query = ({ signal }: { signal: AbortSignal }) => {
+        signals.push(signal)
+        return pending.promise
+      }
+      const useItem = defineQuery(() => {
+        useQuery({ key: ['item', 'a'], query })
+        useQuery({ key: () => ['item', id.value], query })
+      })
+      const { queryCache } = mountComponents(1, useItem)
+      await flushPromises()
+      const initialSignal = signals[0]!
+
+      id.value = 'b'
+      await flushPromises()
+      expect(initialSignal.aborted).toBe(false)
+
+      pending.resolve('ok')
+      await flushPromises()
+      expect(queryCache.getQueryData(['item', 'a'])).toBe('ok')
+      expect(queryCache.getQueryData(['item', 'b'])).toBe('ok')
+    })
 
     it('does not refetch the previous key when it is invalidated', async () => {
       const id = ref('a')
@@ -411,8 +476,8 @@ describe('defineQuery', () => {
 
       expect(query).toHaveBeenCalledTimes(0)
       expect(queryCache.getQueryData(['item', 'a'])).toBe('a')
-      expect(getEntry(queryCache, ['item', 'a'])?.active).toBe(false)
-      expect(getEntry(queryCache, ['item', 'b'])?.active).toBe(true)
+      expect(queryCache.get(['item', 'a'])?.active).toBe(false)
+      expect(queryCache.get(['item', 'b'])?.active).toBe(true)
     })
 
     it('keeps the new entry active while a later component still uses it', async () => {
@@ -427,7 +492,7 @@ describe('defineQuery', () => {
       await flushPromises()
       wrappers[0]!.unmount()
 
-      expect(getEntry(queryCache, ['item', 'b'])?.active).toBe(true)
+      expect(queryCache.get(['item', 'b'])?.active).toBe(true)
     })
 
     it('garbage collects the new entry when the first component unmounted before the key change', async () => {
@@ -441,10 +506,10 @@ describe('defineQuery', () => {
       wrappers[0]!.unmount()
       id.value = 'b'
       await flushPromises()
-      expect(getEntry(queryCache, ['item', 'b'])?.active).toBe(true)
+      expect(queryCache.get(['item', 'b'])?.active).toBe(true)
 
       wrappers[1]!.unmount()
-      expect(getEntry(queryCache, ['item', 'b'])?.active).toBe(false)
+      expect(queryCache.get(['item', 'b'])?.active).toBe(false)
       vi.advanceTimersByTime(1000)
       expect(queryCache.getQueryData(['item', 'b'])).toBeUndefined()
     })
@@ -1216,14 +1281,14 @@ describe('defineQuery', () => {
         const cache = useQueryCache(pinia)
 
         first.wrapper.unmount()
-        expect(cache.getEntries({ key: ['todos'] })).toHaveLength(1)
+        expect(cache.get(['todos'])).toBeDefined()
         vi.advanceTimersByTime(1000)
-        expect(cache.getEntries({ key: ['todos'] })).toHaveLength(0)
+        expect(cache.get(['todos'])).toBeFalsy()
 
         const { returned } = mountDefinedQuery()
         await flushPromises()
         expect(returned.data.value).toBe('todos')
-        expect(cache.getEntries({ key: ['todos'] })).toHaveLength(1)
+        expect(cache.get(['todos'])).toBeDefined()
 
         cache.setQueryData(['todos'], 'patched')
         await flushPromises()
@@ -1317,6 +1382,29 @@ describe('defineQuery', () => {
           expect(cache.getQueryData(['todos'])).toBe('todos')
           vi.advanceTimersByTime(1)
           expect(cache.getQueryData(['todos'])).toBeUndefined()
+        })
+      })
+
+      it('moves the remaining scope to a new key after the first scope stops', async () => {
+        await app.runWithContext(async () => {
+          const key = ref(1)
+          const useTodoList = todoListDefineQuery(() => [key.value])
+          const first = effectScope()
+          const second = effectScope()
+          first.run(useTodoList)
+          second.run(useTodoList)
+          await flushPromises()
+          const cache = useQueryCache()
+
+          first.stop()
+          key.value = 2
+          await flushPromises()
+          expect(cache.get([1])?.active).not.toBe(true)
+          expect(cache.get([2])?.active).toBe(true)
+
+          second.stop()
+          vi.advanceTimersByTime(1000)
+          expect(cache.getEntries()).toHaveLength(0)
         })
       })
 

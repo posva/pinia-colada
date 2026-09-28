@@ -10,7 +10,7 @@ import {
   watch,
   triggerRef,
 } from 'vue'
-import type { App, ComponentInternalInstance, EffectScope, ShallowRef } from 'vue'
+import type { App, ComponentInternalInstance, ComputedRef, EffectScope, ShallowRef } from 'vue'
 import type { AsyncStatus, DataState } from './data-state'
 import type { EntryKeyTagged, EntryKey } from './entry-keys'
 import { useQueryOptions } from './query-options'
@@ -226,11 +226,11 @@ export const QUERY_STORE_ID = '_pc_query'
  * @internal
  */
 type DefineQueryEntry = [
-  lastEnsuredEntries: UseQueryEntry[],
+  // Keep each useQuery() computed: a shared cache entry can hold another query's options.
+  entries: ComputedRef<UseQueryEntry>[],
   returnValue: unknown,
   effect: EffectScope,
   paused: ShallowRef<boolean>,
-  consumers: Set<EffectScope | ComponentInternalInstance>,
 ]
 
 /**
@@ -345,7 +345,6 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
         null,
         effectScope(),
         shallowRef(false),
-        new Set(),
       ])!
 
       // then run it so it can add the queries to the entry
@@ -354,16 +353,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       currentDefineQueryEntry = null
       defineQueryMap.set(fn, defineQueryEntry)
     } else {
-      // ensure the scope is active so effects computing inside `useQuery()` run (e.g. the entry computed)
+      // Let useQuery() recompute from its own options, including entries removed by GC.
       defineQueryEntry[2].resume()
       defineQueryEntry[3].value = false
-      // if the entry already exists, we know the queries inside
-      // we should consider as if they are activated again
-      defineQueryEntry[0] = defineQueryEntry[0].map((oldEntry) =>
-        // the entries' key might have changed (e.g. Nuxt navigation)
-        // so we need to ensure them again
-        oldEntry.options ? ensure(oldEntry.options, oldEntry) : oldEntry,
-      )
     }
 
     return defineQueryEntry
@@ -518,8 +510,6 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       }
 
       // do not reinitialize the entry
-      // because of the immediate watcher in useQuery, the `ensure()` action is called twice on mount
-      // we return early to avoid pushing to currentDefineQueryEntry
       if (
         previousEntry &&
         keyHash === previousEntry.keyHash &&
@@ -598,9 +588,6 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
         ;(entry as { ext: object }).ext = {}
         extend(entry)
       }
-
-      // if this query was defined within a defineQuery call, add it to the list
-      currentDefineQueryEntry?.[0].push(entry)
 
       return entry
     },
