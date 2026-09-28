@@ -139,6 +139,7 @@ describe('useInfiniteQuery', () => {
       const { wrapper, queryCache } = mountSimple()
       await flushPromises()
       queryCache.remove(queryCache.get(['key'])!)
+      expect('[PINIA_COLADA_R0010]').toHaveBeenWarnedTimes(1)
 
       await wrapper.vm[method]()
 

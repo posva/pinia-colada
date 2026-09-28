@@ -220,6 +220,24 @@ describe('Query Cache store', () => {
     expect(queryCache.getEntries({ key: ['a', 'b', 'c'] })).toHaveLength(1)
   })
 
+  it('warns when removing an active query entry', () => {
+    const queryCache = useQueryCache()
+    const activeEntry = queryCache.ensure({ key: ['active'], query: async () => 'active' })
+    const inactiveEntry = queryCache.ensure({ key: ['inactive'], query: async () => 'inactive' })
+    const scope = effectScope()
+    queryCache.track(activeEntry, scope)
+
+    queryCache.remove(inactiveEntry)
+    expect('[PINIA_COLADA_R0010]').not.toHaveBeenWarned()
+
+    queryCache.remove(activeEntry)
+    expect('[PINIA_COLADA_R0010]').toHaveBeenWarnedTimes(1)
+    expect(queryCache.get(['active'])).toBeUndefined()
+
+    queryCache.untrack(activeEntry, scope)
+    scope.stop()
+  })
+
   it('removing entries is reactive', async () => {
     const pinia = createPinia()
     const wrapper = mount(

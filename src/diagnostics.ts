@@ -71,5 +71,10 @@ export const diagnostics = /*#__PURE__*/ defineDiagnostics({
         `Cannot load the ${p.direction} page: the query entry was not found in the cache.`,
       fix: 'Make sure the infinite query is active (e.g. used by a mounted component) before calling "loadNextPage()" or "loadPreviousPage()".',
     },
+
+    PINIA_COLADA_R0010: {
+      why: 'Cannot remove an active query entry. Active entries cannot be safely removed from the cache.',
+      fix: 'Wait until all consumers stop using the entry before removing it. To refresh its data while active, invalidate the query instead.',
+    },
   },
 })
