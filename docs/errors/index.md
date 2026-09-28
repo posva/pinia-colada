@@ -24,6 +24,7 @@ Most diagnostics are only reported during development and are removed from produ
 | [PINIA_COLADA_R0007](./pinia_colada_r0007.md)        | `defineMutation()` called outside of a component or effect scope         |
 | [PINIA_COLADA_R0008](./pinia_colada_r0008.md)        | Loading a previous page without `getPreviousPageParam`                   |
 | [PINIA_COLADA_R0009](./pinia_colada_r0009.md)        | Cannot load more pages: query entry not found in cache                   |
+| [PINIA_COLADA_R0010](./pinia_colada_r0010.md)        | An active query entry was removed from the cache                         |
 
 ## Configuration
 

@@ -72,6 +72,7 @@ On top of that Pinia Colada is highly extensible. You can create your own plugin
   },
 
   markdown: {
+    languages: ['js'],
     theme: {
       dark: 'dracula-soft',
       light: 'vitesse-light',

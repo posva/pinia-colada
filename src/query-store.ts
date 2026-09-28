@@ -886,6 +886,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * @param entry - the entry of the query to remove
    */
   const remove = action((entry: UseQueryEntry) => {
+    if (process.env.NODE_ENV !== 'production' && entry.active) {
+      diagnostics.PINIA_COLADA_R0010()
+    }
     clearTimeout(entry.gcTimeout)
     cachesRaw.delete(entry.keyHash)
     triggerRef(caches)
