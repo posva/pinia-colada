@@ -180,8 +180,9 @@ export function createQueryEntryPayload(entry: UseQueryEntry): UseQueryEntryPayl
       refetchOnWindowFocus: toValue(entry.options.refetchOnWindowFocus),
       enabled: toValue(entry.options.enabled),
     },
-    deps: Array.from(entry.deps).map((dep) =>
-      'uid' in dep
+    deps: Array.from(entry.deps).map((consumer) => {
+      const dep = 'owner' in consumer ? consumer.owner : consumer
+      return 'uid' in dep
         ? {
             type: 'component',
             uid: dep.uid,
@@ -191,8 +192,8 @@ export function createQueryEntryPayload(entry: UseQueryEntry): UseQueryEntryPayl
             type: 'effect',
             active: dep.active,
             detached: dep.detached,
-          },
-    ),
+          }
+    }),
     gcTimeout: typeof entry.gcTimeout === 'number' ? (entry.gcTimeout as number) : null,
 
     devtools,

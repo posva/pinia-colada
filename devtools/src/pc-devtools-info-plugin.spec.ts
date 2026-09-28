@@ -2,7 +2,14 @@ import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createApp, defineComponent } from 'vue'
 import { createPinia } from 'pinia'
-import { PiniaColada, useMutation, useMutationCache, useQuery, useQueryCache } from '@pinia/colada'
+import {
+  PiniaColada,
+  defineQuery,
+  useMutation,
+  useMutationCache,
+  useQuery,
+  useQueryCache,
+} from '@pinia/colada'
 import { DEVTOOLS_INFO_KEY } from '@pinia/colada-devtools/shared'
 import {
   addDevtoolsInfo,
@@ -111,5 +118,19 @@ describe('devtools info plugin', () => {
     const mutationEntry = mutationCache.getEntries()[0]!
     expect(() => createMutationEntryPayload(mutationEntry)).not.toThrow()
     expect(createMutationEntryPayload(mutationEntry).active).toBe(true)
+  })
+
+  it('reports the component that uses a defined query', () => {
+    const { queryCache, mountComponent } = factory()
+    const useItem = defineQuery(() =>
+      useQuery({ key: ['item'], query: async () => 'item', enabled: false }),
+    )
+
+    const wrapper = mountComponent(useItem)
+    const entry = queryCache.get(['item'])!
+
+    expect(createQueryEntryPayload(entry).deps).toEqual([
+      expect.objectContaining({ type: 'component', uid: wrapper.vm.$.uid }),
+    ])
   })
 })

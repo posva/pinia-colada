@@ -392,6 +392,49 @@ describe('defineQuery', () => {
       return { wrappers, queryCache: useQueryCache(pinia), pinia }
     }
 
+    it('keeps a plain query active when a defined query changes key', async () => {
+      const id = ref('a')
+      const useItem = defineQuery(() =>
+        useQuery({ key: () => ['item', id.value], query: async () => id.value }),
+      )
+
+      const { queryCache } = mountComponents(1, () => {
+        useItem()
+        useQuery({ key: ['item', 'a'], query: async () => 'a' })
+      })
+      await flushPromises()
+
+      expect(queryCache.get(['item', 'a'])?.active).toBe(true)
+
+      id.value = 'b'
+      await flushPromises()
+
+      expect(queryCache.get(['item', 'a'])?.active).toBe(true)
+    })
+
+    it('keeps a plain query active in a separate component when a defined query changes key', async () => {
+      const id = ref('a')
+      const pinia = createPinia()
+      const useItem = defineQuery(() =>
+        useQuery({ key: () => ['item', id.value], query: async () => id.value }),
+      )
+
+      mountComponents(1, useItem, pinia)
+      const { queryCache } = mountComponents(
+        1,
+        () => useQuery({ key: ['item', 'a'], query: async () => 'a' }),
+        pinia,
+      )
+      await flushPromises()
+
+      expect(queryCache.get(['item', 'a'])?.active).toBe(true)
+
+      id.value = 'b'
+      await flushPromises()
+
+      expect(queryCache.get(['item', 'a'])?.active).toBe(true)
+    })
+
     it('fetches when enabled after the first consumer unmounts', async () => {
       const enabled = ref(false)
       const query = vi.fn(async () => 'item')
