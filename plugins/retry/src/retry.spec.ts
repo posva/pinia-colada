@@ -202,6 +202,21 @@ describe('Pinia Colada Retry Plugin', () => {
     expect(query).toHaveBeenCalledTimes(1)
   })
 
+  it('invalidates data added before a query is used', async () => {
+    const pinia = createPinia()
+    mount(defineComponent({ template: '<div />' }), {
+      global: {
+        plugins: [pinia, [PiniaColada, { plugins: [PiniaColadaRetry()] }]],
+      },
+    })
+    const queryCache = useQueryCache(pinia)
+
+    queryCache.setQueryData(['todos', 1], { id: 1 })
+    await queryCache.invalidateQueries({ key: ['todos', 1] }, false)
+
+    expect(queryCache.getQueryData(['todos', 1])).toEqual({ id: 1 })
+  })
+
   it('stop retries after the query becomes inactive', async () => {
     const query = vi.fn(async () => {
       throw new Error('ko')

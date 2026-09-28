@@ -94,6 +94,8 @@ export function PiniaColadaRetry(
           clearTimeout(entry.timeoutId)
           retryMap.delete(key)
         }
+        // An entry can be canceled before ensure() extends it: https://github.com/posva/pinia-colada/issues/654
+        if (!cacheEntry.ext.isRetrying) return
         // also reset the state
         cacheEntry.ext.isRetrying.value = false
         cacheEntry.ext.retryCount.value = 0
