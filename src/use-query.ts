@@ -8,6 +8,7 @@ import {
   onScopeDispose,
   onServerPrefetch,
   onUnmounted,
+  queuePostFlushCb,
   toValue,
   watch,
 } from 'vue'
@@ -262,26 +263,39 @@ export function useQuery<
     }
   }
 
-  watch(
-    entry,
-    (entry, previousEntry) => {
-      if (!isActive) return
-      if (previousEntry) queryCache.untrack(previousEntry, consumer)
-      queryCache.track(entry, consumer)
+  const watchEntry = () =>
+    watch(
+      [entry, enabled],
+      ([entry, enabled], [previousEntry]) => {
+        if (!isActive || isPaused?.value) return
+        // An enabled change must not untrack and abort the same pending entry.
+        if (entry !== previousEntry) {
+          if (previousEntry) queryCache.untrack(previousEntry, consumer)
+          queryCache.track(entry, consumer)
+        }
+        if (enabled) refresh()
+      },
+      {
+        immediate: true,
+        // Let component updates pause shared queries before reading a new key.
+        flush: defineQueryEntry ? 'post' : 'pre',
+      },
+    )
 
-      // TODO: does this trigger after unmount?
-      if (enabled()) refresh()
-    },
-    {
-      immediate: true,
-    },
-  )
-
-  // since options can be a getter, enabled might change
-  watch(enabled, (newEnabled) => {
-    // no need to check for the previous value since the watcher will only trigger if the value changed
-    if (newEnabled) refresh()
-  })
+  if (defineQueryEntry && hasCurrentInstance && IS_CLIENT) {
+    const scope = defineQueryEntry[2]
+    // Vue's watch() captures the current component even in another effect scope.
+    // Register after setup so the shared watcher does not retain the first caller.
+    queuePostFlushCb(() => {
+      if (scope.active) {
+        scope.run(watchEntry)
+        // The last caller may have left before this callback runs.
+        if (isPaused!.value) scope.pause()
+      }
+    })
+  } else {
+    watchEntry()
+  }
 
   // only happens on client
   // we could also call fetch instead but forcing a refresh is more interesting

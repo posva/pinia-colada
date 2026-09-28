@@ -184,7 +184,7 @@ describe('defineQuery', () => {
       expect(key).toHaveBeenCalledTimes(0)
     })
 
-    it('avoids reading the key if not active (v-if toggle)', async () => {
+    it.each([false, true])('skips inactive keys on v-if (unscoped: %s)', async (unscoped) => {
       const routeId = ref(1)
       const key = vi.fn(() => ['key', routeId.value])
       const useProfile = defineQuery(() => {
@@ -217,6 +217,7 @@ describe('defineQuery', () => {
       )
 
       await flushPromises()
+      if (unscoped) useProfile()
       key.mockClear()
       routeId.value = 2
       await flushPromises()
@@ -390,6 +391,22 @@ describe('defineQuery', () => {
       )
       return { wrappers, queryCache: useQueryCache(pinia), pinia }
     }
+
+    it('fetches when enabled after the first consumer unmounts', async () => {
+      const enabled = ref(false)
+      const query = vi.fn(async () => 'item')
+      const useItem = defineQuery(() => useQuery({ key: ['item'], enabled, query }))
+      const { wrappers, queryCache } = mountComponents(2, useItem)
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(0)
+
+      wrappers[0]!.unmount()
+      enabled.value = true
+      await flushPromises()
+
+      expect(queryCache.getQueryData(['item'])).toBe('item')
+      expect(query).toHaveBeenCalledTimes(1)
+    })
 
     it('keeps a shared static key active when another consumer mounts during a key change', async () => {
       const id = ref('a')
