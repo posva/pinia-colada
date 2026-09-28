@@ -11,7 +11,7 @@ import IFileText from '~icons/lucide/file-text'
 import ICircleX from '~icons/lucide/circle-x'
 import IBraces from '~icons/lucide/braces'
 import IVariable from '~icons/lucide/variable'
-import { useTimeAgo, useLocalStorage, formatTimeAgo } from '@vueuse/core'
+import { useTimeAgo, useLocalStorage, formatTimeAgo, useTimeoutPoll } from '@vueuse/core'
 import type { FormatTimeAgoOptions } from '@vueuse/core'
 import { useEntryUpdateNotifications } from '../../composables/entry-update-notifications'
 import EntryUpdateNotification from '../../components/EntryUpdateNotification.vue'
@@ -33,7 +33,7 @@ const TIME_AGO_OPTIONS: FormatTimeAgoOptions = {
 
 const lastUpdate = useTimeAgo(() => selectedMutation.value?.devtools.updatedAt ?? 0, {
   ...TIME_AGO_OPTIONS,
-  updateInterval: 3000,
+  scheduler: (cb) => useTimeoutPoll(cb, 3000),
 })
 
 // Track when we're replaying to auto-navigate to new mutation

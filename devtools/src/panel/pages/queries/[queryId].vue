@@ -14,7 +14,7 @@ import IBraces from '~icons/lucide/braces'
 import IHistory from '~icons/lucide/history'
 import ISigmaSquare from '~icons/lucide/sigma-square'
 import IPlugZap from '~icons/lucide/plug-zap'
-import { useTimeAgo, formatTimeAgo, useLocalStorage } from '@vueuse/core'
+import { useTimeAgo, formatTimeAgo, useLocalStorage, useTimeoutPoll } from '@vueuse/core'
 import type { FormatTimeAgoOptions } from '@vueuse/core'
 import { setNestedValue, type NestedValuePath } from '../../utils/set-nested-value'
 import { useEntryUpdateNotifications } from '../../composables/entry-update-notifications'
@@ -35,7 +35,7 @@ const TIME_AGO_OPTIONS: FormatTimeAgoOptions = {
 
 const lastUpdate = useTimeAgo(() => selectedQuery.value?.devtools.updatedAt ?? 0, {
   ...TIME_AGO_OPTIONS,
-  updateInterval: 3000,
+  scheduler: (cb) => useTimeoutPoll(cb, 3000),
 })
 
 // TODO: we should be able to highlight components using this query
