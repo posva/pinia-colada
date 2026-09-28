@@ -2,15 +2,29 @@
  * @vitest-environment node
  */
 import { describe, it, expect, vi } from 'vitest'
-import { createSSRApp, defineComponent, onErrorCaptured } from 'vue'
+import { createSSRApp, defineComponent, h, onErrorCaptured } from 'vue'
 import { renderToString, ssrRenderComponent, ssrRenderSuspense } from '@vue/server-renderer'
 import type { UseQueryOptions } from './query-options'
 import { isSpy } from '@posva/test-utils'
 import { useQuery } from './use-query'
+import { defineQuery } from './define-query'
 import { PiniaColada } from './pinia-colada'
 import { createPinia } from 'pinia'
 
 describe('SSR', () => {
+  it('prefetches a defined query before rendering', async () => {
+    const useItem = defineQuery(() => useQuery({ key: ['item'], query: async () => 'fetched' }))
+    const app = createSSRApp({
+      setup() {
+        const { data } = useItem()
+        return () => h('p', data.value)
+      },
+    })
+    app.use(createPinia()).use(PiniaColada)
+
+    expect(await renderToString(app)).toBe('<p>fetched</p>')
+  })
+
   function renderApp<TData = number, TError = Error>({
     options = {},
     appSetup,
