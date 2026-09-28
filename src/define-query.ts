@@ -97,6 +97,7 @@ export function defineQuery(optionsOrSetup: DefineQueryOptions | (() => unknown)
 
     if (currentScope) {
       refCount++
+      const consumer = { owner: currentScope }
       let trackedEntries: UseQueryEntry[] = []
       // The setup runs once, but each caller needs a watcher in its own scope to follow key changes.
       watch(
@@ -104,9 +105,9 @@ export function defineQuery(optionsOrSetup: DefineQueryOptions | (() => unknown)
         (entries) => {
           for (const entry of trackedEntries) {
             // Another query may still use this entry. Untracking it could abort its pending request.
-            if (!entries.includes(entry)) queryCache.untrack(entry, currentScope)
+            if (!entries.includes(entry)) queryCache.untrack(entry, consumer)
           }
-          for (const entry of entries) queryCache.track(entry, currentScope)
+          for (const entry of entries) queryCache.track(entry, consumer)
           trackedEntries = entries
         },
         { immediate: true },
@@ -114,7 +115,7 @@ export function defineQuery(optionsOrSetup: DefineQueryOptions | (() => unknown)
       onScopeDispose(() => {
         // Computeds may point to a new key before this watcher runs.
         // Dispose the entries this caller actually tracked without evaluating a pending key change.
-        trackedEntries.forEach((entry) => queryCache.untrack(entry, currentScope))
+        trackedEntries.forEach((entry) => queryCache.untrack(entry, consumer))
         if (--refCount < 1) {
           scope.pause()
           isPaused.value = true

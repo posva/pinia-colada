@@ -80,9 +80,9 @@ export interface UseQueryEntry<
   keyHash: string
 
   /**
-   * Components and effects scopes that use this query entry.
+   * Consumers that use this query entry.
    */
-  deps: Set<EffectScope | ComponentInternalInstance>
+  deps: Set<EntryConsumer>
 
   /**
    * Timeout id that scheduled a garbage collection. It is set here to clear it when the entry is used by a different component
@@ -165,6 +165,17 @@ export interface UseQueryEntry<
  * @internal
  */
 export let currentDefineQueryEntry: DefineQueryEntry | undefined | null
+
+/**
+ * Identifies one use of an entry. Defined queries wrap their Vue owner so
+ * calls in the same scope can be tracked separately.
+ *
+ * @internal
+ */
+export type EntryConsumer =
+  | ComponentInternalInstance
+  | EffectScope
+  | { owner: ComponentInternalInstance | EffectScope }
 
 /**
  * Returns whether the entry is using a placeholder data.
@@ -369,10 +380,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    *
    * @see {@link untrack}
    */
-  function track(
-    entry: UseQueryEntry,
-    effect: EffectScope | ComponentInternalInstance | null | undefined,
-  ) {
+  function track(entry: UseQueryEntry, effect: EntryConsumer | null | undefined) {
     if (!effect) return
     entry.deps.add(effect)
     // clearTimeout ignores anything that isn't a timerId
@@ -389,10 +397,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    *
    * @see {@link track}
    */
-  function untrack(
-    entry: UseQueryEntry,
-    effect: EffectScope | ComponentInternalInstance | undefined | null,
-  ) {
+  function untrack(entry: UseQueryEntry, effect: EntryConsumer | undefined | null) {
     // avoid clearing an existing timeout
     if (!effect || !entry.deps.has(effect)) return
 
