@@ -1,3 +1,9 @@
+## [1.0.3](https://github.com/posva/pinia-colada/compare/%40pinia%2Fcolada-plugin-retry%401.0.2...%40pinia%2Fcolada-plugin-retry%401.0.3) (2026-09-28)
+
+### Bug Fixes
+
+- avoid cancelling a non-ensured entry ([bee590c](https://github.com/posva/pinia-colada/commit/bee590cda600fd9386149a3f93b392668ffff79c))
+
 ## [1.0.2](https://github.com/posva/pinia-colada/compare/@pinia/colada-plugin-retry@1.0.1...@pinia/colada-plugin-retry@1.0.2) (2026-05-20)
 
 ### Bug Fixes
