@@ -87,7 +87,8 @@ export function defineQuery(optionsOrSetup: DefineQueryOptions | (() => unknown)
     const previousEffect = currentDefineQueryEffect
     const currentScope = getCurrentInstance() || (currentDefineQueryEffect = getCurrentScope())
 
-    const [ensuredEntries, ret, scope, isPaused] = queryCache.ensureDefinedQuery(setupFn)
+    const defineQueryEntry = queryCache.ensureDefinedQuery(setupFn)
+    const [ensuredEntries, ret, scope, isPaused, consumers] = defineQueryEntry
 
     // subsequent calls to the composable returned by useQuery will not trigger the `useQuery()`,
     // this ensures the refetchOnMount option is respected
@@ -115,11 +116,15 @@ export function defineQuery(optionsOrSetup: DefineQueryOptions | (() => unknown)
     // there might be another component using the defineQuery, so we simply count how many are using it
     if (currentScope) {
       refCount++
+      // `useQuery()` moves every consumer to the new entry when a key changes
+      consumers.add(currentScope)
       ensuredEntries.forEach((entry) => {
         queryCache.track(entry, currentScope)
       })
       onScopeDispose(() => {
-        ensuredEntries.forEach((entry) => {
+        consumers.delete(currentScope)
+        // the entries might have changed since this scope started using the defined query
+        new Set([...ensuredEntries, ...defineQueryEntry[0]]).forEach((entry) => {
           queryCache.untrack(entry, currentScope)
         })
         // if all entries become inactive, we pause the scope

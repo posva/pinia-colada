@@ -230,6 +230,7 @@ type DefineQueryEntry = [
   returnValue: unknown,
   effect: EffectScope,
   paused: ShallowRef<boolean>,
+  consumers: Set<EffectScope | ComponentInternalInstance>,
 ]
 
 /**
@@ -344,6 +345,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
         null,
         effectScope(),
         shallowRef(false),
+        new Set(),
       ])!
 
       // then run it so it can add the queries to the entry
