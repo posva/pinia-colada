@@ -1,10 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
-import { createApp, defineComponent } from 'vue'
+import { createApp, defineComponent, effectScope, getCurrentInstance, h, ref } from 'vue'
 import { triggerGC } from '@posva/test-utils'
 import { defineQuery } from './define-query'
 import { PiniaColada } from './pinia-colada'
+import { useQuery } from './use-query'
+import { useQueryCache } from './query-store'
 
 const GC_TIME = 1000
 
@@ -26,6 +28,88 @@ describe('defineQuery memory leaks', () => {
   })
 
   enableAutoUnmount(afterEach)
+
+  it.each([0, 1])(
+    'releases consumer %i while the other keeps the defined query active',
+    async (removed) => {
+      const pinia = createPinia()
+      const id = ref('a')
+      const show = ref(true)
+      const components: WeakRef<object>[] = []
+      const useItem = defineQuery(() =>
+        useQuery({ key: () => ['item', id.value], query: async () => id.value }),
+      )
+      const Consumer = defineComponent({
+        setup() {
+          components.push(new WeakRef(getCurrentInstance()!))
+          useItem()
+          return () => null
+        },
+      })
+      const app = createApp({
+        render: () =>
+          h(
+            'div',
+            [0, 1].map((index) =>
+              show.value || index !== removed ? h(Consumer, { key: index }) : null,
+            ),
+          ),
+      })
+      app.use(pinia).use(PiniaColada).mount(document.createElement('div'))
+
+      try {
+        await flushPromises()
+        show.value = false
+        await flushPromises()
+        id.value = 'b'
+        await flushPromises()
+        // Vue buffers component events for three seconds while waiting for devtools.
+        vi.advanceTimersByTime(3000)
+        vi.useRealTimers()
+        await triggerGC()
+
+        expect(components.map((component) => component.deref() !== undefined)).toEqual(
+          [0, 1].map((index) => index !== removed),
+        )
+        expect(useQueryCache(pinia).getQueryData(['item', 'b'])).toBe('b')
+      } finally {
+        app.unmount()
+      }
+    },
+  )
+
+  it('releases stopped consumers while another consumer keeps the defined query active', async () => {
+    const { pinia, app } = createPiniaWithApp()
+    const id = ref('a')
+    const useItem = defineQuery(() =>
+      useQuery({ key: () => ['item', id.value], query: async () => id.value }),
+    )
+    const survivor = effectScope()
+    app.runWithContext(() => survivor.run(useItem))
+
+    try {
+      const stoppedScopes = app.runWithContext(() =>
+        Array.from({ length: 20 }, () => {
+          const scope = effectScope()
+          scope.run(useItem)
+          const weakScope = new WeakRef(scope)
+          scope.stop()
+          return weakScope
+        }),
+      )
+
+      id.value = 'b'
+      await flushPromises()
+      vi.useRealTimers()
+      await triggerGC()
+
+      expect(stoppedScopes.every((scope) => scope.deref() === undefined)).toBe(true)
+      expect(useQueryCache(pinia).getQueryData(['item', 'b'])).toBe('b')
+    } finally {
+      survivor.stop()
+      app.unmount()
+    }
+  })
 
   it('shared scope is collectible when all consumers unmount', async () => {
     const pinia = createPinia()
