@@ -1,3 +1,15 @@
+## [1.4.7](https://github.com/posva/pinia-colada/compare/v1.4.6...v1.4.7) (2026-10-02)
+
+### Bug Fixes
+
+- differentiate same-component tracking of defined queries ([b320ec7](https://github.com/posva/pinia-colada/commit/b320ec734c1281c647447edec9145f235c9e0d48))
+- edge case leak with defineQuery ([6b163ce](https://github.com/posva/pinia-colada/commit/6b163ce5ef3e7e66f7d1906578b43db4a7278773))
+- move every defineQuery consumer to the new entry when its key changes ([84af953](https://github.com/posva/pinia-colada/commit/84af953b1d22be58f4d74cb1efdc8b44311ad5ec))
+
+### Features
+
+- warn when removing active query entries ([#656](https://github.com/posva/pinia-colada/issues/656)) ([bc869d1](https://github.com/posva/pinia-colada/commit/bc869d10c73fbed7b7e77d3c1b03920d9fd356a5))
+
 ## [1.4.6](https://github.com/posva/pinia-colada/compare/v1.4.5...v1.4.6) (2026-09-23)
 
 ### Bug Fixes

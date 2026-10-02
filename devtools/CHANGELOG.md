@@ -1,3 +1,9 @@
+## [2.0.1](https://github.com/posva/pinia-colada/compare/%40pinia%2Fcolada-devtools%402.0.0...%40pinia%2Fcolada-devtools%402.0.1) (2026-10-02)
+
+### Bug Fixes
+
+- differentiate same-component tracking of defined queries ([b320ec7](https://github.com/posva/pinia-colada/commit/b320ec734c1281c647447edec9145f235c9e0d48))
+
 # [2.0.0](https://github.com/posva/pinia-colada/compare/%40pinia%2Fcolada-devtools%401.1.2...%40pinia%2Fcolada-devtools%402.0.0) (2026-09-16)
 
 ### Bug Fixes
