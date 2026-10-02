@@ -53,10 +53,10 @@
     "@pinia/colada": "workspace:>="
   },
   "dependencies": {
-    "nostics": "^1.2.0"
+    "nostics": "^1.3.0"
   },
   "devDependencies": {
     "@pinia/colada": "workspace:^",
-    "devalue": "^6.0.0"
+    "devalue": "^6.0.2"
   }
 }
