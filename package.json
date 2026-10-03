@@ -79,7 +79,7 @@
     "@shikijs/vitepress-twoslash": "^4.5.0",
     "@size-limit/esbuild-why": "^14.1.0",
     "@size-limit/preset-small-lib": "^14.1.0",
-    "@types/node": "^26.6.3",
+    "@types/node": "^26.6.4",
     "@types/semver": "^7.8.0",
     "@typescript/native-preview": "7.0.0-dev.20260707.2",
     "@vitejs/plugin-vue": "^6.0.9",
@@ -103,8 +103,8 @@
     "typedoc-plugin-markdown": "^4.13.1",
     "typedoc-vitepress-theme": "^1.1.4",
     "typescript": "~6.0.3",
-    "vitepress": "2.0.0-alpha.19",
-    "vitepress-plugin-llms": "^1.13.5",
+    "vitepress": "2.0.0-alpha.20",
+    "vitepress-plugin-llms": "^1.14.0",
     "vitest": "^5.0.3",
     "vue": "^3.5.43"
   },
@@ -155,5 +155,5 @@
       ]
     }
   ],
-  "packageManager": "pnpm@12.4.1"
+  "packageManager": "pnpm@12.8.1"
 }

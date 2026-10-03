@@ -43,13 +43,13 @@
     "@nuxt/eslint-config": "^1.17.0",
     "@nuxt/module-builder": "1.0.3",
     "@nuxt/schema": "^4.5.2",
-    "@nuxt/test-utils": "^4.3.2",
+    "@nuxt/test-utils": "^4.3.3",
     "@pinia/colada": "workspace:*",
     "@pinia/colada-devtools": "workspace:^",
     "@pinia/nuxt": "^1.0.2",
     "nuxi": "^3.37.0",
     "nuxt": "^4.5.2",
     "typescript": "~6.0.3",
-    "vue-tsc": "^3.3.11"
+    "vue-tsc": "^3.3.12"
   }
 }
