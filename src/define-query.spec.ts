@@ -1355,6 +1355,56 @@ describe('defineQuery', () => {
         expect(returned.data.value).toBe('patched')
       })
 
+      it('does not remove a newer entry for the same key when a removed entry settles late', async () => {
+        const pinia = createPinia()
+        const late = Promise.withResolvers<string>()
+        const query = vi.fn(async () => 'fresh')
+        const useLate = defineQuery({ key: ['late-settle'], query, gcTime: 1000 })
+        function mountDefinedQuery() {
+          return mount(
+            defineComponent({
+              render: () => null,
+              setup() {
+                useLate()
+                return {}
+              },
+            }),
+            { global: { plugins: [pinia, PiniaColada] } },
+          )
+        }
+
+        const first = mountDefinedQuery()
+        await flushPromises()
+        const cache = useQueryCache(pinia)
+        expect(cache.get(['late-settle'])?.state.value.data).toBe('fresh')
+
+        // A refetch keeps the success status, so garbage collection doesn't abort it.
+        // NOTE: the refetch goes through the query store, not the defined query return.
+        query.mockImplementationOnce(() => late.promise)
+        const oldEntry = cache.get(['late-settle'])!
+        const lateCall = cache.fetch(oldEntry)
+        await flushPromises()
+        // unmount schedules GC for the entry with a pending refetch
+        first.unmount()
+        await flushPromises()
+        vi.advanceTimersByTime(1000)
+        expect(cache.get(['late-settle'])).toBeUndefined()
+
+        const second = mountDefinedQuery()
+        await flushPromises()
+        const newEntry = cache.get(['late-settle'])
+        expect(newEntry?.state.value.data).toBe('fresh')
+
+        // Settling the removed entry schedules another GC timer for the same key.
+        late.resolve('late')
+        await lateCall.catch(() => {})
+        await flushPromises()
+        vi.advanceTimersByTime(1000)
+
+        expect(cache.get(['late-settle'])).toBe(newEntry)
+        second.unmount()
+      })
+
       // https://github.com/posva/pinia-colada/issues/646
       it('keeps loadNextPage working when remounted after it was garbage collected', async () => {
         const pinia = createPinia()

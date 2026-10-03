@@ -890,8 +890,10 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       diagnostics.PINIA_COLADA_R0010()
     }
     clearTimeout(entry.gcTimeout)
-    cachesRaw.delete(entry.keyHash)
-    triggerRef(caches)
+    if (cachesRaw.get(entry.keyHash) === entry) {
+      cachesRaw.delete(entry.keyHash)
+      triggerRef(caches)
+    }
   })
 
   return {
