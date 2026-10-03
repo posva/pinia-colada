@@ -45,6 +45,7 @@ export default defineConfig({
   },
 
   test: {
+    isolate: false,
     projects: [
       {
         // inherit from root config
