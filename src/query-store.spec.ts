@@ -4,7 +4,7 @@ import type { UseQueryEntry, UseQueryEntryNodeValueSerialized } from './query-st
 import { useQueryCache } from './query-store'
 import { USE_QUERY_DEFAULTS } from './query-options'
 import { flushPromises, mount } from '@vue/test-utils'
-import { computed, createApp, effectScope, nextTick, watch } from 'vue'
+import { computed, createApp, defineComponent, effectScope, nextTick, watch } from 'vue'
 import { useQuery } from './use-query'
 import { PiniaColada } from './pinia-colada'
 import { mockConsoleError, mockWarn } from '@posva/test-utils'
@@ -429,31 +429,43 @@ describe('Query Cache store', () => {
     const queryCache = useQueryCache()
     const late = Promise.withResolvers<string>()
     const query = vi.fn(async () => 'fresh')
-    const options = { ...USE_QUERY_DEFAULTS, key: ['late-settle'], query, gcTime: 1000 }
-    const scope = effectScope()
 
-    const oldEntry = queryCache.ensure<string>(options)
-    queryCache.track(oldEntry, scope)
-    await queryCache.fetch(oldEntry)
+    let refetch!: () => Promise<unknown>
+    const Child = defineComponent({
+      render: () => null,
+      setup() {
+        const q = useQuery({ key: ['late-settle'], query, gcTime: 1000 })
+        refetch = q.refetch
+        return {}
+      },
+    })
+    const mountChild = () => mount(Child, { global: { plugins: [getActivePinia()!, PiniaColada] } })
+
+    const wrapper = mountChild()
+    await flushPromises()
 
     // A refetch keeps the success status, so garbage collection doesn't abort it.
     query.mockImplementationOnce(() => late.promise)
-    const lateCall = queryCache.fetch(oldEntry)
-    queryCache.untrack(oldEntry, scope)
+    const lateCall = refetch()
+    await flushPromises()
+    // unmount schedules GC for the entry with a pending refetch
+    wrapper.unmount()
+    await flushPromises()
     vi.advanceTimersByTime(1000)
     expect(queryCache.get(['late-settle'])).toBeUndefined()
 
-    const newEntry = queryCache.ensure<string>(options)
-    queryCache.track(newEntry, scope)
-    await queryCache.fetch(newEntry)
+    const wrapper2 = mountChild()
+    await flushPromises()
+    const newEntry = queryCache.get(['late-settle'])
+    expect(newEntry?.state.value.data).toBe('fresh')
 
     // Settling the removed entry schedules another GC timer for the same key.
     late.resolve('late')
-    await lateCall
+    await lateCall.catch(() => {})
+    await flushPromises()
     vi.advanceTimersByTime(1000)
 
     expect(queryCache.get(['late-settle'])).toBe(newEntry)
-    queryCache.untrack(newEntry, scope)
-    scope.stop()
+    wrapper2.unmount()
   })
 })
