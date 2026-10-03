@@ -424,4 +424,36 @@ describe('Query Cache store', () => {
     expect(abortSpy).toHaveBeenCalledTimes(0)
     expect(entry.state.value.data).toBe('data')
   })
+
+  it('does not remove a newer entry for the same key when a removed entry settles late', async () => {
+    const queryCache = useQueryCache()
+    const late = Promise.withResolvers<string>()
+    const query = vi.fn(async () => 'fresh')
+    const options = { ...USE_QUERY_DEFAULTS, key: ['late-settle'], query, gcTime: 1000 }
+    const scope = effectScope()
+
+    const oldEntry = queryCache.ensure<string>(options)
+    queryCache.track(oldEntry, scope)
+    await queryCache.fetch(oldEntry)
+
+    // A refetch keeps the success status, so garbage collection doesn't abort it.
+    query.mockImplementationOnce(() => late.promise)
+    const lateCall = queryCache.fetch(oldEntry)
+    queryCache.untrack(oldEntry, scope)
+    vi.advanceTimersByTime(1000)
+    expect(queryCache.get(['late-settle'])).toBeUndefined()
+
+    const newEntry = queryCache.ensure<string>(options)
+    queryCache.track(newEntry, scope)
+    await queryCache.fetch(newEntry)
+
+    // Settling the removed entry schedules another GC timer for the same key.
+    late.resolve('late')
+    await lateCall
+    vi.advanceTimersByTime(1000)
+
+    expect(queryCache.get(['late-settle'])).toBe(newEntry)
+    queryCache.untrack(newEntry, scope)
+    scope.stop()
+  })
 })
