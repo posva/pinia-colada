@@ -45,7 +45,8 @@ export default defineConfig({
   },
 
   test: {
-    isolate: false,
+    // needed for enableAutoUnmount from @vue/test-utils to work correctly
+    // isolate: true,
     projects: [
       {
         // inherit from root config
