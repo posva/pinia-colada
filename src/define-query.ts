@@ -1,7 +1,7 @@
 import { getCurrentInstance, getCurrentScope, onScopeDispose, toValue, watch } from 'vue'
 import type { tErrorSymbol, UseQueryOptions } from './query-options'
 import { useQueryCache } from './query-store'
-import type { UseQueryEntry } from './query-store'
+import type { QueryCache, UseQueryEntry } from './query-store'
 import type { ErrorDefault } from './types-extension'
 import type { UseQueryReturn } from './use-query'
 import { useQuery } from './use-query'
@@ -21,6 +21,12 @@ export type DefineQueryOptions<
   UseQueryOptions<TData, TError, TDataInitial>,
   typeof tErrorSymbol | 'initialData' | 'placeholderData'
 >
+
+/**
+ * State of each defined query per cache: `[hasBeenEnsured, refCount]`. The
+ * `refCount` allows pausing the scope when the defined query is not used anymore.
+ */
+const statesByCache = new WeakMap<QueryCache, WeakMap<object, [boolean, number]>>()
 
 /**
  * Define a query with the given options. Similar to `useQuery(options)` but
@@ -69,17 +75,21 @@ export function defineQuery(optionsOrSetup: DefineQueryOptions | (() => unknown)
   const setupFn =
     typeof optionsOrSetup === 'function' ? optionsOrSetup : () => useQuery(optionsOrSetup)
 
-  let hasBeenEnsured: boolean | undefined
-  // allows pausing the scope when the defined query is no used anymore
-  let refCount = 0
+  const stateKey = {}
   return () => {
     const queryCache = useQueryCache()
     const currentScope = getCurrentInstance() || getCurrentScope()
     const [entries, ret, scope, isPaused] = queryCache.ensureDefinedQuery(setupFn)
 
+    // per app: on the server, each request has its own cache
+    let cacheStates = statesByCache.get(queryCache)
+    if (!cacheStates) statesByCache.set(queryCache, (cacheStates = new WeakMap()))
+    const definedState = cacheStates.get(stateKey) ?? [false, 0]
+    cacheStates.set(stateKey, definedState)
+
     // subsequent calls to the composable returned by useQuery will not trigger the `useQuery()`,
     // this ensures the refetchOnMount option is respected
-    if (hasBeenEnsured) {
+    if (definedState[0]) {
       entries.forEach(({ value: entry }) => {
         // since defined query can be activated multiple times without executing useQuery,
         // we need to execute it here too
@@ -93,10 +103,10 @@ export function defineQuery(optionsOrSetup: DefineQueryOptions | (() => unknown)
         }
       })
     }
-    hasBeenEnsured = true
+    definedState[0] = true
 
     if (currentScope) {
-      refCount++
+      definedState[1]++
       const consumer = { owner: currentScope }
       let trackedEntries: UseQueryEntry[] = []
       // The setup runs once, but each caller needs a watcher in its own scope to follow key changes.
@@ -116,7 +126,7 @@ export function defineQuery(optionsOrSetup: DefineQueryOptions | (() => unknown)
         // Computeds may point to a new key before this watcher runs.
         // Dispose the entries this caller actually tracked without evaluating a pending key change.
         trackedEntries.forEach((entry) => queryCache.untrack(entry, consumer))
-        if (--refCount < 1) {
+        if (--definedState[1] < 1) {
           scope.pause()
           isPaused.value = true
         }
