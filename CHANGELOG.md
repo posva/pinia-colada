@@ -1,3 +1,10 @@
+## [1.4.8](https://github.com/posva/pinia-colada/compare/v1.4.7...v1.4.8) (2026-10-08)
+
+### Bug Fixes
+
+- **define-query:** keep defined query state per app ([#659](https://github.com/posva/pinia-colada/issues/659)) ([a4c23b4](https://github.com/posva/pinia-colada/commit/a4c23b4de7f55cfd1f1dc16018f11a13a9cf8298)), closes [#658](https://github.com/posva/pinia-colada/issues/658)
+- preserve replacement entries during stale GC ([#657](https://github.com/posva/pinia-colada/issues/657)) ([e220109](https://github.com/posva/pinia-colada/commit/e220109054a61517c503100b736c9966a7c94c3c))
+
 ## [1.4.7](https://github.com/posva/pinia-colada/compare/v1.4.6...v1.4.7) (2026-10-02)
 
 ### Bug Fixes
