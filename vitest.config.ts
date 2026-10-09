@@ -97,8 +97,7 @@ export default defineConfig({
         },
       },
       ...pluginsProjects,
-      // TODO: once @nuxt/test-utils supports vitest 5
-      // './nuxt',
+      './nuxt',
     ],
 
     // common config for all projects
