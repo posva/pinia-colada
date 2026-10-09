@@ -11,7 +11,7 @@ describe('@pinia/colada-nuxt', async () => {
   it('renders the index page', async () => {
     const html = await $fetch('/')
     expect(html).toContain('<div>basic</div>')
-    expect(html).toContain('query from server')
+    expect(html).toMatch(/<span data-query(?:="")?>query from server<\/span>/)
   })
 
   it('hydrates the query cache without fetching again', async () => {
