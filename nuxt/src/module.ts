@@ -38,7 +38,10 @@ export default defineNuxtModule<Record<string, never>>({
       if (nuxt.options.builder !== '@nuxt/vite-builder') return
       if (!(await hasNuxtModuleCompatibility('@nuxt/devtools', '>=4.0.0-0', nuxt))) return
 
-      const devtoolsPath = await tryResolveModule('@pinia/colada-devtools/vite', import.meta.url)
+      const devtoolsPath = await tryResolveModule(
+        '@pinia/colada-devtools/vite',
+        new URL(import.meta.url),
+      )
       if (!devtoolsPath) return
 
       addVitePlugin(
