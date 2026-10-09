@@ -82,7 +82,7 @@ Most of the time you will find yourself using just `state` and `asyncStatus` to 
 
 - `refresh()`: manually triggers the query, deduplicates requests, and reuses the cached data if it's still fresh.
 - `refetch()`: manually triggers the query, ignoring the cache, and fetching the data again.
-- `data`, `error`, `status`: are aliases for the properties in `state` for convenience and facilitating migration. `state` allows for [type narrowing in TypeScript](#typescript-narrowing-data-and-errors-type-with-status) but depending on your template usage, you might not need it so we simply provide both approaches for convenience.
+- `data`, `error`, `status`: are aliases for the properties in `state` for convenience and facilitating migration. `state` allows for [type narrowing in TypeScript](#TypeScript-Narrowing-data-and-error-s-type-with-status) but depending on your template usage, you might not need it so we simply provide both approaches for convenience.
 - _For everything else, hover over the different properties in the code block above to see their types and documentation_ 😁.
 
 ## Using External Properties in Queries

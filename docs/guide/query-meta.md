@@ -18,7 +18,7 @@ useQuery({
 })
 ```
 
-You can put anything you want in meta, but if you are doing SSR, you will need to ensure that [the meta is serializable](#ssr).
+You can put anything you want in meta, but if you are doing SSR, you will need to ensure that [the meta is serializable](#SSR).
 
 You can also use a function (or a ref) to dynamically and **lazily** compute it
 

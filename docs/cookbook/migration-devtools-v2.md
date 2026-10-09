@@ -46,7 +46,7 @@ Install the devtools and their peer dependencies. These plugins require Vite 7 o
 pnpm add -D @pinia/colada-devtools @vitejs/devtools @vitejs/devtools-kit
 ```
 
-Add the plugins to `vite.config.ts`. For Nuxt, use the [Nuxt setup](#nuxt) below.
+Add the plugins to `vite.config.ts`. For Nuxt, use the [Nuxt setup](#Nuxt) below.
 
 Use Vite DevTools and its kit version 0.7.4 or later with DevFrame 0.10.
 
@@ -158,7 +158,7 @@ export default defineConfig({
 })
 ```
 
-The standalone plugin only runs during development. For production, use the [Vite configuration](#vite) above.
+The standalone plugin only runs during development. For production, use the [Vite configuration](#Vite) above.
 
 MCP support is included through `@devframes/agentic`. The standalone host enables MCP; a custom hub controls MCP through its own `mcp` option.
 
@@ -173,7 +173,7 @@ The `/panel` and `/shared` package exports are removed. If you use them in a cus
 | v1 API | v2 replacement |
 | --- | --- |
 | `PiniaColadaDevtools` from `@pinia/colada-devtools` | `PiniaColadaDevtools()` from `@pinia/colada-devtools/vite` |
-| `PiniaColadaProdDevtools` from `@pinia/colada-devtools` | [Vite production configuration](#vite) |
+| `PiniaColadaProdDevtools` from `@pinia/colada-devtools` | [Vite production configuration](#Vite) |
 | `DevtoolsPanel` from `@pinia/colada-devtools/panel` | A host mounts the panel from `piniaColadaDevframe` |
 | Helpers and types from `@pinia/colada-devtools/shared` | No public replacement; remove these imports |
 

@@ -264,7 +264,7 @@ Combine this with the [key factories](#Managing-query-keys-key-factories-) to ha
 
 :::
 
-Differently from `useQuery()`, `defineQueryOptions` does not accept `MaybeRefOrGetter` versions of the properties (e.g. a function getter for the `key`), instead see [dynamic keys](#dynamic-typed-keys) below.
+Differently from `useQuery()`, `defineQueryOptions` does not accept `MaybeRefOrGetter` versions of the properties (e.g. a function getter for the `key`), instead see [dynamic keys](#Dynamic-typed-keys) below.
 
 ### Dynamic typed keys
 

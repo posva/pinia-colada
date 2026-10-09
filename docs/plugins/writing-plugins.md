@@ -41,7 +41,7 @@ Plugins are installed in array order. If multiple plugins hook the same cache ac
 
 ## Plugin Structure
 
-Plugins should be factory functions that accept options and return a function that receives the [plugin context](#plugins-context).
+Plugins should be factory functions that accept options and return a function that receives the [plugin context](#Plugin-Context).
 
 ```ts twoslash
 import { type PiniaColadaPlugin, useMutationCache } from '@pinia/colada'
@@ -273,7 +273,7 @@ app.use(PiniaColada, {
 })
 ```
 
-For a detailed TypeScript example, see the [Typescript section](#typescript) below.
+For a detailed TypeScript example, see the [Typescript section](#TypeScript) below.
 
 ### Adding entry extensions
 

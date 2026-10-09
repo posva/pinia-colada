@@ -51,7 +51,7 @@ You can only configure the plugin globally, not per query:
 - `stringify: (cache) => string` (default: `JSON.stringify`) converts the cache to a string before storing it
 - `parse: (stored) => cache` (default: `JSON.parse`) restores the cache from the stored string
 
-Use `stringify`/`parse` with a codec like [devalue](https://github.com/sveltejs/devalue) to persist `Date`, `Map`, or custom classes. See [Custom Serialization](../../cookbook/cache-persistence.md#custom-serialization) for examples.
+Use `stringify`/`parse` with a codec like [devalue](https://github.com/sveltejs/devalue) to persist `Date`, `Map`, or custom classes. See [Custom Serialization](../../cookbook/cache-persistence.md#Custom-Serialization) for examples.
 
 ## Notes
 

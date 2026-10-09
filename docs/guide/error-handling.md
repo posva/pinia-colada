@@ -4,7 +4,7 @@ Queries and mutations expose `error` and `status` refs. Handle errors in the tem
 
 ## Error state in queries
 
-`useQuery()` returns an `error` ref and a `status` ref. When a query function throws (or rejects), `status` becomes `'error'` and `error` holds the thrown value. See the [status table in Queries](./queries.md#status) for the full lifecycle.
+`useQuery()` returns an `error` ref and a `status` ref. When a query function throws (or rejects), `status` becomes `'error'` and `error` holds the thrown value. See the [status table in Queries](./queries.md#Foundations) for the full lifecycle.
 
 ```vue twoslash
 <script setup lang="ts">
