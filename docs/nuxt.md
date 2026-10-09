@@ -112,7 +112,7 @@ export default defineNuxtConfig({
 })
 ```
 
-The Pinia Colada module registers the panel during development. Open Nuxt DevTools and select Pinia Colada. See the [devtools installation guide](./guide/installation.md#pinia-colada-devtools) for other hosts.
+The Pinia Colada module registers the panel during development. Open Nuxt DevTools and select Pinia Colada. See the [devtools installation guide](./guide/installation.md#Pinia-Colada-Devtools) for other hosts.
 
 ## Configuration
 
@@ -161,7 +161,7 @@ const { data } = useQuery({
 3. Data is serialized to the payload and hydrated on the client
 4. No extra code needed—it just works
 
-The module also installs the [`PiniaColadaSSRNoGc`](./guide/ssr.md#garbage-collection-on-the-server) plugin and clears the cache after every render. This means SSG / `nuxt build` / test processes exit cleanly without waiting for `gcTime` to elapse, and entries don't leak across requests.
+The module also installs the [`PiniaColadaSSRNoGc`](./guide/ssr.md#Garbage-collection-on-the-server) plugin and clears the cache after every render. This means SSG / `nuxt build` / test processes exit cleanly without waiting for `gcTime` to elapse, and entries don't leak across requests.
 
 ### When you still need `await`
 

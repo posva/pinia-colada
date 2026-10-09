@@ -64,7 +64,7 @@ const {
 </script>
 ```
 
-- The `key` is a serializable array that **uniquely** identifies the query. The array allows to establish [a hierarchy](./guide/query-keys.md#keys-are-hierarchical) of keys that can be invalidated at once.
+- The `key` is a serializable array that **uniquely** identifies the query. The array allows to establish [a hierarchy](./guide/query-keys.md#Keys-are-hierarchical) of keys that can be invalidated at once.
 - The `query` function is automatically run by Pinia Colada when needed ✨.
 
 `useQuery()` returns an object with quite a few properties. In the example above we use:
