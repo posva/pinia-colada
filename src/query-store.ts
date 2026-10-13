@@ -423,6 +423,10 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     entry.deps.delete(effect)
     triggerRef(caches)
 
+    // abort non used queries that are still not settled
+    if (!entry.deps.size && !entry.pending?.settled) {
+      entry.pending?.abortController.abort()
+    }
     scheduleGarbageCollection(entry)
   }
 
@@ -431,10 +435,6 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     // and we know its gcTime value
     if (entry.deps.size > 0 || !entry.options) return
     clearTimeout(entry.gcTimeout)
-    // Data can be published while the query is still running.
-    if (!entry.pending?.settled) {
-      entry.pending?.abortController.abort()
-    }
     // avoid setting a timeout with false, Infinity or NaN
     if ((Number.isFinite as (val: unknown) => val is number)(entry.options.gcTime)) {
       entry.gcTimeout = setTimeout(() => {
