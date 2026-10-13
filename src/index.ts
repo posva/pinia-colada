@@ -51,6 +51,7 @@ export {
   serializeQueryCache,
   useQueryCache,
   type UseQueryEntry,
+  type UseQueryEntryPending,
   type UseQueryEntryExtensions,
   type UseQueryEntryFilter,
 } from './query-store'

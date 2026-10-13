@@ -39,6 +39,38 @@ export interface UseQueryEntryExtensions<
  */
 
 /**
+ * A pending request for a query entry. It's the
+ * {@link UseQueryEntry.pending | `pending`} property of
+ * {@link UseQueryEntry}.
+ *
+ * @see {@link UseQueryEntry}
+ */
+export interface UseQueryEntryPending<
+  TData = unknown,
+  TError = unknown,
+  TDataInitial extends TData | undefined = unknown extends TData ? unknown : undefined,
+> {
+  /**
+   * Whether the query function has settled before state updates and
+   * cleanup.
+   */
+  settled: boolean
+  /**
+   * The abort controller used to cancel the request and which `signal` is
+   * passed to the query function.
+   */
+  abortController: AbortController
+  /**
+   * The promise created by `queryCache.fetch` that is currently pending.
+   */
+  refreshCall: Promise<DataState<TData, TError, TDataInitial>>
+  /**
+   * When was this `pending` object created.
+   */
+  when: number
+}
+
+/**
  * A query entry in the cache.
  */
 export interface UseQueryEntry<
@@ -92,20 +124,7 @@ export interface UseQueryEntry<
   /**
    * The current pending request.
    */
-  pending: null | {
-    /**
-     * The abort controller used to cancel the request and which `signal` is passed to the query function.
-     */
-    abortController: AbortController
-    /**
-     * The promise created by `queryCache.fetch` that is currently pending.
-     */
-    refreshCall: Promise<DataState<TData, TError, TDataInitial>>
-    /**
-     * When was this `pending` object created.
-     */
-    when: number
-  }
+  pending: UseQueryEntryPending<TData, TError, TDataInitial> | null
 
   /**
    * Options used to create the query. They can be `null` during hydration but are needed for fetching. This is why
@@ -412,10 +431,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
     // and we know its gcTime value
     if (entry.deps.size > 0 || !entry.options) return
     clearTimeout(entry.gcTimeout)
-    // only abort if the query hasn't settled yet because entry.pending might
-    // still be set (cleared in .finally()) but the state is already
-    // success/error
-    if (entry.state.value.status === 'pending') {
+    // Data can be published while the query is still running.
+    if (!entry.pending?.settled) {
       entry.pending?.abortController.abort()
     }
     // avoid setting a timeout with false, Infinity or NaN
@@ -675,11 +692,13 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       // signal.throwIfAborted() in the query function
       entry.pending?.abortController.abort()
 
-      const pendingCall = (entry.pending = {
+      const pendingCall: UseQueryEntryPending<TData, TError, TDataInitial> = (entry.pending = {
+        settled: false,
         abortController,
         // wrapping with async allows us to catch synchronous errors too
         refreshCall: (async () => options!.query({ signal, entry }))()
           .then((data) => {
+            pendingCall.settled = true
             if (pendingCall === entry.pending) {
               setEntryState(entry, {
                 data,
@@ -690,6 +709,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
             return entry.state.value
           })
           .catch((error: unknown) => {
+            pendingCall.settled = true
             // we skip updating the state if a new request was made
             // or if the error is from our own abort signal
             if (
