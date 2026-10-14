@@ -366,6 +366,28 @@ describe('Query Cache store', () => {
     expect(queryCache.getEntries({ key: ['prefetch-gc'] })).toHaveLength(0)
   })
 
+  it('finishes an untracked fetch that publishes intermediate data', async () => {
+    const queryCache = useQueryCache()
+    const key = ['untracked-stream']
+    const entry = queryCache.ensure({
+      key,
+      gcTime: false,
+      query: async ({ signal }) => {
+        await Promise.resolve()
+        queryCache.setQueryData(key, 'chunk')
+        signal.throwIfAborted()
+        return 'complete'
+      },
+    })
+
+    await expect(queryCache.fetch(entry)).resolves.toMatchObject({
+      status: 'success',
+      data: 'complete',
+      error: null,
+    })
+    expect(queryCache.getQueryData(key)).toBe('complete')
+  })
+
   // https://github.com/posva/pinia-colada/issues/620
   it('keeps asyncStatus loading when a canceled request settles after a refetch', async () => {
     const queryCache = useQueryCache()

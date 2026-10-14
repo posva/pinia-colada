@@ -1299,6 +1299,61 @@ describe('useQuery', () => {
   })
 
   describe('abort signal', () => {
+    it('aborts a stream with published data when the last consumer unmounts', async () => {
+      let signal!: AbortSignal
+      const stopped = Promise.withResolvers<void>()
+      const { wrapper } = mountSimple({
+        gcTime: false,
+        async query({ signal: querySignal, entry }) {
+          signal = querySignal
+          signal.addEventListener('abort', () => stopped.resolve(), { once: true })
+          entry.state.value = { status: 'success', data: 'chunk', error: null }
+          await stopped.promise
+          signal.throwIfAborted()
+          return 'done'
+        },
+      })
+      await flushPromises()
+      expect(wrapper.vm.data).toBe('chunk')
+      expect(signal.aborted).toBe(false)
+
+      try {
+        wrapper.unmount()
+        expect(signal.aborted).toBe(true)
+      } finally {
+        stopped.resolve()
+        await flushPromises()
+      }
+    })
+
+    it('aborts a refetch with existing data when the last consumer unmounts', async () => {
+      let signal!: AbortSignal
+      const stopped = Promise.withResolvers<void>()
+      const query = vi.fn<UseQueryOptions<string>['query']>(async () => 'first')
+      const { wrapper } = mountSimple({ query, gcTime: false })
+      await flushPromises()
+      query.mockImplementationOnce(async ({ signal: querySignal }) => {
+        signal = querySignal
+        signal.addEventListener('abort', () => stopped.resolve(), { once: true })
+        await stopped.promise
+        signal.throwIfAborted()
+        return 'done'
+      })
+      const call = wrapper.vm.refetch().catch(() => {})
+      await flushPromises()
+      expect(wrapper.vm.data).toBe('first')
+      expect(signal.aborted).toBe(false)
+
+      try {
+        wrapper.unmount()
+        expect(signal.aborted).toBe(true)
+      } finally {
+        stopped.resolve()
+        await call
+        await flushPromises()
+      }
+    })
+
     it('passes an abort signal to the query function', async () => {
       const query = vi.fn(async () => 'ok')
       mountSimple({ query })
