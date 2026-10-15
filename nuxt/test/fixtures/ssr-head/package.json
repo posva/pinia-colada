@@ -1,0 +1,5 @@
+{
+  "name": "ssr-head",
+  "type": "module",
+  "private": true
+}

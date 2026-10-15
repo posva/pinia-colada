@@ -1,14 +1,14 @@
+import { defineNuxtPlugin } from '#app'
+import coladaOptions from '#build/colada.options'
 import {
-  useQueryCache,
+  hydrateQueryCache,
   PiniaColada,
   PiniaColadaSSRNoGc,
   serializeQueryCache,
+  useQueryCache,
   type PiniaColadaOptions,
-  hydrateQueryCache,
 } from '@pinia/colada'
 import { markRaw } from 'vue'
-import { defineNuxtPlugin } from '#app'
-import coladaOptions from '#build/colada.options'
 
 export default defineNuxtPlugin({
   name: 'Pinia Colada',
@@ -31,11 +31,12 @@ export default defineNuxtPlugin({
       nuxtApp.hook('app:rendered', ({ ssrContext }) => {
         if (ssrContext) {
           ssrContext.payload.pinia_colada = markRaw(serializeQueryCache(queryCache))
-          // FIXME: there is a bug between pinia and nuxt that makes skipSerialize not work:
-          // it seems both mjs and cjs are included when doing a generate. This doesn't happen
-          // in SSR. Clearing the cache after serialization avoids it being serialized twice, which
-          // fails because query options are not serializable
-          queryCache.caches.clear()
+          const piniaPayload = ssrContext.payload.pinia
+          if (piniaPayload && Object.hasOwn(piniaPayload, queryCache.$id)) {
+            const piniaState = { ...piniaPayload }
+            Reflect.deleteProperty(piniaState, queryCache.$id)
+            ssrContext.payload.pinia = piniaState
+          }
         }
       })
     } else if (nuxtApp.payload && nuxtApp.payload.pinia_colada) {
