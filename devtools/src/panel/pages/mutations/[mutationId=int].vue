@@ -15,6 +15,7 @@ import { useTimeAgo, useLocalStorage, formatTimeAgo, useTimeoutPoll } from '@vue
 import type { FormatTimeAgoOptions } from '@vueuse/core'
 import { useEntryUpdateNotifications } from '../../composables/entry-update-notifications'
 import EntryUpdateNotification from '../../components/EntryUpdateNotification.vue'
+import ErrorViewer from '../../components/ErrorViewer.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -215,6 +216,9 @@ const { hasNewData, hasNewError } = useEntryUpdateNotifications(
         :icon="IVariable"
         no-padding
       >
+        <template v-if="selectedMutation.vars !== undefined" #actions>
+          <UCopyButton :value="selectedMutation.vars" title="Copy variables as JSON" />
+        </template>
         <JsonViewer :data="selectedMutation.vars" readonly sticky-keys />
       </UCollapse>
 
@@ -232,6 +236,9 @@ const { hasNewData, hasNewError } = useEntryUpdateNotifications(
             <EntryUpdateNotification v-if="hasNewData" type="data" />
           </h3>
         </template>
+        <template v-if="selectedMutation.state.data !== undefined" #actions>
+          <UCopyButton :value="selectedMutation.state.data" title="Copy data as JSON" />
+        </template>
         <JsonViewer :data="selectedMutation.state.data" sticky-keys />
       </UCollapse>
 
@@ -244,15 +251,15 @@ const { hasNewData, hasNewError } = useEntryUpdateNotifications(
           </h3>
         </template>
         <div class="py-1">
-          <pre
-            v-if="selectedMutation.state.error"
-            class="rounded p-1 overflow-auto max-h-[1200px]"
-            >{{ selectedMutation.state.error }}</pre>
+          <ErrorViewer v-if="selectedMutation.state.error" :error="selectedMutation.state.error" />
           <p v-else class="text-neutral-500/50">No error</p>
         </div>
       </UCollapse>
 
       <UCollapse title="Options" :open="false" :icon="IBraces" no-padding scroll-on-open>
+        <template v-if="selectedMutation.options" #actions>
+          <UCopyButton :value="selectedMutation.options" title="Copy options as JSON" />
+        </template>
         <JsonViewer
           v-if="selectedMutation.options"
           :data="selectedMutation.options"

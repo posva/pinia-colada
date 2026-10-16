@@ -19,6 +19,7 @@ import type { FormatTimeAgoOptions } from '@vueuse/core'
 import { setNestedValue, type NestedValuePath } from '../../utils/set-nested-value'
 import { useEntryUpdateNotifications } from '../../composables/entry-update-notifications'
 import EntryUpdateNotification from '../../components/EntryUpdateNotification.vue'
+import ErrorViewer from '../../components/ErrorViewer.vue'
 
 const route = useRoute()
 const queries = useQueryEntries()
@@ -182,6 +183,9 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             no-padding
             class="rounded border border-(--ui-border) overflow-hidden"
           >
+            <template #actions>
+              <UCopyButton :value="data" :title="`Copy ${name} as JSON`" />
+            </template>
             <JsonViewer :data="data" readonly sticky-keys />
           </UCollapse>
         </div>
@@ -289,6 +293,9 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             <EntryUpdateNotification v-if="hasNewData" type="data" />
           </h3>
         </template>
+        <template v-if="selectedQuery.state.data !== undefined" #actions>
+          <UCopyButton :value="selectedQuery.state.data" title="Copy data as JSON" />
+        </template>
         <JsonViewer
           :data="selectedQuery.state.data"
           sticky-keys
@@ -311,9 +318,7 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
           </h3>
         </template>
         <div class="py-1">
-          <pre v-if="selectedQuery.state.error" class="rounded p-1 overflow-auto max-h-[1200px]">{{
-            selectedQuery.state.error
-          }}</pre>
+          <ErrorViewer v-if="selectedQuery.state.error" :error="selectedQuery.state.error" />
           <p v-else class="text-(--ui-text-muted)/50">No error</p>
         </div>
       </UCollapse>
@@ -356,6 +361,9 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             class="border border-neutral-200 dark:border-neutral-800"
             scroll-on-open
           >
+            <template #actions>
+              <UCopyButton :value="entry" title="Copy history entry as JSON" />
+            </template>
             <JsonViewer :data="entry" readonly sticky-keys />
           </UCollapse>
         </div>
@@ -368,6 +376,9 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
         no-padding
         scroll-on-open
       >
+        <template v-if="selectedQuery.options" #actions>
+          <UCopyButton :value="selectedQuery.options" title="Copy options as JSON" />
+        </template>
         <JsonViewer
           v-if="selectedQuery.options"
           :data="selectedQuery.options"

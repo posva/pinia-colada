@@ -1,5 +1,5 @@
-import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { restoreClonedDeep, serializeDevtoolsValue } from '@pinia/colada-devtools/shared'
 import JsonItem from './JsonItem.vue'
 
@@ -37,6 +37,26 @@ describe('JsonItem', () => {
     expect(wrapper.find('[title="Edit as JSON"]').exists()).toBe(false)
   })
 
+  it('shows error details as readonly', async () => {
+    const value = restoreClonedDeep(
+      serializeDevtoolsValue(
+        Object.assign(new Error('not found', { cause: new TypeError('root') }), { status: 404 }),
+      ),
+    )
+    const wrapper = mount(JsonItem, {
+      props: { itemKey: 'error', value, depth: 0 },
+    })
+
+    await wrapper.get('[title="Click to expand"]').trigger('click')
+
+    expect(wrapper.text()).toContain('message: "not found"')
+    expect(wrapper.text()).toContain('status: 404')
+    expect(wrapper.text()).toContain('cause: TypeError(root)')
+    expect(wrapper.text()).toContain('stack:')
+    expect(wrapper.find('[title="Edit value"]').exists()).toBe(false)
+    expect(wrapper.find('[title="Edit as JSON"]').exists()).toBe(false)
+  })
+
   it('keeps map values editable', async () => {
     const wrapper = mount(JsonItem, {
       props: { itemKey: 'map', value: new Map([['count', 1]]), depth: 0 },
@@ -46,5 +66,75 @@ describe('JsonItem', () => {
 
     expect(wrapper.text()).toContain('count:')
     expect(wrapper.find('[title="Edit value"]').exists()).toBe(true)
+  })
+
+  it('copies a nested value as JSON', async () => {
+    const writeText = vi.fn<(text: string) => Promise<void>>().mockResolvedValue()
+    vi.stubGlobal('navigator', { clipboard: { writeText } })
+    onTestFinished(() => {
+      vi.unstubAllGlobals()
+    })
+    const wrapper = mount(JsonItem, {
+      props: { itemKey: 'user', value: { name: 'Eduardo', tags: ['a'] }, depth: 0 },
+    })
+
+    await wrapper.get('[title="Copy user as JSON"]').trigger('click')
+    await flushPromises()
+
+    expect(JSON.parse(writeText.mock.calls[0]![0])).toEqual({ name: 'Eduardo', tags: ['a'] })
+    expect(wrapper.find('[title="Copied!"]').exists()).toBe(true)
+  })
+
+  it('tells when a value cannot be copied as JSON', async () => {
+    const writeText = vi.fn<(text: string) => Promise<void>>().mockResolvedValue()
+    vi.stubGlobal('navigator', { clipboard: { writeText } })
+    onTestFinished(() => {
+      vi.unstubAllGlobals()
+    })
+    const wrapper = mount(JsonItem, {
+      props: { itemKey: 'map', value: new Map([['a', 1]]), depth: 0 },
+    })
+
+    await wrapper.get('[title="Copy map as JSON"]').trigger('click')
+    await flushPromises()
+
+    expect(writeText).toHaveBeenCalledTimes(0)
+    expect(wrapper.text()).toContain('Not serializable')
+  })
+
+  it('tells when the clipboard refuses the copy', async () => {
+    const writeText = vi
+      .fn<(text: string) => Promise<void>>()
+      .mockRejectedValue(new DOMException('Document is not focused', 'NotAllowedError'))
+    vi.stubGlobal('navigator', { clipboard: { writeText } })
+    onTestFinished(() => {
+      vi.unstubAllGlobals()
+    })
+    const wrapper = mount(JsonItem, {
+      props: { itemKey: 'count', value: 1, depth: 0 },
+    })
+
+    await wrapper.get('[title="Copy count as JSON"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Copy failed')
+  })
+
+  it.each([
+    [Number.NaN, 'NaN'],
+    [Infinity, 'Infinity'],
+    [-Infinity, '-Infinity'],
+    [-0, '-0'],
+  ])('keeps %s when editing as JSON', async (value, text) => {
+    const wrapper = mount(JsonItem, {
+      props: { itemKey: 'n', value, depth: 0 },
+    })
+
+    await wrapper.get('[title="Edit as JSON"]').trigger('click')
+    const input = wrapper.get('input')
+    expect(input.element.value).toBe(text)
+
+    await input.trigger('keydown.enter')
+    expect(wrapper.emitted('update:value')).toEqual([[[], value]])
   })
 })

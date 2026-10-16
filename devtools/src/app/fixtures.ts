@@ -1,5 +1,16 @@
 export const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
 
+export class HttpError extends Error {
+  override name = 'HttpError'
+  constructor(
+    message: string,
+    public status: number,
+    public data?: unknown,
+  ) {
+    super(message)
+  }
+}
+
 export function createValueFixture(revision: number) {
   const weakMapKey = {}
   const weakSetValue = {}
@@ -82,6 +93,10 @@ export function createValueFixture(revision: number) {
       [new TypeError('First fixture error'), new RangeError('Second fixture error')],
       'Multiple fixture operations failed',
     ),
+    httpError: new HttpError('Unauthorized', 401, {
+      code: 'TOKEN_EXPIRED',
+      expiredAt: new Date('2026-09-01T12:00:00.000Z'),
+    }),
     classInstance: new (class FixtureClass {
       constructor(
         public label: string,

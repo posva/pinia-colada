@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { reactive } from 'vue'
 import { formatValue, getValueDetails, getValueDisplayTokens } from '../json'
-import { onPromiseSettled, restoreClonedDeep, serializeDevtoolsValue } from './index'
+import {
+  onPromiseSettled,
+  restoreClonedDeep,
+  restoreOriginalValues,
+  serializeDevtoolsValue,
+} from './index'
 
 describe('serializeDevtoolsValue', () => {
   it('preserves negative zero when formatting values', () => {
@@ -133,6 +138,56 @@ describe('serializeDevtoolsValue', () => {
     expect(formatValue(roundTripped.urlSearchParams)).toBe('URLSearchParams(fixture=params)')
     expect(formatValue(roundTripped.instance)).toBe('FixtureClass')
     expect(Object.keys(roundTripped.instance)).toEqual(['label'])
+  })
+
+  it('keeps custom error properties', () => {
+    class HttpError extends Error {
+      status = 404
+      code = 'NOT_FOUND'
+    }
+    const values = {
+      httpError: new HttpError('not found'),
+      withData: Object.assign(new Error('failed'), {
+        data: { issues: [new TypeError('nested')], at: new Date('2026-09-01T12:00:00.000Z') },
+      }),
+    }
+
+    const restored = restoreClonedDeep(serializeDevtoolsValue(values))
+
+    expect(restored.httpError).toBeInstanceOf(Error)
+    expect(restored.httpError.message).toBe('not found')
+    expect(restored.httpError.status).toBe(404)
+    expect(Object.keys(restored.httpError)).toEqual(['status', 'code'])
+    expect(restored.withData.data.at).toEqual(values.withData.data.at)
+    expect(restored.withData.data.issues[0]).toBeInstanceOf(Error)
+    expect(restored.withData.data.issues[0].message).toBe('nested')
+  })
+
+  it('serializes errors with circular custom properties', () => {
+    const request: { error?: Error & { request?: unknown } } = {}
+    const error = Object.assign(new Error('failed'), { request })
+    request.error = error
+
+    const restored = restoreClonedDeep(serializeDevtoolsValue({ error }))
+
+    expect(restored.error.message).toBe('failed')
+    expect(restored.error.request.error?.message).toBe('failed')
+    expect(String(restored.error.request.error?.request)).toBe('[Circular]')
+  })
+
+  it('keeps the original error when editing data that contains one', () => {
+    const error = Object.assign(new Error('failed'), { status: 500 })
+    const original = { label: 'before', error }
+
+    const panelValue = restoreClonedDeep(serializeDevtoolsValue(original))
+    panelValue.label = 'after'
+    const edited = restoreOriginalValues(
+      restoreClonedDeep(serializeDevtoolsValue(panelValue)),
+      original,
+    )
+
+    expect(edited.label).toBe('after')
+    expect(edited.error).toBe(error)
   })
 
   it('restores displayable values from their wire representation', () => {
