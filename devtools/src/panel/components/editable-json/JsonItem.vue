@@ -37,6 +37,14 @@ const {
   stickyKeys?: boolean
 }>()
 
+// JSON cannot represent these numbers
+const NON_JSON_NUMBERS = new Map([
+  ['NaN', Number.NaN],
+  ['Infinity', Infinity],
+  ['-Infinity', -Infinity],
+  ['-0', -0],
+])
+
 // Editing state
 const editMode = ref<'simple' | 'json' | null>(null)
 const editValue = ref<string>('')
@@ -106,7 +114,8 @@ function enterEditMode(mode: 'simple' | 'json' = 'simple') {
     if (value === undefined) {
       editValue.value = 'undefined'
     } else {
-      editValue.value = JSON.stringify(value)
+      editValue.value =
+        [...NON_JSON_NUMBERS].find(([, n]) => Object.is(n, value))?.[0] ?? JSON.stringify(value)
     }
   } else if (mode === 'simple') {
     // most editable values work like this
@@ -127,6 +136,8 @@ function saveEdit() {
       // cannot use JSON.parse for undefined
       if (editValue.value === 'undefined') {
         newValue = undefined
+      } else if (NON_JSON_NUMBERS.has(editValue.value)) {
+        newValue = NON_JSON_NUMBERS.get(editValue.value)
       } else {
         newValue = JSON.parse(editValue.value)
       }

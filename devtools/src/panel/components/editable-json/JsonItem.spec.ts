@@ -64,4 +64,22 @@ describe('JsonItem', () => {
     expect(JSON.parse(writeText.mock.calls[0]![0])).toEqual({ name: 'Eduardo', tags: ['a'] })
     expect(wrapper.find('[title="Copied!"]').exists()).toBe(true)
   })
+
+  it.each([
+    [Number.NaN, 'NaN'],
+    [Infinity, 'Infinity'],
+    [-Infinity, '-Infinity'],
+    [-0, '-0'],
+  ])('keeps %s when editing as JSON', async (value, text) => {
+    const wrapper = mount(JsonItem, {
+      props: { itemKey: 'n', value, depth: 0 },
+    })
+
+    await wrapper.get('[title="Edit as JSON"]').trigger('click')
+    const input = wrapper.get('input')
+    expect(input.element.value).toBe(text)
+
+    await input.trigger('keydown.enter')
+    expect(wrapper.emitted('update:value')).toEqual([[[], value]])
+  })
 })
