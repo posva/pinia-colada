@@ -8,6 +8,7 @@ import {
   getValueDetails,
 } from '@pinia/colada-devtools/shared'
 import UButton from '../UButton.vue'
+import UCopyButton from '../UCopyButton.vue'
 import ILucideChevronRight from '~icons/lucide/chevron-right'
 import ILucidePencil from '~icons/lucide/pencil'
 import ILucideSquare from '~icons/lucide/square'
@@ -382,6 +383,10 @@ function toggleExpansion() {
         @click="toggleExpansion"
       >
         <ValueDisplay :value />
+      </span>
+
+      <span v-if="!editMode" class="hidden group-hover:flex group-focus-within:flex">
+        <UCopyButton :value :title="`Copy ${itemKey} as JSON`" />
       </span>
     </div>
 

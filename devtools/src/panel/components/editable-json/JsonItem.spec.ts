@@ -1,5 +1,5 @@
-import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { restoreClonedDeep, serializeDevtoolsValue } from '@pinia/colada-devtools/shared'
 import JsonItem from './JsonItem.vue'
 
@@ -46,5 +46,22 @@ describe('JsonItem', () => {
 
     expect(wrapper.text()).toContain('count:')
     expect(wrapper.find('[title="Edit value"]').exists()).toBe(true)
+  })
+
+  it('copies a nested value as JSON', async () => {
+    const writeText = vi.fn<(text: string) => Promise<void>>().mockResolvedValue()
+    vi.stubGlobal('navigator', { clipboard: { writeText } })
+    onTestFinished(() => {
+      vi.unstubAllGlobals()
+    })
+    const wrapper = mount(JsonItem, {
+      props: { itemKey: 'user', value: { name: 'Eduardo', tags: new Set(['a']) }, depth: 0 },
+    })
+
+    await wrapper.get('[title="Copy user as JSON"]').trigger('click')
+    await flushPromises()
+
+    expect(JSON.parse(writeText.mock.calls[0]![0])).toEqual({ name: 'Eduardo', tags: ['a'] })
+    expect(wrapper.find('[title="Copied!"]').exists()).toBe(true)
   })
 })
