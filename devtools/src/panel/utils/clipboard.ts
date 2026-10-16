@@ -1,33 +1,19 @@
+import { isObject, isPlainObject } from '@pinia/colada-devtools/shared'
+
 /**
- * Formats a devtools value as JSON for the clipboard. Values that JSON cannot
- * represent are converted to their closest readable form.
+ * Formats a devtools value as JSON for the clipboard.
  *
  * @param value - value displayed in the devtools
+ * @throws if the value is not fully JSON serializable
  */
 export function stringifyForCopy(value: unknown): string {
-  return JSON.stringify(value, copyReplacer, 2) ?? String(value)
+  return JSON.stringify(value, rejectNonJSON, 2) ?? String(value)
 }
 
-function copyReplacer(_key: string, value: unknown): unknown {
-  if (typeof value === 'bigint') return value.toString()
-  if (value instanceof RegExp) return value.toString()
-  if (value instanceof Set) return Array.from(value)
-  if (value instanceof Map) {
-    const entries = Array.from(value.entries())
-    const canBeObject =
-      entries.every(([key]) => typeof key === 'string' || typeof key === 'number') &&
-      // 1 and '1' would collide
-      new Set(entries.map(([key]) => String(key))).size === entries.length
-    return canBeObject ? Object.fromEntries(entries) : entries
-  }
-  if (value instanceof Error) {
-    return {
-      name: value.name,
-      message: value.message,
-      ...(value.stack !== undefined && { stack: value.stack }),
-      ...(value.cause !== undefined && { cause: value.cause }),
-      ...value,
-    }
+function rejectNonJSON(_key: string, value: unknown): unknown {
+  // JSON.stringify silently turns Map, Set, URL, etc. into `{}`
+  if (isObject(value) && !Array.isArray(value) && !isPlainObject(value)) {
+    throw new TypeError('Value is not JSON serializable')
   }
   return value
 }

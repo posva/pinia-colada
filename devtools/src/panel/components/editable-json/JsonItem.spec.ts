@@ -75,7 +75,7 @@ describe('JsonItem', () => {
       vi.unstubAllGlobals()
     })
     const wrapper = mount(JsonItem, {
-      props: { itemKey: 'user', value: { name: 'Eduardo', tags: new Set(['a']) }, depth: 0 },
+      props: { itemKey: 'user', value: { name: 'Eduardo', tags: ['a'] }, depth: 0 },
     })
 
     await wrapper.get('[title="Copy user as JSON"]').trigger('click')
@@ -83,6 +83,23 @@ describe('JsonItem', () => {
 
     expect(JSON.parse(writeText.mock.calls[0]![0])).toEqual({ name: 'Eduardo', tags: ['a'] })
     expect(wrapper.find('[title="Copied!"]').exists()).toBe(true)
+  })
+
+  it('tells when a value cannot be copied as JSON', async () => {
+    const writeText = vi.fn<(text: string) => Promise<void>>().mockResolvedValue()
+    vi.stubGlobal('navigator', { clipboard: { writeText } })
+    onTestFinished(() => {
+      vi.unstubAllGlobals()
+    })
+    const wrapper = mount(JsonItem, {
+      props: { itemKey: 'map', value: new Map([['a', 1]]), depth: 0 },
+    })
+
+    await wrapper.get('[title="Copy map as JSON"]').trigger('click')
+    await flushPromises()
+
+    expect(writeText).toHaveBeenCalledTimes(0)
+    expect(wrapper.text()).toContain('Not serializable')
   })
 
   it.each([

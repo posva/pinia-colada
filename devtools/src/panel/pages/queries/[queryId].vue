@@ -317,9 +317,6 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             <EntryUpdateNotification v-if="hasNewError" type="error" />
           </h3>
         </template>
-        <template v-if="selectedQuery.state.error" #actions>
-          <UCopyButton :value="selectedQuery.state.error" title="Copy error as JSON" />
-        </template>
         <div class="py-1">
           <ErrorViewer v-if="selectedQuery.state.error" :error="selectedQuery.state.error" />
           <p v-else class="text-(--ui-text-muted)/50">No error</p>

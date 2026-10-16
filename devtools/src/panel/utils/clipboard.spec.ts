@@ -8,71 +8,18 @@ function inPanel<T>(value: T): T {
 }
 
 describe('stringifyForCopy', () => {
-  it('copies plain data as formatted JSON', () => {
+  it('copies JSON data as formatted JSON', () => {
     const data = { id: 1, tags: ['a'], nested: { ok: true, none: null } }
-    expect(JSON.parse(stringifyForCopy(inPanel(data)))).toEqual(data)
+    expect(stringifyForCopy(inPanel(data))).toBe(JSON.stringify(data, null, 2))
   })
 
-  it('copies non JSON values without devtools metadata', () => {
-    class User {
-      constructor(public name: string) {}
-    }
-    const circular: Record<string, unknown> = { id: 1 }
-    circular.self = circular
-
-    const copied = stringifyForCopy(
-      inPanel({
-        big: 10n,
-        date: new Date('2026-01-01T00:00:00.000Z'),
-        map: new Map([['a', 1]]),
-        objectKeyMap: new Map([[{ id: 1 }, 'x']]),
-        set: new Set([1, 2]),
-        regexp: /a+/gi,
-        url: new URL('https://example.com/?q=1'),
-        user: new User('Eduardo'),
-        error: new TypeError('nope'),
-        circular,
-      }),
-    )
-
-    expect(copied).not.toContain('__custom')
-    expect(JSON.parse(copied)).toEqual({
-      big: '10',
-      date: '2026-01-01T00:00:00.000Z',
-      map: { a: 1 },
-      objectKeyMap: [[{ id: 1 }, 'x']],
-      set: [1, 2],
-      regexp: '/a+/gi',
-      url: 'https://example.com/?q=1',
-      user: { name: 'Eduardo' },
-      error: { name: 'TypeError', message: 'nope', stack: expect.any(String) },
-      circular: { id: 1, self: '[Circular]' },
-    })
-  })
-
-  it('keeps every map entry when keys collide as strings', () => {
-    const map = new Map<unknown, string>([
-      [1, 'number'],
-      ['1', 'string'],
-    ])
-    expect(JSON.parse(stringifyForCopy(inPanel(map)))).toEqual([
-      [1, 'number'],
-      ['1', 'string'],
-    ])
-  })
-
-  it('copies the stack and custom properties of errors', () => {
-    const error = Object.assign(new Error('nope'), { status: 404 })
-    expect(JSON.parse(stringifyForCopy(error))).toEqual({
-      name: 'Error',
-      message: 'nope',
-      stack: error.stack,
-      status: 404,
-    })
-  })
-
-  it('copies primitive values', () => {
-    expect(stringifyForCopy('text')).toBe('"text"')
-    expect(stringifyForCopy(undefined)).toBe('undefined')
+  it.each([
+    ['a bigint', 10n],
+    ['a Map', new Map([['a', 1]])],
+    ['a Set', new Set([1])],
+    ['a URL', new URL('https://example.com')],
+    ['an error', new Error('nope')],
+  ])('rejects %s', (_, value) => {
+    expect(() => stringifyForCopy(inPanel({ nested: [value] }))).toThrow()
   })
 })

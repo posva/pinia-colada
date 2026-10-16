@@ -250,9 +250,6 @@ const { hasNewData, hasNewError } = useEntryUpdateNotifications(
             <EntryUpdateNotification v-if="hasNewError" type="error" />
           </h3>
         </template>
-        <template v-if="selectedMutation.state.error" #actions>
-          <UCopyButton :value="selectedMutation.state.error" title="Copy error as JSON" />
-        </template>
         <div class="py-1">
           <ErrorViewer v-if="selectedMutation.state.error" :error="selectedMutation.state.error" />
           <p v-else class="text-neutral-500/50">No error</p>
