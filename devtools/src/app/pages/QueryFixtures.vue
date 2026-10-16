@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useQuery, useQueryCache } from '@pinia/colada'
 import { miniJsonStringify } from '../../shared/query-serialized'
-import { createValueFixture, delay } from '../fixtures.ts'
+import { createValueFixture, delay, HttpError } from '../fixtures.ts'
 
 const revision = ref(0)
 const failNextFetch = ref(false)
@@ -17,7 +17,10 @@ const valuesQuery = useQuery({
     revision.value++
     if (failNextFetch.value) {
       failNextFetch.value = false
-      throw new TypeError(`Fixture fetch ${revision.value} failed`)
+      throw new HttpError(`Fixture fetch ${revision.value} failed`, 503, {
+        retryAfter: 30,
+        cause: new TypeError('Upstream unavailable'),
+      })
     }
     return createValueFixture(revision.value)
   },
