@@ -182,6 +182,9 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             no-padding
             class="rounded border border-(--ui-border) overflow-hidden"
           >
+            <template #actions>
+              <UCopyButton :value="data" :title="`Copy ${name} as JSON`" />
+            </template>
             <JsonViewer :data="data" readonly sticky-keys />
           </UCollapse>
         </div>
@@ -289,6 +292,9 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             <EntryUpdateNotification v-if="hasNewData" type="data" />
           </h3>
         </template>
+        <template v-if="selectedQuery.state.data !== undefined" #actions>
+          <UCopyButton :value="selectedQuery.state.data" title="Copy data as JSON" />
+        </template>
         <JsonViewer
           :data="selectedQuery.state.data"
           sticky-keys
@@ -309,6 +315,9 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             {{ title }}
             <EntryUpdateNotification v-if="hasNewError" type="error" />
           </h3>
+        </template>
+        <template v-if="selectedQuery.state.error" #actions>
+          <UCopyButton :value="selectedQuery.state.error" title="Copy error as JSON" />
         </template>
         <div class="py-1">
           <pre v-if="selectedQuery.state.error" class="rounded p-1 overflow-auto max-h-[1200px]">{{
@@ -356,6 +365,9 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             class="border border-neutral-200 dark:border-neutral-800"
             scroll-on-open
           >
+            <template #actions>
+              <UCopyButton :value="entry" title="Copy history entry as JSON" />
+            </template>
             <JsonViewer :data="entry" readonly sticky-keys />
           </UCollapse>
         </div>
@@ -368,6 +380,9 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
         no-padding
         scroll-on-open
       >
+        <template v-if="selectedQuery.options" #actions>
+          <UCopyButton :value="selectedQuery.options" title="Copy options as JSON" />
+        </template>
         <JsonViewer
           v-if="selectedQuery.options"
           :data="selectedQuery.options"

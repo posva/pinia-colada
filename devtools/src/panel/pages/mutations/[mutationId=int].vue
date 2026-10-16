@@ -215,6 +215,9 @@ const { hasNewData, hasNewError } = useEntryUpdateNotifications(
         :icon="IVariable"
         no-padding
       >
+        <template v-if="selectedMutation.vars !== undefined" #actions>
+          <UCopyButton :value="selectedMutation.vars" title="Copy variables as JSON" />
+        </template>
         <JsonViewer :data="selectedMutation.vars" readonly sticky-keys />
       </UCollapse>
 
@@ -232,6 +235,9 @@ const { hasNewData, hasNewError } = useEntryUpdateNotifications(
             <EntryUpdateNotification v-if="hasNewData" type="data" />
           </h3>
         </template>
+        <template v-if="selectedMutation.state.data !== undefined" #actions>
+          <UCopyButton :value="selectedMutation.state.data" title="Copy data as JSON" />
+        </template>
         <JsonViewer :data="selectedMutation.state.data" sticky-keys />
       </UCollapse>
 
@@ -243,6 +249,9 @@ const { hasNewData, hasNewError } = useEntryUpdateNotifications(
             <EntryUpdateNotification v-if="hasNewError" type="error" />
           </h3>
         </template>
+        <template v-if="selectedMutation.state.error" #actions>
+          <UCopyButton :value="selectedMutation.state.error" title="Copy error as JSON" />
+        </template>
         <div class="py-1">
           <pre
             v-if="selectedMutation.state.error"
@@ -253,6 +262,9 @@ const { hasNewData, hasNewError } = useEntryUpdateNotifications(
       </UCollapse>
 
       <UCollapse title="Options" :open="false" :icon="IBraces" no-padding scroll-on-open>
+        <template v-if="selectedMutation.options" #actions>
+          <UCopyButton :value="selectedMutation.options" title="Copy options as JSON" />
+        </template>
         <JsonViewer
           v-if="selectedMutation.options"
           :data="selectedMutation.options"
