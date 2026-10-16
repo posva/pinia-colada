@@ -37,6 +37,26 @@ describe('JsonItem', () => {
     expect(wrapper.find('[title="Edit as JSON"]').exists()).toBe(false)
   })
 
+  it('shows error details as readonly', async () => {
+    const value = restoreClonedDeep(
+      serializeDevtoolsValue(
+        Object.assign(new Error('not found', { cause: new TypeError('root') }), { status: 404 }),
+      ),
+    )
+    const wrapper = mount(JsonItem, {
+      props: { itemKey: 'error', value, depth: 0 },
+    })
+
+    await wrapper.get('[title="Click to expand"]').trigger('click')
+
+    expect(wrapper.text()).toContain('message: "not found"')
+    expect(wrapper.text()).toContain('status: 404')
+    expect(wrapper.text()).toContain('cause: TypeError(root)')
+    expect(wrapper.text()).toContain('stack:')
+    expect(wrapper.find('[title="Edit value"]').exists()).toBe(false)
+    expect(wrapper.find('[title="Edit as JSON"]').exists()).toBe(false)
+  })
+
   it('keeps map values editable', async () => {
     const wrapper = mount(JsonItem, {
       props: { itemKey: 'map', value: new Map([['count', 1]]), depth: 0 },

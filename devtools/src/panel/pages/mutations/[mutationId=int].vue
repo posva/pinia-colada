@@ -15,6 +15,7 @@ import { useTimeAgo, useLocalStorage, formatTimeAgo, useTimeoutPoll } from '@vue
 import type { FormatTimeAgoOptions } from '@vueuse/core'
 import { useEntryUpdateNotifications } from '../../composables/entry-update-notifications'
 import EntryUpdateNotification from '../../components/EntryUpdateNotification.vue'
+import ErrorViewer from '../../components/ErrorViewer.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -253,10 +254,7 @@ const { hasNewData, hasNewError } = useEntryUpdateNotifications(
           <UCopyButton :value="selectedMutation.state.error" title="Copy error as JSON" />
         </template>
         <div class="py-1">
-          <pre
-            v-if="selectedMutation.state.error"
-            class="rounded p-1 overflow-auto max-h-[1200px]"
-            >{{ selectedMutation.state.error }}</pre>
+          <ErrorViewer v-if="selectedMutation.state.error" :error="selectedMutation.state.error" />
           <p v-else class="text-neutral-500/50">No error</p>
         </div>
       </UCollapse>

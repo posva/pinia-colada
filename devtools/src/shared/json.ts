@@ -246,5 +246,16 @@ function objectBraceTokens(type: string, value: string, valueClass: string): Val
 export function getValueDetails(value: unknown): Record<string, unknown> | undefined {
   if (!isObject(value)) return
   const details = (value as DevtoolsDisplayValue)[VALUE_DETAILS]
-  return details?.call(value)
+  if (details) return details.call(value)
+  if (value instanceof Error) return getErrorDetails(value)
+}
+
+function getErrorDetails(error: Error): Record<string, unknown> {
+  return {
+    message: error.message,
+    ...(error as object),
+    ...('cause' in error && { cause: error.cause }),
+    ...(error instanceof AggregateError && { errors: error.errors }),
+    ...(error.stack && { stack: error.stack }),
+  }
 }

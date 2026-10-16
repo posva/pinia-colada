@@ -19,6 +19,7 @@ import type { FormatTimeAgoOptions } from '@vueuse/core'
 import { setNestedValue, type NestedValuePath } from '../../utils/set-nested-value'
 import { useEntryUpdateNotifications } from '../../composables/entry-update-notifications'
 import EntryUpdateNotification from '../../components/EntryUpdateNotification.vue'
+import ErrorViewer from '../../components/ErrorViewer.vue'
 
 const route = useRoute()
 const queries = useQueryEntries()
@@ -320,9 +321,7 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
           <UCopyButton :value="selectedQuery.state.error" title="Copy error as JSON" />
         </template>
         <div class="py-1">
-          <pre v-if="selectedQuery.state.error" class="rounded p-1 overflow-auto max-h-[1200px]">{{
-            selectedQuery.state.error
-          }}</pre>
+          <ErrorViewer v-if="selectedQuery.state.error" :error="selectedQuery.state.error" />
           <p v-else class="text-(--ui-text-muted)/50">No error</p>
         </div>
       </UCollapse>
