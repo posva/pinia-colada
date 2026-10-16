@@ -319,12 +319,26 @@ function restoreOriginalValuesRecursive<T>(edited: T, original: unknown, depth: 
   return edited
 }
 
+// the recursion is synchronous, so one shared set is enough to detect cycles
+const serializingReferences = new WeakSet<object>()
+
 // Helper function to recursively serialize values that might contain non-serializable data
 function safeSerializeRecursive(value: unknown): unknown {
+  if (!value || typeof value !== 'object') return safeSerialize(value)
+  if (serializingReferences.has(value)) return serializeCircular()
+  serializingReferences.add(value)
+  try {
+    return safeSerializeObject(value)
+  } finally {
+    serializingReferences.delete(value)
+  }
+}
+
+function safeSerializeObject(value: object): unknown {
   if (Array.isArray(value)) {
     return value.map((item) => safeSerializeRecursive(item))
   }
-  if (value && typeof value === 'object' && Object.getPrototypeOf(value) === null) {
+  if (Object.getPrototypeOf(value) === null) {
     return safeSerialize(value)
   }
   if (isPlainObject(value)) {

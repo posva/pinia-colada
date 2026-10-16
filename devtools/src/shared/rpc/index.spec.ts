@@ -163,6 +163,18 @@ describe('serializeDevtoolsValue', () => {
     expect(restored.withData.data.issues[0].message).toBe('nested')
   })
 
+  it('serializes errors with circular custom properties', () => {
+    const request: { error?: Error & { request?: unknown } } = {}
+    const error = Object.assign(new Error('failed'), { request })
+    request.error = error
+
+    const restored = restoreClonedDeep(serializeDevtoolsValue({ error }))
+
+    expect(restored.error.message).toBe('failed')
+    expect(restored.error.request.error?.message).toBe('failed')
+    expect(String(restored.error.request.error?.request)).toBe('[Circular]')
+  })
+
   it('keeps the original error when editing data that contains one', () => {
     const error = Object.assign(new Error('failed'), { status: 500 })
     const original = { label: 'before', error }
