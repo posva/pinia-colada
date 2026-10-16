@@ -351,6 +351,10 @@ class BinaryDataPlaceholder {
     return `[${this.type} ${this.byteLength} bytes]`
   }
 
+  toJSON() {
+    return this.toString()
+  }
+
   [VALUE_DISPLAY](): ValueDisplayToken[] {
     return binaryDisplayTokens(this.type, this.byteLength)
   }
@@ -371,6 +375,10 @@ class BlobPlaceholder {
     return `[Blob ${this.metadata.size} bytes]`
   }
 
+  toJSON() {
+    return this.metadata
+  }
+
   [VALUE_DISPLAY]() {
     return binaryDisplayTokens('Blob', this.metadata.size)
   }
@@ -389,6 +397,10 @@ class FilePlaceholder {
 
   toString() {
     return `[File ${this.metadata.name} ${this.metadata.size} bytes]`
+  }
+
+  toJSON() {
+    return this.metadata
   }
 
   [VALUE_DISPLAY](): ValueDisplayToken[] {
@@ -456,6 +468,10 @@ class PromisePlaceholder {
     return `[Promise ${this.state.status}]`
   }
 
+  toJSON() {
+    return this[VALUE_DETAILS]()
+  }
+
   [VALUE_DISPLAY](): ValueDisplayToken[] {
     const statusClass =
       this.state.status === 'fulfilled'
@@ -498,6 +514,10 @@ class URLPlaceholder {
     return `URL(${this.url.href})`
   }
 
+  toJSON() {
+    return this.url.href
+  }
+
   [VALUE_DISPLAY](): ValueDisplayToken[] {
     return objectCallDisplayTokens('URL', this.url.href)
   }
@@ -533,6 +553,10 @@ class URLSearchParamsPlaceholder {
 
   toString() {
     return `URLSearchParams(${this.params.toString()})`
+  }
+
+  toJSON() {
+    return this.params.toString()
   }
 
   [VALUE_DISPLAY](): ValueDisplayToken[] {
@@ -599,6 +623,10 @@ function restoreArrayBufferPlaceholder(value: ArrayBufferMetadata) {
 class CircularPlaceholder {
   toString() {
     return '[Circular]'
+  }
+
+  toJSON() {
+    return this.toString()
   }
 
   [CUSTOM_VALUE_SERIALIZE](): NonSerializableValue_Circular {
