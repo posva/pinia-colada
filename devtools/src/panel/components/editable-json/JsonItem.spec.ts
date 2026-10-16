@@ -102,6 +102,24 @@ describe('JsonItem', () => {
     expect(wrapper.text()).toContain('Not serializable')
   })
 
+  it('tells when the clipboard refuses the copy', async () => {
+    const writeText = vi
+      .fn<(text: string) => Promise<void>>()
+      .mockRejectedValue(new DOMException('Document is not focused', 'NotAllowedError'))
+    vi.stubGlobal('navigator', { clipboard: { writeText } })
+    onTestFinished(() => {
+      vi.unstubAllGlobals()
+    })
+    const wrapper = mount(JsonItem, {
+      props: { itemKey: 'count', value: 1, depth: 0 },
+    })
+
+    await wrapper.get('[title="Copy count as JSON"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Copy failed')
+  })
+
   it.each([
     [Number.NaN, 'NaN'],
     [Infinity, 'Infinity'],
