@@ -14,15 +14,19 @@ function copyReplacer(_key: string, value: unknown): unknown {
   if (value instanceof Set) return Array.from(value)
   if (value instanceof Map) {
     const entries = Array.from(value.entries())
-    return entries.every(([key]) => typeof key === 'string' || typeof key === 'number')
-      ? Object.fromEntries(entries)
-      : entries
+    const canBeObject =
+      entries.every(([key]) => typeof key === 'string' || typeof key === 'number') &&
+      // 1 and '1' would collide
+      new Set(entries.map(([key]) => String(key))).size === entries.length
+    return canBeObject ? Object.fromEntries(entries) : entries
   }
   if (value instanceof Error) {
     return {
       name: value.name,
       message: value.message,
+      ...(value.stack !== undefined && { stack: value.stack }),
       ...(value.cause !== undefined && { cause: value.cause }),
+      ...value,
     }
   }
   return value

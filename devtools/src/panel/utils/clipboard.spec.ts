@@ -45,8 +45,29 @@ describe('stringifyForCopy', () => {
       regexp: '/a+/gi',
       url: 'https://example.com/?q=1',
       user: { name: 'Eduardo' },
-      error: { name: 'TypeError', message: 'nope' },
+      error: { name: 'TypeError', message: 'nope', stack: expect.any(String) },
       circular: { id: 1, self: '[Circular]' },
+    })
+  })
+
+  it('keeps every map entry when keys collide as strings', () => {
+    const map = new Map<unknown, string>([
+      [1, 'number'],
+      ['1', 'string'],
+    ])
+    expect(JSON.parse(stringifyForCopy(inPanel(map)))).toEqual([
+      [1, 'number'],
+      ['1', 'string'],
+    ])
+  })
+
+  it('copies the stack and custom properties of errors', () => {
+    const error = Object.assign(new Error('nope'), { status: 404 })
+    expect(JSON.parse(stringifyForCopy(error))).toEqual({
+      name: 'Error',
+      message: 'nope',
+      stack: error.stack,
+      status: 404,
     })
   })
 
