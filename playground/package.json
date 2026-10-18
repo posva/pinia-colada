@@ -33,7 +33,7 @@
     "@nostics/unplugin": "^1.1.1",
     "@pinia/colada-devtools": "workspace:^",
     "@tailwindcss/vite": "^4.3.3",
-    "@types/node": "^26.6.3",
+    "@types/node": "^26.6.5",
     "@vitejs/devtools": "^0.7.6",
     "@vitejs/plugin-vue": "^6.0.9",
     "@vue/tsconfig": "^0.9.1",
