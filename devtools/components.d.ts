@@ -45,6 +45,7 @@ declare module 'vue' {
     UButton: typeof import('./src/panel/components/UButton.vue')['default']
     UCircleProgress: typeof import('./src/panel/components/UCircleProgress.vue')['default']
     UCollapse: typeof import('./src/panel/components/UCollapse.vue')['default']
+    UCopyButton: typeof import('./src/panel/components/UCopyButton.vue')['default']
     UInput: typeof import('./src/panel/components/UInput.vue')['default']
   }
 }
@@ -84,5 +85,6 @@ declare global {
   const UButton: typeof import('./src/panel/components/UButton.vue')['default']
   const UCircleProgress: typeof import('./src/panel/components/UCircleProgress.vue')['default']
   const UCollapse: typeof import('./src/panel/components/UCollapse.vue')['default']
+  const UCopyButton: typeof import('./src/panel/components/UCopyButton.vue')['default']
   const UInput: typeof import('./src/panel/components/UInput.vue')['default']
 }

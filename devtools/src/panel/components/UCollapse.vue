@@ -81,6 +81,13 @@ function scrollAfterOpening(event: TransitionEvent) {
           </h3>
         </slot>
       </div>
+      <!-- above the toggle input so clicks don't toggle the section -->
+      <div
+        v-if="$slots.actions"
+        class="absolute z-2 top-1/2 -translate-y-1/2 right-8 flex items-center gap-1"
+      >
+        <slot name="actions" :open />
+      </div>
     </div>
     <div :class="!noPadding && 'px-2'" class="collapse-content text-sm overflow-clip">
       <slot :open />

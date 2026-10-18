@@ -8,6 +8,7 @@ import {
   getValueDetails,
 } from '@pinia/colada-devtools/shared'
 import UButton from '../UButton.vue'
+import UCopyButton from '../UCopyButton.vue'
 import ILucideChevronRight from '~icons/lucide/chevron-right'
 import ILucidePencil from '~icons/lucide/pencil'
 import ILucideSquare from '~icons/lucide/square'
@@ -35,6 +36,14 @@ const {
   readonly?: boolean
   stickyKeys?: boolean
 }>()
+
+// JSON cannot represent these numbers
+const NON_JSON_NUMBERS = new Map([
+  ['NaN', Number.NaN],
+  ['Infinity', Infinity],
+  ['-Infinity', -Infinity],
+  ['-0', -0],
+])
 
 // Editing state
 const editMode = ref<'simple' | 'json' | null>(null)
@@ -105,7 +114,8 @@ function enterEditMode(mode: 'simple' | 'json' = 'simple') {
     if (value === undefined) {
       editValue.value = 'undefined'
     } else {
-      editValue.value = JSON.stringify(value)
+      editValue.value =
+        [...NON_JSON_NUMBERS].find(([, n]) => Object.is(n, value))?.[0] ?? JSON.stringify(value)
     }
   } else if (mode === 'simple') {
     // most editable values work like this
@@ -126,6 +136,8 @@ function saveEdit() {
       // cannot use JSON.parse for undefined
       if (editValue.value === 'undefined') {
         newValue = undefined
+      } else if (NON_JSON_NUMBERS.has(editValue.value)) {
+        newValue = NON_JSON_NUMBERS.get(editValue.value)
       } else {
         newValue = JSON.parse(editValue.value)
       }
@@ -382,6 +394,10 @@ function toggleExpansion() {
         @click="toggleExpansion"
       >
         <ValueDisplay :value />
+      </span>
+
+      <span v-if="!editMode" class="hidden group-hover:flex group-focus-within:flex">
+        <UCopyButton :value :title="`Copy ${itemKey} as JSON`" />
       </span>
     </div>
 

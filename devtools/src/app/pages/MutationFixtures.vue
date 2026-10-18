@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useMutation } from '@pinia/colada'
-import { createValueFixture, delay } from '../fixtures.ts'
+import { createValueFixture, delay, HttpError } from '../fixtures.ts'
 import { useDefinedFixtureMutation, useStatefulFixtureMutation } from '../mutations.ts'
 
 const execution = ref(0)
@@ -20,7 +20,11 @@ const failableMutation = useMutation({
   key: (input: { execution: number }) => ['fixtures', 'failable-mutation', input.execution],
   async mutation(input: { execution: number; shouldFail?: boolean }) {
     await delay(600)
-    if (input.shouldFail) throw new Error(`Mutation ${input.execution} failed intentionally`)
+    if (input.shouldFail) {
+      throw new HttpError(`Mutation ${input.execution} failed intentionally`, 422, {
+        field: 'execution',
+      })
+    }
     return { success: true, ...input }
   },
 })

@@ -120,8 +120,20 @@ export interface NonSerializableValue_Promise extends NonSerializableValue_Base 
 
 export interface NonSerializableValue_Error extends NonSerializableValue_Base {
   __type: 'error'
-  value: { name: string; message: string; stack?: string; cause?: unknown; errors?: unknown[] }
+  value: {
+    name: string
+    message: string
+    stack?: string
+    cause?: unknown
+    errors?: unknown[]
+    /**
+     * Own enumerable properties, e.g. `status` in `class HttpError extends Error`.
+     */
+    properties?: Record<string, unknown>
+  }
 }
+
+const ERROR_BUILTIN_KEYS = new Set(['name', 'message', 'stack', 'cause', 'errors'])
 
 export interface NonSerializableValue_Object extends NonSerializableValue_Base {
   __type: 'object'
@@ -307,12 +319,26 @@ function restoreOriginalValuesRecursive<T>(edited: T, original: unknown, depth: 
   return edited
 }
 
+// the recursion is synchronous, so one shared set is enough to detect cycles
+const serializingReferences = new WeakSet<object>()
+
 // Helper function to recursively serialize values that might contain non-serializable data
 function safeSerializeRecursive(value: unknown): unknown {
+  if (!value || typeof value !== 'object') return safeSerialize(value)
+  if (serializingReferences.has(value)) return serializeCircular()
+  serializingReferences.add(value)
+  try {
+    return safeSerializeObject(value)
+  } finally {
+    serializingReferences.delete(value)
+  }
+}
+
+function safeSerializeObject(value: object): unknown {
   if (Array.isArray(value)) {
     return value.map((item) => safeSerializeRecursive(item))
   }
-  if (value && typeof value === 'object' && Object.getPrototypeOf(value) === null) {
+  if (Object.getPrototypeOf(value) === null) {
     return safeSerialize(value)
   }
   if (isPlainObject(value)) {
@@ -767,6 +793,7 @@ export function safeSerialize(value: unknown) {
             : { status: state.status },
     } satisfies NonSerializableValue_Promise
   } else if (value instanceof Error) {
+    const properties = Object.entries(value).filter(([key]) => !ERROR_BUILTIN_KEYS.has(key))
     return {
       __custom: '@@pc-non-serializable',
       __type: 'error',
@@ -777,6 +804,12 @@ export function safeSerialize(value: unknown) {
         ...('cause' in value && { cause: safeSerializeRecursive(value.cause) }),
         ...(value instanceof AggregateError && {
           errors: value.errors.map((error) => safeSerializeRecursive(error)),
+        }),
+        ...(properties.length > 0 && {
+          properties: safeSerializeRecursive(Object.fromEntries(properties)) as Record<
+            string,
+            unknown
+          >,
         }),
       },
     } satisfies NonSerializableValue_Error
@@ -917,9 +950,17 @@ function restoreClonedValue(value: NonSerializableValue) {
           options,
         )
       : new Error(value.value.message, options)
-    error.name = value.value.name
+    // non-enumerable like native errors so it isn't mistaken for a custom property
+    Object.defineProperty(error, 'name', {
+      value: value.value.name,
+      writable: true,
+      configurable: true,
+    })
     if (value.value.stack) {
       error.stack = value.value.stack
+    }
+    if (value.value.properties) {
+      Object.assign(error, restoreClonedDeep(value.value.properties))
     }
     return error
   } else if (value.__type === 'object') {
