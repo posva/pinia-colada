@@ -30,7 +30,10 @@ describe('@pinia/colada-nuxt static SEO generation', () => {
           'utf8',
         )
 
-        expect(html).toMatch(/<title>[^<]+<\/title>/)
+        expect(html).toContain(`<title>${author} | Colada SSR head</title>`)
+        expect(html).toContain(`<meta name="description" content="${content}">`)
+        expect(html).toContain(`<meta property="og:title" content="${author}">`)
+        expect(html).toContain(`<meta property="og:description" content="${content}">`)
         expect(html).toContain('data-ssr="true"')
         expect(html).toContain(`<h1>${author}</h1>`)
         expect(html).toContain(`<p>${content}</p>`)

@@ -8,9 +8,4 @@ export default defineNuxtConfig({
       titleTemplate: '%s | Colada SSR head',
     },
   },
-  nitro: {
-    prerender: {
-      routes: ['/posts/one', '/posts/two'],
-    },
-  },
 })
