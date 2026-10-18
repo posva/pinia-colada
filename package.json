@@ -82,10 +82,10 @@
     "@types/node": "^26.6.5",
     "@types/semver": "^7.8.0",
     "@typescript/native-preview": "7.0.0-dev.20260707.2",
-    "@vitejs/plugin-vue": "^6.0.9",
+    "@vitejs/plugin-vue": "^6.0.10",
     "@vitest/coverage-v8": "^5.0.5",
     "@vitest/ui": "^5.0.5",
-    "@vue/server-renderer": "^3.5.43",
+    "@vue/server-renderer": "^3.5.44",
     "@vue/test-utils": "^2.5.1",
     "conventional-changelog": "^8.1.3",
     "conventional-changelog-angular": "^9.4.0",
@@ -94,7 +94,7 @@
     "oxfmt": "^0.73.0",
     "oxlint": "^1.88.0",
     "oxlint-plugin-posva": "0.0.2",
-    "pinia": "^4.0.3",
+    "pinia": "^4.1.0",
     "semver": "^7.8.5",
     "simple-git-hooks": "^2.14.0",
     "size-limit": "^14.2.0",
@@ -106,7 +106,7 @@
     "vitepress": "2.0.0-alpha.19",
     "vitepress-plugin-llms": "^1.13.5",
     "vitest": "^5.0.5",
-    "vue": "^3.5.43"
+    "vue": "^3.5.44"
   },
   "dependencies": {
     "nostics": "^1.3.0"
