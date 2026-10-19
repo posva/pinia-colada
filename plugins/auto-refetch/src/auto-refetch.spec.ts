@@ -371,4 +371,81 @@ describe('Auto Refetch plugin', () => {
       expect(query).toHaveBeenCalledTimes(1)
     })
   })
+
+  describe('document visibility', () => {
+    const visibilityState = Object.getOwnPropertyDescriptor(document, 'visibilityState')
+
+    function setVisibility(state: 'visible' | 'hidden') {
+      Object.defineProperty(document, 'visibilityState', {
+        value: state,
+        configurable: true,
+      })
+      document.dispatchEvent(new Event('visibilitychange'))
+    }
+
+    afterEach(() => {
+      // happy-dom document is shared: always restore visible
+      if (visibilityState) Object.defineProperty(document, 'visibilityState', visibilityState)
+    })
+
+    it.fails('does not fetch while the document is hidden', async () => {
+      const { query } = mountQuery({ staleTime: 1000 })
+
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+
+      setVisibility('hidden')
+      vi.advanceTimersByTime(1000)
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+    })
+
+    it.fails('refetches once the document becomes visible again', async () => {
+      const { query } = mountQuery({ staleTime: 1000 })
+
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+
+      setVisibility('hidden')
+      vi.advanceTimersByTime(1000)
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+
+      setVisibility('visible')
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(2)
+    })
+
+    it.fails('does a single catch-up fetch after a long hidden period', async () => {
+      const { query } = mountQuery({ staleTime: 1000 })
+
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+
+      setVisibility('hidden')
+      vi.advanceTimersByTime(5000)
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+
+      setVisibility('visible')
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(2)
+    })
+
+    it('keeps polling while hidden with refetchInBackground', async () => {
+      const { query } = mountQuery({
+        staleTime: 1000,
+        // @ts-expect-error - not implemented yet
+        refetchInBackground: true,
+      })
+
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(1)
+
+      setVisibility('hidden')
+      vi.advanceTimersByTime(1000)
+      await flushPromises()
+      expect(query).toHaveBeenCalledTimes(2)
+    })
+  })
 })
