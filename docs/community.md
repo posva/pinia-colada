@@ -8,3 +8,4 @@ Libraries and tools built by the community around Pinia Colada. Want to add one?
 | -------------------------------------------------------------------------- | --------------------------------------------------------------------- |
 | [oRPC](https://orpc.dev/docs/integrations/pinia-colada)                    | End-to-end type-safe Pinia Colada integration for oRPC, no codegen.   |
 | [Hey API](https://heyapi.dev/docs/openapi/typescript/plugins/pinia-colada) | Generates Pinia Colada query and mutation helpers from OpenAPI specs. |
+| [ZenStack](https://github.com/genu/zenstack-pinia-colada) | Type-safe Pinia Colada hooks for ZenStack|
