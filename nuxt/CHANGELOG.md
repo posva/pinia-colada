@@ -1,3 +1,9 @@
+## [1.2.1](https://github.com/posva/pinia-colada/compare/%40pinia%2Fcolada-nuxt%401.2.0...%40pinia%2Fcolada-nuxt%401.2.1) (2026-10-30)
+
+### Bug Fixes
+
+- **nuxt:** preserve query cache for SSR head ([#668](https://github.com/posva/pinia-colada/issues/668)) ([c007a99](https://github.com/posva/pinia-colada/commit/c007a9914cbcbbd2efe05ec229e7c7fa6de45af9))
+
 # [1.2.0](https://github.com/posva/pinia-colada/compare/%40pinia%2Fcolada-nuxt%401.1.0...%40pinia%2Fcolada-nuxt%401.2.0) (2026-09-16)
 
 ### Bug Fixes

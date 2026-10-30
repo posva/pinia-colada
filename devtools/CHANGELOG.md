@@ -1,3 +1,9 @@
+# [2.1.0](https://github.com/posva/pinia-colada/compare/%40pinia%2Fcolada-devtools%402.0.1...%40pinia%2Fcolada-devtools%402.1.0) (2026-10-30)
+
+### Features
+
+- **devtools:** copy values as JSON ([#670](https://github.com/posva/pinia-colada/issues/670)) ([5ba3a92](https://github.com/posva/pinia-colada/commit/5ba3a9218e58729d5ce1a57f866ce3bcf49d435d)), closes [#669](https://github.com/posva/pinia-colada/issues/669)
+
 ## [2.0.1](https://github.com/posva/pinia-colada/compare/%40pinia%2Fcolada-devtools%402.0.0...%40pinia%2Fcolada-devtools%402.0.1) (2026-10-02)
 
 ### Bug Fixes

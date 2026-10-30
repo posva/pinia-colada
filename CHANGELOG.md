@@ -1,3 +1,9 @@
+## [1.4.9](https://github.com/posva/pinia-colada/compare/v1.4.8...v1.4.9) (2026-10-30)
+
+### Bug Fixes
+
+- abort in-flight queries with data on unmount ([#666](https://github.com/posva/pinia-colada/issues/666)) ([8fcf54e](https://github.com/posva/pinia-colada/commit/8fcf54e1731d4f180949e9fadafc5c9619cbb37c)), closes [#665](https://github.com/posva/pinia-colada/issues/665)
+
 ## [1.4.8](https://github.com/posva/pinia-colada/compare/v1.4.7...v1.4.8) (2026-10-08)
 
 ### Bug Fixes
@@ -925,7 +931,7 @@ const { mutate } = useMutation({
 
 - `status` is now just for the data `'pending' | 'success' | 'error'`
 - `queryStatus` tells if the query is still running or not with `'idle' |
-'running'`
+  'running'`
 
 - `refetch`, `refresh` and similar methods now resolve
   the `state` property without rejecting. This is usually more convenient.
