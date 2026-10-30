@@ -477,8 +477,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           return (
             (refetchActive === 'all' || (entry.active && refetchActive)) &&
             toValue(entry.options?.enabled) &&
-            // errors are already in the entry state
-            fetch(entry).catch(() => entry.state.value)
+            // discard throws to simplify calling invalidateQueries within mutation hooks
+            // https://github.com/posva/pinia-colada/issues/672
+            fetch(entry).catch(() => {})
           )
         }),
       )

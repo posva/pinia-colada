@@ -1993,7 +1993,9 @@ describe('useQuery', () => {
       const queryCache = useQueryCache(pinia)
 
       query.mockRejectedValueOnce(new Error('ko'))
-      await expect(queryCache.invalidateQueries({ key: ['key'] })).resolves.toBeDefined()
+      await expect(queryCache.invalidateQueries({ key: ['key'] }).then(() => 'ok')).resolves.toBe(
+        'ok',
+      )
       expect(wrapper.vm.error).toEqual(new Error('ko'))
     })
 
