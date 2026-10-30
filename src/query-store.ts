@@ -445,7 +445,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
 
   /**
    * Invalidates and cancel matched queries, and then refetches (in parallel)
-   * all active ones. If you need to further control which queries are
+   * all active ones. Never rejects: refetch errors are kept in each entry's
+   * state. If you need to further control which queries are
    * invalidated, canceled, and/or refetched, you can use the filters, you
    * can direcly call {@link invalidate} on {@link getEntries}:
    *
@@ -455,10 +456,10 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * await Promise.all(queryCache.getEntries(filters).map(entry => {
    *   queryCache.invalidate(entry)
    *   // this is the default behavior of invalidateQueries
-   *   // return entry.active && queryCache.fetch(entry)
+   *   // return entry.active && queryCache.fetch(entry).catch(() => {})
    *   // here to refetch everything, even non active queries
-   *   return queryCache.fetch(entry)
-   * })
+   *   return queryCache.fetch(entry).catch(() => {})
+   * }))
    * ```
    *
    * @param filters - filters to apply to the entries
@@ -476,7 +477,9 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           return (
             (refetchActive === 'all' || (entry.active && refetchActive)) &&
             toValue(entry.options?.enabled) &&
-            fetch(entry)
+            // discard throws to simplify calling invalidateQueries within mutation hooks
+            // https://github.com/posva/pinia-colada/issues/672
+            fetch(entry).catch(() => {})
           )
         }),
       )

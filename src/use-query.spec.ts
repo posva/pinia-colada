@@ -1987,6 +1987,18 @@ describe('useQuery', () => {
       expect(query).toHaveBeenCalledTimes(0)
     })
 
+    it('does not reject when a refetch fails', async () => {
+      const { query, pinia, wrapper } = mountSimple({ key: ['key'] })
+      await flushPromises()
+      const queryCache = useQueryCache(pinia)
+
+      query.mockRejectedValueOnce(new Error('ko'))
+      await expect(queryCache.invalidateQueries({ key: ['key'] }).then(() => 'ok')).resolves.toBe(
+        'ok',
+      )
+      expect(wrapper.vm.error).toEqual(new Error('ko'))
+    })
+
     it('should only invalidate all and refetch active queries by default', async () => {
       const { pinia, wrapper, query } = mountSimple({ key: ['key'] })
       await flushPromises()
