@@ -456,10 +456,10 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * await Promise.all(queryCache.getEntries(filters).map(entry => {
    *   queryCache.invalidate(entry)
    *   // this is the default behavior of invalidateQueries
-   *   // return entry.active && queryCache.fetch(entry)
+   *   // return entry.active && queryCache.fetch(entry).catch(() => {})
    *   // here to refetch everything, even non active queries
-   *   return queryCache.fetch(entry)
-   * })
+   *   return queryCache.fetch(entry).catch(() => {})
+   * }))
    * ```
    *
    * @param filters - filters to apply to the entries
