@@ -56,8 +56,8 @@ declare module 'vue-router/auto-routes' {
     '/mutations/[mutationId=int]': RouteRecordInfo<
       '/mutations/[mutationId=int]',
       '/mutations/:mutationId',
-      { mutationId: number },
-      { mutationId: number },
+      { 'mutationId': number },
+      { 'mutationId': number },
       | never
     >,
     '/queries': RouteRecordInfo<
@@ -78,8 +78,8 @@ declare module 'vue-router/auto-routes' {
     '/queries/[queryId]': RouteRecordInfo<
       '/queries/[queryId]',
       '/queries/:queryId',
-      { queryId: string },
-      { queryId: string },
+      { 'queryId': string },
+      { 'queryId': string },
       | never
     >,
     '/settings': RouteRecordInfo<
