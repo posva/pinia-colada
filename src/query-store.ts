@@ -445,7 +445,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
 
   /**
    * Invalidates and cancel matched queries, and then refetches (in parallel)
-   * all active ones. If you need to further control which queries are
+   * all active ones. Never rejects: refetch errors are kept in each entry's
+   * state. If you need to further control which queries are
    * invalidated, canceled, and/or refetched, you can use the filters, you
    * can direcly call {@link invalidate} on {@link getEntries}:
    *
@@ -476,7 +477,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
           return (
             (refetchActive === 'all' || (entry.active && refetchActive)) &&
             toValue(entry.options?.enabled) &&
-            fetch(entry)
+            // errors are already in the entry state
+            fetch(entry).catch(() => entry.state.value)
           )
         }),
       )
