@@ -157,6 +157,8 @@ const { data } = useQuery(() =>
 
 :::
 
+`defineQueryOptions()` doesn't do anything at runtime: it returns exactly what you pass to it. An object stays the same object, and a function stays the same function, which you call with its parameters to get the options. Its only job is typing: the returned `key` is tagged with the type of the data, so [the query cache knows what it holds](./query-keys.md#Typing-query-keys).
+
 You will notice that the docs use a lot `useQuery()` with simple options. This is to keep this documentation simple and focused fewer concepts. In practice, **it is recommended to use** [key factories](./query-keys.md#Managing-query-keys-key-factories-) **and** [`defineQueryOptions()`](./query-keys.md#Typing-query-keys) to keep your queries organized and type-safe.
 
 ### Passing extra options + `defineQueryOptions()`
@@ -195,6 +197,61 @@ useQuery(() => ({
   // override `enabled` just for this usage
   enabled: enabled.value,
 }))
+```
+
+### Using injected values with `defineQueryOptions()`
+
+Sometimes the `query` function needs a value that is provided with `provide()`/`inject()`, like an API client created by a plugin. Calling `inject()`, or a composable that uses it, within the `query` function might work for the first fetch but it fails when the query is refetched later (e.g. after being invalidated) because that happens outside of the component's `setup()`. The function passed to `defineQueryOptions()` cannot use `inject()` either: it can be called anywhere, for example to read a cached value with `queryCache.getQueryData()`, so there is no injection context to rely on.
+
+Instead, call `inject()` where it's available, e.g. in `setup()`, and pass the value as a parameter:
+
+::: code-group
+
+```ts [queries/projects.ts]
+import { defineQueryOptions } from '@pinia/colada'
+import type { ApiClient } from '@/api/client'
+
+export const projectListQuery = defineQueryOptions((api: ApiClient) => ({
+  key: ['projects'],
+  query: () => api.get('/projects'),
+}))
+```
+
+```vue [pages/projects.vue]
+<script setup lang="ts">
+import { useQuery } from '@pinia/colada'
+import { useApi } from '@/api/client'
+import { projectListQuery } from '@/queries/projects'
+
+// useApi() calls inject(), so it must run during setup
+const api = useApi()
+const { state } = useQuery(projectListQuery(api))
+</script>
+```
+
+:::
+
+Since `api` never changes, we can pass the options object directly. When a parameter is reactive, e.g. a route param, pass a getter instead, as shown in [Organizing Queries](#Organizing-Queries), so the query follows its changes.
+
+If you use this query in many places, move these two lines to a composable:
+
+```ts
+export function useProjectList() {
+  const api = useApi()
+  return useQuery(projectListQuery(api))
+}
+```
+
+The same goes for the query cache: call the function with the value it needs and pass the result:
+
+```ts
+const queryCache = useQueryCache()
+const api = useApi()
+
+// typed thanks to defineQueryOptions()
+const projects = queryCache.getQueryData(projectListQuery(api).key)
+// or fetch them if they are missing or stale
+await queryCache.refresh(queryCache.ensure(projectListQuery(api)))
 ```
 
 ## Refetching Queries
