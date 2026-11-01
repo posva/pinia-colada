@@ -392,7 +392,7 @@ export function useInfiniteQuery<
             pageParam = data.pageParams[0]!
 
             for (let i = 0; i < pagesToRefetch; i++) {
-              // oxlint-disable-next-line: no-await-in-loop
+              // oxlint-disable-next-line no-await-in-loop -- Each page needs the previous result.
               const page = await opts.query({
                 ...context,
                 pageParam,

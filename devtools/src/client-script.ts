@@ -59,6 +59,7 @@ async function waitForPiniaColada() {
   while (Date.now() - start < PINIA_COLADA_WAIT_TIMEOUT) {
     const pinia = getActivePinia()
     if (pinia?._s.has(colada.useQueryCache.$id)) return { pinia, colada }
+    // oxlint-disable-next-line no-await-in-loop -- Wait before the next readiness check.
     await new Promise((r) => setTimeout(r, 200))
   }
   return null

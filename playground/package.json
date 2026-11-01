@@ -29,21 +29,21 @@
     "water.css": "^2.1.1"
   },
   "devDependencies": {
-    "@devframes/hub": "^1.2.5",
+    "@devframes/hub": "^1.2.6",
     "@nostics/unplugin": "^1.1.1",
     "@pinia/colada-devtools": "workspace:^",
     "@tailwindcss/vite": "^4.3.3",
-    "@types/node": "^26.6.5",
-    "@vitejs/devtools": "^0.7.6",
+    "@types/node": "^26.6.6",
+    "@vitejs/devtools": "^0.8.0",
     "@vitejs/plugin-vue": "^6.0.10",
     "@vue/tsconfig": "^0.9.1",
-    "autoprefixer": "^10.6.1",
-    "devframe": "^1.2.5",
+    "autoprefixer": "^10.6.2",
+    "devframe": "^1.2.6",
     "json-server": "0.17.4",
-    "npm-run-all2": "^9.0.3",
+    "npm-run-all2": "^9.0.4",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.3",
-    "vite": "^8.3.4",
+    "vite": "^8.3.5",
     "vite-plugin-vue-devtools": "^8.2.1",
     "vue-tsc": "^3.3.13"
   }
