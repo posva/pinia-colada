@@ -252,7 +252,7 @@ By using the `onSettled()` hook, we can invalidate queries when the mutation is 
 
 ### Scaling up
 
-The examples above show simple use cases where we manually pass query options such as key in multiple places. As your application grows, you might want to **reuse** query definitions across multiple components. Pinia Colada provides a way to define reusable query options with `defineQueryOptions()`.
+The examples above show simple use cases where we manually pass query options such as key in multiple places. As your application grows, you might want to **reuse** query definitions across multiple components. Pinia Colada provides a way to define reusable query options with `defineQueryOptions()`. It returns exactly what you pass to it, an object or a function, and only adds type information.
 
 This approach offers several key advantages:
 
