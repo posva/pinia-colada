@@ -12,6 +12,7 @@ allowBuilds:
   unrs-resolver: false
   '@tailwindcss/oxide': true
 overrides:
+  '@nuxt/cli>@bomb.sh/tab': 0.0.22
   '@nuxt/devtools': 4.0.0
   twoslash-vue: 0.3.7
 ignoreWorkspaceRootCheck: true
