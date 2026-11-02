@@ -1706,6 +1706,75 @@ describe('useInfiniteQuery', () => {
       expect(wrapper.vm.hasNextPage).toBe(true)
     })
 
+    it('computes page flags when switching to pre-populated cache data', async () => {
+      const pinia = createPinia()
+      const app = createApp({})
+      app.use(pinia)
+      const queryCache = useQueryCache(pinia)
+      const activeKey = ref('a')
+
+      for (const key of ['a', 'b']) {
+        setInfiniteQueryData(queryCache, ['key', key], {
+          pages: [[key]],
+          pageParams: [1],
+        })
+      }
+
+      const { wrapper, query } = mountSimple(
+        {
+          key: () => ['key', activeKey.value],
+          staleTime: Infinity,
+        },
+        { plugins: [pinia] },
+      )
+      await flushPromises()
+
+      expect(wrapper.vm.data).toEqual({ pages: [['a']], pageParams: [1] })
+      expect(wrapper.vm.hasNextPage).toBe(true)
+      expect(wrapper.vm.hasPreviousPage).toBe(true)
+
+      activeKey.value = 'b'
+      await nextTick()
+      await flushPromises()
+
+      expect(wrapper.vm.data).toEqual({ pages: [['b']], pageParams: [1] })
+      expect(query).toHaveBeenCalledTimes(0)
+      expect.soft(wrapper.vm.hasNextPage).toBe(true)
+      expect.soft(wrapper.vm.hasPreviousPage).toBe(true)
+    })
+
+    it('recomputes page flags when setting data on a mounted query', async () => {
+      const pinia = createPinia()
+      const app = createApp({})
+      app.use(pinia)
+      const queryCache = useQueryCache(pinia)
+
+      setInfiniteQueryData(queryCache, ['key'], {
+        pages: [['a']],
+        pageParams: [1],
+      })
+
+      const { wrapper, query } = mountSimple({ staleTime: Infinity }, { plugins: [pinia] })
+      await flushPromises()
+
+      expect(wrapper.vm.hasNextPage).toBe(true)
+      expect(wrapper.vm.hasPreviousPage).toBe(true)
+
+      setInfiniteQueryData(queryCache, ['key'], {
+        pages: [['a'], ['b'], ['c'], ['d']],
+        pageParams: [0, 1, 2, 3],
+      })
+      await flushPromises()
+
+      expect(wrapper.vm.data).toEqual({
+        pages: [['a'], ['b'], ['c'], ['d']],
+        pageParams: [0, 1, 2, 3],
+      })
+      expect(query).toHaveBeenCalledTimes(0)
+      expect.soft(wrapper.vm.hasNextPage).toBe(false)
+      expect.soft(wrapper.vm.hasPreviousPage).toBe(false)
+    })
+
     it('supports updater function', async () => {
       const pinia = createPinia()
       const app = createApp({})

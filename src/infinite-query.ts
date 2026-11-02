@@ -230,13 +230,20 @@ function isInfiniteQueryEntry(
 const installedMap = new WeakMap()
 function PiniaColadaInfiniteQueryPlugin(scope: EffectScope, queryCache: QueryCache) {
   if (!installedMap.has(queryCache)) {
-    queryCache.$onAction(({ name, args }) => {
+    queryCache.$onAction(({ name, args, after }) => {
       if (name === 'extend') {
         const [entry] = args
         if (isInfiniteQueryEntry(entry)) {
           scope.run(() => {
             createInfiniteQueryEntryExtensions(entry.ext)
           })
+          computePageParams(entry)
+        }
+      } else if (name === 'setEntryState') {
+        const [entry] = args
+        // entries created by setQueryData() are extended later, on ensure()
+        if (isInfiniteQueryEntry(entry) && entry.ext.nextPageParam) {
+          after(() => computePageParams(entry))
         }
       }
     }, true)
@@ -258,6 +265,45 @@ function createInfiniteQueryEntryExtensions(extensions: UseInfiniteQueryExtensio
   extensions.previousPageParam = shallowRef<unknown | null | undefined>()
   extensions.hasPreviousPage = computed(() => extensions.previousPageParam.value != null)
   extensions.nextPageIndicator = 0
+}
+
+/**
+ * Computes the next and previous page params of an infinite query entry from its data.
+ *
+ * @param entry - The infinite query entry.
+ * @param data - The data to use, defaults to the entry's current data.
+ * @internal
+ */
+function computePageParams<
+  TData,
+  TError,
+  TPageParam,
+  TDataInitial extends UseInfiniteQueryData<TData, TPageParam> | undefined,
+>(
+  entry: UseQueryEntry<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial> | undefined,
+  data = entry?.state.value.data,
+): void {
+  if (!entry?.options) return
+  const opts = entry.options as UseInfiniteQueryOptions<TData, TError, TPageParam, TDataInitial>
+  const exts = entry.ext as unknown as UseInfiniteQueryExtensions<TPageParam>
+  const hasPages = data && data.pages.length > 0
+
+  exts.nextPageParam.value = hasPages
+    ? opts.getNextPageParam(
+        data.pages.at(-1)!,
+        data.pages,
+        data.pageParams.at(-1)!,
+        data.pageParams,
+      )
+    : null
+  exts.previousPageParam.value = hasPages
+    ? opts.getPreviousPageParam?.(
+        data.pages.at(0)!,
+        data.pages,
+        data.pageParams.at(0)!,
+        data.pageParams,
+      )
+    : null
 }
 
 /**
@@ -348,7 +394,6 @@ export function useInfiniteQuery<
       const opts = toValueWithArgs(options)
       const key = toValue(opts.key)
       entry = queryCache.get(key)
-      // TODO: compute initial values for hasNextPage and hasPreviousPage based on initialData
       return {
         ...opts,
         key,
@@ -463,8 +508,6 @@ export function useInfiniteQuery<
             }
           }
 
-          computePageParams(currentEntry, { pages, pageParams })
-
           return { pages, pageParams }
         },
 
@@ -476,36 +519,6 @@ export function useInfiniteQuery<
       // satisfies DefineQueryOptions<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial>
     },
   )
-
-  function computePageParams(
-    entry: UseQueryEntry<UseInfiniteQueryData<TData, TPageParam>, TError, TDataInitial> | undefined,
-    data = entry?.state.value.data,
-  ) {
-    if (!entry?.options) return
-    const opts = entry.options as unknown as UseInfiniteQueryOptions<
-      TData,
-      TError,
-      TPageParam,
-      TDataInitial
-    >
-    const lastPageParam = data?.pageParams.at(-1)
-    const exts = entry.ext as unknown as UseInfiniteQueryExtensions<TPageParam>
-    exts.nextPageParam.value =
-      data && data.pages.length > 0
-        ? opts.getNextPageParam(data.pages.at(-1)!, data.pages, lastPageParam!, data.pageParams)
-        : null
-
-    const firstPageParam = data?.pageParams.at(0)
-    exts.previousPageParam.value =
-      data && data.pages.length > 0
-        ? opts.getPreviousPageParam?.(
-            data.pages.at(0)!,
-            data.pages,
-            firstPageParam!,
-            data.pageParams,
-          )
-        : null
-  }
 
   // if we have initial data, we need to set the next and previous page params
   computePageParams(entry)
