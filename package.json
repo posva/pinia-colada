@@ -104,7 +104,7 @@
     "typedoc-vitepress-theme": "^1.1.4",
     "typescript": "~6.0.3",
     "vitepress": "2.0.0-alpha.21",
-    "vitepress-plugin-llms": "^1.13.5",
+    "vitepress-plugin-llms": "^1.14.0",
     "vitest": "^5.0.5",
     "vue": "^3.5.44"
   },
