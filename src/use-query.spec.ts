@@ -5,7 +5,7 @@ import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import type { Pinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { computed, createApp, defineComponent, isRef, nextTick, ref } from 'vue'
+import { computed, createApp, defineComponent, h, isRef, nextTick, ref, shallowRef } from 'vue'
 import type { PropType } from 'vue'
 import { delay, isSpy, mockConsoleError, mockWarn, promiseWithResolvers } from '@posva/test-utils'
 import { PiniaColada } from './pinia-colada'
@@ -1513,6 +1513,248 @@ describe('useQuery', () => {
       // The abort listener from the first (already succeeded) query
       // should NOT have been called
       expect(abortListener).toHaveBeenCalledTimes(0)
+    })
+
+    describe('when a new consumer arrives before an aborted request settles', () => {
+      /**
+       * Each call stays pending until the test settles it. With `honorSignal`, it rejects on abort
+       * like `fetch(url, { signal })` does.
+       */
+      function createRequests(honorSignal = true) {
+        const requests: PromiseWithResolvers<string>[] = []
+        const query = vi.fn<UseQueryOptions<string>['query']>(({ signal }) => {
+          const request = promiseWithResolvers<string>()
+          requests.push(request)
+          if (honorSignal) {
+            signal.addEventListener('abort', () => request.reject(signal.reason), { once: true })
+          }
+          return request.promise
+        })
+        return { requests, query }
+      }
+
+      /** Renders one page at a time, like `<RouterView>` going from one route to another. */
+      function mountPages(options: UseQueryOptions<string>) {
+        const pageA = defineComponent({
+          setup: () => ({ query: useQuery(options) }),
+          render: () => null,
+        })
+        const pageB = defineComponent({
+          setup: () => ({ query: useQuery(options) }),
+          render: () => null,
+        })
+        const currentPage = shallowRef<typeof pageA | typeof pageB>(pageA)
+        const wrapper = mount(
+          defineComponent({
+            setup: () => () => h(currentPage.value),
+          }),
+          { global: { plugins: [createPinia(), PiniaColada] } },
+        )
+        return {
+          wrapper,
+          pageA: () => wrapper.findComponent(pageA).vm.query,
+          pageB: () => wrapper.findComponent(pageB).vm.query,
+          goToPageB() {
+            currentPage.value = pageB
+          },
+        }
+      }
+
+      it('fetches again if the query honors the signal', async () => {
+        const { requests, query } = createRequests()
+        const { goToPageB, pageB } = mountPages({ key: ['key'], query })
+        await flushPromises()
+
+        goToPageB()
+        await flushPromises()
+
+        expect(query).toHaveBeenCalledTimes(2)
+        expect(pageB().asyncStatus.value).toBe('loading')
+
+        requests[1]!.resolve('ok')
+        await flushPromises()
+        expect(pageB().state.value).toEqual({ status: 'success', data: 'ok', error: null })
+        expect(pageB().asyncStatus.value).toBe('idle')
+      })
+
+      it('fetches again if the entry already has data', async () => {
+        const { requests, query } = createRequests()
+        const { goToPageB, pageA, pageB } = mountPages({ key: ['key'], query, staleTime: 0 })
+        await flushPromises()
+        requests[0]!.resolve('old')
+        await flushPromises()
+        const refetchCall = pageA().refetch()
+        await flushPromises()
+        expect(query).toHaveBeenCalledTimes(2)
+
+        goToPageB()
+        await refetchCall
+        await flushPromises()
+
+        expect(query).toHaveBeenCalledTimes(3)
+        expect(pageB().data.value).toBe('old')
+        requests[2]!.resolve('new')
+        await flushPromises()
+        expect(pageB().data.value).toBe('new')
+      })
+
+      it('fetches again if the query rethrows the abort as a different error', async () => {
+        const { requests, query } = createRequests()
+        const { goToPageB, pageB } = mountPages({
+          key: ['key'],
+          query: (context) =>
+            query(context).catch((cause: unknown) => {
+              // like an HTTP client that wraps every error in its own
+              throw new Error('wrapped', { cause })
+            }),
+        })
+        await flushPromises()
+
+        goToPageB()
+        await flushPromises()
+
+        expect(query).toHaveBeenCalledTimes(2)
+        requests[1]!.resolve('ok')
+        await flushPromises()
+        expect(pageB().state.value).toEqual({ status: 'success', data: 'ok', error: null })
+      })
+
+      it('reuses the request if the query ignores the signal', async () => {
+        const { requests, query } = createRequests(false)
+        const { goToPageB, pageB } = mountPages({ key: ['key'], query })
+        await flushPromises()
+
+        goToPageB()
+        await flushPromises()
+
+        expect(query).toHaveBeenCalledTimes(1)
+        requests[0]!.resolve('ok')
+        await flushPromises()
+        expect(query).toHaveBeenCalledTimes(1)
+        expect(pageB().state.value).toEqual({ status: 'success', data: 'ok', error: null })
+      })
+
+      it('sets the error of the new request', async () => {
+        const { requests, query } = createRequests()
+        const { goToPageB, pageB } = mountPages({ key: ['key'], query })
+        await flushPromises()
+
+        goToPageB()
+        await flushPromises()
+
+        const error = new Error('ko')
+        requests[1]!.reject(error)
+        await flushPromises()
+        expect(query).toHaveBeenCalledTimes(2)
+        expect(pageB().state.value).toEqual({ status: 'error', data: undefined, error })
+        expect(pageB().asyncStatus.value).toBe('idle')
+      })
+
+      it('shares the new request between all the new consumers', async () => {
+        const { requests, query } = createRequests()
+        const Consumer = defineComponent({
+          setup: () => ({ query: useQuery({ key: ['key'], query }) }),
+          render: () => null,
+        })
+        const consumerKeys = shallowRef(['a'])
+        const wrapper = mount(
+          defineComponent({
+            setup: () => () => consumerKeys.value.map((key) => h(Consumer, { key })),
+          }),
+          { global: { plugins: [createPinia(), PiniaColada] } },
+        )
+        await flushPromises()
+
+        consumerKeys.value = ['b', 'c']
+        await flushPromises()
+
+        expect(query).toHaveBeenCalledTimes(2)
+        requests[1]!.resolve('ok')
+        await flushPromises()
+        expect(wrapper.findAllComponents(Consumer).map((c) => c.vm.query.data.value)).toEqual([
+          'ok',
+          'ok',
+        ])
+      })
+
+      it('fetches again when going back to a key whose request is still settling', async () => {
+        const key = ref(1)
+        const settling: PromiseWithResolvers<void>[] = []
+        const query = vi.fn<UseQueryOptions<string>['query']>(async ({ signal }) => {
+          const request = promiseWithResolvers<void>()
+          settling.push(request)
+          await request.promise
+          // honors the signal only after the response
+          signal.throwIfAborted()
+          return `data:${key.value}`
+        })
+        const { wrapper } = mountSimple({ key: () => ['key', key.value], query })
+        await flushPromises()
+
+        key.value = 2
+        await flushPromises()
+        key.value = 1
+        await flushPromises()
+        // the aborted request might still deliver data if it ignores the signal
+        expect(query).toHaveBeenCalledTimes(2)
+        expect(wrapper.vm.asyncStatus).toBe('loading')
+
+        settling[0]!.resolve()
+        await flushPromises()
+        expect(query).toHaveBeenCalledTimes(3)
+        expect(wrapper.vm.asyncStatus).toBe('loading')
+
+        settling[2]!.resolve()
+        await flushPromises()
+        expect(wrapper.vm.state).toEqual({ status: 'success', data: 'data:1', error: null })
+      })
+
+      it('does not fetch again if the new consumer leaves too', async () => {
+        const settling = promiseWithResolvers<void>()
+        const query = vi.fn<UseQueryOptions<string>['query']>(async ({ signal }) => {
+          await settling.promise
+          signal.throwIfAborted()
+          return 'ko'
+        })
+        const { goToPageB, wrapper } = mountPages({ key: ['key'], query })
+        await flushPromises()
+
+        goToPageB()
+        await flushPromises()
+        wrapper.unmount()
+        settling.resolve()
+        await flushPromises()
+
+        expect(query).toHaveBeenCalledTimes(1)
+      })
+
+      it('keeps the data of a newer request if the aborted one fails later', async () => {
+        const stopped = promiseWithResolvers<void>()
+        const requests: PromiseWithResolvers<string>[] = []
+        const query = vi.fn<UseQueryOptions<string>['query']>(async ({ signal }) => {
+          const request = promiseWithResolvers<string>()
+          requests.push(request)
+          if (requests.length > 1) return request.promise
+          await stopped.promise
+          signal.throwIfAborted()
+          return 'ko'
+        })
+        const { goToPageB, pageB } = mountPages({ key: ['key'], query })
+        await flushPromises()
+
+        goToPageB()
+        await flushPromises()
+        const refetchCall = pageB().refetch()
+        requests[1]!.resolve('ok')
+        await refetchCall
+        expect(pageB().data.value).toBe('ok')
+
+        stopped.resolve()
+        await flushPromises()
+        expect(query).toHaveBeenCalledTimes(2)
+        expect(pageB().state.value).toEqual({ status: 'success', data: 'ok', error: null })
+        expect(pageB().asyncStatus.value).toBe('idle')
+      })
     })
   })
 

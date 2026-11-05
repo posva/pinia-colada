@@ -665,7 +665,16 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       }
 
       if (entry.state.value.error || entry.stale) {
-        return entry.pending?.refreshCall ?? fetch(entry, options)
+        const { pending } = entry
+        if (!pending) return fetch(entry, options)
+        // untrack() aborts the request when the last consumer leaves. It still delivers data if
+        // the query ignores the signal. If it rejects instead, a new consumer needs a new request
+        return pending.abortController.signal.aborted
+          ? pending.refreshCall.catch((error: unknown) => {
+              if (entry.active) return refresh(entry, options)
+              throw error
+            })
+          : pending.refreshCall
       }
 
       return entry.state.value
