@@ -31,3 +31,17 @@ Quick usage:
 
 - Register it in `PiniaColada` with `plugins: [PiniaColadaRecentlySuccessfulPlugin()]`.
 - Use `recentlySuccessful` from `useMutation()`.
+
+## Pinia Logger
+
+Logs fetches, cache hits, `setQueryData`, invalidations, removals and mutations to the browser console, with the key, data and duration.
+
+- **Extends**: queries, mutations, dev UX
+- **Package**: `pinia-logger`, imported from `pinia-logger/colada`
+- **Repository**: https://github.com/cwdx/pinia-logger
+- **npm**: https://www.npmjs.com/package/pinia-logger
+
+Quick usage:
+
+- Register it in `PiniaColada` with `plugins: [PiniaColadaLogger()]`.
+- Pass `filter: ({ type }) => type !== "hit"` to skip cache hits.
