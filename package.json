@@ -76,7 +76,7 @@
     "@pinia/colada": "workspace:*",
     "@playwright/test": "^1.64.1",
     "@posva/test-utils": "workspace:*",
-    "@shikijs/vitepress-twoslash": "^4.5.0",
+    "@shikijs/vitepress-twoslash": "^4.6.0",
     "@size-limit/esbuild-why": "^14.3.0",
     "@size-limit/preset-small-lib": "^14.3.0",
     "@types/node": "^26.6.6",

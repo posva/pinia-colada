@@ -46,8 +46,8 @@
     "build": "tsdown && vite build --config panel.vite.config.ts"
   },
   "dependencies": {
-    "@devframes/agentic": "^1.3.1",
-    "devframe": "^1.3.1",
+    "@devframes/agentic": "^1.3.2",
+    "devframe": "^1.3.2",
     "zod": "^4.6.7"
   },
   "peerDependencies": {
@@ -75,23 +75,23 @@
     }
   },
   "devDependencies": {
-    "@devframes/hub": "^1.3.1",
-    "@devframes/hub-ui": "^1.3.1",
-    "@devframes/vite": "^1.3.1",
-    "@iconify-json/lucide": "^1.2.150",
+    "@devframes/hub": "^1.3.2",
+    "@devframes/hub-ui": "^1.3.2",
+    "@devframes/vite": "^1.3.2",
+    "@iconify-json/lucide": "^1.2.151",
     "@pinia/colada": "workspace:^",
     "@posva/splitpanes": "^4.0.6",
-    "@tailwindcss/vite": "^4.3.3",
-    "@vitejs/devtools": "^0.8.0",
-    "@vitejs/devtools-kit": "^0.8.0",
+    "@tailwindcss/vite": "^4.3.4",
+    "@vitejs/devtools": "^0.8.2",
+    "@vitejs/devtools-kit": "^0.8.2",
     "@vitejs/plugin-vue": "^6.0.10",
     "@vueuse/core": "^15.0.0",
     "pinia": "^4.1.0",
-    "tailwindcss": "^4.3.3",
+    "tailwindcss": "^4.3.4",
     "tsdown": "^0.23.5",
     "unplugin-icons": "^24.0.0",
     "unplugin-vue-components": "^32.1.0",
-    "vite": "^8.3.5",
+    "vite": "^8.3.6",
     "vue": "^3.5.44",
     "vue-router": "^5.4.0",
     "vue-tsc": "^3.3.14"
