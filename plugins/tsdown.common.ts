@@ -8,7 +8,9 @@ export const commonOptions = {
     neverBundle: ['vue', 'pinia', '@pinia/colada'],
   },
   dts: {
-    build: true,
+    tsc: {
+      build: true,
+    },
   },
   target: 'esnext',
   clean: true,
