@@ -1755,6 +1755,89 @@ describe('useQuery', () => {
         expect(pageB().state.value).toEqual({ status: 'success', data: 'ok', error: null })
         expect(pageB().asyncStatus.value).toBe('idle')
       })
+
+      it('does not fetch again if the query was disabled in the meantime', async () => {
+        const stopped = promiseWithResolvers<void>()
+        const requests: PromiseWithResolvers<string>[] = []
+        const query = vi.fn<UseQueryOptions<string>['query']>(async ({ signal }) => {
+          const request = promiseWithResolvers<string>()
+          requests.push(request)
+          if (requests.length > 1) return request.promise
+          await stopped.promise
+          signal.throwIfAborted()
+          return 'ko'
+        })
+        const enabled = ref(true)
+        const { goToPageB, pageB } = mountPages({ key: ['key'], query, enabled })
+        await flushPromises()
+
+        goToPageB()
+        await flushPromises()
+        enabled.value = false
+        await flushPromises()
+        stopped.resolve()
+        await flushPromises()
+        expect(query).toHaveBeenCalledTimes(1)
+        expect(pageB().asyncStatus.value).toBe('idle')
+
+        enabled.value = true
+        await flushPromises()
+        expect(query).toHaveBeenCalledTimes(2)
+        requests[1]!.resolve('ok')
+        await flushPromises()
+        expect(pageB().state.value).toEqual({ status: 'success', data: 'ok', error: null })
+      })
+
+      it('does not fetch again if the query was canceled in the meantime', async () => {
+        const stopped = promiseWithResolvers<void>()
+        const query = vi.fn<UseQueryOptions<string>['query']>(async ({ signal }) => {
+          await stopped.promise
+          signal.throwIfAborted()
+          return 'ko'
+        })
+        const { goToPageB, pageB } = mountPages({ key: ['key'], query, staleTime: 0 })
+        await flushPromises()
+
+        goToPageB()
+        await flushPromises()
+        // like an optimistic update in a mutation
+        const queryCache = useQueryCache()
+        queryCache.cancelQueries({ key: ['key'] })
+        queryCache.setQueryData(['key'], 'optimistic')
+        stopped.resolve()
+        await flushPromises()
+
+        expect(query).toHaveBeenCalledTimes(1)
+        expect(pageB().state.value).toEqual({ status: 'success', data: 'optimistic', error: null })
+        expect(pageB().asyncStatus.value).toBe('idle')
+      })
+
+      it('does not fetch again if a newer request was canceled in the meantime', async () => {
+        const stopped = promiseWithResolvers<void>()
+        const requests: PromiseWithResolvers<string>[] = []
+        const query = vi.fn<UseQueryOptions<string>['query']>(async ({ signal }) => {
+          const request = promiseWithResolvers<string>()
+          requests.push(request)
+          if (requests.length > 1) return request.promise
+          await stopped.promise
+          signal.throwIfAborted()
+          return 'ko'
+        })
+        const { goToPageB, pageB } = mountPages({ key: ['key'], query })
+        await flushPromises()
+
+        goToPageB()
+        await flushPromises()
+        pageB().refetch()
+        await flushPromises()
+        expect(query).toHaveBeenCalledTimes(2)
+        useQueryCache().cancelQueries({ key: ['key'] })
+        stopped.resolve()
+        await flushPromises()
+
+        expect(query).toHaveBeenCalledTimes(2)
+        expect(pageB().asyncStatus.value).toBe('idle')
+      })
     })
   })
 
