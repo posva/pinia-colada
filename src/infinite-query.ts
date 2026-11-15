@@ -478,10 +478,17 @@ export function useInfiniteQuery<
 
             pageParam ??= toValue(opts.initialPageParam)
 
-            const page = await opts.query({
-              ...context,
-              pageParam,
-            })
+            let page: TData
+            try {
+              page = await opts.query({
+                ...context,
+                pageParam,
+              })
+            } catch (error) {
+              // keep loading the same page on the next fetch (e.g. retries) unless cancelled
+              if (!context.signal.aborted) exts.nextPageIndicator = position ? 1 : -1
+              throw error
+            }
 
             // TODO: throw if signal is aborted?
 
