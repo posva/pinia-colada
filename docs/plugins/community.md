@@ -24,8 +24,8 @@ Adds a `recentlySuccessful` ref to `useMutation()` results. It becomes `true` on
 
 - **Extends**: mutations
 - **Package**: `pinia-colada-plugin-recently-successful`
-- **Repository**: https://github.com/Barbapapazes/pinia-colada-plugin-recently-successful
-- **npm**: https://www.npmjs.com/package/pinia-colada-plugin-recently-successful
+- **Repository**: <https://github.com/Barbapapazes/pinia-colada-plugin-recently-successful>
+- **npm**: <https://npmx.dev/package/pinia-colada-plugin-recently-successful>
 
 Quick usage:
 
@@ -34,12 +34,12 @@ Quick usage:
 
 ## Pinia Logger
 
-Logs fetches, cache hits, `setQueryData`, invalidations, removals and mutations to the browser console, with the key, data and duration.
+Logs activity to the browser console.
 
-- **Extends**: queries, mutations, dev UX
+- **Extends**: queries, mutations
 - **Package**: `pinia-logger`, imported from `pinia-logger/colada`
-- **Repository**: https://github.com/cwdx/pinia-logger
-- **npm**: https://www.npmjs.com/package/pinia-logger
+- **Repository**: <https://github.com/cwdx/pinia-logger>
+- **npm**: <https://npmx.dev/package/pinia-logger>
 
 Quick usage:
 
