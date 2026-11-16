@@ -7,6 +7,7 @@ import type { UseQueryEntryPayloadStatus } from '../utils/query-state'
 import type { UseQueryEntryPayload } from '@pinia/colada-devtools/shared'
 import { useContainerMediaQuery } from '../composables/use-container-media-query'
 import { useLocalStorage } from '@vueuse/core'
+import { panelChannel } from '../panel-channel'
 
 const searchQuery = ref('')
 
@@ -90,6 +91,17 @@ function updatePanesSize({ panes }: { panes: { size: number }[] }) {
           </div>
         </div>
       </div>
+
+      <UButton
+        class="theme-neutral shrink-0"
+        size="sm"
+        title="Invalidate all queries"
+        :disabled="queries.length === 0"
+        @click="panelChannel.call('queries:invalidate', {})"
+      >
+        <i-lucide-timer-reset />
+        <span class="@max-[750px]:hidden">Invalidate all</span>
+      </UButton>
     </div>
 
     <Splitpanes
