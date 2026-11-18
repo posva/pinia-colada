@@ -44,25 +44,28 @@ const stale = queryCache.getEntries({ key: ['todos'], stale: true })
 
 ## Combining actions
 
-Some workflows have no single convenience method because they combine concerns intentionally. The most common one is **clearing the cache**: `remove()` doesn't cancel pending requests, so a pending fetch can still resolve and rewrite state after you remove the entry. A full clear is two steps:
+Some workflows have no single convenience method because they combine concerns intentionally. The most common one is **clearing the cache**: `remove()` doesn't cancel pending requests, so a pending fetch can still resolve and rewrite state after you remove the entry. Clearing the cache is two steps:
 
 ```ts
-// abort pending requests first, then drop the entries
-queryCache.cancelQueries()
-queryCache.getEntries().forEach((entry) => queryCache.remove(entry))
+// abort pending requests first, then drop the entries no component uses
+queryCache.cancelQueries({ active: false })
+queryCache.getEntries({ active: false }).forEach((entry) => queryCache.remove(entry))
 ```
 
-Components currently using a removed entry will recreate it on their next read. This is a reset, not a freeze.
+Only remove entries that no component uses. Components that use an entry keep a reference to it, even after it is removed from the cache, so they keep showing its data. In development, `remove()` warns about this ([PINIA_COLADA_R0010](/errors/pinia_colada_r0010.md)). To refresh an active entry, invalidate it instead.
 
-The same shape works for **resetting a single query** (e.g. on logout):
+The same shape works to **clear private data on logout**. Queries like `['user', userId]` are usually only used on pages that need a logged-in user. Leave these pages first, so their entries become inactive, then remove the entries:
 
 ```ts
+await router.push('/login')
 const entry = queryCache.get(['user', userId])
 if (entry) {
   queryCache.cancel(entry)
   queryCache.remove(entry)
 }
 ```
+
+Queries that stay in use after logout, e.g. in a layout, should include the user in their key. When the user changes, the key changes and the old entry becomes inactive.
 
 ## Common patterns with `*Queries` actions
 
