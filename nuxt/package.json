@@ -41,15 +41,15 @@
   },
   "devDependencies": {
     "@nuxt/eslint-config": "^1.17.0",
-    "@nuxt/module-builder": "1.0.3",
+    "@nuxt/module-builder": "1.0.4",
     "@nuxt/schema": "^4.6.4",
-    "@nuxt/test-utils": "^4.3.4",
+    "@nuxt/test-utils": "^4.4.0",
     "@pinia/colada": "workspace:*",
     "@pinia/colada-devtools": "workspace:^",
     "@pinia/nuxt": "^1.0.3",
     "nuxi": "^4.0.3",
     "nuxt": "^4.6.4",
-    "playwright-core": "^1.64.1",
+    "playwright-core": "^1.65.1",
     "typescript": "~6.0.3",
     "vue-tsc": "^3.3.14"
   }
