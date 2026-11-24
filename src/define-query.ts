@@ -1,11 +1,12 @@
 import { getCurrentInstance, getCurrentScope, onScopeDispose, toValue, watch } from 'vue'
 import type { tErrorSymbol, UseQueryOptions } from './query-options'
-import { useQueryCache } from './query-store'
+import { currentDefineQueryEntry, useQueryCache } from './query-store'
 import type { QueryCache, UseQueryEntry } from './query-store'
 import type { ErrorDefault } from './types-extension'
 import type { UseQueryReturn } from './use-query'
 import { useQuery } from './use-query'
 import { noop } from './utils'
+import { diagnostics } from './diagnostics'
 import type { _RemoveMaybeRef } from './utils'
 
 /**
@@ -79,6 +80,9 @@ export function defineQuery(optionsOrSetup: DefineQueryOptions | (() => unknown)
   return () => {
     const queryCache = useQueryCache()
     const currentScope = getCurrentInstance() || getCurrentScope()
+    if (process.env.NODE_ENV !== 'production' && currentDefineQueryEntry) {
+      diagnostics.PINIA_COLADA_R0011()
+    }
     const [entries, ret, scope, isPaused] = queryCache.ensureDefinedQuery(setupFn)
 
     // per app: on the server, each request has its own cache

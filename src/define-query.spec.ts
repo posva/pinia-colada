@@ -1046,6 +1046,43 @@ describe('defineQuery', () => {
     })
   })
 
+  // https://github.com/posva/pinia-colada/issues/689
+  describe('nested defineQuery()', () => {
+    function mountWith(setup: () => unknown) {
+      return mount(
+        { setup: () => (setup(), {}), render: () => null },
+        { global: { plugins: [createPinia(), PiniaColada] } },
+      )
+    }
+
+    it('warns when called inside the setup of another defineQuery()', () => {
+      const useInner = defineQuery({ key: ['inner'], query: async () => 'inner' })
+      const useOuter = defineQuery(() => {
+        useInner()
+        return useQuery({ key: ['outer'], query: async () => 'outer' })
+      })
+
+      mountWith(() => useOuter())
+
+      expect('inside the setup of another').toHaveBeenWarnedTimes(1)
+    })
+
+    it('warns when the inner defineQuery() was already used', () => {
+      const useInner = defineQuery({ key: ['inner'], query: async () => 'inner' })
+      const useOuter = defineQuery(() => {
+        useInner()
+        return useQuery({ key: ['outer'], query: async () => 'outer' })
+      })
+
+      mountWith(() => {
+        useInner()
+        useOuter()
+      })
+
+      expect('inside the setup of another').toHaveBeenWarnedTimes(1)
+    })
+  })
+
   describe('outside of components', () => {
     let app: App
     beforeEach(() => {
