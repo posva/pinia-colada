@@ -290,6 +290,8 @@ On top of that Pinia Colada is highly extensible. You can create your own plugin
             { text: 'PINIA_COLADA_R0007', link: '/errors/pinia_colada_r0007.html' },
             { text: 'PINIA_COLADA_R0008', link: '/errors/pinia_colada_r0008.html' },
             { text: 'PINIA_COLADA_R0009', link: '/errors/pinia_colada_r0009.html' },
+            { text: 'PINIA_COLADA_R0010', link: '/errors/pinia_colada_r0010.html' },
+            { text: 'PINIA_COLADA_R0011', link: '/errors/pinia_colada_r0011.html' },
           ],
         },
         {

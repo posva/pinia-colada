@@ -76,5 +76,10 @@ export const diagnostics = /*#__PURE__*/ defineDiagnostics({
       why: 'Cannot remove an active query entry. Active entries cannot be safely removed from the cache.',
       fix: 'Wait until all consumers stop using the entry before removing it. To refresh its data while active, invalidate the query instead.',
     },
+
+    PINIA_COLADA_R0011: {
+      why: 'A defineQuery() composable was called inside the setup of another defineQuery(). Nesting defined queries is not supported: the outer query may never become active again and the inner queries may never become inactive.',
+      fix: 'Share the query options with defineQueryOptions() and call useQuery() in each defineQuery() instead. To share other state (e.g. a ref) between queries, move it out of the defineQuery() (e.g. to a Pinia store).',
+    },
   },
 })
