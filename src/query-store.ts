@@ -645,6 +645,12 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   })
 
   /**
+   * Requests that {@link cancel} or a newer {@link fetch} replaced before they settled. A consumer
+   * that reused one of them after it was aborted must not start a new request when it rejects.
+   */
+  const replacedRequests = new WeakSet<UseQueryEntryPending>()
+
+  /**
    * Ensures the current data is fresh. If the data is stale or if the status
    * is 'error', calls {@link fetch}, if not return the current data. Can only
    * be called if the entry has been initialized with `useQuery()` and has
@@ -665,7 +671,23 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       }
 
       if (entry.state.value.error || entry.stale) {
-        return entry.pending?.refreshCall ?? fetch(entry, options)
+        const { pending } = entry
+        if (!pending) return fetch(entry, options)
+        // untrack() aborts the request when the last consumer leaves. It still delivers data if
+        // the query ignores the signal. If it rejects instead, a new consumer needs a new request,
+        // unless the query was disabled or the request was canceled or replaced in the meantime
+        return pending.abortController.signal.aborted
+          ? pending.refreshCall.catch((error: unknown) => {
+              if (
+                entry.active &&
+                toValue(entry.options?.enabled) &&
+                !replacedRequests.has(pending)
+              ) {
+                return refresh(entry, options)
+              }
+              throw error
+            })
+          : pending.refreshCall
       }
 
       return entry.state.value
@@ -693,6 +715,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
       const { signal } = abortController
       // Abort any ongoing request without a reason to keep `AbortError` even with
       // signal.throwIfAborted() in the query function
+      if (entry.pending) replacedRequests.add(entry.pending)
       entry.pending?.abortController.abort()
 
       const pendingCall: UseQueryEntryPending<TData, TError, TDataInitial> = (entry.pending = {
@@ -758,6 +781,7 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
    * @param reason - the reason passed to the abort controller
    */
   const cancel = action((entry: UseQueryEntry, reason?: unknown) => {
+    if (entry.pending) replacedRequests.add(entry.pending)
     entry.pending?.abortController.abort(reason)
     // eagerly set the status to idle because the abort signal might not
     // be consumed by the user's query

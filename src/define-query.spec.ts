@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import type { App } from 'vue'
-import { createApp, defineComponent, effectScope, inject, provide, ref } from 'vue'
+import { createApp, defineComponent, effectScope, h, inject, provide, ref, shallowRef } from 'vue'
 import { defineQuery } from './define-query'
 import { useInfiniteQuery } from './infinite-query'
 import { useQuery } from './use-query'
@@ -967,6 +967,45 @@ describe('defineQuery', () => {
   })
 
   describe('abort signal', () => {
+    it('fetches again if the last consumer is replaced before an aborted request settles', async () => {
+      const requests: PromiseWithResolvers<string>[] = []
+      const query = vi.fn<UseQueryOptions<string>['query']>(({ signal }) => {
+        const request = Promise.withResolvers<string>()
+        requests.push(request)
+        signal.addEventListener('abort', () => request.reject(signal.reason), { once: true })
+        return request.promise
+      })
+      const useProfile = defineQuery({ key: ['key'], query })
+      const pageA = defineComponent({
+        setup: () => ({ query: useProfile() }),
+        render: () => null,
+      })
+      const pageB = defineComponent({
+        setup: () => ({ query: useProfile() }),
+        render: () => null,
+      })
+      const currentPage = shallowRef<typeof pageA | typeof pageB>(pageA)
+      const wrapper = mount(
+        defineComponent({
+          setup: () => () => h(currentPage.value),
+        }),
+        { global: { plugins: [createPinia(), PiniaColada] } },
+      )
+      await flushPromises()
+
+      currentPage.value = pageB
+      await flushPromises()
+
+      expect(query).toHaveBeenCalledTimes(2)
+      requests[1]!.resolve('ok')
+      await flushPromises()
+      expect(wrapper.findComponent(pageB).vm.query.state.value).toEqual({
+        status: 'success',
+        data: 'ok',
+        error: null,
+      })
+    })
+
     it('aborts the signal if the query is not active anymore (key changes)', async () => {
       const key = ref(1)
       const useProfile = defineQuery(() => {
