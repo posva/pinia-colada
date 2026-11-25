@@ -20,6 +20,7 @@ import { setNestedValue, type NestedValuePath } from '../../utils/set-nested-val
 import { useEntryUpdateNotifications } from '../../composables/entry-update-notifications'
 import EntryUpdateNotification from '../../components/EntryUpdateNotification.vue'
 import ErrorViewer from '../../components/ErrorViewer.vue'
+import InvalidateQueryButton from '../../components/InvalidateQueryButton.vue'
 
 const route = useRoute()
 const queries = useQueryEntries()
@@ -203,16 +204,7 @@ const handleValueUpdate = (path: NestedValuePath, value: unknown) => {
             <i-lucide-refresh-cw class="size-3.5" /> Refetch
           </UButton>
 
-          <UButton
-            class="theme-neutral"
-            size="sm"
-            title="Invalidate this query"
-            @click="
-              panelChannel.call('queries:invalidate', { key: selectedQuery.key, exact: true })
-            "
-          >
-            <i-lucide-timer-reset /> Invalidate
-          </UButton>
+          <InvalidateQueryButton :entry-key="selectedQuery.key" />
 
           <UButton
             v-if="selectedQuery.devtools.simulate !== 'loading'"
