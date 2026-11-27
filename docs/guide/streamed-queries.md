@@ -42,6 +42,8 @@ Always pass the `signal` to your requests. When the query is cancelled or fetche
 
 :::
 
+To stream the result of an operation that changes data on the server, use [`streamedMutation()`](./streamed-mutations.md).
+
 ## Custom reducer
 
 By default, each chunk is added at the end of an array. Use `reducer` and `initialValue` to merge chunks differently. For example, to join text chunks into one string:
