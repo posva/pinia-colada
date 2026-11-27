@@ -51,6 +51,13 @@ describe('streamedMutation', () => {
     expectTypeOf(streamedMutation(options)).toEqualTypeOf<StreamedMutationFn<number[], string>>()
   })
 
+  it('includes the array of chunks with a union of options', () => {
+    function wrap(options: StreamedMutationOptions<number, string>) {
+      return streamedMutation(options)
+    }
+    expectTypeOf(wrap).returns.returns.resolves.toEqualTypeOf<string | number[]>()
+  })
+
   it('accepts a promise of an iterable', () => {
     expectTypeOf(
       streamedMutation({ stream: async () => numbers() }),

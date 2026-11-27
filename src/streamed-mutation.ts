@@ -95,16 +95,18 @@ export function streamedMutation<TChunk, TData, TVars = void>(
 ): StreamedMutationFn<TData, TVars>
 export function streamedMutation<TChunk, TData, TVars = void>(
   options: StreamedMutationOptions<TChunk, TData, TVars>,
-): StreamedMutationFn<TData, TVars>
-export function streamedMutation<TChunk, TData, TVars>({
-  stream,
-  reducer = (data, chunk) => [...(data as unknown[]), chunk] as TData,
-  initialValue = [] as TData,
-}: StreamedMutationOptions_Base<TChunk, TVars> &
-  Partial<StreamedMutationOptions_WithReducer<TChunk, TData, TVars>>): StreamedMutationFn<
-  TData,
-  TVars
-> {
+): StreamedMutationFn<TData | TChunk[], TVars>
+export function streamedMutation<TChunk, TData, TVars>(
+  options: StreamedMutationOptions_Base<TChunk, TVars> &
+    Partial<StreamedMutationOptions_WithReducer<TChunk, TData, TVars>>,
+): StreamedMutationFn<TData, TVars> {
+  const { stream } = options
+  const reducer = options.reducer ?? ((data, chunk) => [...(data as unknown[]), chunk] as TData)
+  // with a custom reducer, `undefined` is a valid seed
+  const initialValue = options.reducer
+    ? (options.initialValue as TData)
+    : (options.initialValue ?? ([] as TData))
+
   return async (vars, context) => {
     const { entry, mutationCache } = context
     let result = initialValue
