@@ -25,6 +25,12 @@ export interface UseMutationContextCommon<
    * The mutation cache that owns the {@link entry}.
    */
   mutationCache: MutationCache
+
+  /**
+   * Signal aborted when the mutation is cancelled with
+   * {@link MutationCache.cancel}. Pass it to your requests.
+   */
+  signal: AbortSignal
 }
 
 /**
