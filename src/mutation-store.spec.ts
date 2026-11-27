@@ -478,11 +478,12 @@ describe('Mutation Cache store', () => {
     }
 
     it('aborts the signal and fails with the reason', async () => {
-      let signal!: AbortSignal
       const onError = vi.fn()
       const { mutationCache, entry, promise } = mutateEntry({
-        // ignores the signal and never settles
-        mutation: (_vars, context) => ((signal = context.signal), new Promise(() => {})),
+        mutation: (_vars, { signal }) =>
+          new Promise((_resolve, reject) =>
+            signal.addEventListener('abort', () => reject(signal.reason)),
+          ),
         onError,
       })
       await flushPromises()
@@ -490,8 +491,24 @@ describe('Mutation Cache store', () => {
       mutationCache.cancel(entry, 'stop')
 
       await expect(promise).rejects.toBe('stop')
-      expect(signal.aborted).toBe(true)
       expect(onError).toHaveBeenCalledTimes(1)
+      expect(entry.state.value).toEqual({ status: 'error', data: undefined, error: 'stop' })
+      expect(entry.asyncStatus.value).toBe('idle')
+    })
+
+    it('fails with the reason if the mutation ignores the signal', async () => {
+      let resolve!: (data: string) => void
+      const { mutationCache, entry, promise } = mutateEntry({
+        mutation: () => new Promise((r) => (resolve = r)),
+      })
+      await flushPromises()
+
+      mutationCache.cancel(entry, 'stop')
+      // still loading until the mutation settles
+      expect(entry.asyncStatus.value).toBe('loading')
+      resolve('ok')
+
+      await expect(promise).rejects.toBe('stop')
       expect(entry.state.value).toEqual({ status: 'error', data: undefined, error: 'stop' })
       expect(entry.asyncStatus.value).toBe('idle')
     })

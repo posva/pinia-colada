@@ -115,7 +115,7 @@ export function streamedMutation<TChunk, TData, TVars>(
 
     // each mutate() call has its own entry, so there is no refetch or outdated stream
     for await (const chunk of await stream(vars, context)) {
-      // the call already failed with the cancel reason
+      // cancelled but the stream ignored the signal
       signal.throwIfAborted()
       result = reducer(result, chunk)
       mutationCache.setEntryState(entry, { status: 'success', data: result, error: null })

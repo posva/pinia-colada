@@ -382,8 +382,9 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
   )
 
   /**
-   * Cancels the ongoing call of a mutation entry. This aborts its `signal`
-   * and makes the call fail with `reason`: `onError()` and `onSettled()` run.
+   * Cancels the ongoing call of a mutation entry by aborting its `signal`.
+   * The call fails with `reason` once the mutation settles: `onError()` and
+   * `onSettled()` run.
    *
    * @param entry - the entry of the mutation to cancel
    * @param reason - the reason passed to the abort controller
@@ -477,13 +478,12 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
         // NOTE: needed for onSuccess cast
       } satisfies OnSuccessContext
 
-      const newData = (currentData = await new Promise<TData>((resolve, reject) => {
-        // cancelled during onMutate: throwing here rejects the promise
-        signal.throwIfAborted()
-        // settle right away even if the mutation ignores the signal
-        signal.addEventListener('abort', () => reject(signal.reason))
-        options.mutation(vars, context as OnSuccessContext).then(resolve, reject)
-      }))
+      // cancelled during onMutate
+      signal.throwIfAborted()
+      const newData = await options.mutation(vars, context as OnSuccessContext)
+      // cancelled but the mutation ignored the signal
+      signal.throwIfAborted()
+      currentData = newData
 
       await globalOptions.onSuccess?.(
         newData,
