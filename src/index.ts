@@ -56,6 +56,16 @@ export {
 } from './streamed-query'
 
 export {
+  streamedMutation,
+  type StreamedMutationFn,
+  type StreamedMutationFnContext,
+  type StreamedMutationOptions,
+  type StreamedMutationOptions_Base,
+  type StreamedMutationOptions_WithReducer,
+  type StreamedMutationOptions_WithoutReducer,
+} from './streamed-mutation'
+
+export {
   hydrateQueryCache,
   isQueryCache,
   type QueryCache,
