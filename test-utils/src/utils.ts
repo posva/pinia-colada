@@ -38,3 +38,41 @@ export function promiseWithResolvers<T = unknown>() {
   })
   return { promise, resolve, reject }
 }
+
+/**
+ * Async iterable controlled by the test.
+ */
+export function createStream<T>() {
+  const steps = [promiseWithResolvers<IteratorResult<T, undefined>>()]
+  let returned = false
+
+  async function* iterate() {
+    try {
+      for (let i = 0; ; i++) {
+        // oxlint-disable-next-line no-await-in-loop -- chunks arrive one by one
+        const result = await steps[i]!.promise
+        if (result.done) return
+        yield result.value
+      }
+    } finally {
+      returned = true
+    }
+  }
+
+  return {
+    iterable: iterate(),
+    push(value: T) {
+      steps.at(-1)!.resolve({ value, done: false })
+      steps.push(promiseWithResolvers())
+    },
+    end() {
+      steps.at(-1)!.resolve({ value: undefined, done: true })
+    },
+    fail(error: unknown) {
+      steps.at(-1)!.reject(error)
+    },
+    get returned() {
+      return returned
+    },
+  }
+}
