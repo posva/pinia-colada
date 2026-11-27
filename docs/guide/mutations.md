@@ -161,6 +161,40 @@ const {
 
 Most of the time, using `mutate` should be easier to use as it catches any errors thrown by the mutation. On the other hand `mutateAsync` is useful when you need to handle the errors yourself or to wait for the mutation to complete.
 
+## Cancelling mutations
+
+The mutation and its hooks get a `signal` in their context. Pass it to your requests, then call `mutationCache.cancel(entry)` to stop the call:
+
+```ts
+import { useMutation, useMutationCache } from '@pinia/colada'
+
+const mutationCache = useMutationCache()
+
+const { mutate } = useMutation({
+  key: ['import'],
+  mutation: (file: File, { signal }) =>
+    fetch('/api/import', { method: 'POST', body: file, signal }),
+})
+
+function cancelImport() {
+  for (const entry of mutationCache.getEntries({ key: ['import'] })) {
+    mutationCache.cancel(entry)
+  }
+}
+```
+
+When a mutation is cancelled:
+
+- the call fails at once with the abort reason, even if the mutation does not use the `signal`
+- `status` becomes `'error'`, and `onError()` and `onSettled()` run, so you can roll back [optimistic updates](./optimistic-updates.md)
+- if the mutation is cancelled during `onMutate()`, the `mutation` function does not run
+
+::: warning
+
+Cancelling only stops the request on the client. The server stops its work only if it listens for the disconnect (e.g. `event.req.signal` in Nitro), and it cannot undo work that is already done.
+
+:::
+
 ## Mutation state
 
 The mutation returns similar properties to queries, like `state`, `data`, `error`, `status`, `asyncStatus`, etc. However, mutations are, by default, not global.
