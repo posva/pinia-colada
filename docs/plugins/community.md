@@ -45,3 +45,17 @@ Quick usage:
 
 - Register it in `PiniaColada` with `plugins: [PiniaColadaLogger()]`.
 - Pass `filter: ({ type }) => type !== "hit"` to skip cache hits.
+
+## Laravel Echo
+
+Keeps a query's cache current from Laravel Echo broadcasts: a channel is joined while the cache entry lives and left when it is removed, reference-counted across entries. The websocket connection counts towards cache validity — `staleTime` can be relaxed while connected, the query's own value returns on disconnect, and a reconnect invalidates each entry once.
+
+- **Extends**: queries
+- **Package**: `@kirchdev/pinia-colada-plugin-laravel-echo`
+- **Repository**: <https://github.com/kirchDev/pinia-colada-plugin-laravel-echo>
+- **npm**: <https://npmx.dev/package/@kirchdev/pinia-colada-plugin-laravel-echo>
+
+Quick usage:
+
+- Register it in `PiniaColada` with `plugins: [PiniaColadaLaravelEcho({ echo })]`.
+- Add an `echo` option with a `channel` and `listen` handlers to `useQuery()`.
