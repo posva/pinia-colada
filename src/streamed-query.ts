@@ -64,6 +64,8 @@ export interface StreamedQueryOptions_WithReducer<
 > extends StreamedQueryOptions_Base<TChunk> {
   /**
    * Merges a new chunk into the accumulated data. Must not mutate `data`.
+   * Can return `null`, but must not return `undefined` because it means the
+   * query has no data.
    */
   reducer: (data: TData, chunk: TChunk) => TData
 
@@ -144,6 +146,9 @@ export function streamedQuery<TChunk, TData>({
       }
     }
 
-    return isReplace ? result : ((entry.state.value.data as TData | undefined) ?? initialValue)
+    if (isReplace) return result
+    // `null` is a valid reducer result, only `undefined` means no data
+    const data = entry.state.value.data as TData | undefined
+    return data === undefined ? initialValue : data
   }
 }

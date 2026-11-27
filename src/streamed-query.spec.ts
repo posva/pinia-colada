@@ -155,6 +155,23 @@ describe('streamedQuery', () => {
     expect(wrapper.vm.data).toBe('Hello')
   })
 
+  it('keeps a null result of the reducer', async () => {
+    const { wrapper, current } = mountStreamed<number, number | null>({
+      reducer: (_sum, n) => (n < 0 ? null : n),
+      initialValue: 0,
+    })
+    await flushPromises()
+
+    current.push(-1)
+    await flushPromises()
+    expect(wrapper.vm.data).toBe(null)
+
+    current.end()
+    await flushPromises()
+    expect(wrapper.vm.status).toBe('success')
+    expect(wrapper.vm.data).toBe(null)
+  })
+
   it('keeps the received data when the stream fails', async () => {
     const { wrapper, current } = mountStreamed()
     await flushPromises()
