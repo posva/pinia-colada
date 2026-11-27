@@ -19,6 +19,12 @@ describe('useMutation', () => {
     // varies depending on the last call
     // vars: undefined,
   })
+  // context passed to all hooks and the mutation
+  const baseContext = {
+    entry: anyEntry,
+    mutationCache: expect.anything(),
+    signal: expect.any(AbortSignal),
+  }
 
   beforeEach(() => {
     vi.clearAllTimers()
@@ -209,16 +215,10 @@ describe('useMutation', () => {
       expect(onMutate).toHaveBeenCalledTimes(0)
       wrapper.vm.mutate({ a: 24, b: 42 })
       expect(onMutate).toHaveBeenCalledTimes(1)
-      expect(onMutate).toHaveBeenLastCalledWith(
-        { a: 24, b: 42 },
-        { entry: anyEntry, mutationCache: expect.anything() },
-      )
+      expect(onMutate).toHaveBeenLastCalledWith({ a: 24, b: 42 }, baseContext)
       wrapper.vm.mutateAsync({ a: 0, b: 1 })
       expect(onMutate).toHaveBeenCalledTimes(2)
-      expect(onMutate).toHaveBeenLastCalledWith(
-        { a: 0, b: 1 },
-        { entry: anyEntry, mutationCache: expect.anything() },
-      )
+      expect(onMutate).toHaveBeenLastCalledWith({ a: 0, b: 1 }, baseContext)
     })
 
     it('invokes the "onError" hook if mutation throws', async () => {
@@ -393,8 +393,7 @@ describe('useMutation', () => {
       // await flushPromises()
       expect(onMutate).toHaveBeenCalledTimes(1)
       expect(onMutate).toHaveBeenCalledWith(undefined, {
-        entry: anyEntry,
-        mutationCache: expect.anything(),
+        ...baseContext,
       })
     })
 
@@ -413,8 +412,7 @@ describe('useMutation', () => {
       wrapper.vm.mutate()
       expect(onMutate).toHaveBeenCalledWith(undefined, {
         global: true,
-        entry: anyEntry,
-        mutationCache: expect.anything(),
+        ...baseContext,
       })
     })
 
@@ -448,13 +446,11 @@ describe('useMutation', () => {
       await vi.advanceTimersByTimeAsync(10)
       expect(onMutate).toHaveBeenCalledWith(undefined, {
         global: true,
-        entry: anyEntry,
-        mutationCache: expect.anything(),
+        ...baseContext,
       })
       expect(mutation).toHaveBeenCalledWith(undefined, {
         global: true,
-        entry: anyEntry,
-        mutationCache: expect.anything(),
+        ...baseContext,
       })
     })
 
@@ -470,8 +466,7 @@ describe('useMutation', () => {
       wrapper.vm.mutate()
       await flushPromises()
       expect(onSuccess).toHaveBeenCalledWith(42, undefined, {
-        entry: anyEntry,
-        mutationCache: expect.anything(),
+        ...baseContext,
       })
     })
 
@@ -491,8 +486,7 @@ describe('useMutation', () => {
       await expect(wrapper.vm.mutateAsync()).rejects.toThrow()
       await flushPromises()
       expect(onError).toHaveBeenCalledWith(new Error('foobar'), undefined, {
-        entry: anyEntry,
-        mutationCache: expect.anything(),
+        ...baseContext,
       })
     })
 
@@ -508,8 +502,7 @@ describe('useMutation', () => {
       wrapper.vm.mutate()
       await flushPromises()
       expect(onSettled).toHaveBeenCalledWith(42, undefined, undefined, {
-        entry: anyEntry,
-        mutationCache: expect.anything(),
+        ...baseContext,
       })
     })
 
@@ -519,8 +512,7 @@ describe('useMutation', () => {
 
       wrapper.vm.mutate()
       expect(onMutate).toHaveBeenCalledWith(undefined, {
-        entry: anyEntry,
-        mutationCache: expect.anything(),
+        ...baseContext,
       })
     })
 
@@ -531,11 +523,7 @@ describe('useMutation', () => {
       wrapper.vm.mutate()
       await flushPromises()
       expect(onSuccess).toHaveBeenCalledTimes(1)
-      expect(onSuccess).toHaveBeenCalledWith(
-        42,
-        undefined,
-        expect.objectContaining({ entry: anyEntry, mutationCache: expect.anything() }),
-      )
+      expect(onSuccess).toHaveBeenCalledWith(42, undefined, expect.objectContaining(baseContext))
     })
   })
 

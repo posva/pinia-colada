@@ -94,6 +94,12 @@ export interface UseMutationEntry<
   gcTimeout: ReturnType<typeof setTimeout> | undefined
 
   /**
+   * Abort controller of the last call. Its `signal` is passed to the hooks and
+   * the mutation. Use {@link MutationCache.cancel} to abort it.
+   */
+  abortController: AbortController | undefined
+
+  /**
    * Extensions to the mutation entry added by plugins. You should only add
    * properties to the object, not replace it.
    */
@@ -210,6 +216,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
               error: null,
             }),
             gcTimeout: undefined,
+            abortController: undefined,
             asyncStatus: shallowRef<AsyncStatus>('idle'),
             when: 0,
             vars,
@@ -375,6 +382,27 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
   )
 
   /**
+   * Cancels the ongoing call of a mutation entry. This aborts its `signal`
+   * and makes the call fail with `reason`: `onError()` and `onSettled()` run.
+   *
+   * @param entry - the entry of the mutation to cancel
+   * @param reason - the reason passed to the abort controller
+   */
+  const cancel = action(
+    <
+      TData = unknown,
+      TVars = unknown,
+      TError = unknown,
+      TContext extends Record<any, any> = _EmptyObject,
+    >(
+      entry: UseMutationEntry<TData, TVars, TError, TContext>,
+      reason?: unknown,
+    ) => {
+      entry.abortController?.abort(reason)
+    },
+  )
+
+  /**
    * Mutate a previously ensured mutation entry.
    *
    * @param entry - the entry to mutate
@@ -405,7 +433,6 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
 
     entry.asyncStatus.value = 'loading'
 
-    // TODO: AbortSignal that is aborted when the mutation is called again so we can throw in pending
     let currentData: TData | undefined
     let currentError: TError | undefined
     type OnMutateContext = /* Parameters<
@@ -419,7 +446,12 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     >['2']
 
     const mutationCache = useMutationCache(pinia)
-    let context: OnMutateContext | OnErrorContext | OnSuccessContext = { entry, mutationCache }
+    const { signal } = (entry.abortController = new AbortController())
+    let context: OnMutateContext | OnErrorContext | OnSuccessContext = {
+      entry,
+      mutationCache,
+      signal,
+    }
 
     try {
       const globalOnMutateContext = globalOptions.onMutate?.(vars, context as any)
@@ -445,7 +477,13 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
         // NOTE: needed for onSuccess cast
       } satisfies OnSuccessContext
 
-      const newData = (currentData = await options.mutation(vars, context as OnSuccessContext))
+      const newData = (currentData = await new Promise<TData>((resolve, reject) => {
+        // cancelled during onMutate: throwing here rejects the promise
+        signal.throwIfAborted()
+        // settle right away even if the mutation ignores the signal
+        signal.addEventListener('abort', () => reject(signal.reason))
+        options.mutation(vars, context as OnSuccessContext).then(resolve, reject)
+      }))
 
       await globalOptions.onSuccess?.(
         newData,
@@ -504,6 +542,7 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     ensure,
     ensureDefinedMutation,
     mutate,
+    cancel,
     remove,
     extend,
     get,

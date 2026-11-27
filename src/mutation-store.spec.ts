@@ -462,4 +462,51 @@ describe('Mutation Cache store', () => {
     // Both should appear in getEntries()
     expect(mutationCache.getEntries()).toHaveLength(2)
   })
+
+  describe('cancel', () => {
+    function mutateEntry(options: Partial<UseMutationOptions<unknown, void>>) {
+      const mutationCache = useMutationCache()
+      const entry = mutationCache.ensure(
+        mutationCache.create({
+          ...USE_MUTATION_DEFAULTS,
+          mutation: () => new Promise(() => {}),
+          ...options,
+        }),
+        undefined,
+      )
+      return { mutationCache, entry, promise: mutationCache.mutate(entry) }
+    }
+
+    it('aborts the signal and fails with the reason', async () => {
+      let signal!: AbortSignal
+      const onError = vi.fn()
+      const { mutationCache, entry, promise } = mutateEntry({
+        // ignores the signal and never settles
+        mutation: (_vars, context) => ((signal = context.signal), new Promise(() => {})),
+        onError,
+      })
+      await flushPromises()
+
+      mutationCache.cancel(entry, 'stop')
+
+      await expect(promise).rejects.toBe('stop')
+      expect(signal.aborted).toBe(true)
+      expect(onError).toHaveBeenCalledTimes(1)
+      expect(entry.state.value).toEqual({ status: 'error', data: undefined, error: 'stop' })
+      expect(entry.asyncStatus.value).toBe('idle')
+    })
+
+    it('does not run the mutation if cancelled during onMutate', async () => {
+      const mutation = vi.fn(async () => 'ok')
+      const { mutationCache, entry, promise } = mutateEntry({
+        onMutate: () => flushPromises(),
+        mutation,
+      })
+
+      mutationCache.cancel(entry)
+
+      await expect(promise).rejects.toThrow()
+      expect(mutation).toHaveBeenCalledTimes(0)
+    })
+  })
 })
