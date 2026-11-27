@@ -92,6 +92,21 @@ describe('streamedMutation', () => {
     expect(s.wrapper.vm.data).toBe('Hello')
   })
 
+  it('keeps an undefined initial value with a custom reducer', async () => {
+    const s = mountStreamed<number, number | undefined>({
+      reducer: (sum, n) => (sum ?? 0) + n,
+      initialValue: undefined,
+    })
+
+    s.wrapper.vm.mutate(1)
+    await flushPromises()
+    s.current.push(2)
+    s.current.end()
+    await flushPromises()
+
+    expect(s.wrapper.vm.data).toBe(3)
+  })
+
   it('keeps the received data when the stream fails', async () => {
     const s = mountStreamed()
 
