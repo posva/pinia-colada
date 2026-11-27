@@ -38,6 +38,8 @@ jobs:
         run: pnpm run test:cov
       - name: Type tests
         run: pnpm run test:types
+      - name: Nuxt type tests
+        run: pnpm -C nuxt run test:types
       - name: Size check
         run: pnpm run size
       - name: Codemods tests

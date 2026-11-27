@@ -14,6 +14,7 @@ allowBuilds:
 overrides:
   '@nuxt/cli>@bomb.sh/tab': 0.0.22
   '@nuxt/devtools': 4.1.0
+  nuxt>vue-router: 5.5.3
   twoslash-vue: 0.3.7
 ignoreWorkspaceRootCheck: true
 shamefullyHoist: true
@@ -28,5 +29,5 @@ minimumReleaseAgeExclude:
   - ignore
   - srvx
   - unimport
-  - vue-router@5.3.1
+  - vue-router@5.3.1 || 5.5.3
   - zod@4.6.5

@@ -1,0 +1,9 @@
+{
+  "extends": "./.nuxt/tsconfig.node.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./.nuxt/tsconfig.test.tsbuildinfo",
+    "erasableSyntaxOnly": false
+  },
+  "include": ["./.nuxt/nuxt.d.ts", "./.nuxt/nuxt.node.d.ts", "./test", "./*.config.*"],
+  "exclude": ["./test/fixtures"]
+}

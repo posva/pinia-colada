@@ -1,7 +1,14 @@
 {
   "name": "@pinia/colada-nuxt",
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/types.d.mts",
+        "import": "./dist/module.mjs"
+      }
+    },
+    "main": "./dist/module.mjs"
   },
   "type": "module",
   "version": "1.2.1",
@@ -10,25 +17,28 @@
   "repository": "posva/pinia-colada",
   "homepage": "https://pinia-colada.esm.dev/nuxt.html",
   "exports": {
-    ".": "./dist/module.mjs"
+    ".": {
+      "types": "./.nuxt/module-builder/types.d.mts",
+      "import": "./src/module.ts"
+    }
   },
-  "main": "./dist/module.mjs",
+  "main": "./src/module.ts",
   "files": [
-    "dist",
-    "types"
+    "dist"
   ],
   "scripts": {
-    "build": "nuxt-module-build build",
-    "dev": "nuxi dev playground",
+    "build": "tsdown",
+    "dev": "nuxt-module-build prepare && nuxi dev playground",
     "dev:build": "nuxi build playground",
-    "dev:prepare": "nuxt-module-build build --stub && nuxt-module-build prepare && nuxi prepare playground",
+    "dev:prepare": "nuxt-module-build prepare && nuxi prepare playground",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest watch",
-    "test:types": "vue-tsc --noEmit && cd playground && vue-tsc --noEmit"
+    "test:types": "vue-tsc -b --noEmit && cd playground && vue-tsc --noEmit",
+    "prepack": "tsdown"
   },
   "dependencies": {
-    "@nuxt/kit": "^4.6.4"
+    "@nuxt/kit": "^4.7.0"
   },
   "peerDependencies": {
     "@pinia/colada": "workspace:>=",
@@ -41,15 +51,16 @@
   },
   "devDependencies": {
     "@nuxt/eslint-config": "^1.17.0",
-    "@nuxt/module-builder": "1.0.3",
-    "@nuxt/schema": "^4.6.4",
-    "@nuxt/test-utils": "^4.3.4",
+    "@nuxt/module-builder": "2.0.0-alpha.1",
+    "@nuxt/schema": "^4.7.0",
+    "@nuxt/test-utils": "^4.4.0",
     "@pinia/colada": "workspace:*",
     "@pinia/colada-devtools": "workspace:^",
     "@pinia/nuxt": "^1.0.3",
-    "nuxi": "^4.0.3",
-    "nuxt": "^4.6.4",
-    "playwright-core": "^1.64.1",
+    "nuxi": "^4.1.0",
+    "nuxt": "^4.7.0",
+    "playwright-core": "^1.65.1",
+    "tsdown": "^0.23.7",
     "typescript": "~6.0.3",
     "vue-tsc": "^3.3.14"
   }

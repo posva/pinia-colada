@@ -1,4 +1,5 @@
 // https://github.com/posva/jest-mock-warn/blob/master/src/index.js
+import { format } from 'node:util'
 import type { MockInstance } from 'vitest'
 import { afterEach, beforeEach, expect, vi } from 'vitest'
 
@@ -28,8 +29,8 @@ function createMockConsoleMethod(method: 'warn' | 'error') {
       asserted.set(received.toString(), received)
       const passed = mockInstance.mock.calls.some((args) =>
         typeof received === 'string'
-          ? String(args[0]).includes(received)
-          : received.test(String(args[0])),
+          ? format(...args).includes(received)
+          : received.test(format(...args)),
       )
 
       return passed
@@ -44,9 +45,12 @@ function createMockConsoleMethod(method: 'warn' | 'error') {
       received: string | RegExp,
     ) {
       asserted.set(received.toString(), received)
-      const lastCall = String(mockInstance.mock.calls.at(-1)?.[0])
+      const lastCall = mockInstance.mock.calls.at(-1)
       const passed =
-        typeof received === 'string' ? lastCall?.includes(received) : received.test(lastCall)
+        lastCall !== undefined &&
+        (typeof received === 'string'
+          ? format(...lastCall).includes(received)
+          : received.test(format(...lastCall)))
 
       return passed
         ? { pass: true, message: () => `expected "${received}" not to have been ${method}ed last.` }
@@ -63,8 +67,8 @@ function createMockConsoleMethod(method: 'warn' | 'error') {
       asserted.set(received.toString(), received)
       const count = mockInstance.mock.calls.filter((args) =>
         typeof received === 'string'
-          ? String(args[0]).includes(received)
-          : received.test(String(args[0])),
+          ? format(...args).includes(received)
+          : received.test(format(...args)),
       ).length
 
       return count === n
@@ -88,7 +92,7 @@ function createMockConsoleMethod(method: 'warn' | 'error') {
   afterEach(() => {
     const assertedArray = Array.from(asserted)
     const unassertedLogs = mockInstance.mock.calls
-      .map((args) => String(args[0]))
+      .map((args) => format(...args))
       .filter(
         (msg) =>
           !assertedArray.some(([_key, assertedMsg]) =>
