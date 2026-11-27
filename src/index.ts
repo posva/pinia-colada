@@ -45,6 +45,15 @@ export {
 } from './define-infinite-query-options'
 
 export {
+  streamedQuery,
+  type StreamedQueryFn,
+  type StreamedQueryFnContext,
+  type StreamedQueryOptions,
+  type StreamedQueryOptionsBase,
+  type StreamedQueryRefetchMode,
+} from './streamed-query'
+
+export {
   hydrateQueryCache,
   isQueryCache,
   type QueryCache,
