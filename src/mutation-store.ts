@@ -154,7 +154,8 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
     }
   }
 
-  const app: App<unknown> = getActivePinia()!._a
+  const pinia = getActivePinia()!
+  const app: App<unknown> = pinia._a
 
   const globalOptions = useMutationOptions()
   const defineMutationMap = new WeakMap<() => unknown, DefineMutationEntry>()
@@ -417,13 +418,14 @@ export const useMutationCache = /* @__PURE__ */ defineStore(MUTATION_STORE_ID, (
       Required<UseMutationOptions<TData, TVars, TError, TContext>>['onError']
     >['2']
 
-    let context: OnMutateContext | OnErrorContext | OnSuccessContext = { entry }
+    const mutationCache = useMutationCache(pinia)
+    let context: OnMutateContext | OnErrorContext | OnSuccessContext = { entry, mutationCache }
 
     try {
       const globalOnMutateContext = globalOptions.onMutate?.(vars, context as any)
 
       context = {
-        entry,
+        ...context,
         ...(globalOnMutateContext instanceof Promise
           ? await globalOnMutateContext
           : globalOnMutateContext),

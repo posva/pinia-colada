@@ -5,6 +5,7 @@ import { useMutation } from './use-mutation'
 import type { EntryKeyTagged } from './entry-keys'
 import type { ErrorDefault } from './types-extension'
 import type { _EmptyObject } from './utils'
+import type { UseMutationContextCommon } from './mutation-options'
 
 describe('defineMutationOptions types', () => {
   it('static options infer TData and TVars', () => {
@@ -75,7 +76,7 @@ describe('defineMutationOptions types', () => {
       },
 
       mutation: async (vars, context) => {
-        expectTypeOf(context).toEqualTypeOf<{ previousValue: string }>()
+        expectTypeOf(context).toEqualTypeOf<UseMutationContextCommon & { previousValue: string }>()
         return vars * 2
       },
 
