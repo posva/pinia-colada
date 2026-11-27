@@ -11,7 +11,9 @@ export type StreamedMutationFnContext = UseMutationContextCommon
 export interface StreamedMutationOptions_Base<TChunk, TVars> {
   /**
    * Function that returns an `AsyncIterable` (e.g. an async generator). Each
-   * chunk is added to the mutation data as soon as it arrives.
+   * chunk is added to the mutation data as soon as it arrives. Pass the
+   * `signal` to your requests to stop the stream when the mutation is
+   * cancelled.
    */
   stream: (
     vars: TVars,
@@ -108,11 +110,13 @@ export function streamedMutation<TChunk, TData, TVars>(
     : (options.initialValue ?? ([] as TData))
 
   return async (vars, context) => {
-    const { entry, mutationCache } = context
+    const { entry, mutationCache, signal } = context
     let result = initialValue
 
     // each mutate() call has its own entry, so there is no refetch or outdated stream
     for await (const chunk of await stream(vars, context)) {
+      // the call already failed with the cancel reason
+      signal.throwIfAborted()
       result = reducer(result, chunk)
       mutationCache.setEntryState(entry, { status: 'success', data: result, error: null })
     }

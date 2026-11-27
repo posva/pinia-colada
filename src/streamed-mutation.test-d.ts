@@ -66,7 +66,8 @@ describe('streamedMutation', () => {
 
   it('passes the mutation context', () => {
     streamedMutation({
-      stream: (_vars: void, { entry, mutationCache }) => {
+      stream: (_vars: void, { entry, mutationCache, signal }) => {
+        expectTypeOf(signal).toEqualTypeOf<AbortSignal>()
         expectTypeOf(entry).toEqualTypeOf<UseMutationEntry>()
         expectTypeOf(mutationCache).toEqualTypeOf<MutationCache>()
         return numbers()
