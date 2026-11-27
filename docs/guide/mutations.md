@@ -185,7 +185,7 @@ function cancelImport() {
 
 When a mutation is cancelled:
 
-- the call fails at once with the abort reason, even if the mutation does not use the `signal`
+- the `signal` is aborted. Your mutation must use it to stop early. The call fails with the abort reason when the mutation settles, even if the mutation succeeds
 - `status` becomes `'error'`, and `onError()` and `onSettled()` run, so you can roll back [optimistic updates](./optimistic-updates.md)
 - if the mutation is cancelled during `onMutate()`, the `mutation` function does not run
 
