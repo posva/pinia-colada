@@ -1231,6 +1231,81 @@ describe('useInfiniteQuery', () => {
     expect(wrapper.vm.error).toBe(error)
   })
 
+  it('fetches the failed next page again when fetching the entry after an error (e.g. retry)', async () => {
+    let failOnce = true
+    const { wrapper, query, queryCache } = mountSimple({
+      query: vi.fn(async ({ pageParam }) => {
+        if (pageParam === 1 && failOnce) {
+          failOnce = false
+          throw new Error('fail')
+        }
+        return [pageParam]
+      }),
+    })
+
+    await flushPromises()
+    await wrapper.vm.loadNextPage()
+    expect(wrapper.vm.error).toEqual(new Error('fail'))
+
+    query.mockClear()
+    await queryCache.fetch(queryCache.get(['key'])!)
+
+    expect(query).toHaveBeenCalledTimes(1)
+    expect(query).toHaveBeenCalledWith(expect.objectContaining({ pageParam: 1 }))
+    expect(wrapper.vm.error).toBe(null)
+    expect(wrapper.vm.data).toEqual({ pages: [[0], [1]], pageParams: [0, 1] })
+  })
+
+  it('fetches the failed previous page again when fetching the entry after an error (e.g. retry)', async () => {
+    let failOnce = true
+    const { wrapper, query, queryCache } = mountSimple({
+      initialPageParam: 2,
+      query: vi.fn(async ({ pageParam }) => {
+        if (pageParam === 1 && failOnce) {
+          failOnce = false
+          throw new Error('fail')
+        }
+        return [pageParam]
+      }),
+    })
+
+    await flushPromises()
+    await wrapper.vm.loadPreviousPage()
+    expect(wrapper.vm.error).toEqual(new Error('fail'))
+
+    query.mockClear()
+    await queryCache.fetch(queryCache.get(['key'])!)
+
+    expect(query).toHaveBeenCalledTimes(1)
+    expect(query).toHaveBeenCalledWith(expect.objectContaining({ pageParam: 1 }))
+    expect(wrapper.vm.error).toBe(null)
+    expect(wrapper.vm.data).toEqual({ pages: [[1], [2]], pageParams: [1, 2] })
+  })
+
+  it('refetches all pages after a next page request is cancelled by a refetch', async () => {
+    const { wrapper, query } = mountSimple({
+      query: vi.fn(async ({ pageParam, signal }) => {
+        if (pageParam === 1) {
+          await new Promise((_, reject) => {
+            signal.addEventListener('abort', () => reject(signal.reason))
+          })
+        }
+        return [pageParam]
+      }),
+    })
+
+    await flushPromises()
+    const p = wrapper.vm.loadNextPage()
+    await wrapper.vm.refetch()
+    await p
+
+    query.mockClear()
+    await wrapper.vm.refetch()
+    expect(query).toHaveBeenCalledTimes(1)
+    expect(query).toHaveBeenCalledWith(expect.objectContaining({ pageParam: 0 }))
+    expect(wrapper.vm.data).toEqual({ pages: [[0]], pageParams: [0] })
+  })
+
   it('loadPreviousPage with cancelRefetch=false should not trigger a new fetch if one is pending', async () => {
     const { wrapper, query } = mountSimple({
       initialPageParam: 2,
