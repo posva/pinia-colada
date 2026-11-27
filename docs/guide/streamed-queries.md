@@ -59,6 +59,70 @@ const { data: answer } = useQuery({
 
 The `reducer` must not mutate its first argument. Return a new value instead.
 
+## Example: streaming an LLM response
+
+The [AI SDK](https://ai-sdk.dev/docs/reference/ai-sdk-core/stream-text.md) `streamText()` function returns a `textStream` that is an `AsyncIterable`. `streamText()` needs your provider API key, so call it in a server route and send the text to the client with `toTextStreamResponse()`. With Nuxt:
+
+```ts [server/api/ask.post.ts]
+import { defineEventHandler, readBody } from 'nuxt/server'
+import { streamText } from 'ai'
+
+export default defineEventHandler(async (event) => {
+  const { prompt } = await readBody<{ prompt: string }>(event)
+
+  const result = streamText({
+    model: 'anthropic/claude-sonnet-5.5',
+    prompt,
+    // stops the LLM call when the client cancels the request
+    abortSignal: event.req.signal,
+  })
+
+  return result.toTextStreamResponse()
+})
+```
+
+In the page, read the response as text chunks and join them with a `reducer`:
+
+```vue [pages/ask.vue]
+<script setup lang="ts">
+import { streamedQuery } from '@pinia/colada'
+
+async function* askLLM(prompt: string, { signal }: { signal: AbortSignal }) {
+  const body = await $fetch<ReadableStream<Uint8Array>>('/api/ask', {
+    method: 'POST',
+    body: { prompt },
+    responseType: 'stream',
+    signal,
+  })
+
+  const reader = body.pipeThrough(new TextDecoderStream()).getReader()
+  while (true) {
+    const { value, done } = await reader.read()
+    if (done) return
+    yield value
+  }
+}
+
+const prompt = ref('Invent a new holiday and describe its traditions.')
+
+const { data: answer, asyncStatus } = useQuery({
+  key: () => ['ask', prompt.value],
+  query: streamedQuery({
+    stream: ({ signal }) => askLLM(prompt.value, { signal }),
+    reducer: (text, chunk) => text + chunk,
+    initialValue: '',
+  }),
+})
+</script>
+
+<template>
+  <input v-model.lazy="prompt" />
+  <p>{{ answer }}<span v-if="asyncStatus === 'loading'">…</span></p>
+</template>
+```
+
+`answer` shows the text while the LLM writes it, and `asyncStatus` is `'loading'` until the answer is complete. Changing `prompt` starts a new query with a new key.
+
 ## Refetch mode
 
 `refetchMode` sets what happens to the existing data when the query is fetched again (e.g. after `refetch()` or an invalidation):
