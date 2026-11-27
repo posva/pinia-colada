@@ -51,7 +51,7 @@ describe('streamedQuery', () => {
     function wrap<TChunk, TData>(options: StreamedQueryOptions<TChunk, TData>) {
       return streamedQuery(options)
     }
-    expectTypeOf(wrap<number, string>).returns.toEqualTypeOf<StreamedQueryFn<string>>()
+    expectTypeOf(wrap<number, string>).returns.toEqualTypeOf<StreamedQueryFn<number[] | string>>()
 
     const options: StreamedQueryOptions<number> = { stream: () => numbers() }
     expectTypeOf(streamedQuery(options)).toEqualTypeOf<StreamedQueryFn<number[]>>()

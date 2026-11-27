@@ -267,6 +267,42 @@ describe('streamedQuery', () => {
       expect(entry.state.value).toEqual({ status: 'success', data: [1, 2], error: null })
       expect(entry.asyncStatus.value).toBe('idle')
     })
+
+    it('keeps the existing data if the stream ends after the last consumer leaves while replacing', async () => {
+      const mounted = await mountAndStream({ refetchMode: 'replace' })
+
+      mounted.wrapper.vm.refetch()
+      await flushPromises()
+      mounted.current.push(3)
+      await flushPromises()
+
+      mounted.wrapper.unmount()
+      // the stream ignores the signal and ends normally
+      mounted.current.end()
+      await flushPromises()
+
+      const entry = mounted.queryCache.get(['key'])!
+      expect(entry.state.value).toEqual({ status: 'success', data: [1, 2], error: null })
+      expect(entry.asyncStatus.value).toBe('idle')
+    })
+
+    it('uses the initial value when the reducer returns undefined while replacing', async () => {
+      const mounted = await mountAndStream({
+        refetchMode: 'replace',
+        reducer: (data, n) => (n < 0 ? (undefined as unknown as number[]) : [...data, n]),
+        initialValue: [],
+      })
+
+      mounted.wrapper.vm.refetch()
+      await flushPromises()
+      mounted.current.push(-1)
+      mounted.current.push(3)
+      mounted.current.end()
+      await flushPromises()
+
+      expect(mounted.wrapper.vm.status).toBe('success')
+      expect(mounted.wrapper.vm.data).toEqual([3])
+    })
   })
 
   it('ignores chunks after the query is cancelled', async () => {

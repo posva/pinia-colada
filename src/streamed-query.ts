@@ -111,7 +111,7 @@ export function streamedQuery<TChunk, TData>(
 ): StreamedQueryFn<TData>
 export function streamedQuery<TChunk, TData>(
   options: StreamedQueryOptions<TChunk, TData>,
-): StreamedQueryFn<TData>
+): StreamedQueryFn<TChunk[] | TData>
 export function streamedQuery<TChunk, TData>({
   stream,
   refetchMode = 'reset',
@@ -137,6 +137,8 @@ export function streamedQuery<TChunk, TData>({
 
       if (isReplace) {
         result = reducer(result, chunk)
+        // `null` is a valid reducer result, only `undefined` means no data
+        if (result === undefined) result = initialValue
       } else {
         // read from the entry to keep changes made with setQueryData() during the stream
         const data = entry.state.value.data as TData | undefined
@@ -145,8 +147,10 @@ export function streamedQuery<TChunk, TData>({
       }
     }
 
+    // the stream can end normally after an abort
+    signal.throwIfAborted()
+
     if (isReplace) return result
-    // `null` is a valid reducer result, only `undefined` means no data
     const data = entry.state.value.data as TData | undefined
     return data === undefined ? initialValue : data
   }
