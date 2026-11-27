@@ -227,6 +227,7 @@ On top of that Pinia Colada is highly extensible. You can create your own plugin
             { text: 'Query Meta', link: '/guide/query-meta.html' },
             { text: 'Paginated Queries', link: '/guide/paginated-queries.html' },
             { text: 'Infinite Queries', link: '/guide/infinite-queries.html' },
+            { text: 'Streamed Queries', link: '/guide/streamed-queries.html' },
             { text: 'Mutations', link: '/guide/mutations.html' },
             {
               text: 'Error Handling',
