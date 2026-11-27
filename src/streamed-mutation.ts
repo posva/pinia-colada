@@ -82,7 +82,7 @@ export type StreamedMutationFn<TData, TVars = void> = (
  * ```ts
  * const { mutate, data } = useMutation({
  *   mutation: streamedMutation({
- *     stream: (file: File) => importContacts(file),
+ *     stream: (file: File, { signal }) => importContacts(file, { signal }),
  *   }),
  * })
  * ```

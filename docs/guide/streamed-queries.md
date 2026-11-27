@@ -36,11 +36,15 @@ While the stream sends chunks:
 
 If the stream throws an error, `status` becomes `'error'` and `data` keeps the chunks received before the error.
 
+If you change the data with `queryCache.setQueryData()` while the stream sends chunks, the next chunks are added to the new data.
+
 ::: tip
 
 Always pass the `signal` to your requests. When the query is cancelled or fetched again, Pinia Colada ignores the next chunks and the `signal` stops the request.
 
 :::
+
+When the query is [cancelled](./cancelling-queries.md), `asyncStatus` becomes `'idle'`, `data` keeps the chunks received before the cancellation, and `status` does not become `'error'`.
 
 To stream the result of an operation that changes data on the server, use [`streamedMutation()`](./streamed-mutations.md).
 
@@ -131,7 +135,7 @@ const { data: answer, asyncStatus } = useQuery({
 
 - `'reset'` (default): removes the data and goes back to the `'pending'` status. The data fills again as chunks arrive.
 - `'append'`: keeps the data and adds the new chunks to it.
-- `'replace'`: keeps the data until the stream ends, then replaces it with the new data in one step.
+- `'replace'`: keeps the data until the stream ends, then replaces it with the new data in one step. If the query is cancelled before the end, the data does not change.
 
 ```ts
 useQuery({

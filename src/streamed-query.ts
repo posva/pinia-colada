@@ -64,7 +64,7 @@ export interface StreamedQueryOptions_WithReducer<
 > extends StreamedQueryOptions_Base<TChunk> {
   /**
    * Merges a new chunk into the accumulated data. Must not mutate `data`.
-   * If it returns `undefined`, fallbacks to `initialValue`.
+   * If it returns `undefined`, the next chunk starts from `initialValue`.
    */
   reducer: (data: TData, chunk: TChunk) => TData
 

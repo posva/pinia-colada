@@ -9,7 +9,7 @@ const queryCache = useQueryCache()
 
 const { mutate, data: events } = useMutation({
   mutation: streamedMutation({
-    stream: (file: File) => importContacts(file),
+    stream: (file: File, { signal }) => importContacts(file, { signal }),
   }),
   onSettled: () => queryCache.invalidateQueries({ key: ['contacts'] }),
 })
@@ -39,7 +39,7 @@ By default, each chunk is added at the end of an array. Use `reducer` and `initi
 ```ts
 const { mutate, data: progress } = useMutation({
   mutation: streamedMutation({
-    stream: (file: File) => importContacts(file),
+    stream: (file: File, { signal }) => importContacts(file, { signal }),
     reducer: (_percent, chunk) => chunk.percent,
     initialValue: 0,
   }),
@@ -52,3 +52,4 @@ The `reducer` must not mutate its first argument. Return a new value instead.
 
 - There is no `refetchMode`. Each call of `mutate()` starts again from `initialValue`.
 - Mutations are not cancelled when a new call starts. Call [`mutationCache.cancel(entry)`](./mutations.md#cancelling-mutations) to stop a stream.
+- A cancelled mutation stream fails: `status` becomes `'error'`, `onError()` runs, and `data` keeps the chunks received before the cancellation. A cancelled query stream does not fail.
