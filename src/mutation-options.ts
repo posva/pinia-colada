@@ -3,7 +3,7 @@ import type { InjectionKey } from 'vue'
 import type { ErrorDefault, MutationMeta } from './types-extension'
 import type { _ReduceContext, _MutationKey, UseMutationGlobalContext } from './use-mutation'
 import type { _EmptyObject, _Awaitable } from './utils'
-import type { UseMutationEntry } from './mutation-store'
+import type { MutationCache, UseMutationEntry } from './mutation-store'
 
 /**
  * Common context properties shared by all mutation hooks. Contains the mutation entry with optional generics for
@@ -20,6 +20,11 @@ export interface UseMutationContextCommon<
    */
   entry: UseMutationEntry<TData, TVars, TError, TContext>
   // entry: Omit<UseMutationEntry<TData, TVars, TError, TContext>, 'options'>
+
+  /**
+   * The mutation cache that owns the {@link entry}.
+   */
+  mutationCache: MutationCache
 }
 
 /**
@@ -150,7 +155,10 @@ export interface UseMutationOptions<
   /**
    * The key of the mutation. If the mutation is successful, it will invalidate the mutation with the same key and refetch it
    */
-  mutation: (vars: TVars, context: _ReduceContext<NoInfer<TContext>>) => Promise<TData>
+  mutation: (
+    vars: TVars,
+    context: UseMutationContextCommon & _ReduceContext<NoInfer<TContext>>,
+  ) => Promise<TData>
 
   /**
    * Optional key to identify the mutation globally and access it through other

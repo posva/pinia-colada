@@ -209,10 +209,16 @@ describe('useMutation', () => {
       expect(onMutate).toHaveBeenCalledTimes(0)
       wrapper.vm.mutate({ a: 24, b: 42 })
       expect(onMutate).toHaveBeenCalledTimes(1)
-      expect(onMutate).toHaveBeenLastCalledWith({ a: 24, b: 42 }, { entry: anyEntry })
+      expect(onMutate).toHaveBeenLastCalledWith(
+        { a: 24, b: 42 },
+        { entry: anyEntry, mutationCache: expect.anything() },
+      )
       wrapper.vm.mutateAsync({ a: 0, b: 1 })
       expect(onMutate).toHaveBeenCalledTimes(2)
-      expect(onMutate).toHaveBeenLastCalledWith({ a: 0, b: 1 }, { entry: anyEntry })
+      expect(onMutate).toHaveBeenLastCalledWith(
+        { a: 0, b: 1 },
+        { entry: anyEntry, mutationCache: expect.anything() },
+      )
     })
 
     it('invokes the "onError" hook if mutation throws', async () => {
@@ -388,6 +394,7 @@ describe('useMutation', () => {
       expect(onMutate).toHaveBeenCalledTimes(1)
       expect(onMutate).toHaveBeenCalledWith(undefined, {
         entry: anyEntry,
+        mutationCache: expect.anything(),
       })
     })
 
@@ -404,7 +411,11 @@ describe('useMutation', () => {
       )
 
       wrapper.vm.mutate()
-      expect(onMutate).toHaveBeenCalledWith(undefined, { global: true, entry: anyEntry })
+      expect(onMutate).toHaveBeenCalledWith(undefined, {
+        global: true,
+        entry: anyEntry,
+        mutationCache: expect.anything(),
+      })
     })
 
     it('awaits global onMutate and passes its context to local hooks and mutation', async () => {
@@ -435,8 +446,16 @@ describe('useMutation', () => {
       expect(mutation).toHaveBeenCalledTimes(0)
 
       await vi.advanceTimersByTimeAsync(10)
-      expect(onMutate).toHaveBeenCalledWith(undefined, { global: true, entry: anyEntry })
-      expect(mutation).toHaveBeenCalledWith(undefined, { global: true, entry: anyEntry })
+      expect(onMutate).toHaveBeenCalledWith(undefined, {
+        global: true,
+        entry: anyEntry,
+        mutationCache: expect.anything(),
+      })
+      expect(mutation).toHaveBeenCalledWith(undefined, {
+        global: true,
+        entry: anyEntry,
+        mutationCache: expect.anything(),
+      })
     })
 
     it('triggers global onSuccess', async () => {
@@ -450,7 +469,10 @@ describe('useMutation', () => {
 
       wrapper.vm.mutate()
       await flushPromises()
-      expect(onSuccess).toHaveBeenCalledWith(42, undefined, { entry: anyEntry })
+      expect(onSuccess).toHaveBeenCalledWith(42, undefined, {
+        entry: anyEntry,
+        mutationCache: expect.anything(),
+      })
     })
 
     it('triggers global onError', async () => {
@@ -468,7 +490,10 @@ describe('useMutation', () => {
 
       await expect(wrapper.vm.mutateAsync()).rejects.toThrow()
       await flushPromises()
-      expect(onError).toHaveBeenCalledWith(new Error('foobar'), undefined, { entry: anyEntry })
+      expect(onError).toHaveBeenCalledWith(new Error('foobar'), undefined, {
+        entry: anyEntry,
+        mutationCache: expect.anything(),
+      })
     })
 
     it('triggers global onSettled', async () => {
@@ -482,7 +507,10 @@ describe('useMutation', () => {
 
       wrapper.vm.mutate()
       await flushPromises()
-      expect(onSettled).toHaveBeenCalledWith(42, undefined, undefined, { entry: anyEntry })
+      expect(onSettled).toHaveBeenCalledWith(42, undefined, undefined, {
+        entry: anyEntry,
+        mutationCache: expect.anything(),
+      })
     })
 
     it('passes entry to local onMutate via global context', async () => {
@@ -490,7 +518,10 @@ describe('useMutation', () => {
       const { wrapper } = mountSimple({ onMutate })
 
       wrapper.vm.mutate()
-      expect(onMutate).toHaveBeenCalledWith(undefined, { entry: anyEntry })
+      expect(onMutate).toHaveBeenCalledWith(undefined, {
+        entry: anyEntry,
+        mutationCache: expect.anything(),
+      })
     })
 
     it('entry in context refers to the actual mutation entry', async () => {
@@ -503,7 +534,7 @@ describe('useMutation', () => {
       expect(onSuccess).toHaveBeenCalledWith(
         42,
         undefined,
-        expect.objectContaining({ entry: anyEntry }),
+        expect.objectContaining({ entry: anyEntry, mutationCache: expect.anything() }),
       )
     })
   })
