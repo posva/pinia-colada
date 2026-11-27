@@ -6,7 +6,7 @@ import {
   useQuery,
   useQueryCache,
 } from '@pinia/colada'
-import type { QueryCache } from '@pinia/colada'
+import type { QueryCache, StreamedQueryFn, StreamedQueryOptions } from '@pinia/colada'
 
 async function* numbers(): AsyncGenerator<number> {
   yield 1
@@ -45,6 +45,16 @@ describe('streamedQuery', () => {
   it('requires an initial value with a custom reducer', () => {
     // @ts-expect-error: missing initialValue
     streamedQuery({ stream: () => numbers(), reducer: (sum: number, n: number) => sum + n })
+  })
+
+  it('accepts a value typed with StreamedQueryOptions', () => {
+    function wrap<TChunk, TData>(options: StreamedQueryOptions<TChunk, TData>) {
+      return streamedQuery(options)
+    }
+    expectTypeOf(wrap<number, string>).returns.toEqualTypeOf<StreamedQueryFn<string>>()
+
+    const options: StreamedQueryOptions<number> = { stream: () => numbers() }
+    expectTypeOf(streamedQuery(options)).toEqualTypeOf<StreamedQueryFn<number[]>>()
   })
 
   it('accepts a promise of an iterable', () => {

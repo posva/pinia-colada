@@ -7,7 +7,14 @@ import { PiniaColada } from './pinia-colada'
 import { useQueryCache } from './query-store'
 import { useQuery } from './use-query'
 import { streamedQuery } from './streamed-query'
-import type { StreamedQueryOptions } from './streamed-query'
+import type {
+  StreamedQueryOptions_WithReducer,
+  StreamedQueryOptions_WithoutReducer,
+} from './streamed-query'
+
+type OptionsWithoutStream<TChunk, TData> =
+  | Omit<StreamedQueryOptions_WithoutReducer<TChunk>, 'stream'>
+  | Omit<StreamedQueryOptions_WithReducer<TChunk, TData>, 'stream'>
 
 /**
  * Async iterable controlled by the test.
@@ -62,7 +69,7 @@ describe('streamedQuery', () => {
   mockConsoleError()
 
   function mountStreamed<TChunk = number, TData = TChunk[]>(
-    options: Omit<StreamedQueryOptions<TChunk, TData>, 'stream'> = {},
+    options: OptionsWithoutStream<TChunk, TData> = {},
   ) {
     const streams: Array<ReturnType<typeof createStream<TChunk>>> = []
     const stream = () => {
@@ -79,7 +86,6 @@ describe('streamedQuery', () => {
           queryCache = useQueryCache()
           return useQuery({
             key: ['key'],
-            // @ts-expect-error: overloads cannot be picked from a generic union
             query: streamedQuery({ ...options, stream }),
           })
         },
@@ -165,8 +171,8 @@ describe('streamedQuery', () => {
   })
 
   describe('refetchMode', () => {
-    async function mountAndStream(options: Omit<StreamedQueryOptions<number>, 'stream'> = {}) {
-      const mounted = mountStreamed(options)
+    async function mountAndStream(options: OptionsWithoutStream<number, number[]> = {}) {
+      const mounted = mountStreamed<number, number[]>(options)
       await flushPromises()
       mounted.current.push(1)
       mounted.current.push(2)

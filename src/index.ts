@@ -49,7 +49,9 @@ export {
   type StreamedQueryFn,
   type StreamedQueryFnContext,
   type StreamedQueryOptions,
-  type StreamedQueryOptionsBase,
+  type StreamedQueryOptions_Base,
+  type StreamedQueryOptions_WithReducer,
+  type StreamedQueryOptions_WithoutReducer,
   type StreamedQueryRefetchMode,
 } from './streamed-query'
 

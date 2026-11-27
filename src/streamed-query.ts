@@ -19,7 +19,7 @@ export type StreamedQueryFnContext = UseQueryFnContext<unknown, unknown, unknown
 /**
  * Options for {@link streamedQuery} without the `reducer` and `initialValue`.
  */
-export interface StreamedQueryOptionsBase<TChunk> {
+export interface StreamedQueryOptions_Base<TChunk> {
   /**
    * Function that returns an `AsyncIterable` (e.g. an async generator). Each
    * chunk is added to the query data as soon as it arrives. Pass the `signal`
@@ -39,26 +39,46 @@ export interface StreamedQueryOptionsBase<TChunk> {
 }
 
 /**
- * Options for {@link streamedQuery}.
+ * Options for {@link streamedQuery} that collect the chunks into an array.
  */
-export interface StreamedQueryOptions<
+export interface StreamedQueryOptions_WithoutReducer<
   TChunk,
-  TData = TChunk[],
-> extends StreamedQueryOptionsBase<TChunk> {
-  /**
-   * Merges a new chunk into the accumulated data. Must not mutate `data`.
-   * Defaults to adding the chunk at the end of an array.
-   */
-  reducer?: (data: TData, chunk: TChunk) => TData
+> extends StreamedQueryOptions_Base<TChunk> {
+  reducer?: undefined
 
   /**
-   * Data used before the first chunk arrives. Required with a custom
-   * {@link reducer}.
+   * Data used before the first chunk arrives.
    *
    * @default []
    */
-  initialValue?: TData
+  initialValue?: TChunk[]
 }
+
+/**
+ * Options for {@link streamedQuery} that merge the chunks with a custom
+ * `reducer`.
+ */
+export interface StreamedQueryOptions_WithReducer<
+  TChunk,
+  TData,
+> extends StreamedQueryOptions_Base<TChunk> {
+  /**
+   * Merges a new chunk into the accumulated data. Must not mutate `data`.
+   */
+  reducer: (data: TData, chunk: TChunk) => TData
+
+  /**
+   * Data used before the first chunk arrives.
+   */
+  initialValue: TData
+}
+
+/**
+ * Options for {@link streamedQuery}.
+ */
+export type StreamedQueryOptions<TChunk, TData = TChunk[]> =
+  | StreamedQueryOptions_WithoutReducer<TChunk>
+  | StreamedQueryOptions_WithReducer<TChunk, TData>
 
 /**
  * Query function returned by {@link streamedQuery}.
@@ -83,20 +103,21 @@ export type StreamedQueryFn<TData> = (context: StreamedQueryFnContext) => Promis
  * @param options - options of the streamed query
  */
 export function streamedQuery<TChunk>(
-  options: StreamedQueryOptionsBase<TChunk> & { reducer?: undefined; initialValue?: TChunk[] },
+  options: StreamedQueryOptions_WithoutReducer<TChunk>,
 ): StreamedQueryFn<TChunk[]>
 export function streamedQuery<TChunk, TData>(
-  options: StreamedQueryOptionsBase<TChunk> & {
-    reducer: (data: TData, chunk: TChunk) => TData
-    initialValue: TData
-  },
+  options: StreamedQueryOptions_WithReducer<TChunk, TData>,
+): StreamedQueryFn<TData>
+export function streamedQuery<TChunk, TData>(
+  options: StreamedQueryOptions<TChunk, TData>,
 ): StreamedQueryFn<TData>
 export function streamedQuery<TChunk, TData>({
   stream,
   refetchMode = 'reset',
   reducer = (data, chunk) => [...(data as unknown[]), chunk] as TData,
   initialValue = [] as TData,
-}: StreamedQueryOptions<TChunk, TData>): StreamedQueryFn<TData> {
+}: StreamedQueryOptions_Base<TChunk> &
+  Partial<StreamedQueryOptions_WithReducer<TChunk, TData>>): StreamedQueryFn<TData> {
   return async (context) => {
     const { entry, queryCache, signal } = context
     const isRefetch = entry.state.value.data !== undefined
