@@ -289,7 +289,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
   // and plugins won't be able to hook into entry creation and fetching
   // this allows use to attach reactive effects to the scope later on
   const scope = getCurrentScope()!
-  const app: App<unknown> = getActivePinia()!._a
+  const pinia = getActivePinia()!
+  const app: App<unknown> = pinia._a
 
   if (process.env.NODE_ENV !== 'production') {
     if (!hasInjectionContext() && shouldWarnOnce('useQueryCache-injection-context')) {
@@ -699,7 +700,8 @@ export const useQueryCache = /* @__PURE__ */ defineStore(QUERY_STORE_ID, ({ acti
         settled: false,
         abortController,
         // wrapping with async allows us to catch synchronous errors too
-        refreshCall: (async () => options!.query({ signal, entry }))()
+        refreshCall: (async () =>
+          options!.query({ signal, entry, queryCache: useQueryCache(pinia) }))()
           .then((data) => {
             pendingCall.settled = true
             if (pendingCall === entry.pending) {

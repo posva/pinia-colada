@@ -2,7 +2,7 @@ import { inject } from 'vue'
 import type { InjectionKey, MaybeRefOrGetter } from 'vue'
 import type { EntryKey } from './entry-keys'
 import type { ErrorDefault, QueryMeta } from './types-extension'
-import type { UseQueryEntry } from './query-store'
+import type { QueryCache, UseQueryEntry } from './query-store'
 
 /**
  * Possible values for `refetchOnMount`, `refetchOnWindowFocus`, and `refetchOnReconnect`.
@@ -92,6 +92,11 @@ export interface UseQueryFnContext<
    * The query entry associated with the current query.
    */
   entry: UseQueryEntry<TData, TError, TDataInitial>
+
+  /**
+   * The query cache that owns the {@link entry}.
+   */
+  queryCache: QueryCache
 }
 
 /**
