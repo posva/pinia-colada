@@ -15,7 +15,7 @@ const { mutate, data: events } = useMutation({
 })
 ```
 
-`stream` gets the variables passed to `mutate()` and the mutation context (`entry`, `mutationCache`). It returns an `AsyncIterable`, for example an async generator.
+`stream` gets the variables passed to `mutate()` and the mutation context (`signal`, `entry`, `mutationCache`). Pass the `signal` to your requests to stop the stream when the mutation is cancelled. It returns an `AsyncIterable`, for example an async generator.
 
 While the stream sends chunks:
 
@@ -51,4 +51,4 @@ The `reducer` must not mutate its first argument. Return a new value instead.
 ## Differences with streamed queries
 
 - There is no `refetchMode`. Each call of `mutate()` starts again from `initialValue`.
-- Mutations do not get a `signal`. To stop the stream, create an `AbortController` yourself and pass its `signal` to your request.
+- Mutations are not cancelled when a new call starts. Call [`mutationCache.cancel(entry)`](./mutations.md#cancelling-mutations) to stop a stream.
