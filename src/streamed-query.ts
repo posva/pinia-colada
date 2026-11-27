@@ -133,8 +133,8 @@ export function streamedQuery<TChunk, TData>({
     let result = initialValue
 
     for await (const chunk of await stream(context)) {
-      // a newer fetch or a cancel() owns the entry now
-      if (signal.aborted) break
+      // the cache ignores errors from its own signal, so partial data is never committed
+      signal.throwIfAborted()
 
       if (isReplace) {
         result = reducer(result, chunk)

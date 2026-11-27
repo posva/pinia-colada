@@ -249,6 +249,24 @@ describe('streamedQuery', () => {
       await flushPromises()
       expect(mounted.wrapper.vm.data).toEqual([3, 4])
     })
+
+    it('keeps the existing data if the last consumer leaves while replacing', async () => {
+      const mounted = await mountAndStream({ refetchMode: 'replace' })
+
+      mounted.wrapper.vm.refetch()
+      await flushPromises()
+      mounted.current.push(3)
+      await flushPromises()
+
+      mounted.wrapper.unmount()
+      // the stream ignores the signal and yields once more
+      mounted.current.push(4)
+      await flushPromises()
+
+      const entry = mounted.queryCache.get(['key'])!
+      expect(entry.state.value).toEqual({ status: 'success', data: [1, 2], error: null })
+      expect(entry.asyncStatus.value).toBe('idle')
+    })
   })
 
   it('ignores chunks after the query is cancelled', async () => {
