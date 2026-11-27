@@ -15,15 +15,19 @@ async function* numbers(): AsyncGenerator<number> {
 
 describe('streamedQuery', () => {
   it('infers an array of chunks by default', () => {
-    const { data } = useQuery({
+    const { data, state } = useQuery({
       key: ['n'],
       query: streamedQuery({ stream: () => numbers() }),
     })
     expectTypeOf(data.value).toEqualTypeOf<number[] | undefined>()
+    expectTypeOf(state.value.data).toEqualTypeOf<number[] | undefined>()
+    if (state.value.status === 'success') {
+      expectTypeOf(state.value.data).toEqualTypeOf<number[]>()
+    }
   })
 
   it('infers the type of a custom reducer', () => {
-    const { data } = useQuery({
+    const { data, state } = useQuery({
       key: ['n'],
       query: streamedQuery({
         stream: () => numbers(),
@@ -32,6 +36,10 @@ describe('streamedQuery', () => {
       }),
     })
     expectTypeOf(data.value).toEqualTypeOf<number | undefined>()
+    expectTypeOf(state.value.data).toEqualTypeOf<number | undefined>()
+    if (state.value.status === 'success') {
+      expectTypeOf(state.value.data).toEqualTypeOf<number>()
+    }
   })
 
   it('requires an initial value with a custom reducer', () => {
