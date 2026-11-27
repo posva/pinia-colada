@@ -392,9 +392,7 @@ describe('useMutation', () => {
       // no need since it's synchronous
       // await flushPromises()
       expect(onMutate).toHaveBeenCalledTimes(1)
-      expect(onMutate).toHaveBeenCalledWith(undefined, {
-        ...baseContext,
-      })
+      expect(onMutate).toHaveBeenCalledWith(undefined, baseContext)
     })
 
     it('local onMutate receives global onMutate result', async () => {
@@ -465,9 +463,7 @@ describe('useMutation', () => {
 
       wrapper.vm.mutate()
       await flushPromises()
-      expect(onSuccess).toHaveBeenCalledWith(42, undefined, {
-        ...baseContext,
-      })
+      expect(onSuccess).toHaveBeenCalledWith(42, undefined, baseContext)
     })
 
     it('triggers global onError', async () => {
@@ -485,9 +481,7 @@ describe('useMutation', () => {
 
       await expect(wrapper.vm.mutateAsync()).rejects.toThrow()
       await flushPromises()
-      expect(onError).toHaveBeenCalledWith(new Error('foobar'), undefined, {
-        ...baseContext,
-      })
+      expect(onError).toHaveBeenCalledWith(new Error('foobar'), undefined, baseContext)
     })
 
     it('triggers global onSettled', async () => {
@@ -501,9 +495,7 @@ describe('useMutation', () => {
 
       wrapper.vm.mutate()
       await flushPromises()
-      expect(onSettled).toHaveBeenCalledWith(42, undefined, undefined, {
-        ...baseContext,
-      })
+      expect(onSettled).toHaveBeenCalledWith(42, undefined, undefined, baseContext)
     })
 
     it('passes entry to local onMutate via global context', async () => {
@@ -511,9 +503,7 @@ describe('useMutation', () => {
       const { wrapper } = mountSimple({ onMutate })
 
       wrapper.vm.mutate()
-      expect(onMutate).toHaveBeenCalledWith(undefined, {
-        ...baseContext,
-      })
+      expect(onMutate).toHaveBeenCalledWith(undefined, baseContext)
     })
 
     it('entry in context refers to the actual mutation entry', async () => {
@@ -523,7 +513,11 @@ describe('useMutation', () => {
       wrapper.vm.mutate()
       await flushPromises()
       expect(onSuccess).toHaveBeenCalledTimes(1)
-      expect(onSuccess).toHaveBeenCalledWith(42, undefined, expect.objectContaining(baseContext))
+      expect(onSuccess).toHaveBeenCalledWith(
+        42,
+        undefined,
+        expect.objectContaining({ entry: anyEntry }),
+      )
     })
   })
 

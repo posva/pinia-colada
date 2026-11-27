@@ -9,7 +9,7 @@ import {
   type UseMutationOptions,
   type UseMutationOptionsWithDefaults,
 } from './mutation-options'
-import { mockConsoleError, mockWarn } from '@posva/test-utils'
+import { mockConsoleError, mockWarn, promiseWithResolvers } from '@posva/test-utils'
 import { useMutation } from './use-mutation'
 
 describe('Mutation Cache store', () => {
@@ -464,14 +464,10 @@ describe('Mutation Cache store', () => {
   })
 
   describe('cancel', () => {
-    function mutateEntry(options: Partial<UseMutationOptions<unknown, void>>) {
+    function mutateEntry(options: UseMutationOptions<unknown, void>) {
       const mutationCache = useMutationCache()
       const entry = mutationCache.ensure(
-        mutationCache.create({
-          ...USE_MUTATION_DEFAULTS,
-          mutation: () => new Promise(() => {}),
-          ...options,
-        }),
+        mutationCache.create({ ...USE_MUTATION_DEFAULTS, ...options }),
         undefined,
       )
       return { mutationCache, entry, promise: mutationCache.mutate(entry) }
@@ -497,16 +493,14 @@ describe('Mutation Cache store', () => {
     })
 
     it('fails with the reason if the mutation ignores the signal', async () => {
-      let resolve!: (data: string) => void
-      const { mutationCache, entry, promise } = mutateEntry({
-        mutation: () => new Promise((r) => (resolve = r)),
-      })
+      const pending = promiseWithResolvers<string>()
+      const { mutationCache, entry, promise } = mutateEntry({ mutation: () => pending.promise })
       await flushPromises()
 
       mutationCache.cancel(entry, 'stop')
       // still loading until the mutation settles
       expect(entry.asyncStatus.value).toBe('loading')
-      resolve('ok')
+      pending.resolve('ok')
 
       await expect(promise).rejects.toBe('stop')
       expect(entry.state.value).toEqual({ status: 'error', data: undefined, error: 'stop' })
