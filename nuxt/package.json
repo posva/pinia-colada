@@ -61,7 +61,7 @@
     "nuxt": "^4.7.0",
     "playwright-core": "^1.65.1",
     "tsdown": "^0.23.7",
-    "typescript": "~6.0.3",
+    "typescript": "~7.0.2",
     "vue-tsc": "^3.3.14"
   }
 }
