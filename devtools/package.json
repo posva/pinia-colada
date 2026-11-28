@@ -78,7 +78,7 @@
     "@devframes/hub": "^1.4.0",
     "@devframes/hub-ui": "^1.4.0",
     "@devframes/vite": "^1.4.0",
-    "@iconify-json/lucide": "^1.2.160",
+    "@iconify-json/lucide": "^1.2.161",
     "@pinia/colada": "workspace:^",
     "@posva/splitpanes": "^4.0.6",
     "@tailwindcss/vite": "^4.3.5",
