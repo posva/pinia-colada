@@ -37,7 +37,7 @@
     "@vitejs/devtools": "^0.8.3",
     "@vitejs/plugin-vue": "^6.0.11",
     "@vue/tsconfig": "^0.9.1",
-    "autoprefixer": "^10.7.0",
+    "autoprefixer": "^10.7.1",
     "devframe": "^1.4.0",
     "json-server": "0.17.4",
     "npm-run-all2": "^9.1.0",
